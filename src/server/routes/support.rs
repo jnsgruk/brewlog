@@ -161,3 +161,49 @@ pub fn set_datastar_patch_headers(headers: &mut HeaderMap, selector: &'static st
     let _ = headers.insert("datastar-selector", HeaderValue::from_static(selector));
     let _ = headers.insert("datastar-mode", HeaderValue::from_static("replace"));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_datastar_request_detects_correctly() {
+        let mut headers = HeaderMap::new();
+        headers.insert("datastar-request", HeaderValue::from_static("true"));
+
+        assert!(is_datastar_request(&headers));
+    }
+
+    #[test]
+    fn is_datastar_request_detects_true_flag_case_insensitively() {
+        let mut headers = HeaderMap::new();
+        headers.insert("datastar-request", HeaderValue::from_static("TrUe"));
+
+        assert!(is_datastar_request(&headers));
+    }
+
+    #[test]
+    fn is_datastar_request_defaults_to_false() {
+        let mut headers = HeaderMap::new();
+        headers.insert("datastar-request", HeaderValue::from_static("nope"));
+
+        assert!(!is_datastar_request(&headers));
+        assert!(!is_datastar_request(&HeaderMap::new()));
+    }
+
+    #[test]
+    fn set_datastar_patch_headers_sets_expected_values() {
+        let mut headers = HeaderMap::new();
+
+        set_datastar_patch_headers(&mut headers, "body > div");
+
+        assert_eq!(
+            headers.get("datastar-selector"),
+            Some(&HeaderValue::from_static("body > div"))
+        );
+        assert_eq!(
+            headers.get("datastar-mode"),
+            Some(&HeaderValue::from_static("replace"))
+        );
+    }
+}
