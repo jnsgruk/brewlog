@@ -34,5 +34,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
-tokio = { version = "1.38", features = ["rt-multi-thread", "macros"] }
 wiremock = "0.6"
