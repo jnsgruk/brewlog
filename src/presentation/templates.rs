@@ -1,10 +1,12 @@
 use askama::Template;
 
 use super::views::{
-    ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView, TimelineMonthView,
+    ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView, TimelineEventView,
+    TimelineMonthView,
 };
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::RoastSortKey;
+use crate::domain::timeline::TimelineSortKey;
 
 #[derive(Template)]
 #[template(path = "roasters.html")]
@@ -56,6 +58,16 @@ pub struct RoastListTemplate {
 #[template(path = "timeline.html")]
 pub struct TimelineTemplate {
     pub nav_active: &'static str,
+    pub events: Paginated<TimelineEventView>,
+    pub navigator: ListNavigator<TimelineSortKey>,
+    pub months: Vec<TimelineMonthView>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/timeline_chunk.html")]
+pub struct TimelineChunkTemplate {
+    pub events: Paginated<TimelineEventView>,
+    pub navigator: ListNavigator<TimelineSortKey>,
     pub months: Vec<TimelineMonthView>,
 }
 

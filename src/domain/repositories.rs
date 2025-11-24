@@ -5,7 +5,7 @@ use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
 use crate::domain::roasts::{Roast, RoastWithRoaster, UpdateRoast};
-use crate::domain::timeline::TimelineEvent;
+use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
 use async_trait::async_trait;
 
 #[async_trait]
@@ -63,5 +63,16 @@ pub trait RoastRepository: Send + Sync {
 
 #[async_trait]
 pub trait TimelineEventRepository: Send + Sync {
-    async fn list_all(&self) -> Result<Vec<TimelineEvent>, RepositoryError>;
+    async fn list(
+        &self,
+        request: &ListRequest<TimelineSortKey>,
+    ) -> Result<Page<TimelineEvent>, RepositoryError>;
+
+    async fn list_all(&self) -> Result<Vec<TimelineEvent>, RepositoryError> {
+        let sort_key = <TimelineSortKey as SortKey>::default();
+        let request =
+            ListRequest::<TimelineSortKey>::show_all(sort_key, sort_key.default_direction());
+        let page = self.list(&request).await?;
+        Ok(page.items)
+    }
 }

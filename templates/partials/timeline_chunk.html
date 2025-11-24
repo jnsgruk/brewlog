@@ -1,0 +1,20 @@
+<div
+  data-timeline-chunk
+  data-next-url="{% if events.has_next() %}{{ navigator.fragment_page_href(events.next_page().unwrap()) }}{% else %}{% endif %}"
+  data-has-more="{{ events.has_next() }}"
+>
+  <div data-chunk-months>
+    {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
+  </div>
+  <ul data-chunk-nav-items class="hidden">
+    {% for month in months %}
+    <li data-timeline-nav-item>
+      <a
+        href="#{{ month.anchor }}"
+        class="block rounded-md border border-transparent px-3 py-2 transition hover:border-amber-400 hover:bg-amber-100/70 hover:text-amber-700"
+        >{{ month.heading }}</a
+      >
+    </li>
+    {% endfor %}
+  </ul>
+</div>

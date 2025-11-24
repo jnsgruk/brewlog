@@ -45,11 +45,15 @@ enum PageSizeParam {
 
 impl ListQuery {
     pub fn into_request<K: SortKey>(self) -> ListRequest<K> {
+        self.into_request_with_default::<K>(DEFAULT_PAGE_SIZE)
+    }
+
+    pub fn into_request_with_default<K: SortKey>(self, default_page_size: u32) -> ListRequest<K> {
         let page = self.page.unwrap_or(1);
         let page_size = match self.page_size {
             Some(PageSizeParam::Number(value)) => PageSize::limited(value),
             Some(PageSizeParam::Text(text)) => page_size_from_text(&text),
-            None => PageSize::limited(DEFAULT_PAGE_SIZE),
+            None => PageSize::limited(default_page_size.max(1)),
         };
 
         let sort_key = self

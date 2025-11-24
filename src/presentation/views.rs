@@ -1,6 +1,7 @@
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
+use crate::domain::timeline::TimelineEvent;
 
 pub struct Paginated<T> {
     pub items: Vec<T>,
@@ -404,11 +405,13 @@ impl RoastView {
     }
 }
 
+#[derive(Clone)]
 pub struct TimelineEventDetailView {
     pub label: String,
     pub value: String,
 }
 
+#[derive(Clone)]
 pub struct TimelineEventView {
     pub id: String,
     pub kind_label: &'static str,
@@ -430,4 +433,78 @@ pub struct TimelineMonthView {
     pub anchor: String,
     pub heading: String,
     pub events: Vec<TimelineEventView>,
+}
+
+impl TimelineEventView {
+    pub fn from_domain(event: TimelineEvent) -> Self {
+        let TimelineEvent {
+            id,
+            entity_type,
+            entity_id,
+            occurred_at,
+            title,
+            details,
+            tasting_notes,
+        } = event;
+
+        let kind_label = match entity_type.as_str() {
+            "roaster" => "Roaster Added",
+            "roast" => "Roast Added",
+            _ => "Event",
+        };
+
+        let link = match entity_type.as_str() {
+            "roaster" => format!("/roasters/{entity_id}"),
+            "roast" => format!("/roasts/{entity_id}"),
+            _ => String::from("#"),
+        };
+
+        let mut mapped_details = Vec::new();
+        let mut external_link = None;
+        for detail in details {
+            if detail.label.eq_ignore_ascii_case("homepage") {
+                let trimmed = detail.value.trim();
+                if !trimmed.is_empty() && trimmed != "—" {
+                    external_link = Some(trimmed.to_string());
+                }
+            } else {
+                mapped_details.push(TimelineEventDetailView {
+                    label: detail.label,
+                    value: detail.value,
+                });
+            }
+        }
+
+        let tasting_notes = if entity_type == "roast" {
+            let notes = tasting_notes
+                .into_iter()
+                .flat_map(|note| {
+                    note.split(|ch| ch == ',' || ch == '\n')
+                        .map(|segment| segment.trim().to_string())
+                        .filter(|segment| !segment.is_empty())
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            Some(notes)
+        } else {
+            None
+        };
+
+        Self {
+            id,
+            kind_label,
+            badge_class: "bg-amber-200 text-amber-800",
+            accent_class: "bg-amber-600",
+            card_border_class: "border-amber-200 bg-amber-50/80",
+            title_class: "text-amber-800",
+            date_label: occurred_at.format("%B %d, %Y").to_string(),
+            time_label: Some(occurred_at.format("%H:%M UTC").to_string()),
+            iso_timestamp: occurred_at.to_rfc3339(),
+            title,
+            link,
+            external_link,
+            details: mapped_details,
+            tasting_notes,
+        }
+    }
 }

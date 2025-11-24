@@ -7,94 +7,65 @@
 </header>
 
 <div class="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1fr),14rem]">
-  <section class="space-y-12">
+  <section
+    class="space-y-12"
+    id="timeline-events"
+    data-role="timeline-months"
+    data-empty="{{ months.is_empty() }}"
+  >
     {% if months.is_empty() %}
     <p
       class="rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-6 text-sm text-stone-600"
+      data-role="timeline-empty-state"
     >
       No events yet. Create roasters or roasts to populate the timeline.
     </p>
-    {% else %} {% for month in months %}
-    <div id="{{ month.anchor }}" class="scroll-mt-24">
-      <h2 class="text-2xl font-semibold text-amber-800">{{ month.heading }}</h2>
-      <ol class="mt-6 space-y-8 border-l-2 border-amber-200 pl-4 sm:pl-8">
-        {% for event in month.events %}
-        <li class="relative pl-6 sm:pl-10">
-          <span
-            class="absolute left-[-10px] top-2 h-5 w-5 rounded-full border-[6px] border-amber-50 {{ event.accent_class }} sm:left-[-14px]"
-          ></span>
-          <div class="rounded-lg border {{ event.card_border_class }} p-5 shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <span
-                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ event.badge_class }}"
-                >{{ event.kind_label }}</span
-              >
-              <time
-                datetime="{{ event.iso_timestamp }}"
-                class="text-xs uppercase tracking-wide text-stone-500"
-              >
-                {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{%
-                endif %}
-              </time>
-            </div>
-            <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold {{ event.title_class }}">
-              <a href="{{ event.link }}" class="hover:text-amber-600">{{ event.title }}</a>
-              {% if let Some(url) = event.external_link %}
-              <a
-                href="{{ url }}"
-                class="inline-flex h-7 w-7 items-center justify-center text-amber-700 transition hover:text-amber-500"
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label="Open external link"
-              >
-                <svg
-                  class="h-3.5 w-3.5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
-                    clip-rule="evenodd"
-                  />
-                  <path
-                    d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
-                  />
-                </svg>
-                <span class="sr-only">Open external link</span>
-              </a>
-              {% endif %}
-            </h3>
-            {% if event.details.len() > 0 %}
-            <dl class="mt-4 flex flex-col gap-2 text-sm text-stone-600">
-              {% for detail in event.details %}
-              <div class="flex justify-between gap-2">
-                <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
-                <dd class="text-right">{{ detail.value }}</dd>
-              </div>
-              {% endfor %}
-            </dl>
-            {% endif %} {% if let Some(notes) = event.tasting_notes %} {% if notes.is_empty() %}
-            <p class="mt-4 text-sm text-stone-600">No tasting notes yet.</p>
-            {% else %}
-            <ul class="mt-4 flex flex-wrap gap-2">
-              {% for note in notes %}
-              <li>
-                <span
-                  class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
-                  >{{ note }}</span
-                >
-              </li>
-              {% endfor %}
-            </ul>
-            {% endif %} {% endif %}
-          </div>
-        </li>
-        {% endfor %}
-      </ol>
+    {% else %} {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
+    {% endif %}
+
+    <div
+      id="timeline-loader"
+      class="mt-8 flex flex-col items-center gap-3"
+      data-next-url="{% if events.has_next() %}{{ navigator.fragment_page_href(events.next_page().unwrap()) }}{% else %}{% endif %}"
+      data-has-more="{{ events.has_next() }}"
+      data-empty="{{ months.is_empty() }}"
+    >
+      <button
+        id="timeline-load-more"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-full border border-amber-500 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
+        {%
+        if
+        months.is_empty()
+        %}hidden{%
+        endif
+        %}
+        {%
+        if
+        !events.has_next()
+        %}disabled{%
+        endif
+        %}
+      >
+        <span aria-hidden="true">↓</span>
+        <span>Load more</span>
+      </button>
+      <p id="timeline-status" class="text-xs text-stone-500" hidden>Loading…</p>
+      <p
+        id="timeline-end"
+        class="text-sm text-stone-500"
+        {%
+        if
+        events.has_next()
+        %}hidden{%
+        endif
+        %}
+      >
+        No more events.
+      </p>
+      <p id="timeline-error" class="text-sm text-red-600" hidden></p>
     </div>
-    {% endfor %} {% endif %}
+    <div id="timeline-sentinel" class="h-1"></div>
   </section>
   <aside class="sticky top-24 self-start lg:top-28">
     <div class="rounded-lg border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
@@ -104,17 +75,179 @@
         Timeline navigation will appear once events are available.
       </p>
       {% else %}
-      <nav class="mt-3 flex flex-col gap-2 text-sm">
-        {% for month in months %}
-        <a
-          href="#{{ month.anchor }}"
-          class="rounded-md border border-transparent px-3 py-2 transition hover:border-amber-400 hover:bg-amber-100/70 hover:text-amber-700"
-          >{{ month.heading }}</a
-        >
-        {% endfor %}
+      <nav class="mt-3 text-sm">
+        <ul class="flex flex-col gap-2" data-role="timeline-nav-list">
+          {% for month in months %}
+          <li data-timeline-nav-item>
+            <a
+              href="#{{ month.anchor }}"
+              class="block rounded-md border border-transparent px-3 py-2 transition hover:border-amber-400 hover:bg-amber-100/70 hover:text-amber-700"
+              >{{ month.heading }}</a
+            >
+          </li>
+          {% endfor %}
+        </ul>
       </nav>
       {% endif %}
     </div>
   </aside>
 </div>
+
+<script type="module">
+  const loader = document.getElementById("timeline-loader")
+  const monthsContainer = document.getElementById("timeline-events")
+  const navList = document.querySelector('[data-role="timeline-nav-list"]')
+  const loadMoreButton = document.getElementById("timeline-load-more")
+  const statusLine = document.getElementById("timeline-status")
+  const endLine = document.getElementById("timeline-end")
+  const errorLine = document.getElementById("timeline-error")
+  const sentinel = document.getElementById("timeline-sentinel")
+  const emptyState = document.querySelector('[data-role="timeline-empty-state"]')
+
+  if (loader && monthsContainer && sentinel) {
+    let nextUrl = loader.dataset.nextUrl || ""
+    let loading = false
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMore()
+        }
+      },
+      { rootMargin: "200px" }
+    )
+
+    const setHasMore = (hasMore, url) => {
+      loader.dataset.hasMore = hasMore ? "true" : "false"
+      nextUrl = url || ""
+      loader.dataset.nextUrl = nextUrl
+      if (loadMoreButton) {
+        loadMoreButton.disabled = !hasMore
+      }
+      if (endLine) {
+        endLine.hidden = hasMore || loader.dataset.empty === "true"
+      }
+      if (hasMore) {
+        observer.observe(sentinel)
+      } else {
+        observer.disconnect()
+      }
+    }
+
+    const appendMonths = (chunk) => {
+      const monthsFragment = chunk.querySelector("[data-chunk-months]")
+      if (!monthsFragment) {
+        return
+      }
+      for (const monthNode of Array.from(monthsFragment.children)) {
+        const anchor = monthNode.id
+        if (!anchor) {
+          continue
+        }
+        const existing = document.getElementById(anchor)
+        if (existing) {
+          const existingList = existing.querySelector("ol")
+          const newList = monthNode.querySelector("ol")
+          if (existingList && newList) {
+            existingList.append(...Array.from(newList.children))
+          }
+        } else {
+          monthsContainer.appendChild(monthNode)
+        }
+      }
+    }
+
+    const appendNavItems = (chunk) => {
+      if (!navList) {
+        return
+      }
+      const navItemsContainer = chunk.querySelector("[data-chunk-nav-items]")
+      if (!navItemsContainer) {
+        return
+      }
+      for (const item of Array.from(navItemsContainer.children)) {
+        const link = item.querySelector("a")
+        if (!link) {
+          continue
+        }
+        const href = link.getAttribute("href")
+        if (!href) {
+          continue
+        }
+        if (!navList.querySelector(`a[href="${href}"]`)) {
+          navList.appendChild(item)
+        }
+      }
+    }
+
+    const clearEmptyState = () => {
+      if (emptyState && !emptyState.hidden) {
+        emptyState.hidden = true
+        loader.dataset.empty = "false"
+      }
+    }
+
+    const loadMore = async () => {
+      if (!nextUrl || loading) {
+        return
+      }
+      loading = true
+      if (statusLine) {
+        statusLine.hidden = false
+      }
+      if (errorLine) {
+        errorLine.hidden = true
+      }
+      try {
+        const response = await fetch(nextUrl, {
+          headers: {
+            "X-Requested-With": "fetch",
+            "datastar-request": "true",
+          },
+        })
+        if (!response.ok) {
+          throw new Error(`Unexpected response: ${response.status}`)
+        }
+        const html = await response.text()
+        const template = document.createElement("template")
+        template.innerHTML = html.trim()
+        const chunk = template.content.querySelector("[data-timeline-chunk]")
+        if (!chunk) {
+          throw new Error("Invalid timeline chunk payload")
+        }
+        appendMonths(chunk)
+        appendNavItems(chunk)
+        clearEmptyState()
+
+        const hasMore = chunk.dataset.hasMore === "true"
+        const url = chunk.dataset.nextUrl || ""
+        setHasMore(hasMore, url)
+      } catch (error) {
+        console.error(error)
+        if (errorLine) {
+          errorLine.textContent = "Failed to load more events. Please try again."
+          errorLine.hidden = false
+        }
+        if (loadMoreButton) {
+          loadMoreButton.disabled = false
+        }
+      } finally {
+        loading = false
+        if (statusLine) {
+          statusLine.hidden = true
+        }
+      }
+    }
+
+    if (loadMoreButton) {
+      loadMoreButton.addEventListener("click", () => {
+        void loadMore()
+      })
+    }
+
+    if (loader.dataset.empty !== "true" && nextUrl) {
+      observer.observe(sentinel)
+    }
+  }
+</script>
 {% endblock %}

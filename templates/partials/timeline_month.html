@@ -1,0 +1,74 @@
+<div id="{{ month.anchor }}" class="scroll-mt-24" data-timeline-month>
+  <h2 class="text-2xl font-semibold text-amber-800">{{ month.heading }}</h2>
+  <ol class="mt-6 space-y-8 border-l-2 border-amber-200 pl-4 sm:pl-8">
+    {% for event in month.events %}
+    <li class="relative pl-6 sm:pl-10" data-timeline-event>
+      <span
+        class="absolute left-[-10px] top-2 h-5 w-5 rounded-full border-[6px] border-amber-50 {{ event.accent_class }} sm:left-[-14px]"
+      ></span>
+      <div class="rounded-lg border {{ event.card_border_class }} p-5 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span
+            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ event.badge_class }}"
+            >{{ event.kind_label }}</span
+          >
+          <time
+            datetime="{{ event.iso_timestamp }}"
+            class="text-xs uppercase tracking-wide text-stone-500"
+          >
+            {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif
+            %}
+          </time>
+        </div>
+        <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold {{ event.title_class }}">
+          <a href="{{ event.link }}" class="hover:text-amber-600">{{ event.title }}</a>
+          {% if let Some(url) = event.external_link %}
+          <a
+            href="{{ url }}"
+            class="inline-flex h-7 w-7 items-center justify-center text-amber-700 transition hover:text-amber-500"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Open external link"
+          >
+            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fill-rule="evenodd"
+                d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+                clip-rule="evenodd"
+              />
+              <path
+                d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+              />
+            </svg>
+            <span class="sr-only">Open external link</span>
+          </a>
+          {% endif %}
+        </h3>
+        {% if event.details.len() > 0 %}
+        <dl class="mt-4 flex flex-col gap-2 text-sm text-stone-600">
+          {% for detail in event.details %}
+          <div class="flex justify-between gap-2">
+            <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
+            <dd class="text-right">{{ detail.value }}</dd>
+          </div>
+          {% endfor %}
+        </dl>
+        {% endif %} {% if let Some(notes) = event.tasting_notes %} {% if notes.is_empty() %}
+        <p class="mt-4 text-sm text-stone-600">No tasting notes yet.</p>
+        {% else %}
+        <ul class="mt-4 flex flex-wrap gap-2">
+          {% for note in notes %}
+          <li>
+            <span
+              class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
+              >{{ note }}</span
+            >
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %} {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</div>

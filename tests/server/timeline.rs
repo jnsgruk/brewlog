@@ -26,20 +26,49 @@ async fn create_roast(app: &crate::helpers::TestApp, roaster_id: &str, name: &st
     assert_eq!(response.status(), 201);
 }
 
+async fn seed_timeline_with_roasts(
+    app: &crate::helpers::TestApp,
+    roast_count: usize,
+) -> (String, Vec<String>) {
+    let roaster_name = "Timeline Seed Roasters";
+    let roaster = create_roaster_with_payload(
+        app,
+        NewRoaster {
+            name: roaster_name.to_string(),
+            country: "UK".to_string(),
+            city: Some("Bristol".to_string()),
+            homepage: Some("https://example.com".to_string()),
+            notes: None,
+        },
+    )
+    .await;
+
+    // Ensure the roaster event predates the roast events.
+    sleep(Duration::from_millis(5)).await;
+
+    let mut roast_names = Vec::new();
+    for index in 0..roast_count {
+        let roast_name = format!("Seed Roast {index:02}");
+        create_roast(app, &roaster.id, &roast_name).await;
+        roast_names.push(roast_name);
+        // Space out timestamps to keep ordering deterministic.
+        sleep(Duration::from_millis(2)).await;
+    }
+
+    (roaster_name.to_string(), roast_names)
+}
+
 #[tokio::test]
 async fn timeline_page_returns_a_200_with_empty_state() {
-    // Arrange
     let app = spawn_app().await;
     let client = Client::new();
 
-    // Act
     let response = client
         .get(format!("{}/timeline", app.address))
         .send()
         .await
         .expect("failed to fetch timeline");
 
-    // Assert
     assert_eq!(response.status(), 200);
 
     let body = response.text().await.expect("failed to read response body");
@@ -51,7 +80,6 @@ async fn timeline_page_returns_a_200_with_empty_state() {
 
 #[tokio::test]
 async fn creating_a_roaster_surfaces_on_the_timeline() {
-    // Arrange
     let app = spawn_app().await;
     let client = Client::new();
 
@@ -69,17 +97,14 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
     .await;
     let roaster_id = roaster.id.clone();
 
-    // Give the database a brief moment to commit timestamps
     sleep(Duration::from_millis(10)).await;
 
-    // Act
     let response = client
         .get(format!("{}/timeline", app.address))
         .send()
         .await
         .expect("failed to fetch timeline");
 
-    // Assert
     assert_eq!(response.status(), 200);
 
     let body = response.text().await.expect("failed to read response body");
@@ -99,7 +124,6 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
 
 #[tokio::test]
 async fn creating_a_roast_surfaces_on_the_timeline() {
-    // Arrange
     let app = spawn_app().await;
     let client = Client::new();
 
@@ -115,19 +139,17 @@ async fn creating_a_roast_surfaces_on_the_timeline() {
     )
     .await
     .id;
-    // Ensure the roast event occurs after the roaster event to make ordering deterministic
+
     sleep(Duration::from_millis(5)).await;
     let roast_name = "Timeline Natural";
     create_roast(&app, &roaster_id, roast_name).await;
 
-    // Act
     let response = client
         .get(format!("{}/timeline", app.address))
         .send()
         .await
         .expect("failed to fetch timeline");
 
-    // Assert
     assert_eq!(response.status(), 200);
 
     let body = response.text().await.expect("failed to read response body");
@@ -142,5 +164,91 @@ async fn creating_a_roast_surfaces_on_the_timeline() {
     assert!(
         body.contains("Blueberry"),
         "Expected tasting notes to appear in timeline HTML, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn timeline_page_signals_more_results_when_over_page_size() {
+    let app = spawn_app().await;
+    let (_, roast_names) = seed_timeline_with_roasts(&app, 6).await;
+    assert_eq!(roast_names.len(), 6);
+
+    let client = Client::new();
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.expect("failed to read response body");
+
+    assert!(
+        body.contains(
+            "data-next-url=\"/timeline?page=2&amp;page_size=5&amp;sort=occurred-at&amp;dir=desc\""
+        ),
+        "Expected loader next-page URL missing from timeline HTML:\n{}",
+        body
+    );
+    assert!(
+        body.contains("data-has-more=\"true\""),
+        "Expected loader to signal additional pages"
+    );
+
+    let latest_roast = roast_names.last().unwrap();
+    assert!(
+        body.contains(latest_roast),
+        "Expected most recent roast '{latest_roast}' to appear in first page HTML"
+    );
+
+    let event_occurrences = body.matches("data-timeline-event").count();
+    assert_eq!(
+        event_occurrences, 5,
+        "Expected exactly 5 events on first page"
+    );
+}
+
+#[tokio::test]
+async fn timeline_chunk_endpoint_serves_remaining_events() {
+    let app = spawn_app().await;
+    let (roaster_name, roast_names) = seed_timeline_with_roasts(&app, 6).await;
+    let oldest_roast = roast_names
+        .first()
+        .expect("missing seeded roast name")
+        .clone();
+    let client = Client::new();
+
+    let chunk_url = format!(
+        "{}/timeline?page=2&page_size=5&sort=occurred-at&dir=desc",
+        app.address
+    );
+
+    let response = client
+        .get(chunk_url)
+        .header("datastar-request", "true")
+        .send()
+        .await
+        .expect("failed to fetch timeline chunk");
+
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.expect("failed to read response body");
+
+    assert!(
+        body.contains(&oldest_roast),
+        "Expected chunk payload to include oldest roast '{oldest_roast}':\n{}",
+        body
+    );
+    assert!(
+        body.contains(&roaster_name),
+        "Expected chunk payload to include the roaster event: {body}"
+    );
+    assert!(
+        body.contains("data-has-more=\"false\""),
+        "Expected chunk to disable further pagination"
+    );
+    assert!(
+        body.contains("data-next-url=\"\""),
+        "Expected chunk to clear next URL once exhausted"
     );
 }
