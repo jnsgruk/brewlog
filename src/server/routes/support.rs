@@ -3,7 +3,9 @@ use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
 use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
 use serde::Deserialize;
 
-use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, PageSize, SortDirection, SortKey};
+use crate::domain::listing::{
+    DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortDirection, SortKey,
+};
 use crate::server::errors::{ApiError, AppError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -64,6 +66,24 @@ impl ListQuery {
 
         ListRequest::new(page, page_size, sort_key, sort_direction)
     }
+}
+
+pub fn normalize_request<K, T>(request: ListRequest<K>, page: &Page<T>) -> ListRequest<K>
+where
+    K: SortKey,
+{
+    let page_size = if page.showing_all {
+        PageSize::All
+    } else {
+        PageSize::limited(page.page_size)
+    };
+
+    ListRequest::new(
+        page.page,
+        page_size,
+        request.sort_key(),
+        request.sort_direction(),
+    )
 }
 
 fn page_size_from_text(value: &str) -> PageSize {

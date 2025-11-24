@@ -3,7 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 
-use crate::domain::listing::{ListRequest, Page, PageSize, SortDirection};
+use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
 use crate::presentation::templates::{
     RoasterDetailTemplate, RoasterListTemplate, RoastersTemplate,
@@ -19,28 +19,6 @@ use crate::server::server::AppState;
 const ROASTER_PAGE_PATH: &str = "/roasters";
 const ROASTER_FRAGMENT_PATH: &str = "/roasters#roaster-list";
 
-fn normalize_request(
-    request: ListRequest<RoasterSortKey>,
-    page: &Page<Roaster>,
-) -> ListRequest<RoasterSortKey> {
-    let page_size = if page.showing_all {
-        PageSize::All
-    } else {
-        PageSize::limited(page.page_size)
-    };
-
-    ListRequest::new(
-        page.page,
-        page_size,
-        request.sort_key(),
-        request.sort_direction(),
-    )
-}
-
-fn roaster_navigator(request: ListRequest<RoasterSortKey>) -> ListNavigator<RoasterSortKey> {
-    ListNavigator::new(ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, request)
-}
-
 async fn load_roaster_page(
     state: &AppState,
     request: ListRequest<RoasterSortKey>,
@@ -51,9 +29,10 @@ async fn load_roaster_page(
         .await
         .map_err(AppError::from)?;
 
-    let normalized_request = normalize_request(request, &page);
+    let normalized_request = crate::server::routes::support::normalize_request(request, &page);
     let roasters = Paginated::from_page(page, RoasterView::from);
-    let navigator = roaster_navigator(normalized_request);
+    let navigator =
+        ListNavigator::new(ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, normalized_request);
 
     Ok((roasters, navigator))
 }
@@ -141,7 +120,8 @@ pub(crate) async fn create_roaster(
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
-        let target = roaster_navigator(request).page_href(1);
+        let target =
+            ListNavigator::new(ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, request).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(roaster)).into_response())
