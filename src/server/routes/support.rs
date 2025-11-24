@@ -1,0 +1,143 @@
+use axum::async_trait;
+use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
+use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
+use serde::Deserialize;
+
+use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, PageSize, SortDirection, SortKey};
+use crate::server::errors::{ApiError, AppError};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PayloadSource {
+    Json,
+    Form,
+}
+
+pub struct FlexiblePayload<T> {
+    inner: T,
+    source: PayloadSource,
+}
+
+impl<T> FlexiblePayload<T> {
+    pub fn into_parts(self) -> (T, PayloadSource) {
+        (self.inner, self.source)
+    }
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub(crate) struct ListQuery {
+    page: Option<u32>,
+    #[serde(default)]
+    page_size: Option<PageSizeParam>,
+    #[serde(default, rename = "sort")]
+    sort_key: Option<String>,
+    #[serde(default, rename = "dir")]
+    sort_dir: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum PageSizeParam {
+    Number(u32),
+    Text(String),
+}
+
+impl ListQuery {
+    pub fn into_request<K: SortKey>(self) -> ListRequest<K> {
+        let page = self.page.unwrap_or(1);
+        let page_size = match self.page_size {
+            Some(PageSizeParam::Number(value)) => PageSize::limited(value),
+            Some(PageSizeParam::Text(text)) => page_size_from_text(&text),
+            None => PageSize::limited(DEFAULT_PAGE_SIZE),
+        };
+
+        let sort_key = self
+            .sort_key
+            .as_deref()
+            .and_then(K::from_query)
+            .unwrap_or_else(K::default);
+
+        let sort_direction = self
+            .sort_dir
+            .as_deref()
+            .and_then(parse_direction)
+            .unwrap_or_else(|| sort_key.default_direction());
+
+        ListRequest::new(page, page_size, sort_key, sort_direction)
+    }
+}
+
+fn page_size_from_text(value: &str) -> PageSize {
+    if value.eq_ignore_ascii_case("all") {
+        PageSize::All
+    } else if let Ok(parsed) = value.parse::<u32>() {
+        PageSize::limited(parsed)
+    } else {
+        PageSize::limited(DEFAULT_PAGE_SIZE)
+    }
+}
+
+fn parse_direction(value: &str) -> Option<SortDirection> {
+    match value.to_ascii_lowercase().as_str() {
+        "asc" => Some(SortDirection::Asc),
+        "desc" => Some(SortDirection::Desc),
+        _ => None,
+    }
+}
+
+#[async_trait]
+impl<S, T> FromRequest<S> for FlexiblePayload<T>
+where
+    S: Send + Sync,
+    T: Send + 'static,
+    JsonPayload<T>: FromRequest<S>,
+    Form<T>: FromRequest<S>,
+{
+    type Rejection = ApiError;
+
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+        let content_type = req
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+
+        if content_type.starts_with("application/json") {
+            let JsonPayload(payload) = JsonPayload::<T>::from_request(req, state)
+                .await
+                .map_err(|_| ApiError::from(AppError::validation("invalid JSON payload")))?;
+
+            return Ok(Self {
+                inner: payload,
+                source: PayloadSource::Json,
+            });
+        }
+
+        if content_type.is_empty() || content_type.starts_with("application/x-www-form-urlencoded")
+        {
+            let Form(payload) = Form::<T>::from_request(req, state)
+                .await
+                .map_err(|_| ApiError::from(AppError::validation("invalid form payload")))?;
+
+            return Ok(Self {
+                inner: payload,
+                source: PayloadSource::Form,
+            });
+        }
+
+        Err(AppError::validation("unsupported content type").into())
+    }
+}
+
+pub fn is_datastar_request(headers: &HeaderMap) -> bool {
+    headers
+        .get("datastar-request")
+        .and_then(|value| value.to_str().ok())
+        .map(|value| value.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
+pub fn set_datastar_patch_headers(headers: &mut HeaderMap, selector: &'static str) {
+    let _ = headers.insert("datastar-selector", HeaderValue::from_static(selector));
+    let _ = headers.insert("datastar-mode", HeaderValue::from_static("replace"));
+}

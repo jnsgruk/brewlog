@@ -1,0 +1,125 @@
+{% extends "base.html" %} {% block title %}Brewlog · Roasts{% endblock %} {% block content %}
+<section data-signals:show-form="false">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">Roasts</h1>
+      <p class="max-w-2xl text-sm text-stone-600">Explore the latest roasts logged in Brewlog.</p>
+    </div>
+    {% if !roaster_options.is_empty() %}
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500 text-2xl font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
+      data-class:hidden="$showForm"
+      data-on:click="$showForm = true"
+      aria-label="Add new roast"
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+    {% endif %}
+  </header>
+
+  {% if roaster_options.is_empty() %}
+  <div
+    class="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-5 text-sm text-stone-600"
+  >
+    <h2 class="text-lg font-semibold text-amber-700">Add a roaster first</h2>
+    <p class="mt-2">
+      Roasts need a roaster.
+      <a class="text-amber-700 hover:text-amber-600 underline" href="/roasters"
+        >Create a roaster</a
+      >
+      to enable this form.
+    </p>
+  </div>
+  {% else %}
+  <div
+    class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm"
+    data-show="$showForm"
+    style="display: none"
+  >
+    <div>
+      <h2 class="text-lg font-semibold text-amber-700">New Roast</h2>
+      <p class="mt-1 text-sm text-stone-600">
+        Select a roaster, describe the roast, and Brewlog will take care of the rest.
+      </p>
+    </div>
+    <form
+      method="post"
+      action="/api/v1/roasts"
+      class="mt-4 flex flex-col gap-4"
+      data-on:submit="@post('/api/v1/roasts?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+      data-ref="form"
+      data-on:datastar-fetch="evt.detail.type === 'finished' && ($showForm = false, $form && $form.reset())"
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roaster *</span>
+          <select name="roaster_id" required class="input-field">
+            <option value="">Select a roaster</option>
+            {% for roaster in roaster_options %}
+            <option value="{{ roaster.id }}">{{ roaster.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roast Name *</span>
+          <input
+            type="text"
+            name="name"
+            required
+            class="input-field"
+            placeholder="Ethiopia Yirgacheffe"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Origin</span>
+          <input type="text" name="origin" class="input-field" placeholder="Ethiopia" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Region</span>
+          <input type="text" name="region" class="input-field" placeholder="Guji" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Producer</span>
+          <input
+            type="text"
+            name="producer"
+            class="input-field"
+            placeholder="Chelbesa Cooperative"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Process</span>
+          <input type="text" name="process" class="input-field" placeholder="Washed" />
+        </label>
+        <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Tasting Notes (comma or newline separated)</span>
+          <textarea
+            name="tasting_notes"
+            rows="2"
+            class="input-field"
+            placeholder="Blueberry, Jasmine"
+          ></textarea>
+        </label>
+      </div>
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+          data-on:click="($showForm = false, $form && $form.reset())"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+        >
+          Save Roast
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+</section>
+
+{% include "partials/roast_list.html" %} {% endblock %}

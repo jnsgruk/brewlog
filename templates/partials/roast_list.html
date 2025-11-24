@@ -1,0 +1,255 @@
+<div id="roast-list" class="mt-6" data-star-scope="roasts">
+  {% if roasts.items.is_empty() %}
+  <div
+    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+  >
+    <p class="text-center">No roasts recorded yet. Use the form above to add your first roast.</p>
+  </div>
+  {% else %}
+  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
+    <div
+      class="flex flex-col gap-3 border-b border-amber-200/70 px-4 py-3 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>
+        Showing {{ roasts.start_index() }}&ndash;{{ roasts.end_index() }} of {{ roasts.total }}
+        roasts
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:border-amber-500 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
+            {% if roasts.has_previous() %}
+            data-on:click="@get('{{ navigator.fragment_page_href(roasts.previous_page().unwrap()) }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+            {% else %}
+            disabled
+            {% endif %}
+          >
+            <span aria-hidden="true">←</span>
+            <span>Previous</span>
+          </button>
+          {% if roasts.is_showing_all() %}
+          <span class="font-semibold text-amber-800">Showing all results</span>
+          {% else %}
+          <span class="font-semibold text-amber-800"
+            >Page {{ roasts.page }} of {{ roasts.total_pages() }}</span
+          >
+          {% endif %}
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:border-amber-500 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
+            {% if roasts.has_next() %}
+            data-on:click="@get('{{ navigator.fragment_page_href(roasts.next_page().unwrap()) }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+            {% else %}
+            disabled
+            {% endif %}
+          >
+            <span>Next</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+        <label class="flex items-center gap-2 text-xs font-semibold text-stone-600">
+          <span>Rows</span>
+          <select
+            class="rounded-md border border-amber-300 bg-white px-2 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-400"
+            data-on:change="@get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+          >
+            <option value="5" data-href="{{ navigator.fragment_rows_href("5") }}" {% if roasts.is_page_size(5) %}selected{% endif %}>5</option>
+            <option value="10" data-href="{{ navigator.fragment_rows_href("10") }}" {% if roasts.is_page_size(10) %}selected{% endif %}>10</option>
+            <option value="20" data-href="{{ navigator.fragment_rows_href("20") }}" {% if roasts.is_page_size(20) %}selected{% endif %}>20</option>
+            <option value="50" data-href="{{ navigator.fragment_rows_href("50") }}" {% if roasts.is_page_size(50) %}selected{% endif %}>50</option>
+            <option value="all" data-href="{{ navigator.fragment_rows_href("all") }}" {% if roasts.is_showing_all() %}selected{% endif %}>All</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
+        <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
+          <tr>
+            {% set created_sorted = navigator.is_sorted_by("created-at") %}
+            <th
+              scope="col"
+              class="px-4 py-3"
+              aria-sort="{% if created_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
+                data-on:click="@get('{{ navigator.fragment_sort_href("created-at") }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+              >
+                <span>Added</span>
+                {% if created_sorted %}
+                {% if navigator.sort_direction() == "asc" %}
+                <span aria-hidden="true">↑</span>
+                {% else %}
+                <span aria-hidden="true">↓</span>
+                {% endif %}
+                {% else %}
+                <span aria-hidden="true">↕</span>
+                {% endif %}
+              </button>
+            </th>
+            {% set name_sorted = navigator.is_sorted_by("name") %}
+            <th
+              scope="col"
+              class="px-4 py-3"
+              aria-sort="{% if name_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
+                data-on:click="@get('{{ navigator.fragment_sort_href("name") }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+              >
+                <span>Roast</span>
+                {% if name_sorted %}
+                {% if navigator.sort_direction() == "asc" %}
+                <span aria-hidden="true">↑</span>
+                {% else %}
+                <span aria-hidden="true">↓</span>
+                {% endif %}
+                {% else %}
+                <span aria-hidden="true">↕</span>
+                {% endif %}
+              </button>
+            </th>
+            {% set roaster_sorted = navigator.is_sorted_by("roaster") %}
+            <th
+              scope="col"
+              class="px-4 py-3"
+              aria-sort="{% if roaster_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
+                data-on:click="@get('{{ navigator.fragment_sort_href("roaster") }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+              >
+                <span>Roaster</span>
+                {% if roaster_sorted %}
+                {% if navigator.sort_direction() == "asc" %}
+                <span aria-hidden="true">↑</span>
+                {% else %}
+                <span aria-hidden="true">↓</span>
+                {% endif %}
+                {% else %}
+                <span aria-hidden="true">↕</span>
+                {% endif %}
+              </button>
+            </th>
+            {% set origin_sorted = navigator.is_sorted_by("origin") %}
+            <th
+              scope="col"
+              class="px-4 py-3"
+              aria-sort="{% if origin_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
+                data-on:click="@get('{{ navigator.fragment_sort_href("origin") }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+              >
+                <span>Origin</span>
+                {% if origin_sorted %}
+                {% if navigator.sort_direction() == "asc" %}
+                <span aria-hidden="true">↑</span>
+                {% else %}
+                <span aria-hidden="true">↓</span>
+                {% endif %}
+                {% else %}
+                <span aria-hidden="true">↕</span>
+                {% endif %}
+              </button>
+            </th>
+            {% set producer_sorted = navigator.is_sorted_by("producer") %}
+            <th
+              scope="col"
+              class="px-4 py-3"
+              aria-sort="{% if producer_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
+                data-on:click="@get('{{ navigator.fragment_sort_href("producer") }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+              >
+                <span>Producer</span>
+                {% if producer_sorted %}
+                {% if navigator.sort_direction() == "asc" %}
+                <span aria-hidden="true">↑</span>
+                {% else %}
+                <span aria-hidden="true">↓</span>
+                {% endif %}
+                {% else %}
+                <span aria-hidden="true">↕</span>
+                {% endif %}
+              </button>
+            </th>
+            <th scope="col" class="px-4 py-3">Notes</th>
+            <th scope="col" class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-amber-200/70">
+          {% for roast in roasts.items %}
+          <tr
+            data-star-key="{{ roast.full_id }}"
+            data-sort-created-at="{{ roast.created_at_sort_key }}"
+            data-sort-name="{{ roast.name }}"
+            data-sort-roaster="{{ roast.roaster_label }}"
+            data-sort-origin="{{ roast.origin }}"
+            data-sort-producer="{{ roast.producer }}"
+            class="bg-amber-50/40 transition hover:bg-amber-50"
+          >
+            <td class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+              {{ roast.created_at }}
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex flex-col">
+                <a
+                  href="{{ roast.detail_path }}"
+                  class="font-semibold text-amber-800 hover:text-amber-600"
+                  >{{ roast.name }}</a
+                >
+              </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">{{ roast.roaster_label }}</td>
+            <td class="px-4 py-3 whitespace-nowrap">{{ roast.origin }}</td>
+            <td class="px-4 py-3 whitespace-nowrap">{{ roast.producer }}</td>
+            <td class="px-4 py-3">
+              {% if roast.tasting_notes.is_empty() %}
+              <span class="text-xs text-stone-500">No tasting notes yet.</span>
+              {% else %}
+              <ul class="flex flex-wrap gap-2">
+                {% for note in roast.tasting_notes %}
+                <li>
+                  <span
+                    class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
+                    >{{ note }}</span
+                  >
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-right">
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                title="Delete roast"
+                data-on:click="confirm('Delete this roast?') && @delete('/api/v1/roasts/{{ roast.full_id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+              >
+                <span class="sr-only">Delete</span>
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1H15a1 1 0 1 1 0 2h-.4l-.74 10.36A2 2 0 0 1 11.87 17H8.13a2 2 0 0 1-1.99-1.64L5.4 5H5a1 1 0 1 1 0-2h2.5Zm.9 4.5a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm3.4 0a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+</div>

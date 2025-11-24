@@ -1,0 +1,26 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+.input-field {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(120, 53, 15, 0.3);
+  background-color: rgba(254, 243, 199, 0.85);
+  padding: 0.6rem 0.75rem;
+  color: #4a2f0b;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: rgba(180, 83, 9, 0.6);
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2);
+}

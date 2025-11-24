@@ -1,0 +1,116 @@
+{% extends "base.html" %} {% block title %}Brewlog · Roaster · {{ roaster.name }}{% endblock %} {%
+block content %}
+<header class="flex flex-col gap-2">
+  <h1 class="text-3xl font-semibold">{{ roaster.name }}</h1>
+  <p class="max-w-2xl text-sm text-stone-600">Detailed view for {{ roaster.name }}.</p>
+</header>
+<section class="grid gap-4 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+  <dl class="grid gap-2 text-sm text-stone-700">
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Country</dt>
+      <dd class="text-right">{{ roaster.country }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">City</dt>
+      <dd class="text-right">{{ roaster.city }}</dd>
+    </div>
+    <div class="flex items-center justify-between gap-2">
+      <dt class="font-medium text-stone-500">Homepage</dt>
+      <dd class="flex justify-end">
+        {% if roaster.has_homepage %}
+        <a
+          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-200/60 px-3 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-500 hover:bg-amber-200 hover:text-amber-900"
+          href="{{ roaster.homepage_url }}"
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Visit {{ roaster.name }} homepage"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+              clip-rule="evenodd"
+            />
+            <path
+              d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+            />
+          </svg>
+          <span>Visit</span>
+        </a>
+        {% else %}
+        <span>&mdash;</span>
+        {% endif %}
+      </dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Created</dt>
+      <dd class="text-right">{{ roaster.created_at }}</dd>
+    </div>
+  </dl>
+  <p class="text-sm text-stone-600">{{ roaster.notes }}</p>
+</section>
+
+<section class="flex flex-col gap-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-2xl font-semibold text-amber-800">Roasts</h2>
+  </div>
+  {% if roasts.is_empty() %}
+  <p class="text-sm text-stone-600">This roaster has no roasts yet. Use the CLI to add one.</p>
+  {% else %}
+  <div class="overflow-x-auto rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
+    <table class="min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
+      <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
+        <tr>
+          <th scope="col" class="px-4 py-3">Added</th>
+          <th scope="col" class="px-4 py-3">Roast</th>
+          <th scope="col" class="px-4 py-3">Origin</th>
+          <th scope="col" class="px-4 py-3">Region</th>
+          <th scope="col" class="px-4 py-3">Producer</th>
+          <th scope="col" class="px-4 py-3">Process</th>
+          <th scope="col" class="px-4 py-3">Tasting Notes</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-amber-200/70">
+        {% for roast in roasts %}
+        <tr
+          data-star-key="{{ roast.full_id }}"
+          class="bg-amber-50/40 transition hover:bg-amber-50"
+        >
+          <td class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+            {{ roast.created_at }}
+          </td>
+          <td class="px-4 py-3">
+            <a
+              href="{{ roast.detail_path }}"
+              class="font-semibold text-amber-800 hover:text-amber-600"
+              >{{ roast.name }}</a
+            >
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap">{{ roast.origin }}</td>
+          <td class="px-4 py-3 whitespace-nowrap">{{ roast.region }}</td>
+          <td class="px-4 py-3 whitespace-nowrap">{{ roast.producer }}</td>
+          <td class="px-4 py-3 whitespace-nowrap">{{ roast.process }}</td>
+          <td class="px-4 py-3">
+            {% if roast.tasting_notes.is_empty() %}
+            <span class="text-xs text-stone-500">No tasting notes yet.</span>
+            {% else %}
+            <ul class="flex flex-wrap gap-2">
+              {% for note in roast.tasting_notes %}
+              <li>
+                <span
+                  class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
+                  >{{ note }}</span
+                >
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

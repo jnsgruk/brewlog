@@ -1,0 +1,50 @@
+{% extends "base.html" %} {% block title %}Brewlog · Roast · {{ roast.name }}{% endblock %} {%
+block content %}
+<header class="flex flex-col gap-2">
+  <h1 class="text-3xl font-semibold">{{ roast.name }}</h1>
+  <p class="max-w-2xl text-sm text-stone-600">Detailed view for this roast.</p>
+</header>
+
+<section class="grid gap-4 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+  <dl class="grid gap-2 text-sm text-stone-700">
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Roaster</dt>
+      <dd class="text-right">{{ roast.roaster_label }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Origin</dt>
+      <dd class="text-right">{{ roast.origin }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Region</dt>
+      <dd class="text-right">{{ roast.region }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Producer</dt>
+      <dd class="text-right">{{ roast.producer }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Process</dt>
+      <dd class="text-right">{{ roast.process }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Created</dt>
+      <dd class="text-right">{{ roast.created_at }}</dd>
+    </div>
+  </dl>
+  {% if roast.tasting_notes.is_empty() %}
+  <p class="text-sm text-stone-600">No tasting notes yet.</p>
+  {% else %}
+  <ul class="flex flex-wrap gap-2 text-sm">
+    {% for note in roast.tasting_notes %}
+    <li>
+      <span
+        class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
+        >{{ note }}</span
+      >
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endblock %}
