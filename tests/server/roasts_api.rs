@@ -1,44 +1,11 @@
-use crate::helpers::spawn_app;
-use brewlog::domain::roasters::NewRoaster;
+use crate::helpers::{create_default_roaster, create_roaster_with_name, spawn_app};
 use brewlog::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
-
-async fn create_test_roaster(app: &crate::helpers::TestApp) -> String {
-    create_test_roaster_with_name(app, "Test Roasters").await
-}
-
-async fn create_test_roaster_with_name(
-    app: &crate::helpers::TestApp,
-    name: &str,
-) -> String {
-    let new_roaster = NewRoaster {
-        name: name.to_string(),
-        country: "UK".to_string(),
-        city: None,
-        homepage: None,
-        notes: None,
-    };
-
-    let client = reqwest::Client::new();
-    let response = client
-        .post(app.api_url("/roasters"))
-        .json(&new_roaster)
-        .send()
-        .await
-        .expect("Failed to create roaster");
-
-    let roaster: brewlog::domain::roasters::Roaster = response
-        .json()
-        .await
-        .expect("Failed to parse roaster");
-
-    roaster.id
-}
 
 #[tokio::test]
 async fn creating_a_roast_returns_a_201_for_valid_data() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
@@ -80,7 +47,7 @@ async fn creating_a_roast_returns_a_201_for_valid_data() {
 async fn creating_a_roast_persists_the_data() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
@@ -147,7 +114,7 @@ async fn creating_a_roast_with_nonexistent_roaster_returns_a_404() {
 async fn getting_a_roast_returns_a_200_for_valid_id() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
@@ -167,7 +134,10 @@ async fn getting_a_roast_returns_a_200_for_valid_id() {
         .await
         .expect("Failed to create roast");
 
-    let created_roast: Roast = create_response.json().await.expect("Failed to parse response");
+    let created_roast: Roast = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
 
     // Act
     let response = client
@@ -225,7 +195,7 @@ async fn listing_roasts_returns_a_200_with_empty_list() {
 async fn listing_roasts_returns_a_200_with_multiple_roasts() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     // Create multiple roasts
@@ -281,9 +251,9 @@ async fn listing_roasts_returns_a_200_with_multiple_roasts() {
 async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
     // Arrange
     let app = spawn_app().await;
-    let roaster1_id = create_test_roaster(&app).await;
-    let roaster2_id = create_test_roaster_with_name(&app, "Second Roasters").await;
-    
+    let roaster1_id = create_default_roaster(&app).await.id;
+    let roaster2_id = create_roaster_with_name(&app, "Second Roasters").await.id;
+
     let client = reqwest::Client::new();
 
     // Create roasts for both roasters
@@ -340,7 +310,7 @@ async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
 async fn deleting_a_roast_returns_a_204_for_valid_id() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
@@ -360,7 +330,10 @@ async fn deleting_a_roast_returns_a_204_for_valid_id() {
         .await
         .expect("Failed to create roast");
 
-    let created_roast: Roast = create_response.json().await.expect("Failed to parse response");
+    let created_roast: Roast = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
 
     // Act
     let response = client
@@ -403,7 +376,7 @@ async fn deleting_a_nonexistent_roast_returns_a_404() {
 async fn creating_a_roast_with_empty_name_returns_a_400() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     // Act - Create roast with empty name (after trim)
@@ -434,7 +407,7 @@ async fn creating_a_roast_with_empty_name_returns_a_400() {
 async fn creating_a_roast_with_missing_required_fields_returns_a_400() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     // Act - Missing 'origin' field
@@ -464,7 +437,7 @@ async fn creating_a_roast_with_missing_required_fields_returns_a_400() {
 async fn creating_a_roast_with_empty_tasting_notes_returns_a_400() {
     // Arrange
     let app = spawn_app().await;
-    let roaster_id = create_test_roaster(&app).await;
+    let roaster_id = create_default_roaster(&app).await.id;
     let client = reqwest::Client::new();
 
     // Act - Empty tasting notes

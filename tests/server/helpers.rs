@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
 use brewlog::domain::repositories::{RoastRepository, RoasterRepository, TimelineEventRepository};
+use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
 use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use brewlog::server::routes::app_router;
 use brewlog::server::server::AppState;
+use reqwest::Client;
 use tokio::net::TcpListener;
 
 pub struct TestApp {
@@ -30,7 +32,10 @@ pub async fn spawn_app() -> TestApp {
         .expect("Failed to connect to in-memory database");
 
     // Run migrations
-    database.migrate().await.expect("Failed to migrate database");
+    database
+        .migrate()
+        .await
+        .expect("Failed to migrate database");
 
     // Create repositories
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
@@ -68,4 +73,37 @@ pub async fn spawn_app() -> TestApp {
         roast_repo,
         timeline_repo,
     }
+}
+
+pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> Roaster {
+    let client = Client::new();
+    let response = client
+        .post(app.api_url("/roasters"))
+        .json(&payload)
+        .send()
+        .await
+        .expect("failed to create roaster via API");
+
+    response
+        .json()
+        .await
+        .expect("failed to deserialize roaster from response")
+}
+
+pub async fn create_roaster_with_name(app: &TestApp, name: &str) -> Roaster {
+    create_roaster_with_payload(
+        app,
+        NewRoaster {
+            name: name.to_string(),
+            country: "UK".to_string(),
+            city: None,
+            homepage: None,
+            notes: None,
+        },
+    )
+    .await
+}
+
+pub async fn create_default_roaster(app: &TestApp) -> Roaster {
+    create_roaster_with_name(app, "Test Roasters").await
 }
