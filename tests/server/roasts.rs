@@ -3,8 +3,15 @@ use brewlog::domain::roasters::NewRoaster;
 use brewlog::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
 
 async fn create_test_roaster(app: &crate::server::helpers::TestApp) -> String {
+    create_test_roaster_with_name(app, "Test Roasters").await
+}
+
+async fn create_test_roaster_with_name(
+    app: &crate::server::helpers::TestApp,
+    name: &str,
+) -> String {
     let new_roaster = NewRoaster {
-        name: "Test Roasters".to_string(),
+        name: name.to_string(),
         country: "UK".to_string(),
         city: None,
         homepage: None,
@@ -116,12 +123,12 @@ async fn creating_a_roast_with_nonexistent_roaster_returns_a_404() {
 
     let new_roast = NewRoast {
         roaster_id: "nonexistent-roaster-id".to_string(),
-        name: "Test Roast".to_string(),
-        origin: "Test".to_string(),
-        region: "Test".to_string(),
-        producer: "Test".to_string(),
-        tasting_notes: vec!["Test".to_string()],
-        process: "Test".to_string(),
+        name: "Orphaned Roast".to_string(),
+        origin: "Unknown".to_string(),
+        region: "Unknown".to_string(),
+        producer: "Unknown Producer".to_string(),
+        tasting_notes: vec!["Bitter".to_string()],
+        process: "Unknown".to_string(),
     };
 
     // Act
@@ -275,29 +282,9 @@ async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
     // Arrange
     let app = spawn_app().await;
     let roaster1_id = create_test_roaster(&app).await;
-    
-    // Create a second roaster
-    let new_roaster2 = NewRoaster {
-        name: "Second Roasters".to_string(),
-        country: "USA".to_string(),
-        city: None,
-        homepage: None,
-        notes: None,
-    };
+    let roaster2_id = create_test_roaster_with_name(&app, "Second Roasters").await;
     
     let client = reqwest::Client::new();
-    let response = client
-        .post(app.api_url("/roasters"))
-        .json(&new_roaster2)
-        .send()
-        .await
-        .expect("Failed to create second roaster");
-    
-    let roaster2: brewlog::domain::roasters::Roaster = response
-        .json()
-        .await
-        .expect("Failed to parse roaster");
-    let roaster2_id = roaster2.id;
 
     // Create roasts for both roasters
     let roast1 = NewRoast {
@@ -358,12 +345,12 @@ async fn deleting_a_roast_returns_a_204_for_valid_id() {
 
     let new_roast = NewRoast {
         roaster_id: roaster_id.clone(),
-        name: "To Be Deleted".to_string(),
-        origin: "Test".to_string(),
-        region: "Test".to_string(),
-        producer: "Test".to_string(),
-        tasting_notes: vec!["Test".to_string()],
-        process: "Test".to_string(),
+        name: "Temporary Roast".to_string(),
+        origin: "Peru".to_string(),
+        region: "Cusco".to_string(),
+        producer: "Temporary Co-op".to_string(),
+        tasting_notes: vec!["Fleeting".to_string()],
+        process: "Washed".to_string(),
     };
 
     let create_response = client
