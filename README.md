@@ -8,7 +8,7 @@ command-line client for the API. There is a web frontend built with [Tailwind CS
 that enables client-side reactivity with [Datastar](https://data-star.dev/).
 
 <!-- prettier-ignore-start -->
-> [!INFO]
+> [!NOTE]
 > This project was built with significant assistance from Github Copilot. I used it as a test-bed
 > for trying out newer agentic coding workflows, and to get some basic experience with Datastar,
 > which had attracted my attention.
