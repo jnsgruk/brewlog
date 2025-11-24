@@ -1,3 +1,3 @@
 pub mod helpers;
-pub mod roasters;
-pub mod roasts;
+pub mod roasters_api;
+pub mod roasts_api;
