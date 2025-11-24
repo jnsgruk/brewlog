@@ -1,4 +1,5 @@
 target/
+result*
 brewlog.db
 TODO.md
 SPEC.md
