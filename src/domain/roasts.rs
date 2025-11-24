@@ -27,11 +27,11 @@ pub struct RoastWithRoaster {
 pub struct NewRoast {
     pub roaster_id: String,
     pub name: String,
-    pub origin: Option<String>,
-    pub region: Option<String>,
-    pub producer: Option<String>,
+    pub origin: String,
+    pub region: String,
+    pub producer: String,
     pub tasting_notes: Vec<String>,
-    pub process: Option<String>,
+    pub process: String,
 }
 
 impl NewRoast {
@@ -40,11 +40,11 @@ impl NewRoast {
             id: generate_id(),
             roaster_id: self.roaster_id,
             name: self.name,
-            origin: self.origin,
-            region: self.region,
-            producer: self.producer,
+            origin: Some(self.origin),
+            region: Some(self.region),
+            producer: Some(self.producer),
             tasting_notes: self.tasting_notes,
-            process: self.process,
+            process: Some(self.process),
             created_at: Utc::now(),
         }
     }

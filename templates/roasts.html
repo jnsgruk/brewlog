@@ -72,31 +72,33 @@
           />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Origin</span>
-          <input type="text" name="origin" class="input-field" placeholder="Ethiopia" />
+          <span class="text-stone-700">Origin *</span>
+          <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Region</span>
-          <input type="text" name="region" class="input-field" placeholder="Guji" />
+          <span class="text-stone-700">Region *</span>
+          <input type="text" name="region" required class="input-field" placeholder="Guji" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Producer</span>
+          <span class="text-stone-700">Producer *</span>
           <input
             type="text"
             name="producer"
+            required
             class="input-field"
             placeholder="Chelbesa Cooperative"
           />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Process</span>
-          <input type="text" name="process" class="input-field" placeholder="Washed" />
+          <span class="text-stone-700">Process *</span>
+          <input type="text" name="process" required class="input-field" placeholder="Washed" />
         </label>
         <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Tasting Notes (comma or newline separated)</span>
+          <span class="text-stone-700">Tasting Notes * (comma or newline separated)</span>
           <textarea
             name="tasting_notes"
             rows="2"
+            required
             class="input-field"
             placeholder="Blueberry, Jasmine"
           ></textarea>

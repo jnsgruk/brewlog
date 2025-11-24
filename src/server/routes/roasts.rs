@@ -6,7 +6,7 @@ use serde::Deserialize;
 use serde::de::{self, Deserializer, SeqAccess, Visitor};
 use std::fmt;
 
-use crate::domain::listing::{ListRequest, Page, PageSize, SortDirection};
+use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster};
 use crate::presentation::templates::{RoastDetailTemplate, RoastListTemplate, RoastsTemplate};
@@ -21,28 +21,6 @@ use crate::server::server::AppState;
 const ROAST_PAGE_PATH: &str = "/roasts";
 const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";
 
-fn normalize_request(
-    request: ListRequest<RoastSortKey>,
-    page: &Page<RoastWithRoaster>,
-) -> ListRequest<RoastSortKey> {
-    let page_size = if page.showing_all {
-        PageSize::All
-    } else {
-        PageSize::limited(page.page_size)
-    };
-
-    ListRequest::new(
-        page.page,
-        page_size,
-        request.sort_key(),
-        request.sort_direction(),
-    )
-}
-
-fn roast_navigator(request: ListRequest<RoastSortKey>) -> ListNavigator<RoastSortKey> {
-    ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, request)
-}
-
 async fn load_roast_page(
     state: &AppState,
     request: ListRequest<RoastSortKey>,
@@ -53,9 +31,9 @@ async fn load_roast_page(
         .await
         .map_err(AppError::from)?;
 
-    let normalized_request = normalize_request(request, &page);
+    let normalized_request = crate::server::routes::support::normalize_request(request, &page);
     let roasts = Paginated::from_page(page, RoastView::from_list_item);
-    let navigator = roast_navigator(normalized_request);
+    let navigator = ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, normalized_request);
 
     Ok((roasts, navigator))
 }
@@ -146,7 +124,7 @@ pub(crate) async fn create_roast(
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
-        let target = roast_navigator(request).page_href(1);
+        let target = ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, request).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(roast)).into_response())
@@ -203,58 +181,57 @@ pub struct RoastsQuery {
 pub(crate) struct NewRoastSubmission {
     roaster_id: String,
     name: String,
-    #[serde(default)]
-    origin: Option<String>,
-    #[serde(default)]
-    region: Option<String>,
-    #[serde(default)]
-    producer: Option<String>,
-    #[serde(default, deserialize_with = "string_or_vec")]
+    origin: String,
+    region: String,
+    producer: String,
+    #[serde(deserialize_with = "string_or_vec")]
     tasting_notes: Vec<String>,
-    #[serde(default)]
-    process: Option<String>,
+    process: String,
 }
 
 impl NewRoastSubmission {
     fn into_new_roast(self) -> Result<NewRoast, AppError> {
-        let roaster_id = self.roaster_id.trim().to_string();
-        if roaster_id.is_empty() {
-            return Err(AppError::validation("roaster is required"));
+        fn require(field: &str, value: String) -> Result<String, AppError> {
+            let trimmed = value.trim();
+            if trimmed.is_empty() {
+                Err(AppError::validation(format!("{field} is required")))
+            } else {
+                Ok(trimmed.to_string())
+            }
         }
 
-        let name = self.name.trim().to_string();
-        if name.is_empty() {
-            return Err(AppError::validation("name is required"));
+        let roaster_id = require("roaster", self.roaster_id)?;
+        let name = require("name", self.name)?;
+        let origin = require("origin", self.origin)?;
+        let region = require("region", self.region)?;
+        let producer = require("producer", self.producer)?;
+        let process = require("process", self.process)?;
+
+        let tasting_notes = self
+            .tasting_notes
+            .into_iter()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+            .collect::<Vec<_>>();
+
+        if tasting_notes.is_empty() {
+            return Err(AppError::validation("tasting notes are required"));
         }
 
         Ok(NewRoast {
             roaster_id,
             name,
-            origin: trim_optional(self.origin),
-            region: trim_optional(self.region),
-            producer: trim_optional(self.producer),
-            tasting_notes: self
-                .tasting_notes
-                .into_iter()
-                .map(|value| value.trim().to_string())
-                .filter(|value| !value.is_empty())
-                .collect(),
-            process: trim_optional(self.process),
+            origin,
+            region,
+            producer,
+            tasting_notes,
+            process,
         })
     }
 }
 
-fn trim_optional(value: Option<String>) -> Option<String> {
-    value.and_then(|raw| {
-        let trimmed = raw.trim();
-        if trimmed.is_empty() {
-            None
-        } else {
-            Some(trimmed.to_string())
-        }
-    })
-}
-
+// TODO: If we just make sure that the repository always returns a list, even for one value, or
+// no values, we can remove this deserializer, I think?
 fn string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: Deserializer<'de>,

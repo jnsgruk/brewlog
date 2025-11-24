@@ -13,14 +13,14 @@ pub struct AddRoastCommand {
     #[arg(long)]
     pub name: String,
     #[arg(long)]
-    pub origin: Option<String>,
+    pub origin: String,
     #[arg(long)]
-    pub region: Option<String>,
+    pub region: String,
     #[arg(long)]
-    pub producer: Option<String>,
+    pub producer: String,
     #[arg(long)]
-    pub process: Option<String>,
-    #[arg(long = "tasting-notes")]
+    pub process: String,
+    #[arg(long = "tasting-notes", required = true)]
     pub tasting_notes: Vec<String>,
 }
 
