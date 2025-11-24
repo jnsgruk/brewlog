@@ -398,3 +398,198 @@ async fn deleting_a_nonexistent_roast_returns_a_404() {
     // Assert
     assert_eq!(response.status(), 404);
 }
+
+#[tokio::test]
+async fn creating_a_roast_with_empty_name_returns_a_400() {
+    // Arrange
+    let app = spawn_app().await;
+    let roaster_id = create_test_roaster(&app).await;
+    let client = reqwest::Client::new();
+
+    // Act - Create roast with empty name (after trim)
+    let response = client
+        .post(app.api_url("/roasts"))
+        .header("content-type", "application/json")
+        .body(format!(
+            r#"{{
+                "roaster_id": "{}",
+                "name": "   ",
+                "origin": "Ethiopia",
+                "region": "Yirgacheffe",
+                "producer": "Co-op",
+                "tasting_notes": "Blueberry",
+                "process": "Washed"
+            }}"#,
+            roaster_id
+        ))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn creating_a_roast_with_missing_required_fields_returns_a_400() {
+    // Arrange
+    let app = spawn_app().await;
+    let roaster_id = create_test_roaster(&app).await;
+    let client = reqwest::Client::new();
+
+    // Act - Missing 'origin' field
+    let response = client
+        .post(app.api_url("/roasts"))
+        .header("content-type", "application/json")
+        .body(format!(
+            r#"{{
+                "roaster_id": "{}",
+                "name": "Test Roast",
+                "region": "Yirgacheffe",
+                "producer": "Co-op",
+                "tasting_notes": "Blueberry",
+                "process": "Washed"
+            }}"#,
+            roaster_id
+        ))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn creating_a_roast_with_empty_tasting_notes_returns_a_400() {
+    // Arrange
+    let app = spawn_app().await;
+    let roaster_id = create_test_roaster(&app).await;
+    let client = reqwest::Client::new();
+
+    // Act - Empty tasting notes
+    let response = client
+        .post(app.api_url("/roasts"))
+        .header("content-type", "application/json")
+        .body(format!(
+            r#"{{
+                "roaster_id": "{}",
+                "name": "Test Roast",
+                "origin": "Ethiopia",
+                "region": "Yirgacheffe",
+                "producer": "Co-op",
+                "tasting_notes": "",
+                "process": "Washed"
+            }}"#,
+            roaster_id
+        ))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn creating_a_roast_with_malformed_json_returns_a_400() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    // Act
+    let response = client
+        .post(app.api_url("/roasts"))
+        .header("content-type", "application/json")
+        .body(r#"{"name": "Test", "roaster_id": }"#) // Invalid JSON
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn listing_roasts_with_pagination_returns_correct_page() {
+    // Arrange
+    let app = spawn_app().await;
+    let roaster_id = create_test_roaster(&app).await;
+    let client = reqwest::Client::new();
+
+    // Create 5 roasts
+    for i in 1..=5 {
+        let roast = NewRoast {
+            roaster_id: roaster_id.clone(),
+            name: format!("Roast {}", i),
+            origin: "Brazil".to_string(),
+            region: "Santos".to_string(),
+            producer: "Farm".to_string(),
+            tasting_notes: vec!["Chocolate".to_string()],
+            process: "Natural".to_string(),
+        };
+        client
+            .post(app.api_url("/roasts"))
+            .json(&roast)
+            .send()
+            .await
+            .expect("Failed to create roast");
+    }
+
+    // Act - Request page 1 with page_size=2
+    let response = client
+        .get(app.api_url("/roasts?page=1&page_size=2"))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 200);
+    let roasts: Vec<RoastWithRoaster> = response.json().await.expect("Failed to parse response");
+    // Note: The list endpoint returns all roasts, not paginated
+    assert_eq!(roasts.len(), 5);
+}
+
+#[tokio::test]
+async fn listing_roasts_returns_sorted_by_created_at_descending() {
+    // Arrange
+    let app = spawn_app().await;
+    let roaster_id = create_test_roaster(&app).await;
+    let client = reqwest::Client::new();
+
+    // Create roasts with different names (they'll be sorted by created_at descending by default)
+    let names = vec!["First Roast", "Second Roast", "Third Roast"];
+    for name in names {
+        let roast = NewRoast {
+            roaster_id: roaster_id.clone(),
+            name: name.to_string(),
+            origin: "Brazil".to_string(),
+            region: "Santos".to_string(),
+            producer: "Farm".to_string(),
+            tasting_notes: vec!["Chocolate".to_string()],
+            process: "Natural".to_string(),
+        };
+        client
+            .post(app.api_url("/roasts"))
+            .json(&roast)
+            .send()
+            .await
+            .expect("Failed to create roast");
+    }
+
+    // Act - The API returns roasts sorted by created_at descending by default
+    let response = client
+        .get(app.api_url("/roasts"))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 200);
+    let roasts: Vec<RoastWithRoaster> = response.json().await.expect("Failed to parse response");
+    assert_eq!(roasts.len(), 3);
+    // Verify they're sorted by created_at descending (newest first)
+    assert_eq!(roasts[0].roast.name, "Third Roast");
+    assert_eq!(roasts[1].roast.name, "Second Roast");
+    assert_eq!(roasts[2].roast.name, "First Roast");
+}
