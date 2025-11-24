@@ -91,7 +91,10 @@ async fn getting_a_roaster_returns_a_200_for_valid_id() {
         .await
         .expect("Failed to create roaster");
 
-    let created_roaster: Roaster = create_response.json().await.expect("Failed to parse response");
+    let created_roaster: Roaster = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
 
     // Act
     let response = client
@@ -217,7 +220,10 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
         .await
         .expect("Failed to create roaster");
 
-    let created_roaster: Roaster = create_response.json().await.expect("Failed to parse response");
+    let created_roaster: Roaster = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
 
     let update = UpdateRoaster {
         name: Some("Updated Name".to_string()),
@@ -242,7 +248,10 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
     assert_eq!(updated_roaster.name, "Updated Name");
     assert_eq!(updated_roaster.country, "UK"); // Should remain unchanged
     assert_eq!(updated_roaster.city, Some("Liverpool".to_string()));
-    assert_eq!(updated_roaster.homepage, Some("https://updated.com".to_string()));
+    assert_eq!(
+        updated_roaster.homepage,
+        Some("https://updated.com".to_string())
+    );
 }
 
 #[tokio::test]
@@ -266,7 +275,10 @@ async fn updating_a_roaster_with_no_changes_returns_a_400() {
         .await
         .expect("Failed to create roaster");
 
-    let created_roaster: Roaster = create_response.json().await.expect("Failed to parse response");
+    let created_roaster: Roaster = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
 
     let update = UpdateRoaster {
         name: None,
@@ -335,7 +347,10 @@ async fn deleting_a_roaster_returns_a_204_for_valid_id() {
         .await
         .expect("Failed to create roaster");
 
-    let created_roaster: Roaster = create_response.json().await.expect("Failed to parse response");
+    let created_roaster: Roaster = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
 
     // Act
     let response = client
