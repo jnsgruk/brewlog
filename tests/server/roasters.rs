@@ -1,4 +1,4 @@
-use crate::server::helpers::spawn_app;
+use crate::helpers::spawn_app;
 use brewlog::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 
 #[tokio::test]

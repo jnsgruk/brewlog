@@ -1,13 +1,13 @@
-use crate::server::helpers::spawn_app;
+use crate::helpers::spawn_app;
 use brewlog::domain::roasters::NewRoaster;
 use brewlog::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
 
-async fn create_test_roaster(app: &crate::server::helpers::TestApp) -> String {
+async fn create_test_roaster(app: &crate::helpers::TestApp) -> String {
     create_test_roaster_with_name(app, "Test Roasters").await
 }
 
 async fn create_test_roaster_with_name(
-    app: &crate::server::helpers::TestApp,
+    app: &crate::helpers::TestApp,
     name: &str,
 ) -> String {
     let new_roaster = NewRoaster {
