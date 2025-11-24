@@ -3,8 +3,6 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
-use serde::de::{self, Deserializer, SeqAccess, Visitor};
-use std::fmt;
 
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
@@ -184,8 +182,7 @@ pub(crate) struct NewRoastSubmission {
     origin: String,
     region: String,
     producer: String,
-    #[serde(deserialize_with = "string_or_vec")]
-    tasting_notes: Vec<String>,
+    tasting_notes: TastingNotesInput,
     process: String,
 }
 
@@ -207,12 +204,7 @@ impl NewRoastSubmission {
         let producer = require("producer", self.producer)?;
         let process = require("process", self.process)?;
 
-        let tasting_notes = self
-            .tasting_notes
-            .into_iter()
-            .map(|value| value.trim().to_string())
-            .filter(|value| !value.is_empty())
-            .collect::<Vec<_>>();
+        let tasting_notes = self.tasting_notes.into_vec();
 
         if tasting_notes.is_empty() {
             return Err(AppError::validation("tasting notes are required"));
@@ -230,77 +222,28 @@ impl NewRoastSubmission {
     }
 }
 
-// TODO: If we just make sure that the repository always returns a list, even for one value, or
-// no values, we can remove this deserializer, I think?
-fn string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    struct StringOrVecVisitor;
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum TastingNotesInput {
+    List(Vec<String>),
+    Text(String),
+}
 
-    impl<'de> Visitor<'de> for StringOrVecVisitor {
-        type Value = Vec<String>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a string or sequence of strings")
-        }
-
-        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            let split = value
+impl TastingNotesInput {
+    fn into_vec(self) -> Vec<String> {
+        match self {
+            TastingNotesInput::List(values) => values
+                .into_iter()
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty())
+                .collect(),
+            TastingNotesInput::Text(value) => value
                 .split(|ch| ch == ',' || ch == '\n')
                 .map(|segment| segment.trim().to_string())
                 .filter(|segment| !segment.is_empty())
-                .collect();
-            Ok(split)
-        }
-
-        fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            self.visit_str(&value)
-        }
-
-        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-        where
-            A: SeqAccess<'de>,
-        {
-            let mut values = Vec::new();
-            while let Some(value) = seq.next_element::<String>()? {
-                let trimmed = value.trim();
-                if !trimmed.is_empty() {
-                    values.push(trimmed.to_string());
-                }
-            }
-            Ok(values)
-        }
-
-        fn visit_unit<E>(self) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(Vec::new())
-        }
-
-        fn visit_none<E>(self) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(Vec::new())
-        }
-
-        fn visit_some<D2>(self, deserializer: D2) -> Result<Self::Value, D2::Error>
-        where
-            D2: Deserializer<'de>,
-        {
-            string_or_vec(deserializer)
+                .collect(),
         }
     }
-
-    deserializer.deserialize_any(StringOrVecVisitor)
 }
 
 async fn render_roast_list_fragment(
