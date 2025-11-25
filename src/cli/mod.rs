@@ -1,11 +1,13 @@
 pub mod roasters;
 pub mod roasts;
+pub mod tokens;
 
 use std::net::SocketAddr;
 
 use clap::{Args, Parser, Subcommand};
 use roasters::{AddRoasterCommand, DeleteRoasterCommand, GetRoasterCommand, UpdateRoasterCommand};
 use roasts::{AddRoastCommand, DeleteRoastCommand, GetRoastCommand, ListRoastsCommand};
+use tokens::{CreateTokenCommand, RevokeTokenCommand};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about = "Track coffee roasts, brews, and cups", long_about = None)]
@@ -26,6 +28,14 @@ pub struct Cli {
 pub enum Commands {
     #[command(name = "serve")]
     Serve(ServeCommand),
+
+    // Tokens
+    #[command(name = "create-token")]
+    CreateToken(CreateTokenCommand),
+    #[command(name = "list-tokens")]
+    ListTokens,
+    #[command(name = "revoke-token")]
+    RevokeToken(RevokeTokenCommand),
 
     // Roasters
     #[command(name = "add-roaster")]

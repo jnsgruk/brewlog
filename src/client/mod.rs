@@ -1,5 +1,6 @@
 pub mod roasters;
 pub mod roasts;
+pub mod tokens;
 
 use anyhow::{Context, Result, anyhow};
 use reqwest::{Client, Url};
@@ -9,6 +10,7 @@ use crate::server::errors::ErrorResponse;
 pub struct BrewlogClient {
     base_url: Url,
     http: Client,
+    token: Option<String>,
 }
 
 impl BrewlogClient {
@@ -18,6 +20,8 @@ impl BrewlogClient {
             normalized.set_path(&format!("{}/", normalized.path().trim_end_matches('/')));
         }
 
+        let token = std::env::var("BREWLOG_TOKEN").ok();
+
         let http = Client::builder()
             .user_agent("brewlog-cli/0.1")
             .build()
@@ -26,6 +30,7 @@ impl BrewlogClient {
         Ok(Self {
             base_url: normalized,
             http,
+            token,
         })
     }
 
@@ -42,6 +47,10 @@ impl BrewlogClient {
         roasts::RoastsClient::new(self)
     }
 
+    pub fn tokens(&self) -> tokens::TokensClient<'_> {
+        tokens::TokensClient::new(self)
+    }
+
     pub(crate) fn endpoint(&self, path: &str) -> Result<Url> {
         self.base_url
             .join(path)
@@ -50,6 +59,15 @@ impl BrewlogClient {
 
     pub(crate) fn http_client(&self) -> &Client {
         &self.http
+    }
+
+    /// Build a request with authentication if token is available
+    pub(crate) fn request(&self, method: reqwest::Method, url: Url) -> reqwest::RequestBuilder {
+        let mut request = self.http.request(method, url);
+        if let Some(token) = &self.token {
+            request = request.bearer_auth(token);
+        }
+        request
     }
 
     pub(crate) async fn handle_response<T>(&self, response: reqwest::Response) -> Result<T>

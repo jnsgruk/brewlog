@@ -1,5 +1,5 @@
 use anyhow::Result;
-use brewlog::cli::{Cli, Commands, ServeCommand, roasters, roasts};
+use brewlog::cli::{Cli, Commands, ServeCommand, roasters, roasts, tokens};
 use brewlog::client::BrewlogClient;
 use brewlog::server::{ServerConfig, serve};
 use clap::Parser;
@@ -18,6 +18,11 @@ async fn main() -> Result<()> {
         command => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
             match command {
+                // Tokens
+                Commands::CreateToken(cmd) => tokens::create_token(&client, cmd).await,
+                Commands::ListTokens => tokens::list_tokens(&client).await,
+                Commands::RevokeToken(cmd) => tokens::revoke_token(&client, cmd).await,
+
                 // Roasters
                 Commands::AddRoaster(cmd) => roasters::add_roaster(&client, cmd).await,
                 Commands::ListRoasters => roasters::list_roasters(&client).await,
