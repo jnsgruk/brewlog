@@ -38,4 +38,16 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
+portpicker = "0.1"
+tempfile = "3.8"
 wiremock = "0.6"
+
+[[test]]
+name = "cli"
+path = "tests/cli/main.rs"
+harness = true
+
+[[test]]
+name = "server"
+path = "tests/server/main.rs"
+harness = true
