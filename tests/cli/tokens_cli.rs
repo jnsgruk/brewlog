@@ -102,7 +102,6 @@ fn test_revoke_token_with_authentication() {
     );
 
     assert!(list_output.status.success());
-    let list_text = String::from_utf8_lossy(&list_output.stdout);
 
     // Extract token ID from output (this depends on the CLI output format)
     // For now, we'll skip the actual revoke test since we need to parse the output

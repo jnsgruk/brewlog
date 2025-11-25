@@ -88,14 +88,27 @@ impl TestServer {
     }
 
     pub fn create_token(&self, name: &str) -> String {
-        let output = Command::new(brewlog_bin())
-            .args(&["create-token", "--name", name, "--server", &self.address])
-            .env("BREWLOG_ADMIN_PASSWORD", &self.admin_password)
+        use std::io::Write;
+
+        let mut child = Command::new(brewlog_bin())
+            .args(&["create-token", "--name", name])
+            .env("BREWLOG_SERVER", &self.address)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .output()
-            .expect("Failed to create token");
+            .spawn()
+            .expect("Failed to spawn create-token command");
+
+        // Write username and password to stdin
+        {
+            let stdin = child.stdin.as_mut().expect("Failed to open stdin");
+            writeln!(stdin, "admin").expect("Failed to write username");
+            writeln!(stdin, "{}", self.admin_password).expect("Failed to write password");
+        }
+
+        let output = child
+            .wait_with_output()
+            .expect("Failed to wait for command");
 
         assert!(
             output.status.success(),
@@ -103,10 +116,19 @@ impl TestServer {
             String::from_utf8_lossy(&output.stderr)
         );
 
-        String::from_utf8(output.stdout)
-            .expect("Invalid UTF-8 in token output")
-            .trim()
-            .to_string()
+        // Parse the output to extract the token
+        // The token is on the line after "Save this token securely"
+        let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8 in token output");
+
+        for line in stdout.lines() {
+            let trimmed = line.trim();
+            // The token line starts with a base64-looking string (long alphanumeric with possible +/=)
+            if trimmed.len() > 40 && !trimmed.contains(':') && !trimmed.contains("export") {
+                return trimmed.to_string();
+            }
+        }
+
+        panic!("Could not find token in output:\n{}", stdout);
     }
 }
 
