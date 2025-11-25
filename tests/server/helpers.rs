@@ -1,13 +1,20 @@
 use std::sync::Arc;
 
-use brewlog::domain::repositories::{RoastRepository, RoasterRepository, TimelineEventRepository};
+use brewlog::domain::repositories::{
+    RoastRepository, RoasterRepository, TimelineEventRepository, TokenRepository, UserRepository,
+};
 use brewlog::domain::roasters::{NewRoaster, Roaster};
+use brewlog::domain::users::User;
+use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
 use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
+use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
+use brewlog::infrastructure::repositories::users::SqlUserRepository;
 use brewlog::server::routes::app_router;
 use brewlog::server::server::AppState;
+use chrono::Utc;
 use reqwest::Client;
 use tokio::net::TcpListener;
 
@@ -17,6 +24,10 @@ pub struct TestApp {
     pub roast_repo: Arc<dyn RoastRepository>,
     #[allow(dead_code)]
     pub timeline_repo: Arc<dyn TimelineEventRepository>,
+    #[allow(dead_code)]
+    pub user_repo: Option<Arc<dyn UserRepository>>,
+    #[allow(dead_code)]
+    pub token_repo: Option<Arc<dyn TokenRepository>>,
 }
 
 impl TestApp {
@@ -41,12 +52,18 @@ pub async fn spawn_app() -> TestApp {
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
+    let user_repo: Arc<dyn UserRepository> =
+        Arc::new(SqlUserRepository::new(database.clone_pool()));
+    let token_repo: Arc<dyn TokenRepository> =
+        Arc::new(SqlTokenRepository::new(database.clone_pool()));
 
     // Create application state
     let state = AppState::new(
         roaster_repo.clone(),
         roast_repo.clone(),
         timeline_repo.clone(),
+        user_repo.clone(),
+        token_repo.clone(),
     );
 
     // Create router
@@ -72,7 +89,31 @@ pub async fn spawn_app() -> TestApp {
         roaster_repo,
         roast_repo,
         timeline_repo,
+        user_repo: Some(user_repo),
+        token_repo: Some(token_repo),
     }
+}
+
+pub async fn spawn_app_with_auth() -> TestApp {
+    let app = spawn_app().await;
+
+    // Create admin user with known password
+    let password_hash = hash_password("test_password").expect("Failed to hash password");
+    let admin_user = User::new(
+        "test_admin_id".to_string(),
+        "admin".to_string(),
+        password_hash,
+        Utc::now(),
+    );
+
+    app.user_repo
+        .as_ref()
+        .unwrap()
+        .insert(admin_user)
+        .await
+        .expect("Failed to create admin user");
+
+    app
 }
 
 pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> Roaster {

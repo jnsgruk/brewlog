@@ -1,7 +1,7 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::ids::generate_id;
@@ -22,6 +22,29 @@ pub struct CreateTokenResponse {
     pub id: String,
     pub name: String,
     pub token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenResponse {
+    pub id: String,
+    pub user_id: String,
+    pub name: String,
+    pub created_at: DateTime<Utc>,
+    pub last_used_at: Option<DateTime<Utc>>,
+    pub revoked_at: Option<DateTime<Utc>>,
+}
+
+impl From<Token> for TokenResponse {
+    fn from(token: Token) -> Self {
+        Self {
+            id: token.id,
+            user_id: token.user_id,
+            name: token.name,
+            created_at: token.created_at,
+            last_used_at: token.last_used_at,
+            revoked_at: token.revoked_at,
+        }
+    }
 }
 
 pub async fn create_token(
@@ -72,21 +95,23 @@ pub async fn create_token(
 pub async fn list_tokens(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
-) -> Result<Json<Vec<Token>>, StatusCode> {
+) -> Result<Json<Vec<TokenResponse>>, StatusCode> {
     let tokens = state
         .token_repo
         .list_by_user(auth_user.0.id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(tokens))
+    let token_responses: Vec<TokenResponse> = tokens.into_iter().map(TokenResponse::from).collect();
+
+    Ok(Json(token_responses))
 }
 
 pub async fn revoke_token(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
     Path(token_id): Path<String>,
-) -> Result<Json<Token>, StatusCode> {
+) -> Result<Json<TokenResponse>, StatusCode> {
     // Get the token to ensure it exists and belongs to the user
     let token = state
         .token_repo
@@ -106,5 +131,5 @@ pub async fn revoke_token(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(revoked_token))
+    Ok(Json(TokenResponse::from(revoked_token)))
 }
