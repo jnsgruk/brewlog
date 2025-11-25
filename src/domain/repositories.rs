@@ -6,6 +6,8 @@ use crate::domain::roasters::{Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
 use crate::domain::roasts::{Roast, RoastWithRoaster, UpdateRoast};
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
+use crate::domain::tokens::{Token, TokenId};
+use crate::domain::users::{User, UserId};
 use async_trait::async_trait;
 
 #[async_trait]
@@ -75,4 +77,22 @@ pub trait TimelineEventRepository: Send + Sync {
         let page = self.list(&request).await?;
         Ok(page.items)
     }
+}
+
+#[async_trait]
+pub trait UserRepository: Send + Sync {
+    async fn insert(&self, user: User) -> Result<User, RepositoryError>;
+    async fn get(&self, id: UserId) -> Result<User, RepositoryError>;
+    async fn get_by_username(&self, username: &str) -> Result<User, RepositoryError>;
+    async fn exists(&self) -> Result<bool, RepositoryError>;
+}
+
+#[async_trait]
+pub trait TokenRepository: Send + Sync {
+    async fn insert(&self, token: Token) -> Result<Token, RepositoryError>;
+    async fn get(&self, id: TokenId) -> Result<Token, RepositoryError>;
+    async fn get_by_token_hash(&self, token_hash: &str) -> Result<Token, RepositoryError>;
+    async fn list_by_user(&self, user_id: UserId) -> Result<Vec<Token>, RepositoryError>;
+    async fn revoke(&self, id: TokenId) -> Result<Token, RepositoryError>;
+    async fn update_last_used(&self, id: TokenId) -> Result<(), RepositoryError>;
 }

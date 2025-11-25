@@ -5,6 +5,8 @@ pub mod repositories;
 pub mod roasters;
 pub mod roasts;
 pub mod timeline;
+pub mod tokens;
+pub mod users;
 use std::fmt::Display;
 
 use thiserror::Error;
