@@ -18,17 +18,7 @@ struct SharedServer {
 }
 
 /// Single shared test server for all CLI tests
-static TEST_SERVER: Lazy<Mutex<Option<SharedServer>>> = Lazy::new(|| {
-    // Build the binary first
-    eprintln!("Building brewlog binary...");
-    let status = Command::new("cargo")
-        .args(&["build", "--bin", "brewlog"])
-        .status()
-        .expect("Failed to build brewlog binary");
-    assert!(status.success(), "Failed to compile brewlog");
-
-    Mutex::new(None)
-});
+static TEST_SERVER: Lazy<Mutex<Option<SharedServer>>> = Lazy::new(|| Mutex::new(None));
 
 /// Get path to the brewlog binary
 pub fn brewlog_bin() -> String {
