@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod roasters;
 pub mod roasts;
 pub mod support;
@@ -8,6 +9,8 @@ use askama::Template;
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};
 use axum::routing::{get, post};
+use tower::ServiceBuilder;
+use tower_cookies::CookieManagerLayer;
 use tracing::error;
 
 use crate::server::server::AppState;
@@ -43,6 +46,8 @@ pub fn app_router(state: AppState) -> axum::Router {
 
     axum::Router::new()
         .route("/", get(root_redirect))
+        .route("/login", get(auth::login_page).post(auth::login_submit))
+        .route("/logout", post(auth::logout))
         .route("/roasters", get(roasters::roasters_page))
         .route("/roasters/:id", get(roasters::roaster_page))
         .route("/roasts", get(roasts::roasts_page))
@@ -51,6 +56,7 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/styles.css", get(styles))
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
+        .layer(ServiceBuilder::new().layer(CookieManagerLayer::new()))
         .with_state(state)
 }
 

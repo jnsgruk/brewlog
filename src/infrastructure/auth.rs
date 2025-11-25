@@ -49,6 +49,13 @@ pub fn hash_token(token: &str) -> String {
     general_purpose::STANDARD.encode(&result)
 }
 
+/// Generates a session token for cookie-based authentication
+pub fn generate_session_token() -> String {
+    let mut token_bytes = [0u8; 32];
+    OsRng.fill_bytes(&mut token_bytes);
+    general_purpose::URL_SAFE_NO_PAD.encode(&token_bytes)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

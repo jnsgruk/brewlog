@@ -5,6 +5,7 @@
       <h1 class="text-3xl font-semibold">Roasters</h1>
       <p class="max-w-2xl text-sm text-stone-600">Browse the coffee roasters known to Brewlog.</p>
     </div>
+    {% if is_authenticated %}
     <button
       type="button"
       class="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500 text-2xl font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
@@ -14,8 +15,10 @@
     >
       <span aria-hidden="true">+</span>
     </button>
+    {% endif %}
   </header>
 
+  {% if is_authenticated %}
   <div
     class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm"
     data-show="$showForm"
@@ -96,6 +99,7 @@
       </div>
     </form>
   </div>
+  {% endif %}
 </section>
 
 {% include "partials/roaster_list.html" %} {% endblock %}

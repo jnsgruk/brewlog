@@ -4,5 +4,12 @@
         <a class="border-b-2 pb-1 transition {% if nav_active == "roasters" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/roasters">Roasters</a>
         <a class="border-b-2 pb-1 transition {% if nav_active == "roasts" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/roasts">Roasts</a>
         <a class="border-b-2 pb-1 transition {% if nav_active == "timeline" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/timeline">Timeline</a>
+        {% if is_authenticated %}
+        <form method="post" action="/logout" class="inline">
+            <button type="submit" class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400">Logout</button>
+        </form>
+        {% else %}
+        <a class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" href="/login">Login</a>
+        {% endif %}
     </div>
 </nav>

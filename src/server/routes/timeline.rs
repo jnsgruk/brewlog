@@ -20,6 +20,7 @@ const TIMELINE_DEFAULT_PAGE_SIZE: u32 = 5;
 
 pub(crate) async fn timeline_page(
     State(state): State<AppState>,
+    cookies: tower_cookies::Cookies,
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
@@ -34,8 +35,11 @@ pub(crate) async fn timeline_page(
         .await
         .map_err(|err| map_app_error(err))?;
 
+    let is_authenticated = crate::server::routes::auth::is_authenticated(&cookies);
+
     let template = TimelineTemplate {
         nav_active: "timeline",
+        is_authenticated,
         events: data.events,
         navigator: data.navigator,
         months: data.months,

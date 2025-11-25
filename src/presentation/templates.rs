@@ -12,6 +12,7 @@ use crate::domain::timeline::TimelineSortKey;
 #[template(path = "roasters.html")]
 pub struct RoastersTemplate {
     pub nav_active: &'static str,
+    pub is_authenticated: bool,
     pub roasters: Paginated<RoasterView>,
     pub navigator: ListNavigator<RoasterSortKey>,
 }
@@ -27,6 +28,7 @@ pub struct RoasterListTemplate {
 #[template(path = "roaster_detail.html")]
 pub struct RoasterDetailTemplate {
     pub nav_active: &'static str,
+    pub is_authenticated: bool,
     pub roaster: RoasterView,
     pub roasts: Vec<RoastView>,
 }
@@ -35,6 +37,7 @@ pub struct RoasterDetailTemplate {
 #[template(path = "roasts.html")]
 pub struct RoastsTemplate {
     pub nav_active: &'static str,
+    pub is_authenticated: bool,
     pub roasts: Paginated<RoastView>,
     pub roaster_options: Vec<RoasterOptionView>,
     pub navigator: ListNavigator<RoastSortKey>,
@@ -44,6 +47,7 @@ pub struct RoastsTemplate {
 #[template(path = "roast_detail.html")]
 pub struct RoastDetailTemplate {
     pub nav_active: &'static str,
+    pub is_authenticated: bool,
     pub roast: RoastView,
 }
 
@@ -58,6 +62,7 @@ pub struct RoastListTemplate {
 #[template(path = "timeline.html")]
 pub struct TimelineTemplate {
     pub nav_active: &'static str,
+    pub is_authenticated: bool,
     pub events: Paginated<TimelineEventView>,
     pub navigator: ListNavigator<TimelineSortKey>,
     pub months: Vec<TimelineMonthView>,

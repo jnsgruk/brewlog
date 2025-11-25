@@ -1,0 +1,49 @@
+{% extends "base.html" %} 
+{% block title %}Brewlog · Login{% endblock %} 
+{% block content %}
+<div class="mx-auto max-w-md">
+  <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-6 shadow-sm">
+    <h1 class="text-2xl font-semibold text-amber-700">Login</h1>
+    <p class="mt-2 text-sm text-stone-600">
+      Sign in to manage your roasters and roasts.
+    </p>
+
+    {% if error.is_some() %}
+    <div class="mt-4 rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800">
+      {{ error.as_ref().unwrap() }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/login" class="mt-6 flex flex-col gap-4">
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="text-stone-700">Username</span>
+        <input
+          type="text"
+          name="username"
+          required
+          autofocus
+          class="input-field"
+          placeholder="admin"
+        />
+      </label>
+
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="text-stone-700">Password</span>
+        <input
+          type="password"
+          name="password"
+          required
+          class="input-field"
+        />
+      </label>
+
+      <button
+        type="submit"
+        class="mt-2 rounded-md bg-amber-600 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+      >
+        Sign In
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

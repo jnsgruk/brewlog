@@ -39,6 +39,7 @@ async fn load_roast_page(
 
 pub(crate) async fn roasts_page(
     State(state): State<AppState>,
+    cookies: tower_cookies::Cookies,
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
@@ -62,8 +63,11 @@ pub(crate) async fn roasts_page(
         .await
         .map_err(|err| map_app_error(err))?;
 
+    let is_authenticated = crate::server::routes::auth::is_authenticated(&cookies);
+
     let template = RoastsTemplate {
         nav_active: "roasts",
+        is_authenticated,
         roasts,
         roaster_options,
         navigator,
@@ -74,6 +78,7 @@ pub(crate) async fn roasts_page(
 
 pub(crate) async fn roast_page(
     State(state): State<AppState>,
+    cookies: tower_cookies::Cookies,
     Path(id): Path<String>,
 ) -> Result<Html<String>, StatusCode> {
     let roast = state
@@ -87,8 +92,11 @@ pub(crate) async fn roast_page(
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
+    let is_authenticated = crate::server::routes::auth::is_authenticated(&cookies);
+
     let template = RoastDetailTemplate {
         nav_active: "roasts",
+        is_authenticated,
         roast: RoastView::from_domain(roast, &roaster.name),
     };
 
