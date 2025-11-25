@@ -16,6 +16,7 @@ use async_trait::async_trait;
 pub trait RoasterRepository: Send + Sync {
     async fn insert(&self, roaster: NewRoaster) -> Result<Roaster, RepositoryError>;
     async fn get(&self, id: RoasterId) -> Result<Roaster, RepositoryError>;
+    async fn get_by_slug(&self, slug: &str) -> Result<Roaster, RepositoryError>;
     async fn list(
         &self,
         request: &ListRequest<RoasterSortKey>,
@@ -50,6 +51,11 @@ pub trait RoasterRepository: Send + Sync {
 pub trait RoastRepository: Send + Sync {
     async fn insert(&self, roast: NewRoast) -> Result<Roast, RepositoryError>;
     async fn get(&self, id: RoastId) -> Result<Roast, RepositoryError>;
+    async fn get_by_slug(
+        &self,
+        roaster_id: RoasterId,
+        slug: &str,
+    ) -> Result<Roast, RepositoryError>;
     async fn list(
         &self,
         request: &ListRequest<RoastSortKey>,

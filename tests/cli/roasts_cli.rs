@@ -36,7 +36,13 @@ fn test_add_roast_with_authentication() {
 
     // First create a roaster
     let roaster_output = run_brewlog(
-        &["add-roaster", "--name", "Test Roasters", "--country", "UK"],
+        &[
+            "add-roaster",
+            "--name",
+            "Test Roasters Add",
+            "--country",
+            "UK",
+        ],
         &[("BREWLOG_TOKEN", &token)],
     );
 
@@ -108,7 +114,13 @@ fn test_list_roasts_shows_added_roast() {
 
     // First create a roaster
     let roaster_output = run_brewlog(
-        &["add-roaster", "--name", "Test Roasters", "--country", "UK"],
+        &[
+            "add-roaster",
+            "--name",
+            "Test Roasters List",
+            "--country",
+            "UK",
+        ],
         &[("BREWLOG_TOKEN", &token)],
     );
 

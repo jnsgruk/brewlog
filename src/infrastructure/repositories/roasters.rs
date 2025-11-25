@@ -38,6 +38,7 @@ impl SqlRoasterRepository {
         let RoasterRecord {
             id,
             name,
+            slug,
             country,
             city,
             homepage,
@@ -48,6 +49,7 @@ impl SqlRoasterRepository {
         Roaster {
             id: RoasterId::from(id),
             name,
+            slug,
             country,
             city,
             homepage,
@@ -100,13 +102,15 @@ impl RoasterRepository for SqlRoasterRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         let new_roaster = new_roaster.normalize();
+        let slug = new_roaster.slug();
         let created_at = Utc::now();
 
         let record = query_as::<_, RoasterRecord>(
-                "INSERT INTO roasters (name, country, city, homepage, notes, created_at) VALUES (?, ?, ?, ?, ?, ?)\
-                 RETURNING id, name, country, city, homepage, notes, created_at",
+                "INSERT INTO roasters (name, slug, country, city, homepage, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)\
+                 RETURNING id, name, slug, country, city, homepage, notes, created_at",
             )
             .bind(&new_roaster.name)
+            .bind(&slug)
             .bind(&new_roaster.country)
             .bind(new_roaster.city.as_deref())
             .bind(new_roaster.homepage.as_deref())
@@ -114,7 +118,13 @@ impl RoasterRepository for SqlRoasterRepository {
             .bind(created_at)
             .fetch_one(&mut *tx)
             .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+            .map_err(|err| {
+                if err.to_string().contains("UNIQUE constraint failed") {
+                    RepositoryError::Conflict("A roaster with this name and city already exists".to_string())
+                } else {
+                    RepositoryError::unexpected(err.to_string())
+                }
+            })?;
 
         let roaster = Self::into_domain(record);
         let details_json = Self::details_for_roaster(&roaster)?;
@@ -141,9 +151,24 @@ impl RoasterRepository for SqlRoasterRepository {
 
     async fn get(&self, id: RoasterId) -> Result<Roaster, RepositoryError> {
         let record = query_as::<_, RoasterRecord>(
-                "SELECT id, name, country, city, homepage, notes, created_at FROM roasters WHERE id = ?",
+                "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters WHERE id = ?",
             )
             .bind(i64::from(id))
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        match record {
+            Some(record) => Ok(Self::into_domain(record)),
+            None => Err(RepositoryError::NotFound),
+        }
+    }
+
+    async fn get_by_slug(&self, slug: &str) -> Result<Roaster, RepositoryError> {
+        let record = query_as::<_, RoasterRecord>(
+                "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters WHERE slug = ?",
+            )
+            .bind(slug)
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -160,7 +185,7 @@ impl RoasterRepository for SqlRoasterRepository {
     ) -> Result<Page<Roaster>, RepositoryError> {
         let order_clause = Self::sort_clause(request);
         let base_query =
-            "SELECT id, name, country, city, homepage, notes, created_at FROM roasters";
+            "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters";
         let count_query = "SELECT COUNT(*) FROM roasters";
 
         crate::infrastructure::repositories::pagination::paginate(
@@ -264,6 +289,7 @@ impl RoasterRepository for SqlRoasterRepository {
 struct RoasterRecord {
     id: i64,
     name: String,
+    slug: String,
     country: String,
     city: Option<String>,
     homepage: Option<String>,

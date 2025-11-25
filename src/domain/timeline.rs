@@ -19,6 +19,8 @@ pub struct TimelineEvent {
     pub title: String,
     pub details: Vec<TimelineEventDetail>,
     pub tasting_notes: Vec<String>,
+    pub slug: Option<String>,
+    pub roaster_slug: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,12 +1,12 @@
-use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use serde_json::from_str;
 use crate::domain::RepositoryError;
 use crate::domain::ids::TimelineEventId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::TimelineEventRepository;
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail, TimelineSortKey};
 use crate::infrastructure::database::DatabasePool;
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use serde_json::from_str;
 
 #[derive(Clone)]
 pub struct SqlTimelineEventRepository {
@@ -30,9 +30,22 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
             SortDirection::Desc => "DESC",
         };
 
-        let order_clause = format!("occurred_at {direction_sql}, id DESC");
-        let base_query = "SELECT id, entity_type, entity_id, occurred_at, title, details_json, tasting_notes_json \
-                     FROM timeline_events";
+        let order_clause = format!("t.occurred_at {direction_sql}, t.id DESC");
+        let base_query = "SELECT 
+            t.id, t.entity_type, t.entity_id, t.occurred_at, t.title, t.details_json, t.tasting_notes_json,
+            CASE 
+                WHEN t.entity_type = 'roaster' THEN r.slug 
+                WHEN t.entity_type = 'roast' THEN rst.slug 
+                ELSE NULL 
+            END as slug,
+            CASE 
+                WHEN t.entity_type = 'roast' THEN rst_r.slug 
+                ELSE NULL 
+            END as roaster_slug
+        FROM timeline_events t
+        LEFT JOIN roasters r ON t.entity_type = 'roaster' AND t.entity_id = r.id
+        LEFT JOIN roasts rst ON t.entity_type = 'roast' AND t.entity_id = rst.id
+        LEFT JOIN roasters rst_r ON rst.roaster_id = rst_r.id";
         let count_query = "SELECT COUNT(*) FROM timeline_events";
 
         crate::infrastructure::repositories::pagination::paginate(
@@ -56,6 +69,8 @@ struct TimelineEventRecord {
     title: String,
     details_json: Option<String>,
     tasting_notes_json: Option<String>,
+    slug: Option<String>,
+    roaster_slug: Option<String>,
 }
 
 impl TimelineEventRecord {
@@ -88,6 +103,8 @@ impl TimelineEventRecord {
             title: self.title,
             details,
             tasting_notes,
+            slug: self.slug,
+            roaster_slug: self.roaster_slug,
         })
     }
 }

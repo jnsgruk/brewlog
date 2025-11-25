@@ -73,16 +73,16 @@ pub(crate) async fn roasters_page(
 pub(crate) async fn roaster_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
-    Path(id): Path<RoasterId>,
+    Path(slug): Path<String>,
 ) -> Result<Html<String>, StatusCode> {
     let roaster = state
         .roaster_repo
-        .get(id)
+        .get_by_slug(&slug)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
     let roasts = state
         .roast_repo
-        .list_by_roaster(id)
+        .list_by_roaster(roaster.id)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 

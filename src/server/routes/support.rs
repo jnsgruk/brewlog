@@ -1,8 +1,8 @@
+use askama::Template;
 use axum::async_trait;
 use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
 use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
 use axum::response::{Html, IntoResponse, Response};
-use askama::Template;
 use serde::Deserialize;
 
 use crate::domain::listing::{

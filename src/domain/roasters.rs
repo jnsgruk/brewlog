@@ -8,6 +8,7 @@ use crate::domain::listing::{SortDirection, SortKey};
 pub struct Roaster {
     pub id: RoasterId,
     pub name: String,
+    pub slug: String,
     pub country: String,
     pub city: Option<String>,
     pub homepage: Option<String>,
@@ -32,6 +33,14 @@ impl NewRoaster {
         self.homepage = normalize_optional_field(self.homepage);
         self.notes = normalize_optional_field(self.notes);
         self
+    }
+
+    pub fn slug(&self) -> String {
+        let base = match &self.city {
+            Some(city) => format!("{}-{}", self.name, city),
+            None => self.name.clone(),
+        };
+        slug::slugify(base)
     }
 }
 

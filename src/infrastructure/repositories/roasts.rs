@@ -60,6 +60,7 @@ impl RoastRepository for SqlRoastRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
+        let slug = new_roast.slug();
         let NewRoast {
             roaster_id,
             name,
@@ -95,11 +96,12 @@ impl RoastRepository for SqlRoastRepository {
         let notes_json = Self::encode_notes(&tasting_notes)?;
 
         let record = query_as::<_, RoastRecord>(
-                "INSERT INTO roasts (roaster_id, name, origin, region, producer, process, tasting_notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)\
-                 RETURNING id, roaster_id, name, origin, region, producer, process, tasting_notes, created_at",
+                "INSERT INTO roasts (roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\
+                 RETURNING id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at",
             )
             .bind(i64::from(roaster_id))
             .bind(&name)
+            .bind(&slug)
             .bind(origin_value.as_deref())
             .bind(region_value.as_deref())
             .bind(producer_value.as_deref())
@@ -108,7 +110,13 @@ impl RoastRepository for SqlRoastRepository {
             .bind(created_at)
             .fetch_one(&mut *tx)
             .await
-            .map_err(|err| map_insert_error(err, "unknown roaster reference"))?;
+            .map_err(|err| {
+                if err.to_string().contains("UNIQUE constraint failed") {
+                    RepositoryError::Conflict("A roast with this name already exists for this roaster".to_string())
+                } else {
+                    map_insert_error(err, "unknown roaster reference")
+                }
+            })?;
 
         let roast = record.into_roast()?;
 
@@ -179,9 +187,27 @@ impl RoastRepository for SqlRoastRepository {
 
     async fn get(&self, id: RoastId) -> Result<Roast, RepositoryError> {
         query_as::<_, RoastRecord>(
-                "SELECT id, roaster_id, name, origin, region, producer, process, tasting_notes, created_at FROM roasts WHERE id = ?",
+                "SELECT id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at FROM roasts WHERE id = ?",
             )
             .bind(i64::from(id))
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+            .map(|record| record.into_roast())
+            .transpose()?
+            .ok_or(RepositoryError::NotFound)
+    }
+
+    async fn get_by_slug(
+        &self,
+        roaster_id: RoasterId,
+        slug: &str,
+    ) -> Result<Roast, RepositoryError> {
+        query_as::<_, RoastRecord>(
+                "SELECT id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at FROM roasts WHERE roaster_id = ? AND slug = ?",
+            )
+            .bind(i64::from(roaster_id))
+            .bind(slug)
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
@@ -195,7 +221,7 @@ impl RoastRepository for SqlRoastRepository {
         request: &ListRequest<RoastSortKey>,
     ) -> Result<Page<RoastWithRoaster>, RepositoryError> {
         let order_clause = Self::order_clause(request);
-        let base_query = "SELECT r.id, r.roaster_id, r.name, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name \n                     FROM roasts r \n                     JOIN roasters ro ON ro.id = r.roaster_id";
+        let base_query = "SELECT r.id, r.roaster_id, r.name, r.slug, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name, ro.slug AS roaster_slug \n                     FROM roasts r \n                     JOIN roasters ro ON ro.id = r.roaster_id";
         let count_query = "SELECT COUNT(*) FROM roasts";
 
         crate::infrastructure::repositories::pagination::paginate(
@@ -214,7 +240,7 @@ impl RoastRepository for SqlRoastRepository {
         roaster_id: RoasterId,
     ) -> Result<Vec<RoastWithRoaster>, RepositoryError> {
         let records = query_as::<_, RoastWithRoasterRecord>(
-                "SELECT r.id, r.roaster_id, r.name, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name \n             FROM roasts r \n             JOIN roasters ro ON ro.id = r.roaster_id \n             WHERE r.roaster_id = ? \n             ORDER BY r.created_at DESC",
+                "SELECT r.id, r.roaster_id, r.name, r.slug, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name, ro.slug AS roaster_slug \n             FROM roasts r \n             JOIN roasters ro ON ro.id = r.roaster_id \n             WHERE r.roaster_id = ? \n             ORDER BY r.created_at DESC",
             )
             .bind(i64::from(roaster_id))
             .fetch_all(&self.pool)
@@ -361,6 +387,7 @@ struct RoastRecord {
     id: i64,
     roaster_id: i64,
     name: String,
+    slug: String,
     origin: Option<String>,
     region: Option<String>,
     producer: Option<String>,
@@ -371,35 +398,24 @@ struct RoastRecord {
 
 impl RoastRecord {
     fn into_roast(self) -> Result<Roast, RepositoryError> {
-        let RoastRecord {
-            id,
-            roaster_id,
-            name,
-            origin,
-            region,
-            producer,
-            process,
-            tasting_notes,
-            created_at,
-        } = self;
-
-        let tasting_notes = match tasting_notes {
-            Some(raw) if !raw.is_empty() => from_str(&raw).map_err(|err| {
+        let tasting_notes = match self.tasting_notes {
+            Some(raw) => from_str::<Vec<String>>(&raw).map_err(|err| {
                 RepositoryError::unexpected(format!("failed to decode tasting notes: {err}"))
             })?,
-            _ => Vec::new(),
+            None => Vec::new(),
         };
 
         Ok(Roast {
-            id: RoastId::from(id),
-            roaster_id: RoasterId::from(roaster_id),
-            name,
-            origin,
-            region,
-            producer,
+            id: RoastId::from(self.id),
+            roaster_id: RoasterId::from(self.roaster_id),
+            name: self.name,
+            slug: self.slug,
+            origin: self.origin,
+            region: self.region,
+            producer: self.producer,
+            process: self.process,
             tasting_notes,
-            process,
-            created_at,
+            created_at: self.created_at,
         })
     }
 }
@@ -409,6 +425,7 @@ struct RoastWithRoasterRecord {
     id: i64,
     roaster_id: i64,
     name: String,
+    slug: String,
     origin: Option<String>,
     region: Option<String>,
     producer: Option<String>,
@@ -416,27 +433,33 @@ struct RoastWithRoasterRecord {
     tasting_notes: Option<String>,
     created_at: DateTime<Utc>,
     roaster_name: String,
+    roaster_slug: String,
 }
 
 impl RoastWithRoasterRecord {
     fn into_with_roaster(self) -> Result<RoastWithRoaster, RepositoryError> {
-        let roaster_name = self.roaster_name.clone();
-        let roast = RoastRecord {
-            id: self.id,
-            roaster_id: self.roaster_id,
-            name: self.name,
-            origin: self.origin,
-            region: self.region,
-            producer: self.producer,
-            process: self.process,
-            tasting_notes: self.tasting_notes,
-            created_at: self.created_at,
-        }
-        .into_roast()?;
+        let tasting_notes = match self.tasting_notes {
+            Some(raw) => from_str::<Vec<String>>(&raw).map_err(|err| {
+                RepositoryError::unexpected(format!("failed to decode tasting notes: {err}"))
+            })?,
+            None => Vec::new(),
+        };
 
         Ok(RoastWithRoaster {
-            roast,
-            roaster_name,
+            roast: Roast {
+                id: RoastId::from(self.id),
+                roaster_id: RoasterId::from(self.roaster_id),
+                name: self.name,
+                slug: self.slug,
+                origin: self.origin,
+                region: self.region,
+                producer: self.producer,
+                process: self.process,
+                tasting_notes,
+                created_at: self.created_at,
+            },
+            roaster_name: self.roaster_name,
+            roaster_slug: self.roaster_slug,
         })
     }
 }

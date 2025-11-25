@@ -9,9 +9,7 @@ use crate::presentation::templates::{TimelineChunkTemplate, TimelineTemplate};
 use crate::presentation::views::{ListNavigator, Paginated, TimelineEventView, TimelineMonthView};
 use crate::server::errors::{AppError, map_app_error};
 use crate::server::routes::render_html;
-use crate::server::routes::support::{
-    ListQuery, is_datastar_request, normalize_request,
-};
+use crate::server::routes::support::{ListQuery, is_datastar_request, normalize_request};
 use crate::server::server::AppState;
 
 const TIMELINE_PAGE_PATH: &str = "/timeline";

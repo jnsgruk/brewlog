@@ -9,6 +9,7 @@ pub struct Roast {
     pub id: RoastId,
     pub roaster_id: RoasterId,
     pub name: String,
+    pub slug: String,
     pub origin: Option<String>,
     pub region: Option<String>,
     pub producer: Option<String>,
@@ -21,6 +22,7 @@ pub struct Roast {
 pub struct RoastWithRoaster {
     pub roast: Roast,
     pub roaster_name: String,
+    pub roaster_slug: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +34,12 @@ pub struct NewRoast {
     pub producer: String,
     pub tasting_notes: Vec<String>,
     pub process: String,
+}
+
+impl NewRoast {
+    pub fn slug(&self) -> String {
+        slug::slugify(&self.name)
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -7,8 +7,11 @@ CREATE TABLE roasters (
     city TEXT,
     homepage TEXT,
     notes TEXT,
+    slug TEXT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+
+CREATE UNIQUE INDEX idx_roasters_slug ON roasters(slug);
 
 CREATE TABLE roasts (
     id INTEGER PRIMARY KEY,
@@ -19,10 +22,12 @@ CREATE TABLE roasts (
     producer TEXT,
     process TEXT,
     tasting_notes TEXT,
+    slug TEXT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
 CREATE INDEX idx_roasts_roaster_id ON roasts(roaster_id);
+CREATE UNIQUE INDEX idx_roasts_roaster_slug ON roasts(roaster_id, slug);
 
 CREATE TABLE timeline_events (
     id INTEGER PRIMARY KEY,

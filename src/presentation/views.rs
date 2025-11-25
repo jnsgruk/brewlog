@@ -291,6 +291,7 @@ impl From<Roaster> for RoasterView {
     fn from(roaster: Roaster) -> Self {
         let Roaster {
             id,
+            slug,
             name,
             country,
             city,
@@ -301,7 +302,7 @@ impl From<Roaster> for RoasterView {
 
         let homepage = homepage.unwrap_or_default();
         let has_homepage = !homepage.is_empty();
-        let detail_path = format!("/roasters/{id}");
+        let detail_path = format!("/roasters/{slug}");
 
         let created_at_sort_key = created_at.timestamp();
         let created_at_label = created_at.format("%Y-%m-%d").to_string();
@@ -338,23 +339,25 @@ pub struct RoastView {
 }
 
 impl RoastView {
-    pub fn from_domain(roast: Roast, roaster_name: &str) -> Self {
-        Self::from_parts(roast, roaster_name)
+    pub fn from_domain(roast: Roast, roaster_name: &str, roaster_slug: &str) -> Self {
+        Self::from_parts(roast, roaster_name, roaster_slug)
     }
 
     pub fn from_list_item(item: RoastWithRoaster) -> Self {
         let RoastWithRoaster {
             roast,
             roaster_name,
+            roaster_slug,
         } = item;
-        Self::from_parts(roast, &roaster_name)
+        Self::from_parts(roast, &roaster_name, &roaster_slug)
     }
 
-    fn from_parts(roast: Roast, roaster_name: &str) -> Self {
+    fn from_parts(roast: Roast, roaster_name: &str, roaster_slug: &str) -> Self {
         let Roast {
             id: roast_id,
             roaster_id: _,
             name,
+            slug,
             origin,
             region,
             producer,
@@ -385,7 +388,7 @@ impl RoastView {
             })
             .collect();
         let created_at = created_at.format("%Y-%m-%d").to_string();
-        let detail_path = format!("/roasts/{full_id}");
+        let detail_path = format!("/roasters/{roaster_slug}/roasts/{slug}");
 
         Self {
             id,
@@ -444,6 +447,8 @@ impl TimelineEventView {
             title,
             details,
             tasting_notes,
+            slug,
+            roaster_slug,
         } = event;
 
         let kind_label = match entity_type.as_str() {
@@ -452,9 +457,13 @@ impl TimelineEventView {
             _ => "Event",
         };
 
-        let link = match entity_type.as_str() {
-            "roaster" => format!("/roasters/{entity_id}"),
-            "roast" => format!("/roasts/{entity_id}"),
+        let link = match (entity_type.as_str(), slug, roaster_slug) {
+            ("roaster", Some(slug), _) => format!("/roasters/{slug}"),
+            ("roast", Some(slug), Some(roaster_slug)) => {
+                format!("/roasters/{roaster_slug}/roasts/{slug}")
+            }
+            ("roaster", None, _) => format!("/roasters/{entity_id}"),
+            ("roast", None, _) => format!("/roasts/{entity_id}"),
             _ => String::from("#"),
         };
 

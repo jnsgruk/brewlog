@@ -82,16 +82,17 @@ pub(crate) async fn roasts_page(
 pub(crate) async fn roast_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
-    Path(id): Path<RoastId>,
+    Path((roaster_slug, roast_slug)): Path<(String, String)>,
 ) -> Result<Html<String>, StatusCode> {
-    let roast = state
-        .roast_repo
-        .get(id)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
     let roaster = state
         .roaster_repo
-        .get(roast.roaster_id)
+        .get_by_slug(&roaster_slug)
+        .await
+        .map_err(|err| map_app_error(AppError::from(err)))?;
+
+    let roast = state
+        .roast_repo
+        .get_by_slug(roaster.id, &roast_slug)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
@@ -100,7 +101,7 @@ pub(crate) async fn roast_page(
     let template = RoastDetailTemplate {
         nav_active: "roasts",
         is_authenticated,
-        roast: RoastView::from_domain(roast, &roaster.name),
+        roast: RoastView::from_domain(roast, &roaster.name, &roaster.slug),
     };
 
     render_html(template)

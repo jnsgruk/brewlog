@@ -49,9 +49,12 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/login", get(auth::login_page).post(auth::login_submit))
         .route("/logout", post(auth::logout))
         .route("/roasters", get(roasters::roasters_page))
-        .route("/roasters/:id", get(roasters::roaster_page))
+        .route("/roasters/:slug", get(roasters::roaster_page))
         .route("/roasts", get(roasts::roasts_page))
-        .route("/roasts/:id", get(roasts::roast_page))
+        .route(
+            "/roasters/:roaster_slug/roasts/:roast_slug",
+            get(roasts::roast_page),
+        )
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
         .route("/favicon.ico", get(favicon))

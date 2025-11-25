@@ -97,7 +97,6 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
         },
     )
     .await;
-    let roaster_id = roaster.id;
 
     sleep(Duration::from_millis(10)).await;
 
@@ -119,7 +118,7 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
         "Expected roaster name to appear in timeline HTML, got: {body}"
     );
     assert!(
-        body.contains(&format!("/roasters/{}", roaster_id)),
+        body.contains(&format!("/roasters/{}", roaster.slug)),
         "Expected roaster detail link in timeline HTML, got: {body}"
     );
 }
