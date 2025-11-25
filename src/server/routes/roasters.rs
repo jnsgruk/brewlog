@@ -14,7 +14,7 @@ use crate::server::auth::AuthenticatedUser;
 use crate::server::errors::{ApiError, AppError, map_app_error};
 use crate::server::routes::render_html;
 use crate::server::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, set_datastar_patch_headers,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::server::server::AppState;
 
@@ -31,12 +31,13 @@ async fn load_roaster_page(
         .await
         .map_err(AppError::from)?;
 
-    let normalized_request = crate::server::routes::support::normalize_request(request, &page);
-    let roasters = Paginated::from_page(page, RoasterView::from);
-    let navigator =
-        ListNavigator::new(ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, normalized_request);
-
-    Ok((roasters, navigator))
+    Ok(crate::server::routes::support::build_page_view(
+        page,
+        request,
+        RoasterView::from,
+        ROASTER_PAGE_PATH,
+        ROASTER_FRAGMENT_PATH,
+    ))
 }
 
 pub(crate) async fn roasters_page(
@@ -204,10 +205,5 @@ async fn render_roaster_list_fragment(
         navigator,
     };
 
-    let html = crate::presentation::templates::render_template(template)
-        .map_err(|err| AppError::unexpected(format!("failed to render roaster list: {err}")))?;
-
-    let mut response = Html(html).into_response();
-    set_datastar_patch_headers(response.headers_mut(), "#roaster-list");
-    Ok(response)
+    crate::server::routes::support::render_fragment(template, "#roaster-list")
 }

@@ -1,11 +1,14 @@
 use axum::async_trait;
 use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
 use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
+use axum::response::{Html, IntoResponse, Response};
+use askama::Template;
 use serde::Deserialize;
 
 use crate::domain::listing::{
     DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortDirection, SortKey,
 };
+use crate::presentation::views::{ListNavigator, Paginated};
 use crate::server::errors::{ApiError, AppError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -88,6 +91,34 @@ where
         request.sort_key(),
         request.sort_direction(),
     )
+}
+
+pub fn build_page_view<K, T, V>(
+    page: Page<T>,
+    request: ListRequest<K>,
+    view_mapper: impl FnMut(T) -> V,
+    base_path: &'static str,
+    fragment_path: &'static str,
+) -> (Paginated<V>, ListNavigator<K>)
+where
+    K: SortKey,
+{
+    let normalized_request = normalize_request(request, &page);
+    let view_page = Paginated::from_page(page, view_mapper);
+    let navigator = ListNavigator::new(base_path, fragment_path, normalized_request);
+    (view_page, navigator)
+}
+
+pub fn render_fragment<T: Template>(
+    template: T,
+    selector: &'static str,
+) -> Result<Response, AppError> {
+    let html = crate::presentation::templates::render_template(template)
+        .map_err(|err| AppError::unexpected(format!("failed to render fragment: {err}")))?;
+
+    let mut response = Html(html).into_response();
+    set_datastar_patch_headers(response.headers_mut(), selector);
+    Ok(response)
 }
 
 fn page_size_from_text(value: &str) -> PageSize {

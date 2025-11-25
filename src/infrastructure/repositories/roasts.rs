@@ -5,7 +5,7 @@ use sqlx::{Error as SqlxError, QueryBuilder, query, query_as, query_scalar};
 
 use crate::domain::RepositoryError;
 use crate::domain::ids::{RoastId, RoasterId};
-use crate::domain::listing::{ListRequest, Page, PageSize, SortDirection};
+use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoastRepository;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::domain::timeline::TimelineEventDetail;
@@ -195,77 +195,18 @@ impl RoastRepository for SqlRoastRepository {
         request: &ListRequest<RoastSortKey>,
     ) -> Result<Page<RoastWithRoaster>, RepositoryError> {
         let order_clause = Self::order_clause(request);
+        let base_query = "SELECT r.id, r.roaster_id, r.name, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name \n                     FROM roasts r \n                     JOIN roasters ro ON ro.id = r.roaster_id";
+        let count_query = "SELECT COUNT(*) FROM roasts";
 
-        match request.page_size() {
-            PageSize::All => {
-                let query = format!(
-                    "SELECT r.id, r.roaster_id, r.name, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name \n                     FROM roasts r \n                     JOIN roasters ro ON ro.id = r.roaster_id \n                     ORDER BY {}",
-                    order_clause
-                );
-
-                let records = query_as::<_, RoastWithRoasterRecord>(&query)
-                    .fetch_all(&self.pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-                let items = records
-                    .into_iter()
-                    .map(|record| record.into_with_roaster())
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                let total = items.len() as u64;
-                let page_size = total.min(u64::from(u32::MAX)) as u32;
-                Ok(Page::new(items, 1, page_size.max(1), total, true))
-            }
-            PageSize::Limited(page_size) => {
-                let limit = page_size as i64;
-                let mut page_number = request.page();
-                let offset = ((page_number - 1) as i64).saturating_mul(limit);
-
-                let query = format!(
-                    "SELECT r.id, r.roaster_id, r.name, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name \n                     FROM roasts r \n                     JOIN roasters ro ON ro.id = r.roaster_id \n                     ORDER BY {} \n                     LIMIT ? OFFSET ?",
-                    order_clause
-                );
-
-                let mut records = query_as::<_, RoastWithRoasterRecord>(&query)
-                    .bind(limit)
-                    .bind(offset)
-                    .fetch_all(&self.pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-                let total: i64 = query_scalar("SELECT COUNT(*) FROM roasts")
-                    .fetch_one(&self.pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-                if page_number > 1 && records.is_empty() && total > 0 {
-                    let last_page = ((total + limit - 1) / limit) as u32;
-                    page_number = last_page.max(1);
-                    let offset = ((page_number - 1) as i64).saturating_mul(limit);
-
-                    records = query_as::<_, RoastWithRoasterRecord>(&query)
-                        .bind(limit)
-                        .bind(offset)
-                        .fetch_all(&self.pool)
-                        .await
-                        .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-                }
-
-                let items = records
-                    .into_iter()
-                    .map(|record| record.into_with_roaster())
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                Ok(Page::new(
-                    items,
-                    page_number,
-                    page_size,
-                    total as u64,
-                    false,
-                ))
-            }
-        }
+        crate::infrastructure::repositories::pagination::paginate(
+            &self.pool,
+            request,
+            base_query,
+            count_query,
+            &order_clause,
+            |record: RoastWithRoasterRecord| record.into_with_roaster(),
+        )
+        .await
     }
 
     async fn list_by_roaster(

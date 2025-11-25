@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{QueryBuilder, query, query_as, query_scalar};
+use sqlx::{QueryBuilder, query, query_as};
 
 use crate::domain::RepositoryError;
 use crate::domain::ids::RoasterId;
-use crate::domain::listing::{ListRequest, Page, PageSize, SortDirection};
+use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoasterRepository;
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
 use crate::domain::timeline::TimelineEventDetail;
@@ -159,77 +159,19 @@ impl RoasterRepository for SqlRoasterRepository {
         request: &ListRequest<RoasterSortKey>,
     ) -> Result<Page<Roaster>, RepositoryError> {
         let order_clause = Self::sort_clause(request);
+        let base_query =
+            "SELECT id, name, country, city, homepage, notes, created_at FROM roasters";
+        let count_query = "SELECT COUNT(*) FROM roasters";
 
-        match request.page_size() {
-            PageSize::All => {
-                let query = format!(
-                    "SELECT id, name, country, city, homepage, notes, created_at FROM roasters ORDER BY {}",
-                    order_clause
-                );
-
-                let records = query_as::<_, RoasterRecord>(&query)
-                    .fetch_all(&self.pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-                let items = records
-                    .into_iter()
-                    .map(Self::into_domain)
-                    .collect::<Vec<_>>();
-                let total = items.len() as u64;
-                let page_size = total.min(u64::from(u32::MAX)) as u32;
-
-                Ok(Page::new(items, 1, page_size.max(1), total, true))
-            }
-            PageSize::Limited(page_size) => {
-                let limit = page_size as i64;
-                let mut page_number = request.page();
-                let offset = ((page_number - 1) as i64).saturating_mul(limit);
-
-                let query = format!(
-                    "SELECT id, name, country, city, homepage, notes, created_at FROM roasters ORDER BY {} LIMIT ? OFFSET ?",
-                    order_clause
-                );
-
-                let mut records = query_as::<_, RoasterRecord>(&query)
-                    .bind(limit)
-                    .bind(offset)
-                    .fetch_all(&self.pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-                let total: i64 = query_scalar("SELECT COUNT(*) FROM roasters")
-                    .fetch_one(&self.pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-                if page_number > 1 && records.is_empty() && total > 0 {
-                    let last_page = ((total + limit - 1) / limit) as u32;
-                    page_number = last_page.max(1);
-                    let offset = ((page_number - 1) as i64).saturating_mul(limit);
-
-                    records = query_as::<_, RoasterRecord>(&query)
-                        .bind(limit)
-                        .bind(offset)
-                        .fetch_all(&self.pool)
-                        .await
-                        .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-                }
-
-                let items = records
-                    .into_iter()
-                    .map(Self::into_domain)
-                    .collect::<Vec<_>>();
-
-                Ok(Page::new(
-                    items,
-                    page_number,
-                    page_size,
-                    total as u64,
-                    false,
-                ))
-            }
-        }
+        crate::infrastructure::repositories::pagination::paginate(
+            &self.pool,
+            request,
+            base_query,
+            count_query,
+            &order_clause,
+            |record| Ok(Self::into_domain(record)),
+        )
+        .await
     }
 
     async fn update(

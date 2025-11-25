@@ -1,3 +1,4 @@
+pub mod pagination;
 pub mod roasters;
 pub mod roasts;
 pub mod sessions;

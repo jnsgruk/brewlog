@@ -1,7 +1,7 @@
 use axum::extract::{Query, State};
 use axum::http::HeaderMap;
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{IntoResponse, Response};
 
 use crate::domain::listing::ListRequest;
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
@@ -10,7 +10,7 @@ use crate::presentation::views::{ListNavigator, Paginated, TimelineEventView, Ti
 use crate::server::errors::{AppError, map_app_error};
 use crate::server::routes::render_html;
 use crate::server::routes::support::{
-    ListQuery, is_datastar_request, normalize_request, set_datastar_patch_headers,
+    ListQuery, is_datastar_request, normalize_request,
 };
 use crate::server::server::AppState;
 
@@ -65,12 +65,7 @@ async fn render_timeline_chunk(
         months: data.months,
     };
 
-    let html = crate::presentation::templates::render_template(template)
-        .map_err(|err| AppError::unexpected(format!("failed to render timeline chunk: {err}")))?;
-
-    let mut response = Html(html).into_response();
-    set_datastar_patch_headers(response.headers_mut(), "#timeline-loader");
-    Ok(response)
+    crate::server::routes::support::render_fragment(template, "#timeline-loader")
 }
 
 struct TimelinePageData {
