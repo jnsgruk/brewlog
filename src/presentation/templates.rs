@@ -20,6 +20,7 @@ pub struct RoastersTemplate {
 #[derive(Template)]
 #[template(path = "partials/roaster_list.html")]
 pub struct RoasterListTemplate {
+    pub is_authenticated: bool,
     pub roasters: Paginated<RoasterView>,
     pub navigator: ListNavigator<RoasterSortKey>,
 }
@@ -54,6 +55,7 @@ pub struct RoastDetailTemplate {
 #[derive(Template)]
 #[template(path = "partials/roast_list.html")]
 pub struct RoastListTemplate {
+    pub is_authenticated: bool,
     pub roasts: Paginated<RoastView>,
     pub navigator: ListNavigator<RoastSortKey>,
 }

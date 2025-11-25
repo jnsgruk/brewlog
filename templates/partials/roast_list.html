@@ -183,7 +183,9 @@
               </button>
             </th>
             <th scope="col" class="px-4 py-3">Notes</th>
+            {% if is_authenticated %}
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody class="divide-y divide-amber-200/70">
@@ -228,6 +230,7 @@
               </ul>
               {% endif %}
             </td>
+            {% if is_authenticated %}
             <td class="px-4 py-3 text-right">
               <button
                 type="button"
@@ -245,6 +248,7 @@
                 </svg>
               </button>
             </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>

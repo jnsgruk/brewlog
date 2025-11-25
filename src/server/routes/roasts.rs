@@ -49,7 +49,8 @@ pub(crate) async fn roasts_page(
     let request = query.into_request::<RoastSortKey>();
 
     if is_datastar_request(&headers) {
-        return render_roast_list_fragment(state, request)
+        let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
+        return render_roast_list_fragment(state, request, is_authenticated)
             .await
             .map_err(map_app_error);
     }
@@ -131,7 +132,7 @@ pub(crate) async fn create_roast(
         .map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_roast_list_fragment(state, request)
+        render_roast_list_fragment(state, request, true)
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
@@ -176,7 +177,7 @@ pub(crate) async fn delete_roast(
     state.roast_repo.delete(id).await.map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_roast_list_fragment(state, request)
+        render_roast_list_fragment(state, request, true)
             .await
             .map_err(ApiError::from)
     } else {
@@ -266,10 +267,15 @@ impl TastingNotesInput {
 async fn render_roast_list_fragment(
     state: AppState,
     request: ListRequest<RoastSortKey>,
+    is_authenticated: bool,
 ) -> Result<Response, AppError> {
     let (roasts, navigator) = load_roast_page(&state, request).await?;
 
-    let template = RoastListTemplate { roasts, navigator };
+    let template = RoastListTemplate {
+        is_authenticated,
+        roasts,
+        navigator,
+    };
 
     crate::server::routes::support::render_fragment(template, "#roast-list")
 }

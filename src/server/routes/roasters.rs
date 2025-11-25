@@ -49,7 +49,8 @@ pub(crate) async fn roasters_page(
     let request = query.into_request::<RoasterSortKey>();
 
     if is_datastar_request(&headers) {
-        return render_roaster_list_fragment(state, request)
+        let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
+        return render_roaster_list_fragment(state, request, is_authenticated)
             .await
             .map_err(map_app_error);
     }
@@ -127,7 +128,7 @@ pub(crate) async fn create_roaster(
         .map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_roaster_list_fragment(state, request)
+        render_roaster_list_fragment(state, request, true)
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
@@ -186,7 +187,7 @@ pub(crate) async fn delete_roaster(
         .map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_roaster_list_fragment(state, request)
+        render_roaster_list_fragment(state, request, true)
             .await
             .map_err(ApiError::from)
     } else {
@@ -197,10 +198,12 @@ pub(crate) async fn delete_roaster(
 async fn render_roaster_list_fragment(
     state: AppState,
     request: ListRequest<RoasterSortKey>,
+    is_authenticated: bool,
 ) -> Result<Response, AppError> {
     let (roasters, navigator) = load_roaster_page(&state, request).await?;
 
     let template = RoasterListTemplate {
+        is_authenticated,
         roasters,
         navigator,
     };
