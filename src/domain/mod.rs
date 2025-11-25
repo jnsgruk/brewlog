@@ -1,6 +1,5 @@
 pub mod ids;
 pub mod listing;
-pub mod origins;
 pub mod repositories;
 pub mod roasters;
 pub mod roasts;
