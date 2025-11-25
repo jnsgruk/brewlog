@@ -4,16 +4,13 @@ use std::sync::Mutex;
 use std::time::Duration;
 use tempfile::TempDir;
 
-/// Shared test server state
+/// Shared test server state - kept alive for the duration of all tests
 struct SharedServer {
     address: String,
     admin_password: String,
-    #[allow(dead_code)]
-    db_url: String,
-    #[allow(dead_code)]
-    temp_dir: TempDir,
-    #[allow(dead_code)]
-    process: std::process::Child,
+    _db_url: String,
+    _temp_dir: TempDir,
+    _process: std::process::Child,
 }
 
 /// Single shared test server for all CLI tests
@@ -106,9 +103,9 @@ fn ensure_server_started() -> Result<(String, String), String> {
         *server = Some(SharedServer {
             address: address.clone(),
             admin_password: admin_password.to_string(),
-            db_url,
-            temp_dir,
-            process,
+            _db_url: db_url,
+            _temp_dir: temp_dir,
+            _process: process,
         });
     }
 

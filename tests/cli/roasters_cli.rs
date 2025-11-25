@@ -32,8 +32,8 @@ fn test_add_roaster_with_authentication() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let roaster: Value =
-        serde_json::from_str(&stdout).expect(&format!("Should output valid JSON, got: {}", stdout));
+    let roaster: Value = serde_json::from_str(&stdout)
+        .unwrap_or_else(|_| panic!("Should output valid JSON, got: {}", stdout));
 
     assert_eq!(roaster["name"], "Test Roasters");
     assert_eq!(roaster["country"], "UK");
