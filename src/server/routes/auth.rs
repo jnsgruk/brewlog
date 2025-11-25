@@ -90,7 +90,7 @@ pub(crate) async fn login_submit(
     let mut cookie = Cookie::new(SESSION_COOKIE_NAME, session_token);
     cookie.set_path("/");
     cookie.set_http_only(true);
-    cookie.set_same_site(tower_cookies::cookie::SameSite::Strict);
+    cookie.set_same_site(tower_cookies::cookie::SameSite::Lax);
 
     // Enable secure flag if BREWLOG_SECURE_COOKIES is set to "true"
     // This should be enabled in production when serving over HTTPS
