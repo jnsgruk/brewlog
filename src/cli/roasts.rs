@@ -4,12 +4,13 @@ use serde_json::json;
 
 use super::print_json;
 use crate::client::BrewlogClient;
+use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::roasts::NewRoast;
 
 #[derive(Debug, Args)]
 pub struct AddRoastCommand {
     #[arg(long)]
-    pub roaster_id: String,
+    pub roaster_id: i64,
     #[arg(long)]
     pub name: String,
     #[arg(long)]
@@ -26,7 +27,7 @@ pub struct AddRoastCommand {
 
 pub async fn add_roast(client: &BrewlogClient, command: AddRoastCommand) -> Result<()> {
     let payload = NewRoast {
-        roaster_id: command.roaster_id,
+        roaster_id: RoasterId::new(command.roaster_id),
         name: command.name,
         origin: command.origin,
         region: command.region,
@@ -42,38 +43,41 @@ pub async fn add_roast(client: &BrewlogClient, command: AddRoastCommand) -> Resu
 #[derive(Debug, Args)]
 pub struct ListRoastsCommand {
     #[arg(long)]
-    pub roaster_id: Option<String>,
+    pub roaster_id: Option<i64>,
 }
 
 pub async fn list_roasts(client: &BrewlogClient, command: ListRoastsCommand) -> Result<()> {
-    let roasts = client.roasts().list(command.roaster_id.as_deref()).await?;
+    let roasts = client
+        .roasts()
+        .list(command.roaster_id.map(RoasterId::new))
+        .await?;
     print_json(&roasts)
 }
 
 #[derive(Debug, Args)]
 pub struct GetRoastCommand {
     #[arg(long)]
-    pub id: String,
+    pub id: i64,
 }
 
 pub async fn get_roast(client: &BrewlogClient, command: GetRoastCommand) -> Result<()> {
-    let roast = client.roasts().get(&command.id).await?;
+    let roast = client.roasts().get(RoastId::new(command.id)).await?;
     print_json(&roast)
 }
 
 #[derive(Debug, Args)]
 pub struct DeleteRoastCommand {
     #[arg(long)]
-    pub id: String,
+    pub id: i64,
 }
 
 pub async fn delete_roast(client: &BrewlogClient, command: DeleteRoastCommand) -> Result<()> {
-    let id = command.id;
-    client.roasts().delete(&id).await?;
+    let id = RoastId::new(command.id);
+    client.roasts().delete(id).await?;
     let response = json!({
         "status": "deleted",
         "resource": "roast",
-        "id": id,
+        "id": id.into_inner(),
     });
     print_json(&response)
 }

@@ -2,6 +2,11 @@
 
 cargo build
 
+if [[ -z "$BREWLOG_TOKEN" ]]; then
+  echo "Error: BREWLOG_TOKEN environment variable is not set."
+  exit 1
+fi
+
 # Tim Wendelboe (Norway)
 ./target/debug/brewlog add-roaster \
   --name "Tim Wendelboe" \

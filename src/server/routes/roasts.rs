@@ -4,6 +4,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
+use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster};
@@ -48,7 +49,7 @@ pub(crate) async fn roasts_page(
     if is_datastar_request(&headers) {
         return render_roast_list_fragment(state, request)
             .await
-            .map_err(|err| map_app_error(err));
+            .map_err(map_app_error);
     }
 
     let roasters = state
@@ -61,7 +62,7 @@ pub(crate) async fn roasts_page(
 
     let (roasts, navigator) = load_roast_page(&state, request)
         .await
-        .map_err(|err| map_app_error(err))?;
+        .map_err(map_app_error)?;
 
     let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
 
@@ -79,16 +80,16 @@ pub(crate) async fn roasts_page(
 pub(crate) async fn roast_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
-    Path(id): Path<String>,
+    Path(id): Path<RoastId>,
 ) -> Result<Html<String>, StatusCode> {
     let roast = state
         .roast_repo
-        .get(id.clone())
+        .get(id)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
     let roaster = state
         .roaster_repo
-        .get(roast.roaster_id.clone())
+        .get(roast.roaster_id)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
@@ -116,14 +117,13 @@ pub(crate) async fn create_roast(
 
     state
         .roaster_repo
-        .get(new_roast.roaster_id.clone())
+        .get(new_roast.roaster_id)
         .await
         .map_err(|err| ApiError::from(AppError::from(err)))?;
 
-    let roast = new_roast.into_roast();
     let roast = state
         .roast_repo
-        .insert(roast)
+        .insert(new_roast)
         .await
         .map_err(AppError::from)?;
 
@@ -156,7 +156,7 @@ pub(crate) async fn list_roasts(
 
 pub(crate) async fn get_roast(
     State(state): State<AppState>,
-    Path(id): Path<String>,
+    Path(id): Path<RoastId>,
 ) -> Result<Json<Roast>, ApiError> {
     let roast = state.roast_repo.get(id).await.map_err(AppError::from)?;
     Ok(Json(roast))
@@ -166,7 +166,7 @@ pub(crate) async fn delete_roast(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
     headers: HeaderMap,
-    Path(id): Path<String>,
+    Path(id): Path<RoastId>,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, ApiError> {
     let request = query.into_request::<RoastSortKey>();
@@ -183,12 +183,12 @@ pub(crate) async fn delete_roast(
 
 #[derive(Debug, Deserialize)]
 pub struct RoastsQuery {
-    pub roaster_id: Option<String>,
+    pub roaster_id: Option<RoasterId>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct NewRoastSubmission {
-    roaster_id: String,
+    roaster_id: RoasterId,
     name: String,
     origin: String,
     region: String,
@@ -208,7 +208,10 @@ impl NewRoastSubmission {
             }
         }
 
-        let roaster_id = require("roaster", self.roaster_id)?;
+        let roaster_id = self.roaster_id;
+        if roaster_id.into_inner() <= 0 {
+            return Err(AppError::validation("invalid roaster id"));
+        }
         let name = require("name", self.name)?;
         let origin = require("origin", self.origin)?;
         let region = require("region", self.region)?;
@@ -249,7 +252,7 @@ impl TastingNotesInput {
                 .filter(|value| !value.is_empty())
                 .collect(),
             TastingNotesInput::Text(value) => value
-                .split(|ch| ch == ',' || ch == '\n')
+                .split([',', '\n'])
                 .map(|segment| segment.trim().to_string())
                 .filter(|segment| !segment.is_empty())
                 .collect(),

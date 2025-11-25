@@ -1,26 +1,31 @@
 use super::RepositoryError;
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
+use crate::domain::ids::{RoastId, RoasterId, SessionId, TokenId, UserId};
 use crate::domain::roasters::RoasterSortKey;
-use crate::domain::roasters::{Roaster, UpdateRoaster};
+use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
-use crate::domain::roasts::{Roast, RoastWithRoaster, UpdateRoast};
-use crate::domain::sessions::{Session, SessionId};
+use crate::domain::roasts::{NewRoast, Roast, RoastWithRoaster, UpdateRoast};
+use crate::domain::sessions::{NewSession, Session};
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
-use crate::domain::tokens::{Token, TokenId};
-use crate::domain::users::{User, UserId};
+use crate::domain::tokens::{NewToken, Token};
+use crate::domain::users::{NewUser, User};
 use async_trait::async_trait;
 
 #[async_trait]
 pub trait RoasterRepository: Send + Sync {
-    async fn insert(&self, roaster: Roaster) -> Result<Roaster, RepositoryError>;
-    async fn get(&self, id: String) -> Result<Roaster, RepositoryError>;
+    async fn insert(&self, roaster: NewRoaster) -> Result<Roaster, RepositoryError>;
+    async fn get(&self, id: RoasterId) -> Result<Roaster, RepositoryError>;
     async fn list(
         &self,
         request: &ListRequest<RoasterSortKey>,
     ) -> Result<Page<Roaster>, RepositoryError>;
-    async fn update(&self, id: String, changes: UpdateRoaster) -> Result<Roaster, RepositoryError>;
-    async fn delete(&self, id: String) -> Result<(), RepositoryError>;
+    async fn update(
+        &self,
+        id: RoasterId,
+        changes: UpdateRoaster,
+    ) -> Result<Roaster, RepositoryError>;
+    async fn delete(&self, id: RoasterId) -> Result<(), RepositoryError>;
 
     async fn list_all(&self) -> Result<Vec<Roaster>, RepositoryError> {
         let sort_key = <RoasterSortKey as SortKey>::default();
@@ -43,18 +48,18 @@ pub trait RoasterRepository: Send + Sync {
 
 #[async_trait]
 pub trait RoastRepository: Send + Sync {
-    async fn insert(&self, roast: Roast) -> Result<Roast, RepositoryError>;
-    async fn get(&self, id: String) -> Result<Roast, RepositoryError>;
+    async fn insert(&self, roast: NewRoast) -> Result<Roast, RepositoryError>;
+    async fn get(&self, id: RoastId) -> Result<Roast, RepositoryError>;
     async fn list(
         &self,
         request: &ListRequest<RoastSortKey>,
     ) -> Result<Page<RoastWithRoaster>, RepositoryError>;
     async fn list_by_roaster(
         &self,
-        roaster_id: String,
+        roaster_id: RoasterId,
     ) -> Result<Vec<RoastWithRoaster>, RepositoryError>;
-    async fn update(&self, id: String, changes: UpdateRoast) -> Result<Roast, RepositoryError>;
-    async fn delete(&self, id: String) -> Result<(), RepositoryError>;
+    async fn update(&self, id: RoastId, changes: UpdateRoast) -> Result<Roast, RepositoryError>;
+    async fn delete(&self, id: RoastId) -> Result<(), RepositoryError>;
 
     async fn list_all(&self) -> Result<Vec<RoastWithRoaster>, RepositoryError> {
         let sort_key = <RoastSortKey as SortKey>::default();
@@ -82,7 +87,7 @@ pub trait TimelineEventRepository: Send + Sync {
 
 #[async_trait]
 pub trait UserRepository: Send + Sync {
-    async fn insert(&self, user: User) -> Result<User, RepositoryError>;
+    async fn insert(&self, user: NewUser) -> Result<User, RepositoryError>;
     async fn get(&self, id: UserId) -> Result<User, RepositoryError>;
     async fn get_by_username(&self, username: &str) -> Result<User, RepositoryError>;
     async fn exists(&self) -> Result<bool, RepositoryError>;
@@ -90,7 +95,7 @@ pub trait UserRepository: Send + Sync {
 
 #[async_trait]
 pub trait TokenRepository: Send + Sync {
-    async fn insert(&self, token: Token) -> Result<Token, RepositoryError>;
+    async fn insert(&self, token: NewToken) -> Result<Token, RepositoryError>;
     async fn get(&self, id: TokenId) -> Result<Token, RepositoryError>;
     async fn get_by_token_hash(&self, token_hash: &str) -> Result<Token, RepositoryError>;
     async fn list_by_user(&self, user_id: UserId) -> Result<Vec<Token>, RepositoryError>;
@@ -100,7 +105,7 @@ pub trait TokenRepository: Send + Sync {
 
 #[async_trait]
 pub trait SessionRepository: Send + Sync {
-    async fn insert(&self, session: Session) -> Result<Session, RepositoryError>;
+    async fn insert(&self, session: NewSession) -> Result<Session, RepositoryError>;
     async fn get(&self, id: SessionId) -> Result<Session, RepositoryError>;
     async fn get_by_token_hash(&self, token_hash: &str) -> Result<Session, RepositoryError>;
     async fn delete(&self, id: SessionId) -> Result<(), RepositoryError>;

@@ -1,13 +1,14 @@
 use crate::helpers::{create_roaster_with_payload, spawn_app_with_auth};
+use brewlog::domain::ids::RoasterId;
 use brewlog::domain::roasters::NewRoaster;
 use brewlog::domain::roasts::NewRoast;
 use reqwest::Client;
 use tokio::time::{Duration, sleep};
 
-async fn create_roast(app: &crate::helpers::TestApp, roaster_id: &str, name: &str) {
+async fn create_roast(app: &crate::helpers::TestApp, roaster_id: RoasterId, name: &str) {
     let client = Client::new();
     let roast = NewRoast {
-        roaster_id: roaster_id.to_string(),
+        roaster_id,
         name: name.to_string(),
         origin: "Ethiopia".to_string(),
         region: "Yirgacheffe".to_string(),
@@ -50,7 +51,7 @@ async fn seed_timeline_with_roasts(
     let mut roast_names = Vec::new();
     for index in 0..roast_count {
         let roast_name = format!("Seed Roast {index:02}");
-        create_roast(app, &roaster.id, &roast_name).await;
+        create_roast(app, roaster.id, &roast_name).await;
         roast_names.push(roast_name);
         // Space out timestamps to keep ordering deterministic.
         sleep(Duration::from_millis(2)).await;
@@ -96,7 +97,7 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
         },
     )
     .await;
-    let roaster_id = roaster.id.clone();
+    let roaster_id = roaster.id;
 
     sleep(Duration::from_millis(10)).await;
 
@@ -143,7 +144,7 @@ async fn creating_a_roast_surfaces_on_the_timeline() {
 
     sleep(Duration::from_millis(5)).await;
     let roast_name = "Timeline Natural";
-    create_roast(&app, &roaster_id, roast_name).await;
+    create_roast(&app, roaster_id, roast_name).await;
 
     let response = client
         .get(format!("{}/timeline", app.address))

@@ -3,8 +3,9 @@ use chrono::{DateTime, Utc};
 use sqlx::query_as;
 
 use crate::domain::RepositoryError;
+use crate::domain::ids::UserId;
 use crate::domain::repositories::UserRepository;
-use crate::domain::users::{User, UserId};
+use crate::domain::users::{NewUser, User};
 use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
@@ -25,40 +26,41 @@ impl SqlUserRepository {
             created_at,
         } = record;
 
-        Ok(User::new(id, username, password_hash, created_at))
+        Ok(User::new(
+            UserId::from(id),
+            username,
+            password_hash,
+            created_at,
+        ))
     }
 }
 
 #[async_trait]
 impl UserRepository for SqlUserRepository {
-    async fn insert(&self, user: User) -> Result<User, RepositoryError> {
-        let query =
-            "INSERT INTO users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)";
+    async fn insert(&self, user: NewUser) -> Result<User, RepositoryError> {
+        let query = "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id, username, password_hash, created_at";
 
-        sqlx::query(query)
-            .bind(&user.id)
+        let record = sqlx::query_as::<_, UserRecord>(query)
             .bind(&user.username)
             .bind(&user.password_hash)
-            .bind(&user.created_at)
-            .execute(&self.pool)
+            .fetch_one(&self.pool)
             .await
             .map_err(|err| {
-                if let sqlx::Error::Database(db_err) = &err {
-                    if db_err.is_unique_violation() {
+                if let sqlx::Error::Database(db_err) = &err
+                    && db_err.is_unique_violation() {
                         return RepositoryError::conflict("user already exists");
                     }
-                }
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Ok(user)
+        Self::to_domain(record)
     }
 
     async fn get(&self, id: UserId) -> Result<User, RepositoryError> {
         let query = "SELECT id, username, password_hash, created_at FROM users WHERE id = ?";
 
         let record = query_as::<_, UserRecord>(query)
-            .bind(&id)
+            .bind(i64::from(id))
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
@@ -94,7 +96,7 @@ impl UserRepository for SqlUserRepository {
 
 #[derive(sqlx::FromRow)]
 struct UserRecord {
-    id: UserId,
+    id: i64,
     username: String,
     password_hash: String,
     created_at: DateTime<Utc>,

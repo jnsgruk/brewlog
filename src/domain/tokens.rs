@@ -1,9 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::domain::users::UserId;
-
-pub type TokenId = String;
+use crate::domain::ids::{TokenId, UserId};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Token {
@@ -17,9 +15,10 @@ pub struct Token {
     pub revoked_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct NewToken {
     pub user_id: UserId,
+    pub token_hash: String,
     pub name: String,
 }
 
@@ -30,6 +29,8 @@ impl Token {
         token_hash: String,
         name: String,
         created_at: DateTime<Utc>,
+        last_used_at: Option<DateTime<Utc>>,
+        revoked_at: Option<DateTime<Utc>>,
     ) -> Self {
         Self {
             id,
@@ -37,8 +38,8 @@ impl Token {
             token_hash,
             name,
             created_at,
-            last_used_at: None,
-            revoked_at: None,
+            last_used_at,
+            revoked_at,
         }
     }
 
@@ -48,5 +49,15 @@ impl Token {
 
     pub fn is_active(&self) -> bool {
         !self.is_revoked()
+    }
+}
+
+impl NewToken {
+    pub fn new(user_id: UserId, token_hash: String, name: String) -> Self {
+        Self {
+            user_id,
+            token_hash,
+            name,
+        }
     }
 }

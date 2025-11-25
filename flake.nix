@@ -86,7 +86,6 @@
             RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
             LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [ openssl ];
 
-            inputsFrom = [ self.packages.${system}.brewlog ];
             buildInputs =
               with pkgs;
               [
@@ -95,8 +94,10 @@
                 lld
                 nil
                 nixfmt-rfc-style
-                sqlx-cli
+                openssl
+                pkg-config
                 sqlite
+                sqlx-cli
               ]
               ++ [
                 rust

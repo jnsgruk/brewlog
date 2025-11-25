@@ -31,11 +31,10 @@ impl FromRequestParts<AppState> for AuthenticatedUser {
         }
 
         // Try to authenticate via session cookie first
-        if let Ok(cookies) = Cookies::from_request_parts(parts, state).await {
-            if let Some(user) = authenticate_via_session(state, &cookies).await {
+        if let Ok(cookies) = Cookies::from_request_parts(parts, state).await
+            && let Some(user) = authenticate_via_session(state, &cookies).await {
                 return Ok(AuthenticatedUser(user));
             }
-        }
 
         // Fall back to Bearer token authentication
         let auth_header = parts
@@ -67,7 +66,7 @@ impl FromRequestParts<AppState> for AuthenticatedUser {
 
         // Update last used timestamp (fire and forget)
         let token_repo = state.token_repo.clone();
-        let token_id = token_record.id.clone();
+        let token_id = token_record.id;
         tokio::spawn(async move {
             let _ = token_repo.update_last_used(token_id).await;
         });
@@ -154,7 +153,7 @@ async fn extract_user_from_request(state: &AppState, request: &Request) -> Optio
 
     // Update last used timestamp (fire and forget - don't block on this)
     let token_repo = state.token_repo.clone();
-    let token_id = token_record.id.clone();
+    let token_id = token_record.id;
     tokio::spawn(async move {
         let _ = token_repo.update_last_used(token_id).await;
     });

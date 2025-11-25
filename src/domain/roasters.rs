@@ -1,12 +1,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::domain::ids::generate_id;
+use crate::domain::ids::RoasterId;
 use crate::domain::listing::{SortDirection, SortKey};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Roaster {
-    pub id: String,
+    pub id: RoasterId,
     pub name: String,
     pub country: String,
     pub city: Option<String>,
@@ -32,18 +32,6 @@ impl NewRoaster {
         self.homepage = normalize_optional_field(self.homepage);
         self.notes = normalize_optional_field(self.notes);
         self
-    }
-
-    pub fn into_roaster(self) -> Roaster {
-        Roaster {
-            id: generate_id(),
-            name: self.name,
-            country: self.country,
-            city: self.city,
-            homepage: self.homepage,
-            notes: self.notes,
-            created_at: Utc::now(),
-        }
     }
 }
 

@@ -1,13 +1,13 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::domain::ids::generate_id;
+use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{SortDirection, SortKey};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Roast {
-    pub id: String,
-    pub roaster_id: String,
+    pub id: RoastId,
+    pub roaster_id: RoasterId,
     pub name: String,
     pub origin: Option<String>,
     pub region: Option<String>,
@@ -25,7 +25,7 @@ pub struct RoastWithRoaster {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewRoast {
-    pub roaster_id: String,
+    pub roaster_id: RoasterId,
     pub name: String,
     pub origin: String,
     pub region: String,
@@ -34,25 +34,9 @@ pub struct NewRoast {
     pub process: String,
 }
 
-impl NewRoast {
-    pub fn into_roast(self) -> Roast {
-        Roast {
-            id: generate_id(),
-            roaster_id: self.roaster_id,
-            name: self.name,
-            origin: Some(self.origin),
-            region: Some(self.region),
-            producer: Some(self.producer),
-            tasting_notes: self.tasting_notes,
-            process: Some(self.process),
-            created_at: Utc::now(),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UpdateRoast {
-    pub roaster_id: Option<String>,
+    pub roaster_id: Option<RoasterId>,
     pub name: Option<String>,
     pub origin: Option<String>,
     pub region: Option<String>,

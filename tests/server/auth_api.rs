@@ -133,7 +133,7 @@ async fn test_revoke_token() {
         .await
         .expect("Failed to parse response");
     let token = create_body.get("token").unwrap().as_str().unwrap();
-    let token_id = create_body.get("id").unwrap().as_str().unwrap();
+    let token_id = create_body.get("id").unwrap().as_i64().unwrap();
 
     // Revoke the token
     let response = client
@@ -171,7 +171,7 @@ async fn test_revoked_token_cannot_be_used() {
         .await
         .expect("Failed to parse response");
     let token = create_body.get("token").unwrap().as_str().unwrap();
-    let token_id = create_body.get("id").unwrap().as_str().unwrap();
+    let token_id = create_body.get("id").unwrap().as_i64().unwrap();
 
     // Revoke the token
     client

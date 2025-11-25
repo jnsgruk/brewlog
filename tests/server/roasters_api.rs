@@ -122,7 +122,7 @@ async fn getting_a_nonexistent_roaster_returns_a_404() {
 
     // Act
     let response = client
-        .get(app.api_url("/roasters/nonexistent-id"))
+        .get(app.api_url("/roasters/999999"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -325,7 +325,7 @@ async fn updating_a_nonexistent_roaster_returns_a_404() {
 
     // Act
     let response = client
-        .put(app.api_url("/roasters/nonexistent-id"))
+        .put(app.api_url("/roasters/999999"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&update)
         .send()
@@ -392,7 +392,7 @@ async fn deleting_a_nonexistent_roaster_returns_a_404() {
 
     // Act
     let response = client
-        .delete(app.api_url("/roasters/nonexistent-id"))
+        .delete(app.api_url("/roasters/999999"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .send()
         .await

@@ -3,6 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 
+use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
 use crate::presentation::templates::{
@@ -49,12 +50,12 @@ pub(crate) async fn roasters_page(
     if is_datastar_request(&headers) {
         return render_roaster_list_fragment(state, request)
             .await
-            .map_err(|err| map_app_error(err));
+            .map_err(map_app_error);
     }
 
     let (roasters, navigator) = load_roaster_page(&state, request)
         .await
-        .map_err(|err| map_app_error(err))?;
+        .map_err(map_app_error)?;
 
     let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
 
@@ -71,11 +72,11 @@ pub(crate) async fn roasters_page(
 pub(crate) async fn roaster_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
-    Path(id): Path<String>,
+    Path(id): Path<RoasterId>,
 ) -> Result<Html<String>, StatusCode> {
     let roaster = state
         .roaster_repo
-        .get(id.clone())
+        .get(id)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
     let roasts = state
@@ -117,10 +118,10 @@ pub(crate) async fn create_roaster(
 ) -> Result<Response, ApiError> {
     let request = query.into_request::<RoasterSortKey>();
     let (new_roaster, source) = payload.into_parts();
-    let roaster = new_roaster.normalize().into_roaster();
+    let new_roaster = new_roaster.normalize();
     let roaster = state
         .roaster_repo
-        .insert(roaster)
+        .insert(new_roaster)
         .await
         .map_err(AppError::from)?;
 
@@ -139,7 +140,7 @@ pub(crate) async fn create_roaster(
 
 pub(crate) async fn get_roaster(
     State(state): State<AppState>,
-    Path(id): Path<String>,
+    Path(id): Path<RoasterId>,
 ) -> Result<Json<Roaster>, ApiError> {
     let roaster = state.roaster_repo.get(id).await.map_err(AppError::from)?;
     Ok(Json(roaster))
@@ -148,7 +149,7 @@ pub(crate) async fn get_roaster(
 pub(crate) async fn update_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
-    Path(id): Path<String>,
+    Path(id): Path<RoasterId>,
     Json(payload): Json<UpdateRoaster>,
 ) -> Result<Json<Roaster>, ApiError> {
     let has_changes = payload.name.is_some()
@@ -173,7 +174,7 @@ pub(crate) async fn delete_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
     headers: HeaderMap,
-    Path(id): Path<String>,
+    Path(id): Path<RoasterId>,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, ApiError> {
     let request = query.into_request::<RoasterSortKey>();

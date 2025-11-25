@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::domain::ids::TimelineEventId;
 use crate::domain::listing::{SortDirection, SortKey};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,9 +12,9 @@ pub struct TimelineEventDetail {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimelineEvent {
-    pub id: String,
+    pub id: TimelineEventId,
     pub entity_type: String,
-    pub entity_id: String,
+    pub entity_id: i64,
     pub occurred_at: DateTime<Utc>,
     pub title: String,
     pub details: Vec<TimelineEventDetail>,
@@ -23,7 +24,7 @@ pub struct TimelineEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewTimelineEvent {
     pub entity_type: String,
-    pub entity_id: String,
+    pub entity_id: i64,
     pub occurred_at: DateTime<Utc>,
     pub title: String,
     pub details: Vec<TimelineEventDetail>,

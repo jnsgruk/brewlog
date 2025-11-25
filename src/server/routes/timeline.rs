@@ -28,12 +28,12 @@ pub(crate) async fn timeline_page(
     if is_datastar_request(&headers) {
         return render_timeline_chunk(state, request)
             .await
-            .map_err(|err| map_app_error(err));
+            .map_err(map_app_error);
     }
 
     let data = load_timeline_page(&state, request)
         .await
-        .map_err(|err| map_app_error(err))?;
+        .map_err(map_app_error)?;
 
     let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
 
@@ -139,12 +139,11 @@ fn build_months(prepared_events: Vec<TimelinePreparedEvent>) -> Vec<TimelineMont
     let mut months: Vec<TimelineMonthView> = Vec::new();
 
     for prepared in prepared_events {
-        if let Some(last) = months.last_mut() {
-            if last.anchor == prepared.anchor {
+        if let Some(last) = months.last_mut()
+            && last.anchor == prepared.anchor {
                 last.events.push(prepared.view);
                 continue;
             }
-        }
 
         months.push(TimelineMonthView {
             anchor: prepared.anchor,

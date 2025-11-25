@@ -3,9 +3,9 @@ use chrono::{DateTime, Utc};
 use sqlx::query_as;
 
 use crate::domain::RepositoryError;
+use crate::domain::ids::{TokenId, UserId};
 use crate::domain::repositories::TokenRepository;
-use crate::domain::tokens::{Token, TokenId};
-use crate::domain::users::UserId;
+use crate::domain::tokens::{NewToken, Token};
 use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
@@ -29,50 +29,51 @@ impl SqlTokenRepository {
             revoked_at,
         } = record;
 
-        Ok(Token {
-            id,
-            user_id,
+        Ok(Token::new(
+            TokenId::from(id),
+            UserId::from(user_id),
             token_hash,
             name,
             created_at,
             last_used_at,
             revoked_at,
-        })
+        ))
     }
 }
 
 #[async_trait]
 impl TokenRepository for SqlTokenRepository {
-    async fn insert(&self, token: Token) -> Result<Token, RepositoryError> {
-        let query = "INSERT INTO tokens (id, user_id, token_hash, name, created_at, last_used_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    async fn insert(&self, token: NewToken) -> Result<Token, RepositoryError> {
+        let query = "INSERT INTO tokens (user_id, token_hash, name) VALUES (?, ?, ?) RETURNING id, user_id, token_hash, name, created_at, last_used_at, revoked_at";
 
-        sqlx::query(query)
-            .bind(&token.id)
-            .bind(&token.user_id)
-            .bind(&token.token_hash)
-            .bind(&token.name)
-            .bind(token.created_at)
-            .bind(token.last_used_at)
-            .bind(token.revoked_at)
-            .execute(&self.pool)
+        let NewToken {
+            user_id,
+            token_hash,
+            name,
+        } = token;
+
+        let record = query_as::<_, TokenRecord>(query)
+            .bind(i64::from(user_id))
+            .bind(&token_hash)
+            .bind(&name)
+            .fetch_one(&self.pool)
             .await
             .map_err(|err| {
                 if let sqlx::Error::Database(db_err) = &err
-                    && db_err.is_unique_violation()
-                {
-                    return RepositoryError::conflict("token already exists");
-                }
+                    && db_err.is_unique_violation() {
+                        return RepositoryError::conflict("token already exists");
+                    }
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Ok(token)
+        Self::to_domain(record)
     }
 
     async fn get(&self, id: TokenId) -> Result<Token, RepositoryError> {
         let query = "SELECT id, user_id, token_hash, name, created_at, last_used_at, revoked_at FROM tokens WHERE id = ?";
 
         let record = query_as::<_, TokenRecord>(query)
-            .bind(&id)
+            .bind(i64::from(id))
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
@@ -98,7 +99,7 @@ impl TokenRepository for SqlTokenRepository {
         let query = "SELECT id, user_id, token_hash, name, created_at, last_used_at, revoked_at FROM tokens WHERE user_id = ? ORDER BY created_at DESC";
 
         let records = query_as::<_, TokenRecord>(query)
-            .bind(&user_id)
+            .bind(i64::from(user_id))
             .fetch_all(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -107,26 +108,28 @@ impl TokenRepository for SqlTokenRepository {
     }
 
     async fn revoke(&self, id: TokenId) -> Result<Token, RepositoryError> {
-        let query = "UPDATE tokens SET revoked_at = ? WHERE id = ?";
+        let query = "UPDATE tokens SET revoked_at = ? WHERE id = ? RETURNING id, user_id, token_hash, name, created_at, last_used_at, revoked_at";
         let now = Utc::now();
 
-        sqlx::query(query)
-            .bind(&now)
-            .bind(&id)
-            .execute(&self.pool)
+        let record = query_as::<_, TokenRecord>(query)
+            .bind(now)
+            .bind(i64::from(id))
+            .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        self.get(id).await
+        match record {
+            Some(record) => Self::to_domain(record),
+            None => Err(RepositoryError::NotFound),
+        }
     }
 
     async fn update_last_used(&self, id: TokenId) -> Result<(), RepositoryError> {
-        let query = "UPDATE tokens SET last_used_at = ? WHERE id = ?";
         let now = Utc::now();
 
-        sqlx::query(query)
-            .bind(&now)
-            .bind(&id)
+        sqlx::query("UPDATE tokens SET last_used_at = ? WHERE id = ?")
+            .bind(now)
+            .bind(i64::from(id))
             .execute(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -137,8 +140,8 @@ impl TokenRepository for SqlTokenRepository {
 
 #[derive(sqlx::FromRow)]
 struct TokenRecord {
-    id: TokenId,
-    user_id: UserId,
+    id: i64,
+    user_id: i64,
     token_hash: String,
     name: String,
     created_at: DateTime<Utc>,

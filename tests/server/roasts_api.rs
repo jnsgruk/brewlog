@@ -1,4 +1,5 @@
 use crate::helpers::{create_default_roaster, create_roaster_with_name, spawn_app_with_auth};
+use brewlog::domain::ids::RoasterId;
 use brewlog::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
 
 #[tokio::test]
@@ -9,7 +10,7 @@ async fn creating_a_roast_returns_a_201_for_valid_data() {
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
-        roaster_id: roaster_id.clone(),
+        roaster_id: roaster_id,
         name: "Ethiopian Yirgacheffe".to_string(),
         origin: "Ethiopia".to_string(),
         region: "Yirgacheffe".to_string(),
@@ -52,7 +53,7 @@ async fn creating_a_roast_persists_the_data() {
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
-        roaster_id: roaster_id.clone(),
+        roaster_id: roaster_id,
         name: "Colombian Supremo".to_string(),
         origin: "Colombia".to_string(),
         region: "Huila".to_string(),
@@ -91,7 +92,7 @@ async fn creating_a_roast_with_nonexistent_roaster_returns_a_404() {
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
-        roaster_id: "nonexistent-roaster-id".to_string(),
+        roaster_id: RoasterId::new(999999),
         name: "Orphaned Roast".to_string(),
         origin: "Unknown".to_string(),
         region: "Unknown".to_string(),
@@ -121,7 +122,7 @@ async fn getting_a_roast_returns_a_200_for_valid_id() {
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
-        roaster_id: roaster_id.clone(),
+        roaster_id: roaster_id,
         name: "Kenyan AA".to_string(),
         origin: "Kenya".to_string(),
         region: "Nyeri".to_string(),
@@ -166,7 +167,7 @@ async fn getting_a_nonexistent_roast_returns_a_404() {
 
     // Act
     let response = client
-        .get(app.api_url("/roasts/nonexistent-id"))
+        .get(app.api_url("/roasts/999999"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -204,7 +205,7 @@ async fn listing_roasts_returns_a_200_with_multiple_roasts() {
 
     // Create multiple roasts
     let roast1 = NewRoast {
-        roaster_id: roaster_id.clone(),
+        roaster_id: roaster_id,
         name: "First Roast".to_string(),
         origin: "Brazil".to_string(),
         region: "Santos".to_string(),
@@ -214,7 +215,7 @@ async fn listing_roasts_returns_a_200_with_multiple_roasts() {
     };
 
     let roast2 = NewRoast {
-        roaster_id: roaster_id.clone(),
+        roaster_id: roaster_id,
         name: "Second Roast".to_string(),
         origin: "Guatemala".to_string(),
         region: "Antigua".to_string(),
@@ -264,7 +265,7 @@ async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
 
     // Create roasts for both roasters
     let roast1 = NewRoast {
-        roaster_id: roaster1_id.clone(),
+        roaster_id: roaster1_id,
         name: "Roaster 1 Roast".to_string(),
         origin: "Brazil".to_string(),
         region: "Santos".to_string(),
@@ -274,7 +275,7 @@ async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
     };
 
     let roast2 = NewRoast {
-        roaster_id: roaster2_id.clone(),
+        roaster_id: roaster2_id,
         name: "Roaster 2 Roast".to_string(),
         origin: "Guatemala".to_string(),
         region: "Antigua".to_string(),
@@ -322,7 +323,7 @@ async fn deleting_a_roast_returns_a_204_for_valid_id() {
     let client = reqwest::Client::new();
 
     let new_roast = NewRoast {
-        roaster_id: roaster_id.clone(),
+        roaster_id: roaster_id,
         name: "Temporary Roast".to_string(),
         origin: "Peru".to_string(),
         region: "Cusco".to_string(),
@@ -373,7 +374,7 @@ async fn deleting_a_nonexistent_roast_returns_a_404() {
 
     // Act
     let response = client
-        .delete(app.api_url("/roasts/nonexistent-id"))
+        .delete(app.api_url("/roasts/999999"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .send()
         .await
@@ -397,7 +398,7 @@ async fn creating_a_roast_with_empty_name_returns_a_400() {
         .header("content-type", "application/json")
         .body(format!(
             r#"{{
-                "roaster_id": "{}",
+                "roaster_id": {},
                 "name": "   ",
                 "origin": "Ethiopia",
                 "region": "Yirgacheffe",
@@ -405,7 +406,7 @@ async fn creating_a_roast_with_empty_name_returns_a_400() {
                 "tasting_notes": "Blueberry",
                 "process": "Washed"
             }}"#,
-            roaster_id
+            i64::from(roaster_id)
         ))
         .send()
         .await
@@ -429,14 +430,14 @@ async fn creating_a_roast_with_missing_required_fields_returns_a_400() {
         .header("content-type", "application/json")
         .body(format!(
             r#"{{
-                "roaster_id": "{}",
+                "roaster_id": {},
                 "name": "Test Roast",
                 "region": "Yirgacheffe",
                 "producer": "Co-op",
                 "tasting_notes": "Blueberry",
                 "process": "Washed"
             }}"#,
-            roaster_id
+            i64::from(roaster_id)
         ))
         .send()
         .await
@@ -460,7 +461,7 @@ async fn creating_a_roast_with_empty_tasting_notes_returns_a_400() {
         .header("content-type", "application/json")
         .body(format!(
             r#"{{
-                "roaster_id": "{}",
+                "roaster_id": {},
                 "name": "Test Roast",
                 "origin": "Ethiopia",
                 "region": "Yirgacheffe",
@@ -468,7 +469,7 @@ async fn creating_a_roast_with_empty_tasting_notes_returns_a_400() {
                 "tasting_notes": "",
                 "process": "Washed"
             }}"#,
-            roaster_id
+            i64::from(roaster_id)
         ))
         .send()
         .await

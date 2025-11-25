@@ -1,7 +1,7 @@
 -- Add sessions table for web authentication
 CREATE TABLE IF NOT EXISTS sessions (
-    id TEXT PRIMARY KEY NOT NULL,
-    user_id TEXT NOT NULL,
+    id INTEGER PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
     session_token_hash TEXT NOT NULL,
     created_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,

@@ -315,17 +315,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "block-id"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28af93b9e274f9109b06714ef4391d9e159ad849cba25fbd184ef7e281650263"
-dependencies = [
- "rand 0.8.5",
- "rand_core 0.6.4",
- "rand_pcg",
-]
-
-[[package]]
 name = "brewlog"
 version = "0.1.0"
 dependencies = [
@@ -335,7 +324,6 @@ dependencies = [
  "async-trait",
  "axum",
  "base64 0.22.1",
- "block-id",
  "chrono",
  "clap",
  "once_cell",
@@ -1862,15 +1850,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 dependencies = [
  "getrandom 0.3.4",
-]
-
-[[package]]
-name = "rand_pcg"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
-dependencies = [
- "rand_core 0.6.4",
 ]
 
 [[package]]

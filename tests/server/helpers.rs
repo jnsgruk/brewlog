@@ -5,7 +5,7 @@ use brewlog::domain::repositories::{
     TokenRepository, UserRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster};
-use brewlog::domain::users::User;
+use brewlog::domain::users::NewUser;
 use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
@@ -16,7 +16,6 @@ use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
 use brewlog::infrastructure::repositories::users::SqlUserRepository;
 use brewlog::server::routes::app_router;
 use brewlog::server::server::AppState;
-use chrono::Utc;
 use reqwest::Client;
 use tokio::net::TcpListener;
 
@@ -106,14 +105,10 @@ pub async fn spawn_app_with_auth() -> TestApp {
 
     // Create admin user with known password
     let password_hash = hash_password("test_password").expect("Failed to hash password");
-    let admin_user = User::new(
-        "test_admin_id".to_string(),
-        "admin".to_string(),
-        password_hash,
-        Utc::now(),
-    );
+    let admin_user = NewUser::new("admin".to_string(), password_hash);
 
-    app.user_repo
+    let admin_user = app
+        .user_repo
         .as_ref()
         .unwrap()
         .insert(admin_user)
@@ -121,18 +116,12 @@ pub async fn spawn_app_with_auth() -> TestApp {
         .expect("Failed to create admin user");
 
     // Create a token for testing
-    use brewlog::domain::tokens::Token;
+    use brewlog::domain::tokens::NewToken;
     use brewlog::infrastructure::auth::{generate_token, hash_token};
 
     let token_value = generate_token().expect("Failed to generate token");
     let token_hash = hash_token(&token_value);
-    let token = Token::new(
-        "test_token_id".to_string(),
-        "test_admin_id".to_string(),
-        token_hash,
-        "test-token".to_string(),
-        Utc::now(),
-    );
+    let token = NewToken::new(admin_user.id, token_hash, "test-token".to_string());
 
     app.token_repo
         .as_ref()

@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use reqwest::StatusCode;
 
+use crate::domain::ids::RoasterId;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 
 use super::BrewlogClient;
@@ -39,7 +40,7 @@ impl<'a> RoastersClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn get(&self, id: &str) -> Result<Roaster> {
+    pub async fn get(&self, id: RoasterId) -> Result<Roaster> {
         let url = self.inner.endpoint(&format!("api/v1/roasters/{id}"))?;
         let response = self
             .inner
@@ -51,7 +52,7 @@ impl<'a> RoastersClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn update(&self, id: &str, payload: &UpdateRoaster) -> Result<Roaster> {
+    pub async fn update(&self, id: RoasterId, payload: &UpdateRoaster) -> Result<Roaster> {
         let url = self.inner.endpoint(&format!("api/v1/roasters/{id}"))?;
         let response = self
             .inner
@@ -64,7 +65,7 @@ impl<'a> RoastersClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn delete(&self, id: &str) -> Result<()> {
+    pub async fn delete(&self, id: RoasterId) -> Result<()> {
         let url = self.inner.endpoint(&format!("api/v1/roasters/{id}"))?;
         let response = self
             .inner

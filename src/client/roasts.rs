@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use reqwest::StatusCode;
 
+use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
 
 use super::BrewlogClient;
@@ -27,10 +28,11 @@ impl<'a> RoastsClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn list(&self, roaster_id: Option<&str>) -> Result<Vec<RoastWithRoaster>> {
+    pub async fn list(&self, roaster_id: Option<RoasterId>) -> Result<Vec<RoastWithRoaster>> {
         let mut url = self.inner.endpoint("api/v1/roasts")?;
         if let Some(roaster_id) = roaster_id {
-            url.query_pairs_mut().append_pair("roaster_id", roaster_id);
+            url.query_pairs_mut()
+                .append_pair("roaster_id", &roaster_id.to_string());
         }
 
         let response = self
@@ -43,7 +45,7 @@ impl<'a> RoastsClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn get(&self, id: &str) -> Result<Roast> {
+    pub async fn get(&self, id: RoastId) -> Result<Roast> {
         let url = self.inner.endpoint(&format!("api/v1/roasts/{id}"))?;
         let response = self
             .inner
@@ -55,7 +57,7 @@ impl<'a> RoastsClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn delete(&self, id: &str) -> Result<()> {
+    pub async fn delete(&self, id: RoastId) -> Result<()> {
         let url = self.inner.endpoint(&format!("api/v1/roasts/{id}"))?;
         let response = self
             .inner

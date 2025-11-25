@@ -24,11 +24,11 @@ impl<T> Paginated<T> {
         }
     }
 
-    pub fn from_page<U, MapFn>(page: Page<U>, mut map_item: MapFn) -> Self
+    pub fn from_page<U, MapFn>(page: Page<U>, map_item: MapFn) -> Self
     where
         MapFn: FnMut(U) -> T,
     {
-        let items = page.items.into_iter().map(|item| map_item(item)).collect();
+        let items = page.items.into_iter().map(map_item).collect();
 
         Self::new(
             items,
@@ -40,13 +40,11 @@ impl<T> Paginated<T> {
     }
 
     pub fn total_pages(&self) -> u32 {
-        if self.total == 0 {
-            1
-        } else if self.showing_all {
+        if self.total == 0 || self.showing_all {
             1
         } else {
             let page_size = self.page_size as u64;
-            ((self.total + page_size - 1) / page_size) as u32
+            self.total.div_ceil(page_size) as u32
         }
     }
 
@@ -260,7 +258,7 @@ pub struct RoasterOptionView {
 impl From<Roaster> for RoasterOptionView {
     fn from(roaster: Roaster) -> Self {
         Self {
-            id: roaster.id,
+            id: roaster.id.to_string(),
             name: roaster.name,
         }
     }
@@ -269,7 +267,7 @@ impl From<Roaster> for RoasterOptionView {
 impl From<&Roaster> for RoasterOptionView {
     fn from(roaster: &Roaster) -> Self {
         Self {
-            id: roaster.id.clone(),
+            id: roaster.id.to_string(),
             name: roaster.name.clone(),
         }
     }
@@ -310,7 +308,7 @@ impl From<Roaster> for RoasterView {
 
         Self {
             detail_path,
-            id,
+            id: id.to_string(),
             name,
             country,
             city: city.unwrap_or_else(|| "—".to_string()),
@@ -354,7 +352,7 @@ impl RoastView {
 
     fn from_parts(roast: Roast, roaster_name: &str) -> Self {
         let Roast {
-            id: full_id,
+            id: roast_id,
             roaster_id: _,
             name,
             origin,
@@ -365,6 +363,7 @@ impl RoastView {
             created_at,
         } = roast;
 
+        let full_id = roast_id.to_string();
         let id: String = full_id.chars().take(6).collect();
         let roaster_label = if roaster_name.trim().is_empty() {
             "Unknown roaster".to_string()
@@ -379,7 +378,7 @@ impl RoastView {
         let tasting_notes = tasting_notes
             .into_iter()
             .flat_map(|note| {
-                note.split(|ch| ch == ',' || ch == '\n')
+                note.split([',', '\n'])
                     .map(|segment| segment.trim().to_string())
                     .filter(|segment| !segment.is_empty())
                     .collect::<Vec<_>>()
@@ -479,7 +478,7 @@ impl TimelineEventView {
             let notes = tasting_notes
                 .into_iter()
                 .flat_map(|note| {
-                    note.split(|ch| ch == ',' || ch == '\n')
+                    note.split([',', '\n'])
                         .map(|segment| segment.trim().to_string())
                         .filter(|segment| !segment.is_empty())
                         .collect::<Vec<_>>()
@@ -491,7 +490,7 @@ impl TimelineEventView {
         };
 
         Self {
-            id,
+            id: id.to_string(),
             kind_label,
             badge_class: "bg-amber-200 text-amber-800",
             accent_class: "bg-amber-600",

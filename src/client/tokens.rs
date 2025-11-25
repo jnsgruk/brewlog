@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::client::BrewlogClient;
+use crate::domain::ids::{TokenId, UserId};
 
 pub struct TokensClient<'a> {
     client: &'a BrewlogClient,
@@ -49,10 +50,10 @@ impl<'a> TokensClient<'a> {
         self.client.handle_response(response).await
     }
 
-    pub async fn revoke(&self, id: &str) -> Result<TokenInfo> {
+    pub async fn revoke(&self, id: TokenId) -> Result<TokenInfo> {
         let url = self
             .client
-            .endpoint(&format!("api/v1/tokens/{}/revoke", id))?;
+            .endpoint(&format!("api/v1/tokens/{id}/revoke"))?;
 
         let response = self
             .client
@@ -73,15 +74,15 @@ struct CreateTokenRequest {
 
 #[derive(Debug, Deserialize)]
 pub struct TokenResponse {
-    pub id: String,
+    pub id: TokenId,
     pub name: String,
     pub token: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TokenInfo {
-    pub id: String,
-    pub user_id: String,
+    pub id: TokenId,
+    pub user_id: UserId,
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub last_used_at: Option<DateTime<Utc>>,

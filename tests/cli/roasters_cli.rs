@@ -37,7 +37,7 @@ fn test_add_roaster_with_authentication() {
 
     assert_eq!(roaster["name"], "Test Roasters");
     assert_eq!(roaster["country"], "UK");
-    assert!(roaster["id"].is_string(), "Should have an ID");
+    assert!(roaster["id"].is_i64(), "Should have an ID");
 }
 
 #[test]
@@ -81,7 +81,9 @@ fn test_list_roasters_shows_added_roaster() {
 
     let stdout = String::from_utf8_lossy(&add_output.stdout);
     let added_roaster: Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
-    let roaster_id = added_roaster["id"].as_str().unwrap();
+    let roaster_id = added_roaster["id"]
+        .as_i64()
+        .expect("roaster id should be numeric");
 
     // List roasters
     let list_output = run_brewlog(&["list-roasters"], &[]);
@@ -96,7 +98,9 @@ fn test_list_roasters_shows_added_roaster() {
     let roasters_array = roasters.as_array().unwrap();
 
     // Find our roaster in the list
-    let found = roasters_array.iter().any(|r| r["id"] == roaster_id);
+    let found = roasters_array
+        .iter()
+        .any(|r| r["id"].as_i64() == Some(roaster_id));
     assert!(found, "Should find the added roaster in the list");
 }
 

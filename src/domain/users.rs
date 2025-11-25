@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-pub type UserId = String;
+use crate::domain::ids::UserId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -12,10 +12,10 @@ pub struct User {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct NewUser {
     pub username: String,
-    pub password: String,
+    pub password_hash: String,
 }
 
 impl User {
@@ -30,6 +30,15 @@ impl User {
             username,
             password_hash,
             created_at,
+        }
+    }
+}
+
+impl NewUser {
+    pub fn new(username: String, password_hash: String) -> Self {
+        Self {
+            username,
+            password_hash,
         }
     }
 }

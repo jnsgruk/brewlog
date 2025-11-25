@@ -4,8 +4,8 @@ use axum::http::StatusCode;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::domain::ids::generate_id;
-use crate::domain::tokens::Token;
+use crate::domain::ids::{TokenId, UserId};
+use crate::domain::tokens::{NewToken, Token};
 use crate::infrastructure::auth::{generate_token, hash_token, verify_password};
 use crate::server::auth::AuthenticatedUser;
 use crate::server::server::AppState;
@@ -19,15 +19,15 @@ pub struct CreateTokenRequest {
 
 #[derive(Debug, Serialize)]
 pub struct CreateTokenResponse {
-    pub id: String,
+    pub id: TokenId,
     pub name: String,
     pub token: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
-    pub id: String,
-    pub user_id: String,
+    pub id: TokenId,
+    pub user_id: UserId,
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub last_used_at: Option<DateTime<Utc>>,
@@ -70,18 +70,12 @@ pub async fn create_token(
 
     let token_hash = hash_token(&token_value);
 
-    let token = Token::new(
-        generate_id(),
-        user.id.clone(),
-        token_hash,
-        payload.name.clone(),
-        Utc::now(),
-    );
+    let new_token = NewToken::new(user.id, token_hash, payload.name.clone());
 
     // Store token
     let stored_token = state
         .token_repo
-        .insert(token)
+        .insert(new_token)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -110,12 +104,12 @@ pub async fn list_tokens(
 pub async fn revoke_token(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
-    Path(token_id): Path<String>,
+    Path(token_id): Path<TokenId>,
 ) -> Result<Json<TokenResponse>, StatusCode> {
     // Get the token to ensure it exists and belongs to the user
     let token = state
         .token_repo
-        .get(token_id.clone())
+        .get(token_id)
         .await
         .map_err(|_| StatusCode::NOT_FOUND)?;
 

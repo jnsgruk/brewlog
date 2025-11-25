@@ -37,7 +37,7 @@ fn test_list_tokens_with_authentication() {
 fn test_revoke_token_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["revoke-token", "--id", "some-id"], &[]);
+    let output = run_brewlog(&["revoke-token", "--id", "1"], &[]);
 
     assert!(
         !output.status.success(),
@@ -60,10 +60,10 @@ fn test_revoke_token_with_authentication() {
     // Find a token to revoke
     let tokens_array = tokens.as_array().expect("Should be an array");
     if let Some(first_token) = tokens_array.first() {
-        let token_id = first_token["id"].as_str().expect("Token should have ID");
+        let token_id = first_token["id"].as_i64().expect("Token should have ID");
 
         let revoke_output = run_brewlog(
-            &["revoke-token", "--id", token_id],
+            &["revoke-token", "--id", &token_id.to_string()],
             &[("BREWLOG_TOKEN", &token)],
         );
 
@@ -98,12 +98,12 @@ fn test_revoked_token_cannot_be_used() {
         .expect("Should find token to revoke");
 
     let token_id = token_to_revoke_entry["id"]
-        .as_str()
+        .as_i64()
         .expect("Token should have ID");
 
     // Revoke the token
     let revoke_output = run_brewlog(
-        &["revoke-token", "--id", token_id],
+        &["revoke-token", "--id", &token_id.to_string()],
         &[("BREWLOG_TOKEN", &admin_token)],
     );
     assert!(

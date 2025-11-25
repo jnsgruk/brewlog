@@ -4,6 +4,7 @@ use serde_json::from_str;
 use sqlx::{query_as, query_scalar};
 
 use crate::domain::RepositoryError;
+use crate::domain::ids::TimelineEventId;
 use crate::domain::listing::{ListRequest, Page, PageSize, SortDirection};
 use crate::domain::repositories::TimelineEventRepository;
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail, TimelineSortKey};
@@ -104,9 +105,9 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
 
 #[derive(sqlx::FromRow)]
 struct TimelineEventRecord {
-    id: String,
+    id: i64,
     entity_type: String,
-    entity_id: String,
+    entity_id: i64,
     occurred_at: DateTime<Utc>,
     title: String,
     details_json: Option<String>,
@@ -136,7 +137,7 @@ impl TimelineEventRecord {
         };
 
         Ok(TimelineEvent {
-            id: self.id,
+            id: TimelineEventId::from(self.id),
             entity_type: self.entity_type,
             entity_id: self.entity_id,
             occurred_at: self.occurred_at,

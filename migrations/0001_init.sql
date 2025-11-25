@@ -1,8 +1,7 @@
--- migrate:up
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE roasters (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     country TEXT NOT NULL,
     city TEXT,
@@ -12,8 +11,8 @@ CREATE TABLE roasters (
 );
 
 CREATE TABLE roasts (
-    id TEXT PRIMARY KEY,
-    roaster_id TEXT NOT NULL REFERENCES roasters(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY,
+    roaster_id INTEGER NOT NULL REFERENCES roasters(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     origin TEXT,
     region TEXT,
@@ -26,9 +25,9 @@ CREATE TABLE roasts (
 CREATE INDEX idx_roasts_roaster_id ON roasts(roaster_id);
 
 CREATE TABLE timeline_events (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     entity_type TEXT NOT NULL CHECK (entity_type IN ('roaster', 'roast')),
-    entity_id TEXT NOT NULL,
+    entity_id INTEGER NOT NULL,
     occurred_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     title TEXT NOT NULL,
     details_json TEXT,

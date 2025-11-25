@@ -3,17 +3,15 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use axum::Router;
-use chrono::Utc;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
 
-use crate::domain::ids::generate_id;
 use crate::domain::repositories::{
     RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
     TokenRepository, UserRepository,
 };
-use crate::domain::users::User;
+use crate::domain::users::NewUser;
 use crate::infrastructure::auth::hash_password;
 use crate::infrastructure::database::Database;
 use crate::infrastructure::repositories::roasters::SqlRoasterRepository;
@@ -133,12 +131,7 @@ async fn bootstrap_admin_user(
 
     let password_hash = hash_password(&password).context("failed to hash admin password")?;
 
-    let admin_user = User::new(
-        generate_id(),
-        "admin".to_string(),
-        password_hash,
-        Utc::now(),
-    );
+    let admin_user = NewUser::new("admin".to_string(), password_hash);
 
     user_repo
         .insert(admin_user)

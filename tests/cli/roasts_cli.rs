@@ -44,14 +44,17 @@ fn test_add_roast_with_authentication() {
 
     let roaster_stdout = String::from_utf8_lossy(&roaster_output.stdout);
     let roaster: Value = serde_json::from_str(&roaster_stdout).expect("Should output valid JSON");
-    let roaster_id = roaster["id"].as_str().unwrap();
+    let roaster_id = roaster["id"]
+        .as_i64()
+        .expect("roaster id should be numeric");
+    let roaster_id_arg = roaster_id.to_string();
 
     // Now add a roast
     let output = run_brewlog(
         &[
             "add-roast",
             "--roaster-id",
-            roaster_id,
+            &roaster_id_arg,
             "--name",
             "Ethiopian Yirgacheffe",
             "--origin",
@@ -78,8 +81,8 @@ fn test_add_roast_with_authentication() {
     let roast: Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
 
     assert_eq!(roast["name"], "Ethiopian Yirgacheffe");
-    assert_eq!(roast["roaster_id"], roaster_id);
-    assert!(roast["id"].is_string(), "Should have an ID");
+    assert_eq!(roast["roaster_id"].as_i64(), Some(roaster_id));
+    assert!(roast["id"].is_i64(), "Should have an ID");
 }
 
 #[test]
@@ -111,14 +114,17 @@ fn test_list_roasts_shows_added_roast() {
 
     let roaster_stdout = String::from_utf8_lossy(&roaster_output.stdout);
     let roaster: Value = serde_json::from_str(&roaster_stdout).unwrap();
-    let roaster_id = roaster["id"].as_str().unwrap();
+    let roaster_id = roaster["id"]
+        .as_i64()
+        .expect("roaster id should be numeric");
+    let roaster_id_arg = roaster_id.to_string();
 
     // Add a roast
     let add_output = run_brewlog(
         &[
             "add-roast",
             "--roaster-id",
-            roaster_id,
+            &roaster_id_arg,
             "--name",
             "Colombian Supremo",
             "--origin",
@@ -139,7 +145,9 @@ fn test_list_roasts_shows_added_roast() {
 
     let stdout = String::from_utf8_lossy(&add_output.stdout);
     let added_roast: Value = serde_json::from_str(&stdout).unwrap();
-    let roast_id = added_roast["id"].as_str().unwrap();
+    let roast_id = added_roast["id"]
+        .as_i64()
+        .expect("roast id should be numeric");
 
     // List roasts
     let list_output = run_brewlog(&["list-roasts"], &[]);
@@ -155,7 +163,7 @@ fn test_list_roasts_shows_added_roast() {
     // Find our roast in the list (note: list returns RoastWithRoaster which has nested structure)
     let found = roasts_array
         .iter()
-        .any(|item| item["roast"]["id"] == roast_id);
+        .any(|item| item["roast"]["id"].as_i64() == Some(roast_id));
     assert!(
         found,
         "Should find the added roast in the list. Looking for id={}, found {} roasts",

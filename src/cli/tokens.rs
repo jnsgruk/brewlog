@@ -4,6 +4,7 @@ use std::io::{self, Write};
 
 use crate::cli::print_json;
 use crate::client::BrewlogClient;
+use crate::domain::ids::TokenId;
 
 #[derive(Debug, Args)]
 pub struct CreateTokenCommand {
@@ -16,7 +17,7 @@ pub struct CreateTokenCommand {
 pub struct RevokeTokenCommand {
     /// The ID of the token to revoke
     #[arg(long)]
-    pub id: String,
+    pub id: TokenId,
 }
 
 pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Result<()> {
@@ -53,7 +54,7 @@ pub async fn list_tokens(client: &BrewlogClient) -> Result<()> {
 }
 
 pub async fn revoke_token(client: &BrewlogClient, cmd: RevokeTokenCommand) -> Result<()> {
-    let token = client.tokens().revoke(&cmd.id).await?;
+    let token = client.tokens().revoke(cmd.id).await?;
     println!("Token revoked successfully");
     print_json(&token)
 }

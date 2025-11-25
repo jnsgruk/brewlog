@@ -1,15 +1,14 @@
 use askama::Template;
+use axum::Form;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
-use axum::Form;
 use chrono::{Duration, Utc};
 use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
 use tracing::{error, warn};
 
-use crate::domain::ids::generate_id;
-use crate::domain::sessions::Session;
+use crate::domain::sessions::NewSession;
 use crate::infrastructure::auth::{generate_session_token, hash_token, verify_password};
 use crate::server::routes::render_html;
 use crate::server::server::AppState;
@@ -75,15 +74,14 @@ pub(crate) async fn login_submit(
     let session_token_hash = hash_token(&session_token);
 
     // Create session in database (valid for 30 days)
-    let session = Session::new(
-        generate_id(),
-        user.id.clone(),
+    let new_session = NewSession::new(
+        user.id,
         session_token_hash,
         Utc::now(),
         Utc::now() + Duration::days(30),
     );
 
-    if let Err(err) = state.session_repo.insert(session).await {
+    if let Err(err) = state.session_repo.insert(new_session).await {
         error!(error = %err, "failed to create session");
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }
@@ -93,7 +91,7 @@ pub(crate) async fn login_submit(
     cookie.set_path("/");
     cookie.set_http_only(true);
     cookie.set_same_site(tower_cookies::cookie::SameSite::Strict);
-    
+
     // Enable secure flag if BREWLOG_SECURE_COOKIES is set to "true"
     // This should be enabled in production when serving over HTTPS
     if std::env::var("BREWLOG_SECURE_COOKIES").unwrap_or_default() == "true" {
@@ -110,9 +108,13 @@ pub(crate) async fn logout(State(state): State<AppState>, cookies: Cookies) -> R
     if let Some(cookie) = cookies.get(SESSION_COOKIE_NAME) {
         let session_token = cookie.value();
         let session_token_hash = hash_token(session_token);
-        
+
         // Try to find and delete the session
-        if let Ok(session) = state.session_repo.get_by_token_hash(&session_token_hash).await {
+        if let Ok(session) = state
+            .session_repo
+            .get_by_token_hash(&session_token_hash)
+            .await
+        {
             let _ = state.session_repo.delete(session.id).await;
         }
     }
@@ -142,7 +144,11 @@ pub async fn is_authenticated(state: &AppState, cookies: &Cookies) -> bool {
     let session_token_hash = hash_token(session_token);
 
     // Check if session exists and is valid
-    match state.session_repo.get_by_token_hash(&session_token_hash).await {
+    match state
+        .session_repo
+        .get_by_token_hash(&session_token_hash)
+        .await
+    {
         Ok(session) => !session.is_expired(),
         Err(_) => false,
     }
