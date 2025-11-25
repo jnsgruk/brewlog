@@ -250,6 +250,156 @@ async fn test_protected_endpoints_work_with_authentication() {
 }
 
 #[tokio::test]
+async fn test_session_authentication_via_login() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::builder()
+        .cookie_store(true)
+        .build()
+        .unwrap();
+
+    // Login to create a session
+    let login_response = client
+        .post(&format!("{}/login", app.address))
+        .form(&[("username", "admin"), ("password", "test_password")])
+        .send()
+        .await
+        .expect("Failed to send login request");
+
+    assert!(
+        login_response.status().is_redirection() || login_response.status().is_success(),
+        "Login should succeed"
+    );
+
+    // Use the session cookie to create a roaster (no Bearer token needed)
+    let response = client
+        .post(&app.api_url("/roasters"))
+        .json(&json!({
+            "name": "Session Test Roaster",
+            "country": "US"
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(
+        response.status(),
+        StatusCode::CREATED,
+        "Session cookie should authenticate API request"
+    );
+}
+
+#[tokio::test]
+async fn test_invalid_session_cookie_fails() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::builder()
+        .cookie_store(true)
+        .build()
+        .unwrap();
+
+    // Try to create a roaster with no session (unauthenticated)
+    let response = client
+        .post(&app.api_url("/roasters"))
+        .json(&json!({
+            "name": "Invalid Session Roaster",
+            "country": "UK"
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(
+        response.status(),
+        StatusCode::UNAUTHORIZED,
+        "Request without valid session should fail"
+    );
+}
+
+#[tokio::test]
+async fn test_logout_invalidates_session() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::builder()
+        .cookie_store(true)
+        .build()
+        .unwrap();
+
+    // Login to create a session
+    let login_response = client
+        .post(&format!("{}/login", app.address))
+        .form(&[("username", "admin"), ("password", "test_password")])
+        .send()
+        .await
+        .expect("Failed to send login request");
+
+    assert!(login_response.status().is_redirection() || login_response.status().is_success());
+
+    // Verify the session works
+    let auth_response = client
+        .post(&app.api_url("/roasters"))
+        .json(&json!({
+            "name": "Pre-Logout Roaster",
+            "country": "FR"
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(auth_response.status(), StatusCode::CREATED);
+
+    // Logout
+    let logout_response = client
+        .post(&format!("{}/logout", app.address))
+        .send()
+        .await
+        .expect("Failed to send logout request");
+
+    assert!(logout_response.status().is_redirection() || logout_response.status().is_success());
+
+    // Try to use the session after logout
+    let post_logout_response = client
+        .post(&app.api_url("/roasters"))
+        .json(&json!({
+            "name": "Post-Logout Roaster",
+            "country": "DE"
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(
+        post_logout_response.status(),
+        StatusCode::UNAUTHORIZED,
+        "Session should be invalidated after logout"
+    );
+}
+
+#[tokio::test]
+async fn test_fake_session_cookie_fails() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::builder()
+        .cookie_store(true)
+        .build()
+        .unwrap();
+
+    // Try to use a fake/forged session cookie
+    let response = client
+        .post(&app.api_url("/roasters"))
+        .header("Cookie", "brewlog_session=fake_session_token_12345")
+        .json(&json!({
+            "name": "Fake Session Roaster",
+            "country": "IT"
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(
+        response.status(),
+        StatusCode::UNAUTHORIZED,
+        "Fake session cookie should not authenticate"
+    );
+}
+
+#[tokio::test]
 async fn test_read_endpoints_dont_require_authentication() {
     let app = spawn_app_with_auth().await;
     let client = Client::new();
