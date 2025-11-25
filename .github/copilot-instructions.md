@@ -33,9 +33,9 @@ In this phase, we iterate on the solution.
 
 - Only when I give the go ahead will you make changes to the codebase.
 - When making changes, consider how to break them down into small, understandable commits.
-- Each commit should represent a single logical change. Provide a concise commit message for each,
-  adhering to the "Conventional Commits" standard.
-- **Always** run `cargo check`, `cargo test`, `cargo-clippy` and `cargo fmt` and fix any issues before committing.
+- Each commit should represent a single logical change.
+- Commit messages must always adhere to the Conventional Commit format.
+- **Always** run `cargo check`, `cargo test`, `cargo clippy --allow-dirty --fix` and `cargo fmt` and fix any issues before committing.
 - Always draft the commit message, showing a summary of which changes will be committed, and ask
   me for confirmation before actually committing.
 
