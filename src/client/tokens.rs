@@ -40,7 +40,11 @@ impl<'a> TokensClient<'a> {
     pub async fn list(&self) -> Result<Vec<Token>> {
         let url = self.client.endpoint("api/v1/tokens")?;
 
-        let response = self.client.http_client().get(url).send().await?;
+        let response = self
+            .client
+            .request(reqwest::Method::GET, url)
+            .send()
+            .await?;
 
         self.client.handle_response(response).await
     }
@@ -50,7 +54,11 @@ impl<'a> TokensClient<'a> {
             .client
             .endpoint(&format!("api/v1/tokens/{}/revoke", id))?;
 
-        let response = self.client.http_client().post(url).send().await?;
+        let response = self
+            .client
+            .request(reqwest::Method::POST, url)
+            .send()
+            .await?;
 
         self.client.handle_response(response).await
     }

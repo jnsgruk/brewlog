@@ -9,6 +9,7 @@ use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster};
 use crate::presentation::templates::{RoastDetailTemplate, RoastListTemplate, RoastsTemplate};
 use crate::presentation::views::{ListNavigator, Paginated, RoastView, RoasterOptionView};
+use crate::server::auth::AuthenticatedUser;
 use crate::server::errors::{ApiError, AppError, map_app_error};
 use crate::server::routes::render_html;
 use crate::server::routes::support::{
@@ -96,6 +97,7 @@ pub(crate) async fn roast_page(
 
 pub(crate) async fn create_roast(
     State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewRoastSubmission>,
@@ -154,6 +156,7 @@ pub(crate) async fn get_roast(
 
 pub(crate) async fn delete_roast(
     State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Path(id): Path<String>,
     Query(query): Query<ListQuery>,

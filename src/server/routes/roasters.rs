@@ -9,6 +9,7 @@ use crate::presentation::templates::{
     RoasterDetailTemplate, RoasterListTemplate, RoastersTemplate,
 };
 use crate::presentation::views::{ListNavigator, Paginated, RoastView, RoasterView};
+use crate::server::auth::AuthenticatedUser;
 use crate::server::errors::{ApiError, AppError, map_app_error};
 use crate::server::routes::render_html;
 use crate::server::routes::support::{
@@ -102,6 +103,7 @@ pub(crate) async fn list_roasters(
 
 pub(crate) async fn create_roaster(
     State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewRoaster>,
@@ -138,6 +140,7 @@ pub(crate) async fn get_roaster(
 
 pub(crate) async fn update_roaster(
     State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
     Path(id): Path<String>,
     Json(payload): Json<UpdateRoaster>,
 ) -> Result<Json<Roaster>, ApiError> {
@@ -161,6 +164,7 @@ pub(crate) async fn update_roaster(
 
 pub(crate) async fn delete_roaster(
     State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Path(id): Path<String>,
     Query(query): Query<ListQuery>,
