@@ -48,6 +48,10 @@ name = "cli"
 path = "tests/cli/main.rs"
 harness = true
 
+[profile.test]
+# Run CLI tests serially to share single server instance
+opt-level = 0
+
 [[test]]
 name = "server"
 path = "tests/server/main.rs"

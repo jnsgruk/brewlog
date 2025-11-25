@@ -1,6 +1,7 @@
 use once_cell::sync::Lazy;
 use std::process::{Command, Stdio};
 use std::sync::Mutex;
+use std::time::Duration;
 use tempfile::TempDir;
 
 /// Shared test server state
@@ -18,6 +19,7 @@ struct SharedServer {
 /// Single shared test server for all CLI tests
 static TEST_SERVER: Lazy<Mutex<Option<SharedServer>>> = Lazy::new(|| {
     // Build the binary first
+    eprintln!("Building brewlog binary...");
     let status = Command::new("cargo")
         .args(&["build", "--bin", "brewlog"])
         .status()
@@ -33,46 +35,73 @@ pub fn brewlog_bin() -> String {
     format!("{}/target/debug/brewlog", manifest_dir)
 }
 
-/// Get or start the shared test server
-fn get_or_start_server() -> (String, String) {
-    let mut server = TEST_SERVER.lock().unwrap();
+/// Get or start the shared test server - handles mutex poisoning gracefully
+fn ensure_server_started() -> Result<(String, String), String> {
+    let mut server = match TEST_SERVER.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
 
     if server.is_none() {
+        eprintln!("Starting test server...");
+
         // Create temporary database
-        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let temp_dir = TempDir::new().map_err(|e| format!("Failed to create temp dir: {}", e))?;
         let db_path = temp_dir.path().join("test.db");
         let db_url = format!("sqlite:{}", db_path.display());
         let admin_password = "test_admin_password";
 
         // Start server on a random port
-        let port = portpicker::pick_unused_port().expect("No ports available");
+        let port = portpicker::pick_unused_port().ok_or("No ports available")?;
         let address = format!("http://127.0.0.1:{}", port);
 
+        eprintln!("Starting server on {}", address);
+
+        let bind_address = format!("127.0.0.1:{}", port);
         let process = Command::new(brewlog_bin())
-            .args(&["serve", "--port", &port.to_string(), "--database", &db_url])
+            .args(&[
+                "serve",
+                "--bind-address",
+                &bind_address,
+                "--database-url",
+                &db_url,
+            ])
             .env("BREWLOG_ADMIN_PASSWORD", admin_password)
             .env("RUST_LOG", "error")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .spawn()
-            .expect("Failed to start brewlog server");
+            .map_err(|e| format!("Failed to start brewlog server: {}", e))?;
 
         // Wait for server to be ready
         let client = reqwest::blocking::Client::builder()
-            .timeout(std::time::Duration::from_secs(2))
+            .timeout(Duration::from_secs(3))
             .build()
-            .unwrap();
+            .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
         let health_url = format!("{}/api/v1/roasters", address);
 
-        for _ in 0..50 {
-            if client.get(&health_url).send().is_ok() {
-                break;
+        let mut server_ready = false;
+        for attempt in 0..100 {
+            match client.get(&health_url).send() {
+                Ok(_) => {
+                    eprintln!("Server ready after {} attempts", attempt + 1);
+                    server_ready = true;
+                    break;
+                }
+                Err(_) => {
+                    if attempt == 99 {
+                        return Err(
+                            "Server failed to start after 100 attempts (10 seconds)".to_string()
+                        );
+                    }
+                    std::thread::sleep(Duration::from_millis(100));
+                }
             }
-            std::thread::sleep(std::time::Duration::from_millis(100));
         }
 
-        // Give it a bit more time to stabilize
-        std::thread::sleep(std::time::Duration::from_millis(200));
+        if !server_ready {
+            return Err("Server never became ready".to_string());
+        }
 
         *server = Some(SharedServer {
             address: address.clone(),
@@ -84,20 +113,23 @@ fn get_or_start_server() -> (String, String) {
     }
 
     let srv = server.as_ref().unwrap();
-    (srv.address.clone(), srv.admin_password.clone())
+    Ok((srv.address.clone(), srv.admin_password.clone()))
 }
 
 /// Get the shared server address and admin password
 pub fn server_info() -> (String, String) {
-    get_or_start_server()
+    ensure_server_started().expect("Failed to start test server")
 }
 
-/// Create a token for testing using the API directly (avoids interactive CLI)
+/// Create a token for testing using the API directly
 pub fn create_token(name: &str) -> String {
-    let (address, password) = server_info();
+    let (address, password) = ensure_server_started().expect("Failed to start test server");
 
-    // Use the API directly to create a token
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(5))
+        .build()
+        .expect("Failed to create HTTP client");
+
     let response = client
         .post(format!("{}/api/v1/tokens", address))
         .json(&serde_json::json!({
@@ -106,14 +138,15 @@ pub fn create_token(name: &str) -> String {
             "name": name
         }))
         .send()
-        .expect("Failed to create token via API");
+        .expect("Failed to send token creation request");
 
-    assert!(
-        response.status().is_success(),
-        "Failed to create token: status={} body={}",
-        response.status(),
-        response.text().unwrap_or_default()
-    );
+    if !response.status().is_success() {
+        panic!(
+            "Failed to create token: status={} body={}",
+            response.status(),
+            response.text().unwrap_or_default()
+        );
+    }
 
     let token_response: serde_json::Value =
         response.json().expect("Failed to parse token response");
@@ -126,11 +159,11 @@ pub fn create_token(name: &str) -> String {
 
 /// Run a brewlog CLI command and return the output
 pub fn run_brewlog(args: &[&str], env: &[(&str, &str)]) -> std::process::Output {
-    let (address, _) = server_info();
+    let (address, _) = ensure_server_started().expect("Failed to start test server");
 
     let mut cmd = Command::new(brewlog_bin());
     cmd.args(args);
-    cmd.env("BREWLOG_SERVER", &address);
+    cmd.env("BREWLOG_URL", &address);
 
     for (key, value) in env {
         cmd.env(key, value);

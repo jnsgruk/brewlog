@@ -62,6 +62,8 @@ fn test_add_roast_with_authentication() {
             "Local Coop",
             "--process",
             "Washed",
+            "--tasting-notes",
+            "Blueberry,Chocolate",
         ],
         &[("BREWLOG_TOKEN", &token)],
     );
@@ -127,6 +129,8 @@ fn test_list_roasts_shows_added_roast() {
             "Farm Co-op",
             "--process",
             "Natural",
+            "--tasting-notes",
+            "Caramel,Nuts",
         ],
         &[("BREWLOG_TOKEN", &token)],
     );
@@ -148,9 +152,16 @@ fn test_list_roasts_shows_added_roast() {
     assert!(roasts.is_array());
     let roasts_array = roasts.as_array().unwrap();
 
-    // Find our roast in the list
-    let found = roasts_array.iter().any(|r| r["id"] == roast_id);
-    assert!(found, "Should find the added roast in the list");
+    // Find our roast in the list (note: list returns RoastWithRoaster which has nested structure)
+    let found = roasts_array
+        .iter()
+        .any(|item| item["roast"]["id"] == roast_id);
+    assert!(
+        found,
+        "Should find the added roast in the list. Looking for id={}, found {} roasts",
+        roast_id,
+        roasts_array.len()
+    );
 }
 
 #[test]
