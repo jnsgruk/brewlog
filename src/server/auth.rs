@@ -5,10 +5,13 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use tower_cookies::Cookies;
 
 use crate::domain::users::User;
 use crate::infrastructure::auth::hash_token;
 use crate::server::server::AppState;
+
+const SESSION_COOKIE_NAME: &str = "brewlog_session";
 
 /// Extension type to carry authenticated user through request handlers
 #[derive(Clone)]
@@ -27,7 +30,14 @@ impl FromRequestParts<AppState> for AuthenticatedUser {
             return Ok(user.clone());
         }
 
-        // Otherwise, extract from Authorization header directly
+        // Try to authenticate via session cookie first
+        if let Ok(cookies) = Cookies::from_request_parts(parts, state).await {
+            if let Some(user) = authenticate_via_session(state, &cookies).await {
+                return Ok(AuthenticatedUser(user));
+            }
+        }
+
+        // Fall back to Bearer token authentication
         let auth_header = parts
             .headers
             .get(header::AUTHORIZATION)
@@ -71,6 +81,27 @@ impl FromRequestParts<AppState> for AuthenticatedUser {
 
         Ok(AuthenticatedUser(user))
     }
+}
+
+/// Authenticate via session cookie
+async fn authenticate_via_session(state: &AppState, cookies: &Cookies) -> Option<User> {
+    let cookie = cookies.get(SESSION_COOKIE_NAME)?;
+    let session_token = cookie.value();
+    let session_token_hash = hash_token(session_token);
+
+    // Check if session exists and is valid
+    let session = state
+        .session_repo
+        .get_by_token_hash(&session_token_hash)
+        .await
+        .ok()?;
+
+    if session.is_expired() {
+        return None;
+    }
+
+    // Get the user
+    state.user_repo.get(session.user_id).await.ok()
 }
 
 /// Middleware that optionally extracts authentication from the request
