@@ -20,13 +20,13 @@ B{rew}log ships as one executable. You decide whether it acts as a server or a c
 
 ### First-time setup
 
-On first start, you **must** set an admin password via the `BREWLOG_ADMIN_PASSWORD` environment variable:
+On first start, you must set an admin password via the `BREWLOG_ADMIN_PASSWORD` environment variable:
 
 ```bash
 BREWLOG_ADMIN_PASSWORD="your-secure-password" brewlog serve
 ```
 
-This creates the admin user in the database. On subsequent starts, the password is not required.
+This creates the admin user in the database. On subsequent starts, the environment variable is not required.
 
 ### Authentication
 
@@ -37,7 +37,7 @@ Brewlog supports two authentication methods:
 
 #### Web Authentication
 
-1. Start the server and visit `http://localhost:3000`
+1. Start the server and browse to the frontend
 2. Click "Login" in the navigation bar
 3. Sign in with username `admin` and your password
 4. You're now authenticated and can create/update/delete records
@@ -48,18 +48,25 @@ First, create an API token:
 
 ```bash
 brewlog create-token --name "my-cli-token"
-# Enter username: admin
-# Enter password: ****
-# 
+# Username: admin
+# Password: ********
+#
 # Token created successfully!
-# Token ID: abc123
-# Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Token ID: nye9BDqnLL
+# Token Name: my-cli-token
+#
+# ⚠  Save this token securely - it will not be shown again:
+#
+# dEadB3efDeadb33fdeadb33F...
+#
+# Export it in your environment:
+#   export BREWLOG_TOKEN=dEadB3efDeadb33fdeadb33F...
 ```
 
 Export the token and use it for all CLI commands:
 
 ```bash
-export BREWLOG_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+export BREWLOG_TOKEN="dEadB3efDeadb33fdeadb33F..."
 export BREWLOG_URL=http://localhost:3000
 
 # Now all write operations work
@@ -95,7 +102,7 @@ For direct API access, include your token as a Bearer token:
 
 ```bash
 curl http://localhost:3000/api/v1/roasters \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Authorization: Bearer dEadB3efDeadb33fdeadb33F..." \
   --json '{"name":"Radical Roasters","country":"UK"}'
 ```
 
@@ -119,61 +126,10 @@ During development you can run directly:
 cargo run -- serve
 ```
 
-## Environment Variables
+## Testing
 
-### Server Configuration
+The project includes a number of unit and integration tests, all of which can be executed with `cargo`:
 
-- **`BREWLOG_ADMIN_PASSWORD`** *(required on first start)*: Sets the admin user password. Must be provided when starting the server for the first time.
-- **`BREWLOG_SECURE_COOKIES`**: Set to `"true"` to enable the `Secure` flag on session cookies (HTTPS-only transmission). Recommended for production deployments.
-- **`DATABASE_URL`**: SQLite database file path (default: `brewlog.db`)
-- **`BIND_ADDRESS`**: Server bind address (default: `0.0.0.0:3000`)
-
-### CLI Configuration
-
-- **`BREWLOG_URL`**: API server URL (default: `http://127.0.0.1:3000`)
-- **`BREWLOG_TOKEN`**: API authentication token for write operations
-
-## Security Considerations
-
-### Password Security
-
-- Passwords are hashed using **Argon2id** with industry-standard secure defaults
-- Password hashing uses constant-time comparison to prevent timing attacks
-- Never store passwords in plain text - always use the password prompt
-
-### Token Security
-
-- API tokens are cryptographically secure 32-byte random values
-- Tokens are stored as **SHA-256 hashes** in the database
-- Token values are only displayed **once** at creation time
-- Revoked tokens cannot be reused
-
-### Session Security
-
-- Session tokens are 256-bit cryptographically secure random values
-- Sessions are stored in the database with 30-day expiration
-- Session tokens are hashed with **SHA-256** before storage
-- Cookies are **HttpOnly** and **SameSite=Strict** for CSRF protection
-- Sessions are properly invalidated on logout
-
-### Production Deployment
-
-When deploying to production:
-
-1. **Enable HTTPS**: Set `BREWLOG_SECURE_COOKIES=true` to ensure cookies are only transmitted over HTTPS
-2. **Use Strong Passwords**: Choose a strong admin password (12+ characters, mixed case, numbers, symbols)
-3. **Restrict Access**: Use firewall rules to limit who can access the server
-4. **Regular Updates**: Keep your Brewlog installation up to date
-5. **Backup Database**: Regularly backup your `brewlog.db` file
-6. **Revoke Unused Tokens**: Periodically review and revoke API tokens you no longer need
-
-### Authentication Model
-
-Brewlog uses a **single-user** authentication model:
-
-- Only one user account exists (`admin`)
-- No sign-up or password recovery flows
-- No multi-user support or permissions
-- All authenticated users have full access to all operations
-
-This design assumes Brewlog is deployed for **personal use** or in a **trusted environment**.
+```bash
+cargo test
+```
