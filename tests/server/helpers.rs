@@ -35,42 +35,6 @@ impl TestApp {
     pub fn api_url(&self, path: &str) -> String {
         format!("{}/api/v1{}", self.address, path)
     }
-
-    /// Create an authenticated POST request
-    pub fn post(&self, path: &str) -> reqwest::RequestBuilder {
-        let client = Client::new();
-        let mut req = client.post(self.api_url(path));
-        if let Some(token) = &self.auth_token {
-            req = req.bearer_auth(token);
-        }
-        req
-    }
-
-    /// Create an authenticated PUT request
-    pub fn put(&self, path: &str) -> reqwest::RequestBuilder {
-        let client = Client::new();
-        let mut req = client.put(self.api_url(path));
-        if let Some(token) = &self.auth_token {
-            req = req.bearer_auth(token);
-        }
-        req
-    }
-
-    /// Create an authenticated DELETE request  
-    pub fn delete(&self, path: &str) -> reqwest::RequestBuilder {
-        let client = Client::new();
-        let mut req = client.delete(self.api_url(path));
-        if let Some(token) = &self.auth_token {
-            req = req.bearer_auth(token);
-        }
-        req
-    }
-
-    /// Create a GET request (doesn't need auth for reads)
-    pub fn get(&self, path: &str) -> reqwest::RequestBuilder {
-        let client = Client::new();
-        client.get(self.api_url(path))
-    }
 }
 
 pub async fn spawn_app() -> TestApp {

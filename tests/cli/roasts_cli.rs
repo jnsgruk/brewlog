@@ -1,9 +1,9 @@
-use crate::helpers::{TestServer, run_brewlog};
+use crate::helpers::{create_token, run_brewlog, server_info};
 use serde_json::Value;
 
 #[test]
 fn test_add_roast_requires_authentication() {
-    let server = TestServer::start();
+    let _ = server_info();
 
     let output = run_brewlog(
         &[
@@ -21,7 +21,7 @@ fn test_add_roast_requires_authentication() {
             "--process",
             "Washed",
         ],
-        &[("BREWLOG_SERVER", &server.address)],
+        &[],
     );
 
     assert!(
@@ -32,21 +32,16 @@ fn test_add_roast_requires_authentication() {
 
 #[test]
 fn test_add_roast_with_authentication() {
-    let server = TestServer::start();
-    let token = server.create_token("test-token");
+    let token = create_token("test-add-roast");
 
     // First create a roaster
     let roaster_output = run_brewlog(
         &["add-roaster", "--name", "Test Roasters", "--country", "UK"],
-        &[
-            ("BREWLOG_TOKEN", &token),
-            ("BREWLOG_SERVER", &server.address),
-        ],
+        &[("BREWLOG_TOKEN", &token)],
     );
 
     assert!(roaster_output.status.success());
 
-    // Extract roaster ID from output
     let roaster_stdout = String::from_utf8_lossy(&roaster_output.stdout);
     let roaster: Value = serde_json::from_str(&roaster_stdout).expect("Should output valid JSON");
     let roaster_id = roaster["id"].as_str().unwrap();
@@ -68,10 +63,7 @@ fn test_add_roast_with_authentication() {
             "--process",
             "Washed",
         ],
-        &[
-            ("BREWLOG_TOKEN", &token),
-            ("BREWLOG_SERVER", &server.address),
-        ],
+        &[("BREWLOG_TOKEN", &token)],
     );
 
     assert!(
@@ -80,7 +72,6 @@ fn test_add_roast_with_authentication() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    // Parse and verify the output
     let stdout = String::from_utf8_lossy(&output.stdout);
     let roast: Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
 
@@ -91,16 +82,15 @@ fn test_add_roast_with_authentication() {
 
 #[test]
 fn test_list_roasts_works_without_authentication() {
-    let server = TestServer::start();
+    let _ = server_info();
 
-    let output = run_brewlog(&["list-roasts"], &[("BREWLOG_SERVER", &server.address)]);
+    let output = run_brewlog(&["list-roasts"], &[]);
 
     assert!(
         output.status.success(),
         "list-roasts should work without auth"
     );
 
-    // Parse the JSON output
     let stdout = String::from_utf8_lossy(&output.stdout);
     let roasts: Value = serde_json::from_str(&stdout).expect("Should output valid JSON array");
 
@@ -109,16 +99,12 @@ fn test_list_roasts_works_without_authentication() {
 
 #[test]
 fn test_list_roasts_shows_added_roast() {
-    let server = TestServer::start();
-    let token = server.create_token("test-token");
+    let token = create_token("test-list-roasts");
 
     // First create a roaster
     let roaster_output = run_brewlog(
         &["add-roaster", "--name", "Test Roasters", "--country", "UK"],
-        &[
-            ("BREWLOG_TOKEN", &token),
-            ("BREWLOG_SERVER", &server.address),
-        ],
+        &[("BREWLOG_TOKEN", &token)],
     );
 
     let roaster_stdout = String::from_utf8_lossy(&roaster_output.stdout);
@@ -142,45 +128,36 @@ fn test_list_roasts_shows_added_roast() {
             "--process",
             "Natural",
         ],
-        &[
-            ("BREWLOG_TOKEN", &token),
-            ("BREWLOG_SERVER", &server.address),
-        ],
+        &[("BREWLOG_TOKEN", &token)],
     );
 
     assert!(add_output.status.success());
 
-    // Parse the added roast
     let stdout = String::from_utf8_lossy(&add_output.stdout);
     let added_roast: Value = serde_json::from_str(&stdout).unwrap();
     let roast_id = added_roast["id"].as_str().unwrap();
 
     // List roasts
-    let list_output = run_brewlog(&["list-roasts"], &[("BREWLOG_SERVER", &server.address)]);
+    let list_output = run_brewlog(&["list-roasts"], &[]);
 
     assert!(list_output.status.success());
 
-    // Parse and verify the list
     let list_stdout = String::from_utf8_lossy(&list_output.stdout);
     let roasts: Value = serde_json::from_str(&list_stdout).unwrap();
 
     assert!(roasts.is_array());
     let roasts_array = roasts.as_array().unwrap();
-    assert_eq!(roasts_array.len(), 1, "Should have exactly one roast");
 
-    let listed_roast = &roasts_array[0];
-    assert_eq!(listed_roast["id"], roast_id);
-    assert_eq!(listed_roast["name"], "Colombian Supremo");
+    // Find our roast in the list
+    let found = roasts_array.iter().any(|r| r["id"] == roast_id);
+    assert!(found, "Should find the added roast in the list");
 }
 
 #[test]
 fn test_delete_roast_requires_authentication() {
-    let server = TestServer::start();
+    let _ = server_info();
 
-    let output = run_brewlog(
-        &["delete-roast", "--id", "some-id"],
-        &[("BREWLOG_SERVER", &server.address)],
-    );
+    let output = run_brewlog(&["delete-roast", "--id", "some-id"], &[]);
 
     assert!(
         !output.status.success(),

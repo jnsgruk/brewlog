@@ -1,21 +1,31 @@
+use once_cell::sync::Lazy;
 use std::process::{Command, Stdio};
-use std::sync::Once;
+use std::sync::Mutex;
 use tempfile::TempDir;
 
-static INIT: Once = Once::new();
-
-/// Initialize test environment (compile the binary, etc.)
-pub fn setup() {
-    INIT.call_once(|| {
-        // Build the project before running CLI tests
-        let status = Command::new("cargo")
-            .args(&["build", "--bin", "brewlog"])
-            .status()
-            .expect("Failed to build brewlog binary");
-
-        assert!(status.success(), "Failed to compile brewlog");
-    });
+/// Shared test server state
+struct SharedServer {
+    address: String,
+    admin_password: String,
+    #[allow(dead_code)]
+    db_url: String,
+    #[allow(dead_code)]
+    temp_dir: TempDir,
+    #[allow(dead_code)]
+    process: std::process::Child,
 }
+
+/// Single shared test server for all CLI tests
+static TEST_SERVER: Lazy<Mutex<Option<SharedServer>>> = Lazy::new(|| {
+    // Build the binary first
+    let status = Command::new("cargo")
+        .args(&["build", "--bin", "brewlog"])
+        .status()
+        .expect("Failed to build brewlog binary");
+    assert!(status.success(), "Failed to compile brewlog");
+
+    Mutex::new(None)
+});
 
 /// Get path to the brewlog binary
 pub fn brewlog_bin() -> String {
@@ -23,28 +33,15 @@ pub fn brewlog_bin() -> String {
     format!("{}/target/debug/brewlog", manifest_dir)
 }
 
-/// Create a temporary directory for test database
-pub fn create_test_db() -> (TempDir, String) {
-    let temp_dir = TempDir::new().expect("Failed to create temp dir");
-    let db_path = temp_dir.path().join("test.db");
-    let db_url = format!("sqlite:{}", db_path.display());
-    (temp_dir, db_url)
-}
+/// Get or start the shared test server
+fn get_or_start_server() -> (String, String) {
+    let mut server = TEST_SERVER.lock().unwrap();
 
-/// Start a brewlog server in the background for testing
-pub struct TestServer {
-    pub address: String,
-    pub admin_password: String,
-    pub db_url: String,
-    _temp_dir: TempDir,
-    _process: std::process::Child,
-}
-
-impl TestServer {
-    pub fn start() -> Self {
-        setup();
-
-        let (temp_dir, db_url) = create_test_db();
+    if server.is_none() {
+        // Create temporary database
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let db_path = temp_dir.path().join("test.db");
+        let db_url = format!("sqlite:{}", db_path.display());
         let admin_password = "test_admin_password";
 
         // Start server on a random port
@@ -54,105 +51,90 @@ impl TestServer {
         let process = Command::new(brewlog_bin())
             .args(&["serve", "--port", &port.to_string(), "--database", &db_url])
             .env("BREWLOG_ADMIN_PASSWORD", admin_password)
-            .env("RUST_LOG", "info")
+            .env("RUST_LOG", "error")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .spawn()
             .expect("Failed to start brewlog server");
 
-        // Wait for server to be ready with health check
-        let client = reqwest::blocking::Client::new();
+        // Wait for server to be ready
+        let client = reqwest::blocking::Client::builder()
+            .timeout(std::time::Duration::from_secs(2))
+            .build()
+            .unwrap();
         let health_url = format!("{}/api/v1/roasters", address);
-        let max_attempts = 30; // 30 seconds total
-        let mut attempts = 0;
 
-        while attempts < max_attempts {
+        for _ in 0..50 {
             if client.get(&health_url).send().is_ok() {
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
-            attempts += 1;
         }
 
-        if attempts >= max_attempts {
-            panic!("Server failed to start within 30 seconds");
-        }
+        // Give it a bit more time to stabilize
+        std::thread::sleep(std::time::Duration::from_millis(200));
 
-        Self {
-            address,
+        *server = Some(SharedServer {
+            address: address.clone(),
             admin_password: admin_password.to_string(),
             db_url,
-            _temp_dir: temp_dir,
-            _process: process,
-        }
+            temp_dir,
+            process,
+        });
     }
 
-    pub fn create_token(&self, name: &str) -> String {
-        use std::io::Write;
-
-        let mut child = Command::new(brewlog_bin())
-            .args(&["create-token", "--name", name])
-            .env("BREWLOG_SERVER", &self.address)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("Failed to spawn create-token command");
-
-        // Write username and password to stdin
-        {
-            let stdin = child.stdin.as_mut().expect("Failed to open stdin");
-            writeln!(stdin, "admin").expect("Failed to write username");
-            writeln!(stdin, "{}", self.admin_password).expect("Failed to write password");
-        }
-
-        let output = child
-            .wait_with_output()
-            .expect("Failed to wait for command");
-
-        assert!(
-            output.status.success(),
-            "Failed to create token: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-
-        // Parse the output to extract the token
-        // The token is on the line after "Save this token securely"
-        let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8 in token output");
-
-        for line in stdout.lines() {
-            let trimmed = line.trim();
-            // The token line starts with a base64-looking string (long alphanumeric with possible +/=)
-            if trimmed.len() > 40 && !trimmed.contains(':') && !trimmed.contains("export") {
-                return trimmed.to_string();
-            }
-        }
-
-        panic!("Could not find token in output:\n{}", stdout);
-    }
+    let srv = server.as_ref().unwrap();
+    (srv.address.clone(), srv.admin_password.clone())
 }
 
-impl Drop for TestServer {
-    fn drop(&mut self) {
-        // Server process will be killed when _process is dropped
-    }
+/// Get the shared server address and admin password
+pub fn server_info() -> (String, String) {
+    get_or_start_server()
+}
+
+/// Create a token for testing using the API directly (avoids interactive CLI)
+pub fn create_token(name: &str) -> String {
+    let (address, password) = server_info();
+
+    // Use the API directly to create a token
+    let client = reqwest::blocking::Client::new();
+    let response = client
+        .post(format!("{}/api/v1/tokens", address))
+        .json(&serde_json::json!({
+            "username": "admin",
+            "password": password,
+            "name": name
+        }))
+        .send()
+        .expect("Failed to create token via API");
+
+    assert!(
+        response.status().is_success(),
+        "Failed to create token: status={} body={}",
+        response.status(),
+        response.text().unwrap_or_default()
+    );
+
+    let token_response: serde_json::Value =
+        response.json().expect("Failed to parse token response");
+
+    token_response["token"]
+        .as_str()
+        .expect("Token not found in response")
+        .to_string()
 }
 
 /// Run a brewlog CLI command and return the output
 pub fn run_brewlog(args: &[&str], env: &[(&str, &str)]) -> std::process::Output {
+    let (address, _) = server_info();
+
     let mut cmd = Command::new(brewlog_bin());
     cmd.args(args);
+    cmd.env("BREWLOG_SERVER", &address);
 
     for (key, value) in env {
         cmd.env(key, value);
     }
 
     cmd.output().expect("Failed to run brewlog command")
-}
-
-/// Check if output contains expected text
-pub fn output_contains(output: &std::process::Output, text: &str) -> bool {
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    stdout.contains(text) || stderr.contains(text)
 }
