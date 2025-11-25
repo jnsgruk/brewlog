@@ -140,10 +140,11 @@ fn build_months(prepared_events: Vec<TimelinePreparedEvent>) -> Vec<TimelineMont
 
     for prepared in prepared_events {
         if let Some(last) = months.last_mut()
-            && last.anchor == prepared.anchor {
-                last.events.push(prepared.view);
-                continue;
-            }
+            && last.anchor == prepared.anchor
+        {
+            last.events.push(prepared.view);
+            continue;
+        }
 
         months.push(TimelineMonthView {
             anchor: prepared.anchor,

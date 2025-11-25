@@ -47,9 +47,10 @@ impl UserRepository for SqlUserRepository {
             .await
             .map_err(|err| {
                 if let sqlx::Error::Database(db_err) = &err
-                    && db_err.is_unique_violation() {
-                        return RepositoryError::conflict("user already exists");
-                    }
+                    && db_err.is_unique_violation()
+                {
+                    return RepositoryError::conflict("user already exists");
+                }
                 RepositoryError::unexpected(err.to_string())
             })?;
 

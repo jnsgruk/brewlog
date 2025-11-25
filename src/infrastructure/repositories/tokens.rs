@@ -60,9 +60,10 @@ impl TokenRepository for SqlTokenRepository {
             .await
             .map_err(|err| {
                 if let sqlx::Error::Database(db_err) = &err
-                    && db_err.is_unique_violation() {
-                        return RepositoryError::conflict("token already exists");
-                    }
+                    && db_err.is_unique_violation()
+                {
+                    return RepositoryError::conflict("token already exists");
+                }
                 RepositoryError::unexpected(err.to_string())
             })?;
 
