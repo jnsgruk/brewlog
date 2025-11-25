@@ -51,16 +51,16 @@ impl TokenRepository for SqlTokenRepository {
             .bind(&token.user_id)
             .bind(&token.token_hash)
             .bind(&token.name)
-            .bind(&token.created_at)
-            .bind(&token.last_used_at)
-            .bind(&token.revoked_at)
+            .bind(token.created_at)
+            .bind(token.last_used_at)
+            .bind(token.revoked_at)
             .execute(&self.pool)
             .await
             .map_err(|err| {
-                if let sqlx::Error::Database(db_err) = &err {
-                    if db_err.is_unique_violation() {
-                        return RepositoryError::conflict("token already exists");
-                    }
+                if let sqlx::Error::Database(db_err) = &err
+                    && db_err.is_unique_violation()
+                {
+                    return RepositoryError::conflict("token already exists");
                 }
                 RepositoryError::unexpected(err.to_string())
             })?;

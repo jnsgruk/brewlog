@@ -97,7 +97,7 @@ impl<K: SortKey> ListRequest<K> {
         }
     }
 
-    pub fn default() -> Self {
+    pub fn default_query() -> Self {
         let key = K::default();
         Self::new(
             1,
@@ -164,7 +164,7 @@ impl<K: SortKey> ListRequest<K> {
             return Self::new(1, self.page_size, self.sort_key, self.sort_direction);
         }
 
-        let last_page = ((total + limit as u64 - 1) / limit as u64) as u32;
+        let last_page = (total.div_ceil(limit as u64)) as u32;
         let adjusted_page = self.page.min(last_page.max(1));
         Self::new(
             adjusted_page,
@@ -200,7 +200,7 @@ impl<T> Page<T> {
             1
         } else {
             let size = self.page_size as u64;
-            ((self.total + size - 1) / size) as u32
+            (self.total.div_ceil(size)) as u32
         }
     }
 

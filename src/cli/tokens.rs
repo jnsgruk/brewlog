@@ -33,7 +33,7 @@ pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Re
     // Create the token
     let token_response = client
         .tokens()
-        .create(&username, &password, &cmd.name)
+        .create(username, &password, &cmd.name)
         .await?;
 
     println!("\nToken created successfully!");

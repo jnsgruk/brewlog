@@ -38,7 +38,7 @@ pub fn verify_password(password: &str, password_hash: &str) -> Result<bool> {
 pub fn generate_token() -> Result<String> {
     let mut token_bytes = [0u8; 32];
     OsRng.fill_bytes(&mut token_bytes);
-    Ok(general_purpose::STANDARD.encode(&token_bytes))
+    Ok(general_purpose::STANDARD.encode(token_bytes))
 }
 
 /// Hashes a token for storage using SHA-256
@@ -46,14 +46,14 @@ pub fn hash_token(token: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(token.as_bytes());
     let result = hasher.finalize();
-    general_purpose::STANDARD.encode(&result)
+    general_purpose::STANDARD.encode(result)
 }
 
 /// Generates a session token for cookie-based authentication
 pub fn generate_session_token() -> String {
     let mut token_bytes = [0u8; 32];
     OsRng.fill_bytes(&mut token_bytes);
-    general_purpose::URL_SAFE_NO_PAD.encode(&token_bytes)
+    general_purpose::URL_SAFE_NO_PAD.encode(token_bytes)
 }
 
 #[cfg(test)]

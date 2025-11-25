@@ -442,10 +442,10 @@ impl RoastRepository for SqlRoastRepository {
 }
 
 fn map_insert_error(err: SqlxError, message: &'static str) -> RepositoryError {
-    if let SqlxError::Database(db_err) = &err {
-        if db_err.code().as_deref() == Some("787") {
-            return RepositoryError::conflict(message);
-        }
+    if let SqlxError::Database(db_err) = &err
+        && db_err.code().as_deref() == Some("787")
+    {
+        return RepositoryError::conflict(message);
     }
 
     RepositoryError::unexpected(err.to_string())
