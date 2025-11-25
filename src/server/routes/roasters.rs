@@ -56,7 +56,7 @@ pub(crate) async fn roasters_page(
         .await
         .map_err(|err| map_app_error(err))?;
 
-    let is_authenticated = crate::server::routes::auth::is_authenticated(&cookies);
+    let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
 
     let template = RoastersTemplate {
         nav_active: "roasters",
@@ -85,7 +85,7 @@ pub(crate) async fn roaster_page(
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
     let roaster_view = RoasterView::from(roaster);
-    let is_authenticated = crate::server::routes::auth::is_authenticated(&cookies);
+    let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
 
     let template = RoasterDetailTemplate {
         nav_active: "roasters",

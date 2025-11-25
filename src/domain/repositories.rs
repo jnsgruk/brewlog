@@ -5,6 +5,7 @@ use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
 use crate::domain::roasts::{Roast, RoastWithRoaster, UpdateRoast};
+use crate::domain::sessions::{Session, SessionId};
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
 use crate::domain::tokens::{Token, TokenId};
 use crate::domain::users::{User, UserId};
@@ -95,4 +96,13 @@ pub trait TokenRepository: Send + Sync {
     async fn list_by_user(&self, user_id: UserId) -> Result<Vec<Token>, RepositoryError>;
     async fn revoke(&self, id: TokenId) -> Result<Token, RepositoryError>;
     async fn update_last_used(&self, id: TokenId) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait SessionRepository: Send + Sync {
+    async fn insert(&self, session: Session) -> Result<Session, RepositoryError>;
+    async fn get(&self, id: SessionId) -> Result<Session, RepositoryError>;
+    async fn get_by_token_hash(&self, token_hash: &str) -> Result<Session, RepositoryError>;
+    async fn delete(&self, id: SessionId) -> Result<(), RepositoryError>;
+    async fn delete_expired(&self) -> Result<(), RepositoryError>;
 }

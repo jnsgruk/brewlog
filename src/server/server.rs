@@ -10,13 +10,15 @@ use tracing::info;
 
 use crate::domain::ids::generate_id;
 use crate::domain::repositories::{
-    RoastRepository, RoasterRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
+    TokenRepository, UserRepository,
 };
 use crate::domain::users::User;
 use crate::infrastructure::auth::hash_password;
 use crate::infrastructure::database::Database;
 use crate::infrastructure::repositories::roasters::SqlRoasterRepository;
 use crate::infrastructure::repositories::roasts::SqlRoastRepository;
+use crate::infrastructure::repositories::sessions::SqlSessionRepository;
 use crate::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use crate::infrastructure::repositories::tokens::SqlTokenRepository;
 use crate::infrastructure::repositories::users::SqlUserRepository;
@@ -35,6 +37,7 @@ pub struct AppState {
     pub timeline_repo: Arc<dyn TimelineEventRepository>,
     pub user_repo: Arc<dyn UserRepository>,
     pub token_repo: Arc<dyn TokenRepository>,
+    pub session_repo: Arc<dyn SessionRepository>,
 }
 
 impl AppState {
@@ -44,6 +47,7 @@ impl AppState {
         timeline_repo: Arc<dyn TimelineEventRepository>,
         user_repo: Arc<dyn UserRepository>,
         token_repo: Arc<dyn TokenRepository>,
+        session_repo: Arc<dyn SessionRepository>,
     ) -> Self {
         Self {
             roaster_repo,
@@ -51,6 +55,7 @@ impl AppState {
             timeline_repo,
             user_repo,
             token_repo,
+            session_repo,
         }
     }
 }
@@ -68,6 +73,8 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         Arc::new(SqlUserRepository::new(database.clone_pool()));
     let token_repo: Arc<dyn TokenRepository> =
         Arc::new(SqlTokenRepository::new(database.clone_pool()));
+    let session_repo: Arc<dyn SessionRepository> =
+        Arc::new(SqlSessionRepository::new(database.clone_pool()));
 
     // Bootstrap admin user if no users exist
     bootstrap_admin_user(&user_repo, config.admin_password).await?;
@@ -78,6 +85,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         timeline_repo,
         user_repo,
         token_repo,
+        session_repo,
     );
 
     let listener = TcpListener::bind(config.bind_address)

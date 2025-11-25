@@ -3,10 +3,14 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
 use axum::Form;
+use chrono::{Duration, Utc};
 use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
-use tracing::warn;
-use crate::infrastructure::auth::{generate_session_token, verify_password};
+use tracing::{error, warn};
+
+use crate::domain::ids::generate_id;
+use crate::domain::sessions::Session;
+use crate::infrastructure::auth::{generate_session_token, hash_token, verify_password};
 use crate::server::routes::render_html;
 use crate::server::server::AppState;
 
@@ -26,9 +30,12 @@ pub struct LoginForm {
     password: String,
 }
 
-pub(crate) async fn login_page(cookies: Cookies) -> Result<Response, StatusCode> {
+pub(crate) async fn login_page(
+    State(state): State<AppState>,
+    cookies: Cookies,
+) -> Result<Response, StatusCode> {
     // Check if already authenticated
-    if cookies.get(SESSION_COOKIE_NAME).is_some() {
+    if is_authenticated(&state, &cookies).await {
         return Ok(Redirect::to("/timeline").into_response());
     }
 
@@ -65,6 +72,21 @@ pub(crate) async fn login_submit(
 
     // Create session token
     let session_token = generate_session_token();
+    let session_token_hash = hash_token(&session_token);
+
+    // Create session in database (valid for 30 days)
+    let session = Session::new(
+        generate_id(),
+        user.id.clone(),
+        session_token_hash,
+        Utc::now(),
+        Utc::now() + Duration::days(30),
+    );
+
+    if let Err(err) = state.session_repo.insert(session).await {
+        error!(error = %err, "failed to create session");
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
 
     // Set secure cookie
     let mut cookie = Cookie::new(SESSION_COOKIE_NAME, session_token);
@@ -78,7 +100,18 @@ pub(crate) async fn login_submit(
     Ok(Redirect::to("/timeline").into_response())
 }
 
-pub(crate) async fn logout(cookies: Cookies) -> Redirect {
+pub(crate) async fn logout(State(state): State<AppState>, cookies: Cookies) -> Redirect {
+    // Try to delete session from database if cookie exists
+    if let Some(cookie) = cookies.get(SESSION_COOKIE_NAME) {
+        let session_token = cookie.value();
+        let session_token_hash = hash_token(session_token);
+        
+        // Try to find and delete the session
+        if let Ok(session) = state.session_repo.get_by_token_hash(&session_token_hash).await {
+            let _ = state.session_repo.delete(session.id).await;
+        }
+    }
+
     cookies.remove(Cookie::from(SESSION_COOKIE_NAME));
     Redirect::to("/timeline")
 }
@@ -94,6 +127,18 @@ fn show_login_error(message: &str) -> Result<Response, StatusCode> {
 }
 
 /// Check if user is authenticated based on session cookie
-pub fn is_authenticated(cookies: &Cookies) -> bool {
-    cookies.get(SESSION_COOKIE_NAME).is_some()
+/// Validates the session token against the database
+pub async fn is_authenticated(state: &AppState, cookies: &Cookies) -> bool {
+    let Some(cookie) = cookies.get(SESSION_COOKIE_NAME) else {
+        return false;
+    };
+
+    let session_token = cookie.value();
+    let session_token_hash = hash_token(session_token);
+
+    // Check if session exists and is valid
+    match state.session_repo.get_by_token_hash(&session_token_hash).await {
+        Ok(session) => !session.is_expired(),
+        Err(_) => false,
+    }
 }

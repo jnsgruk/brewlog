@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use brewlog::domain::repositories::{
-    RoastRepository, RoasterRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
+    TokenRepository, UserRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::User;
@@ -9,6 +10,7 @@ use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
+use brewlog::infrastructure::repositories::sessions::SqlSessionRepository;
 use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
 use brewlog::infrastructure::repositories::users::SqlUserRepository;
@@ -57,6 +59,8 @@ pub async fn spawn_app() -> TestApp {
         Arc::new(SqlUserRepository::new(database.clone_pool()));
     let token_repo: Arc<dyn TokenRepository> =
         Arc::new(SqlTokenRepository::new(database.clone_pool()));
+    let session_repo: Arc<dyn SessionRepository> =
+        Arc::new(SqlSessionRepository::new(database.clone_pool()));
 
     // Create application state
     let state = AppState::new(
@@ -65,6 +69,7 @@ pub async fn spawn_app() -> TestApp {
         timeline_repo.clone(),
         user_repo.clone(),
         token_repo.clone(),
+        session_repo,
     );
 
     // Create router
