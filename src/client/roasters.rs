@@ -18,8 +18,7 @@ impl<'a> RoastersClient<'a> {
         let url = self.inner.endpoint("api/v1/roasters")?;
         let response = self
             .inner
-            .http_client()
-            .post(url)
+            .request(reqwest::Method::POST, url)
             .json(payload)
             .send()
             .await
@@ -32,8 +31,7 @@ impl<'a> RoastersClient<'a> {
         let url = self.inner.endpoint("api/v1/roasters")?;
         let response = self
             .inner
-            .http_client()
-            .get(url)
+            .request(reqwest::Method::GET, url)
             .send()
             .await
             .context("failed to issue list roasters request")?;
@@ -45,8 +43,7 @@ impl<'a> RoastersClient<'a> {
         let url = self.inner.endpoint(&format!("api/v1/roasters/{id}"))?;
         let response = self
             .inner
-            .http_client()
-            .get(url)
+            .request(reqwest::Method::GET, url)
             .send()
             .await
             .context("failed to issue get roaster request")?;
@@ -58,8 +55,7 @@ impl<'a> RoastersClient<'a> {
         let url = self.inner.endpoint(&format!("api/v1/roasters/{id}"))?;
         let response = self
             .inner
-            .http_client()
-            .put(url)
+            .request(reqwest::Method::PUT, url)
             .json(payload)
             .send()
             .await
@@ -72,8 +68,7 @@ impl<'a> RoastersClient<'a> {
         let url = self.inner.endpoint(&format!("api/v1/roasters/{id}"))?;
         let response = self
             .inner
-            .http_client()
-            .delete(url)
+            .request(reqwest::Method::DELETE, url)
             .send()
             .await
             .context("failed to issue delete roaster request")?;

@@ -18,8 +18,7 @@ impl<'a> RoastsClient<'a> {
         let url = self.inner.endpoint("api/v1/roasts")?;
         let response = self
             .inner
-            .http_client()
-            .post(url)
+            .request(reqwest::Method::POST, url)
             .json(payload)
             .send()
             .await
@@ -36,8 +35,7 @@ impl<'a> RoastsClient<'a> {
 
         let response = self
             .inner
-            .http_client()
-            .get(url)
+            .request(reqwest::Method::GET, url)
             .send()
             .await
             .context("failed to issue list roasts request")?;
@@ -49,8 +47,7 @@ impl<'a> RoastsClient<'a> {
         let url = self.inner.endpoint(&format!("api/v1/roasts/{id}"))?;
         let response = self
             .inner
-            .http_client()
-            .get(url)
+            .request(reqwest::Method::GET, url)
             .send()
             .await
             .context("failed to issue get roast request")?;
@@ -62,8 +59,7 @@ impl<'a> RoastsClient<'a> {
         let url = self.inner.endpoint(&format!("api/v1/roasts/{id}"))?;
         let response = self
             .inner
-            .http_client()
-            .delete(url)
+            .request(reqwest::Method::DELETE, url)
             .send()
             .await
             .context("failed to issue delete roast request")?;
