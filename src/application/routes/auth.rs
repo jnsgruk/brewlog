@@ -8,10 +8,10 @@ use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
 use tracing::{error, warn};
 
+use crate::application::routes::render_html;
+use crate::application::server::AppState;
 use crate::domain::sessions::NewSession;
 use crate::infrastructure::auth::{generate_session_token, hash_token, verify_password};
-use crate::server::routes::render_html;
-use crate::server::server::AppState;
 
 const SESSION_COOKIE_NAME: &str = "brewlog_session";
 

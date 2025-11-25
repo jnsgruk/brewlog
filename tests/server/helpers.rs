@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use brewlog::application::routes::app_router;
+use brewlog::application::server::AppState;
 use brewlog::domain::repositories::{
     RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
     TokenRepository, UserRepository,
@@ -14,8 +16,6 @@ use brewlog::infrastructure::repositories::sessions::SqlSessionRepository;
 use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
 use brewlog::infrastructure::repositories::users::SqlUserRepository;
-use brewlog::server::routes::app_router;
-use brewlog::server::server::AppState;
 use reqwest::Client;
 use tokio::net::TcpListener;
 

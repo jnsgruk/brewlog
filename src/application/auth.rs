@@ -5,9 +5,9 @@ use axum::{
 };
 use tower_cookies::Cookies;
 
+use crate::application::server::AppState;
 use crate::domain::users::User;
 use crate::infrastructure::auth::hash_token;
-use crate::server::server::AppState;
 
 const SESSION_COOKIE_NAME: &str = "brewlog_session";
 

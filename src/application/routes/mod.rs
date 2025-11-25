@@ -13,7 +13,7 @@ use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tracing::error;
 
-use crate::server::server::AppState;
+use crate::application::server::AppState;
 
 use crate::presentation::templates::render_template;
 

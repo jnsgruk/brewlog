@@ -5,7 +5,7 @@ pub mod tokens;
 use anyhow::{Context, Result, anyhow};
 use reqwest::{Client, Url};
 
-use crate::server::errors::ErrorResponse;
+use crate::application::errors::ErrorResponse;
 
 pub struct BrewlogClient {
     base_url: Url,

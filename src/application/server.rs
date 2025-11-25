@@ -7,6 +7,7 @@ use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
 
+use crate::application::routes::app_router;
 use crate::domain::repositories::{
     RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
     TokenRepository, UserRepository,
@@ -20,7 +21,6 @@ use crate::infrastructure::repositories::sessions::SqlSessionRepository;
 use crate::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use crate::infrastructure::repositories::tokens::SqlTokenRepository;
 use crate::infrastructure::repositories::users::SqlUserRepository;
-use crate::server::routes::app_router;
 
 pub struct ServerConfig {
     pub bind_address: SocketAddr,

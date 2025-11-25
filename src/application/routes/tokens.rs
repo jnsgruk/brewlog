@@ -4,11 +4,11 @@ use axum::http::StatusCode;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::application::auth::AuthenticatedUser;
+use crate::application::server::AppState;
 use crate::domain::ids::{TokenId, UserId};
 use crate::domain::tokens::{NewToken, Token};
 use crate::infrastructure::auth::{generate_token, hash_token, verify_password};
-use crate::server::auth::AuthenticatedUser;
-use crate::server::server::AppState;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateTokenRequest {

@@ -1,7 +1,7 @@
 use anyhow::Result;
+use brewlog::application::{ServerConfig, serve};
 use brewlog::cli::{Cli, Commands, ServeCommand, roasters, roasts, tokens};
 use brewlog::client::BrewlogClient;
-use brewlog::server::{ServerConfig, serve};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 

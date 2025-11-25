@@ -3,14 +3,14 @@ use axum::http::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 
+use crate::application::errors::{AppError, map_app_error};
+use crate::application::routes::render_html;
+use crate::application::routes::support::{ListQuery, is_datastar_request, normalize_request};
+use crate::application::server::AppState;
 use crate::domain::listing::ListRequest;
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
 use crate::presentation::templates::{TimelineChunkTemplate, TimelineTemplate};
 use crate::presentation::views::{ListNavigator, Paginated, TimelineEventView, TimelineMonthView};
-use crate::server::errors::{AppError, map_app_error};
-use crate::server::routes::render_html;
-use crate::server::routes::support::{ListQuery, is_datastar_request, normalize_request};
-use crate::server::server::AppState;
 
 const TIMELINE_PAGE_PATH: &str = "/timeline";
 const TIMELINE_FRAGMENT_PATH: &str = "/timeline";
@@ -33,7 +33,8 @@ pub(crate) async fn timeline_page(
         .await
         .map_err(map_app_error)?;
 
-    let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated =
+        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
 
     let template = TimelineTemplate {
         nav_active: "timeline",
@@ -63,7 +64,7 @@ async fn render_timeline_chunk(
         months: data.months,
     };
 
-    crate::server::routes::support::render_fragment(template, "#timeline-loader")
+    crate::application::routes::support::render_fragment(template, "#timeline-loader")
 }
 
 struct TimelinePageData {

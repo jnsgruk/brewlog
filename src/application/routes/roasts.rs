@@ -4,19 +4,19 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
+use crate::application::auth::AuthenticatedUser;
+use crate::application::errors::{ApiError, AppError, map_app_error};
+use crate::application::routes::render_html;
+use crate::application::routes::support::{
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+};
+use crate::application::server::AppState;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster};
 use crate::presentation::templates::{RoastDetailTemplate, RoastListTemplate, RoastsTemplate};
 use crate::presentation::views::{ListNavigator, Paginated, RoastView, RoasterOptionView};
-use crate::server::auth::AuthenticatedUser;
-use crate::server::errors::{ApiError, AppError, map_app_error};
-use crate::server::routes::render_html;
-use crate::server::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
-};
-use crate::server::server::AppState;
 
 const ROAST_PAGE_PATH: &str = "/roasts";
 const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";
@@ -31,7 +31,7 @@ async fn load_roast_page(
         .await
         .map_err(AppError::from)?;
 
-    Ok(crate::server::routes::support::build_page_view(
+    Ok(crate::application::routes::support::build_page_view(
         page,
         request,
         RoastView::from_list_item,
@@ -49,7 +49,8 @@ pub(crate) async fn roasts_page(
     let request = query.into_request::<RoastSortKey>();
 
     if is_datastar_request(&headers) {
-        let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
+        let is_authenticated =
+            crate::application::routes::auth::is_authenticated(&state, &cookies).await;
         return render_roast_list_fragment(state, request, is_authenticated)
             .await
             .map_err(map_app_error);
@@ -67,7 +68,8 @@ pub(crate) async fn roasts_page(
         .await
         .map_err(map_app_error)?;
 
-    let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated =
+        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
 
     let template = RoastsTemplate {
         nav_active: "roasts",
@@ -97,7 +99,8 @@ pub(crate) async fn roast_page(
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
-    let is_authenticated = crate::server::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated =
+        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
 
     let template = RoastDetailTemplate {
         nav_active: "roasts",
@@ -277,5 +280,5 @@ async fn render_roast_list_fragment(
         navigator,
     };
 
-    crate::server::routes::support::render_fragment(template, "#roast-list")
+    crate::application::routes::support::render_fragment(template, "#roast-list")
 }

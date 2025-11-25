@@ -5,11 +5,11 @@ use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
 use axum::response::{Html, IntoResponse, Response};
 use serde::Deserialize;
 
+use crate::application::errors::{ApiError, AppError};
 use crate::domain::listing::{
     DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortDirection, SortKey,
 };
 use crate::presentation::views::{ListNavigator, Paginated};
-use crate::server::errors::{ApiError, AppError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PayloadSource {
