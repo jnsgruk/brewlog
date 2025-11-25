@@ -1,10 +1,10 @@
-use crate::helpers::spawn_app;
+use crate::helpers::spawn_app_with_auth;
 use brewlog::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 
 #[tokio::test]
 async fn creating_a_roaster_returns_a_201_for_valid_data() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let new_roaster = NewRoaster {
@@ -18,6 +18,7 @@ async fn creating_a_roaster_returns_a_201_for_valid_data() {
     // Act
     let response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -37,7 +38,7 @@ async fn creating_a_roaster_returns_a_201_for_valid_data() {
 #[tokio::test]
 async fn creating_a_roaster_persists_the_data() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let new_roaster = NewRoaster {
@@ -51,6 +52,7 @@ async fn creating_a_roaster_persists_the_data() {
     // Act
     let response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -73,7 +75,7 @@ async fn creating_a_roaster_persists_the_data() {
 #[tokio::test]
 async fn getting_a_roaster_returns_a_200_for_valid_id() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let new_roaster = NewRoaster {
@@ -86,6 +88,7 @@ async fn getting_a_roaster_returns_a_200_for_valid_id() {
 
     let create_response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -114,7 +117,7 @@ async fn getting_a_roaster_returns_a_200_for_valid_id() {
 #[tokio::test]
 async fn getting_a_nonexistent_roaster_returns_a_404() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // Act
@@ -131,7 +134,7 @@ async fn getting_a_nonexistent_roaster_returns_a_404() {
 #[tokio::test]
 async fn listing_roasters_returns_a_200_with_empty_list() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // Act
@@ -151,7 +154,7 @@ async fn listing_roasters_returns_a_200_with_empty_list() {
 #[tokio::test]
 async fn listing_roasters_returns_a_200_with_multiple_roasters() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // Create multiple roasters
@@ -173,6 +176,7 @@ async fn listing_roasters_returns_a_200_with_multiple_roasters() {
 
     client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&roaster1)
         .send()
         .await
@@ -180,6 +184,7 @@ async fn listing_roasters_returns_a_200_with_multiple_roasters() {
 
     client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&roaster2)
         .send()
         .await
@@ -202,7 +207,7 @@ async fn listing_roasters_returns_a_200_with_multiple_roasters() {
 #[tokio::test]
 async fn updating_a_roaster_returns_a_200_for_valid_data() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let new_roaster = NewRoaster {
@@ -215,6 +220,7 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
 
     let create_response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -236,6 +242,7 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
     // Act
     let response = client
         .put(app.api_url(&format!("/roasters/{}", created_roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&update)
         .send()
         .await
@@ -257,7 +264,7 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
 #[tokio::test]
 async fn updating_a_roaster_with_no_changes_returns_a_400() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let new_roaster = NewRoaster {
@@ -270,6 +277,7 @@ async fn updating_a_roaster_with_no_changes_returns_a_400() {
 
     let create_response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -291,6 +299,7 @@ async fn updating_a_roaster_with_no_changes_returns_a_400() {
     // Act
     let response = client
         .put(app.api_url(&format!("/roasters/{}", created_roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&update)
         .send()
         .await
@@ -303,7 +312,7 @@ async fn updating_a_roaster_with_no_changes_returns_a_400() {
 #[tokio::test]
 async fn updating_a_nonexistent_roaster_returns_a_404() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let update = UpdateRoaster {
@@ -317,6 +326,7 @@ async fn updating_a_nonexistent_roaster_returns_a_404() {
     // Act
     let response = client
         .put(app.api_url("/roasters/nonexistent-id"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&update)
         .send()
         .await
@@ -329,7 +339,7 @@ async fn updating_a_nonexistent_roaster_returns_a_404() {
 #[tokio::test]
 async fn deleting_a_roaster_returns_a_204_for_valid_id() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     let new_roaster = NewRoaster {
@@ -342,6 +352,7 @@ async fn deleting_a_roaster_returns_a_204_for_valid_id() {
 
     let create_response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -355,6 +366,7 @@ async fn deleting_a_roaster_returns_a_204_for_valid_id() {
     // Act
     let response = client
         .delete(app.api_url(&format!("/roasters/{}", created_roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .send()
         .await
         .expect("Failed to execute request");
@@ -375,12 +387,13 @@ async fn deleting_a_roaster_returns_a_204_for_valid_id() {
 #[tokio::test]
 async fn deleting_a_nonexistent_roaster_returns_a_404() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // Act
     let response = client
         .delete(app.api_url("/roasters/nonexistent-id"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .send()
         .await
         .expect("Failed to execute request");
@@ -392,7 +405,7 @@ async fn deleting_a_nonexistent_roaster_returns_a_404() {
 #[tokio::test]
 async fn creating_a_roaster_with_empty_name_returns_a_201_after_normalization() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // The normalize function trims whitespace, so empty/whitespace names become empty
@@ -407,6 +420,7 @@ async fn creating_a_roaster_with_empty_name_returns_a_201_after_normalization() 
     // Act
     let response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&new_roaster)
         .send()
         .await
@@ -419,12 +433,13 @@ async fn creating_a_roaster_with_empty_name_returns_a_201_after_normalization() 
 #[tokio::test]
 async fn creating_a_roaster_with_malformed_json_returns_a_400() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // Act
     let response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("content-type", "application/json")
         .body(r#"{"name": "Test", "country": }"#) // Invalid JSON
         .send()
@@ -438,12 +453,13 @@ async fn creating_a_roaster_with_malformed_json_returns_a_400() {
 #[tokio::test]
 async fn creating_a_roaster_with_missing_required_fields_returns_a_400() {
     // Arrange
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
 
     // Act - Missing 'country' field
     let response = client
         .post(app.api_url("/roasters"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("content-type", "application/json")
         .body(r#"{"name": "Test Roasters"}"#)
         .send()

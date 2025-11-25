@@ -28,11 +28,48 @@ pub struct TestApp {
     pub user_repo: Option<Arc<dyn UserRepository>>,
     #[allow(dead_code)]
     pub token_repo: Option<Arc<dyn TokenRepository>>,
+    pub auth_token: Option<String>,
 }
 
 impl TestApp {
     pub fn api_url(&self, path: &str) -> String {
         format!("{}/api/v1{}", self.address, path)
+    }
+
+    /// Create an authenticated POST request
+    pub fn post(&self, path: &str) -> reqwest::RequestBuilder {
+        let client = Client::new();
+        let mut req = client.post(self.api_url(path));
+        if let Some(token) = &self.auth_token {
+            req = req.bearer_auth(token);
+        }
+        req
+    }
+
+    /// Create an authenticated PUT request
+    pub fn put(&self, path: &str) -> reqwest::RequestBuilder {
+        let client = Client::new();
+        let mut req = client.put(self.api_url(path));
+        if let Some(token) = &self.auth_token {
+            req = req.bearer_auth(token);
+        }
+        req
+    }
+
+    /// Create an authenticated DELETE request  
+    pub fn delete(&self, path: &str) -> reqwest::RequestBuilder {
+        let client = Client::new();
+        let mut req = client.delete(self.api_url(path));
+        if let Some(token) = &self.auth_token {
+            req = req.bearer_auth(token);
+        }
+        req
+    }
+
+    /// Create a GET request (doesn't need auth for reads)
+    pub fn get(&self, path: &str) -> reqwest::RequestBuilder {
+        let client = Client::new();
+        client.get(self.api_url(path))
     }
 }
 
@@ -91,11 +128,12 @@ pub async fn spawn_app() -> TestApp {
         timeline_repo,
         user_repo: Some(user_repo),
         token_repo: Some(token_repo),
+        auth_token: None,
     }
 }
 
 pub async fn spawn_app_with_auth() -> TestApp {
-    let app = spawn_app().await;
+    let mut app = spawn_app().await;
 
     // Create admin user with known password
     let password_hash = hash_password("test_password").expect("Failed to hash password");
@@ -113,14 +151,41 @@ pub async fn spawn_app_with_auth() -> TestApp {
         .await
         .expect("Failed to create admin user");
 
+    // Create a token for testing
+    use brewlog::domain::tokens::Token;
+    use brewlog::infrastructure::auth::{generate_token, hash_token};
+
+    let token_value = generate_token().expect("Failed to generate token");
+    let token_hash = hash_token(&token_value);
+    let token = Token::new(
+        "test_token_id".to_string(),
+        "test_admin_id".to_string(),
+        token_hash,
+        "test-token".to_string(),
+        Utc::now(),
+    );
+
+    app.token_repo
+        .as_ref()
+        .unwrap()
+        .insert(token)
+        .await
+        .expect("Failed to insert token");
+
+    app.auth_token = Some(token_value);
     app
 }
 
 pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> Roaster {
     let client = Client::new();
-    let response = client
-        .post(app.api_url("/roasters"))
-        .json(&payload)
+    let mut request = client.post(app.api_url("/roasters")).json(&payload);
+
+    // Add auth token if available
+    if let Some(token) = &app.auth_token {
+        request = request.bearer_auth(token);
+    }
+
+    let response = request
         .send()
         .await
         .expect("failed to create roaster via API");

@@ -101,8 +101,14 @@ async fn test_list_tokens_with_authentication() {
     assert_eq!(response.status(), StatusCode::OK);
 
     let tokens: Vec<serde_json::Value> = response.json().await.expect("Failed to parse response");
-    assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0].get("name").unwrap(), "test-token");
+    // We expect 2 tokens: the one created by spawn_app_with_auth() and the one we just created
+    assert_eq!(tokens.len(), 2);
+    // Find the token we created
+    let test_token = tokens
+        .iter()
+        .find(|t| t.get("name").unwrap() == "test-token")
+        .expect("Could not find test-token");
+    assert_eq!(test_token.get("name").unwrap(), "test-token");
 }
 
 #[tokio::test]

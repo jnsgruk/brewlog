@@ -1,4 +1,4 @@
-use crate::helpers::{create_roaster_with_payload, spawn_app};
+use crate::helpers::{create_roaster_with_payload, spawn_app_with_auth};
 use brewlog::domain::roasters::NewRoaster;
 use brewlog::domain::roasts::NewRoast;
 use reqwest::Client;
@@ -18,6 +18,7 @@ async fn create_roast(app: &crate::helpers::TestApp, roaster_id: &str, name: &st
 
     let response = client
         .post(app.api_url("/roasts"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
         .json(&roast)
         .send()
         .await
@@ -60,7 +61,7 @@ async fn seed_timeline_with_roasts(
 
 #[tokio::test]
 async fn timeline_page_returns_a_200_with_empty_state() {
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = Client::new();
 
     let response = client
@@ -80,7 +81,7 @@ async fn timeline_page_returns_a_200_with_empty_state() {
 
 #[tokio::test]
 async fn creating_a_roaster_surfaces_on_the_timeline() {
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = Client::new();
 
     let roaster_name = "Timeline Roasters";
@@ -124,7 +125,7 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
 
 #[tokio::test]
 async fn creating_a_roast_surfaces_on_the_timeline() {
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let client = Client::new();
 
     let roaster_id = create_roaster_with_payload(
@@ -169,7 +170,7 @@ async fn creating_a_roast_surfaces_on_the_timeline() {
 
 #[tokio::test]
 async fn timeline_page_signals_more_results_when_over_page_size() {
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let (_, roast_names) = seed_timeline_with_roasts(&app, 6).await;
     assert_eq!(roast_names.len(), 6);
 
@@ -211,7 +212,7 @@ async fn timeline_page_signals_more_results_when_over_page_size() {
 
 #[tokio::test]
 async fn timeline_chunk_endpoint_serves_remaining_events() {
-    let app = spawn_app().await;
+    let app = spawn_app_with_auth().await;
     let (roaster_name, roast_names) = seed_timeline_with_roasts(&app, 6).await;
     let oldest_roast = roast_names
         .first()
