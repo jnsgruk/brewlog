@@ -32,7 +32,8 @@ impl SqlUserRepository {
 #[async_trait]
 impl UserRepository for SqlUserRepository {
     async fn insert(&self, user: User) -> Result<User, RepositoryError> {
-        let query = "INSERT INTO users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)";
+        let query =
+            "INSERT INTO users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)";
 
         sqlx::query(query)
             .bind(&user.id)

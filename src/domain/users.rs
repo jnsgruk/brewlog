@@ -19,7 +19,12 @@ pub struct NewUser {
 }
 
 impl User {
-    pub fn new(id: UserId, username: String, password_hash: String, created_at: DateTime<Utc>) -> Self {
+    pub fn new(
+        id: UserId,
+        username: String,
+        password_hash: String,
+        created_at: DateTime<Utc>,
+    ) -> Self {
         Self {
             id,
             username,

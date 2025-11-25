@@ -46,7 +46,9 @@ impl<'a> TokensClient<'a> {
     }
 
     pub async fn revoke(&self, id: &str) -> Result<Token> {
-        let url = self.client.endpoint(&format!("api/v1/tokens/{}/revoke", id))?;
+        let url = self
+            .client
+            .endpoint(&format!("api/v1/tokens/{}/revoke", id))?;
 
         let response = self.client.http_client().post(url).send().await?;
 

@@ -28,8 +28,7 @@ pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Re
     let username = username.trim();
 
     // Prompt for password (without echo)
-    let password = rpassword::prompt_password("Password: ")
-        .context("failed to read password")?;
+    let password = rpassword::prompt_password("Password: ").context("failed to read password")?;
 
     // Create the token
     let token_response = client

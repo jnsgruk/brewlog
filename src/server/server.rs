@@ -9,7 +9,9 @@ use tokio::signal;
 use tracing::info;
 
 use crate::domain::ids::generate_id;
-use crate::domain::repositories::{RoastRepository, RoasterRepository, TimelineEventRepository, TokenRepository, UserRepository};
+use crate::domain::repositories::{
+    RoastRepository, RoasterRepository, TimelineEventRepository, TokenRepository, UserRepository,
+};
 use crate::domain::users::User;
 use crate::infrastructure::auth::hash_password;
 use crate::infrastructure::database::Database;
@@ -62,13 +64,21 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
-    let user_repo: Arc<dyn UserRepository> = Arc::new(SqlUserRepository::new(database.clone_pool()));
-    let token_repo: Arc<dyn TokenRepository> = Arc::new(SqlTokenRepository::new(database.clone_pool()));
+    let user_repo: Arc<dyn UserRepository> =
+        Arc::new(SqlUserRepository::new(database.clone_pool()));
+    let token_repo: Arc<dyn TokenRepository> =
+        Arc::new(SqlTokenRepository::new(database.clone_pool()));
 
     // Bootstrap admin user if no users exist
     bootstrap_admin_user(&user_repo, config.admin_password).await?;
 
-    let state = AppState::new(roaster_repo, roast_repo, timeline_repo, user_repo, token_repo);
+    let state = AppState::new(
+        roaster_repo,
+        roast_repo,
+        timeline_repo,
+        user_repo,
+        token_repo,
+    );
 
     let listener = TcpListener::bind(config.bind_address)
         .await
@@ -93,7 +103,9 @@ async fn bootstrap_admin_user(
     admin_password: Option<String>,
 ) -> anyhow::Result<()> {
     // Check if any users exist
-    let users_exist = user_repo.exists().await
+    let users_exist = user_repo
+        .exists()
+        .await
         .context("failed to check if users exist")?;
 
     if users_exist {
@@ -111,8 +123,7 @@ async fn bootstrap_admin_user(
 
     info!("No users found. Creating admin user...");
 
-    let password_hash = hash_password(&password)
-        .context("failed to hash admin password")?;
+    let password_hash = hash_password(&password).context("failed to hash admin password")?;
 
     let admin_user = User::new(
         generate_id(),
@@ -121,7 +132,9 @@ async fn bootstrap_admin_user(
         Utc::now(),
     );
 
-    user_repo.insert(admin_user).await
+    user_repo
+        .insert(admin_user)
+        .await
         .context("failed to create admin user")?;
 
     info!("Admin user created successfully");

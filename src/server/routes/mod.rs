@@ -2,6 +2,7 @@ pub mod roasters;
 pub mod roasts;
 pub mod support;
 pub mod timeline;
+pub mod tokens;
 
 use askama::Template;
 use axum::http::StatusCode;
@@ -15,9 +16,10 @@ use crate::presentation::templates::render_template;
 
 pub fn app_router(state: AppState) -> axum::Router {
     let api_routes = axum::Router::new()
+        // Public API routes
         .route(
             "/roasters",
-            post(roasters::create_roaster).get(roasters::list_roasters),
+            get(roasters::list_roasters).post(roasters::create_roaster),
         )
         .route(
             "/roasters/:id",
@@ -27,12 +29,17 @@ pub fn app_router(state: AppState) -> axum::Router {
         )
         .route(
             "/roasts",
-            post(roasts::create_roast).get(roasts::list_roasts),
+            get(roasts::list_roasts).post(roasts::create_roast),
         )
         .route(
             "/roasts/:id",
             get(roasts::get_roast).delete(roasts::delete_roast),
-        );
+        )
+        .route(
+            "/tokens",
+            post(tokens::create_token).get(tokens::list_tokens),
+        )
+        .route("/tokens/:id/revoke", post(tokens::revoke_token));
 
     axum::Router::new()
         .route("/", get(root_redirect))
