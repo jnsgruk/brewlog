@@ -4,7 +4,11 @@ use std::sync::Mutex;
 use std::time::Duration;
 use tempfile::TempDir;
 
-/// Shared test server state - kept alive for the duration of all tests
+/// Shared test server state
+/// Fields prefixed with `_` are kept alive to prevent cleanup:
+/// - `_temp_dir`: keeps temporary database file from being deleted
+/// - `_process`: keeps server process running
+/// - `_db_url`: retained for consistency
 struct SharedServer {
     address: String,
     admin_password: String,
