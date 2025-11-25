@@ -12,7 +12,7 @@ pub fn setup() {
             .args(&["build", "--bin", "brewlog"])
             .status()
             .expect("Failed to build brewlog binary");
-        
+
         assert!(status.success(), "Failed to compile brewlog");
     });
 }
@@ -43,14 +43,14 @@ pub struct TestServer {
 impl TestServer {
     pub fn start() -> Self {
         setup();
-        
+
         let (temp_dir, db_url) = create_test_db();
         let admin_password = "test_admin_password";
-        
+
         // Start server on a random port
         let port = portpicker::pick_unused_port().expect("No ports available");
         let address = format!("http://127.0.0.1:{}", port);
-        
+
         let process = Command::new(brewlog_bin())
             .args(&["serve", "--port", &port.to_string(), "--database", &db_url])
             .env("BREWLOG_ADMIN_PASSWORD", admin_password)
@@ -59,10 +59,25 @@ impl TestServer {
             .stderr(Stdio::null())
             .spawn()
             .expect("Failed to start brewlog server");
-        
-        // Wait for server to be ready
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        
+
+        // Wait for server to be ready with health check
+        let client = reqwest::blocking::Client::new();
+        let health_url = format!("{}/api/v1/roasters", address);
+        let max_attempts = 30; // 30 seconds total
+        let mut attempts = 0;
+
+        while attempts < max_attempts {
+            if client.get(&health_url).send().is_ok() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(100));
+            attempts += 1;
+        }
+
+        if attempts >= max_attempts {
+            panic!("Server failed to start within 30 seconds");
+        }
+
         Self {
             address,
             admin_password: admin_password.to_string(),
@@ -71,7 +86,7 @@ impl TestServer {
             _process: process,
         }
     }
-    
+
     pub fn create_token(&self, name: &str) -> String {
         let output = Command::new(brewlog_bin())
             .args(&["create-token", "--name", name, "--server", &self.address])
@@ -81,9 +96,13 @@ impl TestServer {
             .stderr(Stdio::piped())
             .output()
             .expect("Failed to create token");
-        
-        assert!(output.status.success(), "Failed to create token: {}", String::from_utf8_lossy(&output.stderr));
-        
+
+        assert!(
+            output.status.success(),
+            "Failed to create token: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+
         String::from_utf8(output.stdout)
             .expect("Invalid UTF-8 in token output")
             .trim()
@@ -101,11 +120,11 @@ impl Drop for TestServer {
 pub fn run_brewlog(args: &[&str], env: &[(&str, &str)]) -> std::process::Output {
     let mut cmd = Command::new(brewlog_bin());
     cmd.args(args);
-    
+
     for (key, value) in env {
         cmd.env(key, value);
     }
-    
+
     cmd.output().expect("Failed to run brewlog command")
 }
 

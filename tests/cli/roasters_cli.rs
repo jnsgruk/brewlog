@@ -1,9 +1,9 @@
-use crate::helpers::{output_contains, run_brewlog, setup, TestServer};
+use crate::helpers::{TestServer, output_contains, run_brewlog, setup};
 
 #[test]
 fn test_add_roaster_requires_authentication() {
     let server = TestServer::start();
-    
+
     let output = run_brewlog(
         &[
             "add-roaster",
@@ -16,15 +16,18 @@ fn test_add_roaster_requires_authentication() {
         ],
         &[],
     );
-    
-    assert!(!output.status.success(), "add-roaster without auth should fail");
+
+    assert!(
+        !output.status.success(),
+        "add-roaster without auth should fail"
+    );
 }
 
 #[test]
 fn test_add_roaster_with_authentication() {
     let server = TestServer::start();
     let token = server.create_token("test-token");
-    
+
     let output = run_brewlog(
         &[
             "add-roaster",
@@ -37,27 +40,30 @@ fn test_add_roaster_with_authentication() {
         ],
         &[("BREWLOG_TOKEN", &token)],
     );
-    
-    assert!(output.status.success(), "add-roaster with auth should succeed");
+
+    assert!(
+        output.status.success(),
+        "add-roaster with auth should succeed"
+    );
 }
 
 #[test]
 fn test_list_roasters_works_without_authentication() {
     let server = TestServer::start();
-    
-    let output = run_brewlog(
-        &["list-roasters", "--server", &server.address],
-        &[],
+
+    let output = run_brewlog(&["list-roasters", "--server", &server.address], &[]);
+
+    assert!(
+        output.status.success(),
+        "list-roasters should work without auth"
     );
-    
-    assert!(output.status.success(), "list-roasters should work without auth");
 }
 
 #[test]
 fn test_list_roasters_shows_added_roaster() {
     let server = TestServer::start();
     let token = server.create_token("test-token");
-    
+
     // Add a roaster
     let add_output = run_brewlog(
         &[
@@ -71,23 +77,23 @@ fn test_list_roasters_shows_added_roaster() {
         ],
         &[("BREWLOG_TOKEN", &token)],
     );
-    
+
     assert!(add_output.status.success());
-    
+
     // List roasters
-    let list_output = run_brewlog(
-        &["list-roasters", "--server", &server.address],
-        &[],
-    );
-    
+    let list_output = run_brewlog(&["list-roasters", "--server", &server.address], &[]);
+
     assert!(list_output.status.success());
-    assert!(output_contains(&list_output, "Example Roasters"), "Should list the added roaster");
+    assert!(
+        output_contains(&list_output, "Example Roasters"),
+        "Should list the added roaster"
+    );
 }
 
 #[test]
 fn test_delete_roaster_requires_authentication() {
     let server = TestServer::start();
-    
+
     let output = run_brewlog(
         &[
             "delete-roaster",
@@ -98,14 +104,17 @@ fn test_delete_roaster_requires_authentication() {
         ],
         &[],
     );
-    
-    assert!(!output.status.success(), "delete-roaster without auth should fail");
+
+    assert!(
+        !output.status.success(),
+        "delete-roaster without auth should fail"
+    );
 }
 
 #[test]
 fn test_update_roaster_requires_authentication() {
     let server = TestServer::start();
-    
+
     let output = run_brewlog(
         &[
             "update-roaster",
@@ -118,6 +127,9 @@ fn test_update_roaster_requires_authentication() {
         ],
         &[],
     );
-    
-    assert!(!output.status.success(), "update-roaster without auth should fail");
+
+    assert!(
+        !output.status.success(),
+        "update-roaster without auth should fail"
+    );
 }
