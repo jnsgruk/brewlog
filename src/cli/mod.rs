@@ -61,6 +61,9 @@ pub struct ServeCommand {
 
     #[arg(long, env = "BREWLOG_BIND_ADDRESS", default_value = "127.0.0.1:3000")]
     pub bind_address: SocketAddr,
+
+    #[arg(long, env = "BREWLOG_ADMIN_PASSWORD")]
+    pub admin_password: Option<String>,
 }
 
 pub(crate) fn print_json<T>(value: &T) -> anyhow::Result<()>

@@ -40,6 +40,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
     let config = ServerConfig {
         bind_address: command.bind_address,
         database_url: command.database_url,
+        admin_password: command.admin_password,
     };
 
     serve(config).await

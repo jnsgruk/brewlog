@@ -10,9 +10,11 @@ postgres = ["sqlx/postgres"]
 
 [dependencies]
 anyhow = "1.0"
+argon2 = "0.5"
 async-trait = "0.1"
 axum = { version = "0.7", features = ["macros"] }
 askama = "0.12"
+base64 = "0.22"
 block-id = "0.2.1"
 chrono = { version = "0.4", features = ["serde", "clock"] }
 clap = { version = "4.5", features = ["derive", "env"] }
@@ -21,6 +23,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 once_cell = "1.19"
 rand = "0.8"
+sha2 = "0.10"
 sqlx = { version = "0.7", default-features = false, features = [
     "runtime-tokio",
     "macros",
