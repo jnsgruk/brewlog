@@ -3,9 +3,9 @@ use clap::Args;
 use serde_json::json;
 
 use super::print_json;
-use crate::client::BrewlogClient;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::roasts::NewRoast;
+use crate::infrastructure::client::BrewlogClient;
 
 #[derive(Debug, Args)]
 pub struct AddRoastCommand {

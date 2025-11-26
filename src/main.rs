@@ -1,6 +1,6 @@
 use anyhow::Result;
 use brewlog::application::{ServerConfig, serve};
-use brewlog::client::BrewlogClient;
+use brewlog::infrastructure::client::BrewlogClient;
 use brewlog::presentation::cli::{Cli, Commands, ServeCommand, roasters, roasts, tokens};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};

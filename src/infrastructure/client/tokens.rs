@@ -2,7 +2,7 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::client::BrewlogClient;
+use super::BrewlogClient;
 use crate::domain::ids::{TokenId, UserId};
 
 pub struct TokensClient<'a> {

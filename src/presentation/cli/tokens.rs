@@ -3,8 +3,8 @@ use clap::Args;
 use std::io::{self, Write};
 
 use super::print_json;
-use crate::client::BrewlogClient;
 use crate::domain::ids::TokenId;
+use crate::infrastructure::client::BrewlogClient;
 
 #[derive(Debug, Args)]
 pub struct CreateTokenCommand {
