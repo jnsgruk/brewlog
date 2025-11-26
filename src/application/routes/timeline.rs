@@ -9,8 +9,10 @@ use crate::application::routes::support::{ListQuery, is_datastar_request, normal
 use crate::application::server::AppState;
 use crate::domain::listing::ListRequest;
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
-use crate::presentation::templates::{TimelineChunkTemplate, TimelineTemplate};
-use crate::presentation::views::{ListNavigator, Paginated, TimelineEventView, TimelineMonthView};
+use crate::presentation::web::templates::{TimelineChunkTemplate, TimelineTemplate};
+use crate::presentation::web::views::{
+    ListNavigator, Paginated, TimelineEventView, TimelineMonthView,
+};
 
 const TIMELINE_PAGE_PATH: &str = "/timeline";
 const TIMELINE_FRAGMENT_PATH: &str = "/timeline";

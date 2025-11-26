@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use clap::Args;
 use std::io::{self, Write};
 
-use crate::cli::print_json;
+use super::print_json;
 use crate::client::BrewlogClient;
 use crate::domain::ids::TokenId;
 

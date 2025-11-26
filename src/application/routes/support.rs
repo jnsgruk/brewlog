@@ -9,7 +9,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::domain::listing::{
     DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortDirection, SortKey,
 };
-use crate::presentation::views::{ListNavigator, Paginated};
+use crate::presentation::web::views::{ListNavigator, Paginated};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PayloadSource {
@@ -113,7 +113,7 @@ pub fn render_fragment<T: Template>(
     template: T,
     selector: &'static str,
 ) -> Result<Response, AppError> {
-    let html = crate::presentation::templates::render_template(template)
+    let html = crate::presentation::web::templates::render_template(template)
         .map_err(|err| AppError::unexpected(format!("failed to render fragment: {err}")))?;
 
     let mut response = Html(html).into_response();

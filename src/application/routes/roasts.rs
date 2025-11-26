@@ -15,8 +15,8 @@ use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster};
-use crate::presentation::templates::{RoastDetailTemplate, RoastListTemplate, RoastsTemplate};
-use crate::presentation::views::{ListNavigator, Paginated, RoastView, RoasterOptionView};
+use crate::presentation::web::templates::{RoastDetailTemplate, RoastListTemplate, RoastsTemplate};
+use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, RoasterOptionView};
 
 const ROAST_PAGE_PATH: &str = "/roasts";
 const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";

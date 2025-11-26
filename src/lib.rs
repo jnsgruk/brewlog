@@ -1,5 +1,4 @@
 pub mod application;
-pub mod cli;
 pub mod client;
 pub mod domain;
 pub mod infrastructure;

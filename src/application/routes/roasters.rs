@@ -13,10 +13,10 @@ use crate::application::server::AppState;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
-use crate::presentation::templates::{
+use crate::presentation::web::templates::{
     RoasterDetailTemplate, RoasterListTemplate, RoastersTemplate,
 };
-use crate::presentation::views::{ListNavigator, Paginated, RoastView, RoasterView};
+use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, RoasterView};
 
 const ROASTER_PAGE_PATH: &str = "/roasters";
 const ROASTER_FRAGMENT_PATH: &str = "/roasters#roaster-list";

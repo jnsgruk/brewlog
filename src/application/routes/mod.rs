@@ -15,7 +15,7 @@ use tracing::error;
 
 use crate::application::server::AppState;
 
-use crate::presentation::templates::render_template;
+use crate::presentation::web::templates::render_template;
 
 pub fn app_router(state: AppState) -> axum::Router {
     let api_routes = axum::Router::new()
