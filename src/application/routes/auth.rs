@@ -29,6 +29,7 @@ pub struct LoginForm {
     password: String,
 }
 
+#[tracing::instrument(skip(state, cookies))]
 pub(crate) async fn login_page(
     State(state): State<AppState>,
     cookies: Cookies,
@@ -47,6 +48,7 @@ pub(crate) async fn login_page(
     render_html(template).map(IntoResponse::into_response)
 }
 
+#[tracing::instrument(name = "User attempting login", skip(state, cookies, form), fields(username = %form.username))]
 pub(crate) async fn login_submit(
     State(state): State<AppState>,
     cookies: Cookies,
@@ -103,6 +105,7 @@ pub(crate) async fn login_submit(
     Ok(Redirect::to("/timeline").into_response())
 }
 
+#[tracing::instrument(skip(state, cookies))]
 pub(crate) async fn logout(State(state): State<AppState>, cookies: Cookies) -> Redirect {
     // Try to delete session from database if cookie exists
     if let Some(cookie) = cookies.get(SESSION_COOKIE_NAME) {
@@ -135,6 +138,7 @@ fn show_login_error(message: &str) -> Result<Response, StatusCode> {
 
 /// Check if user is authenticated based on session cookie
 /// Validates the session token against the database
+#[tracing::instrument(skip(state, cookies))]
 pub async fn is_authenticated(state: &AppState, cookies: &Cookies) -> bool {
     let Some(cookie) = cookies.get(SESSION_COOKIE_NAME) else {
         return false;

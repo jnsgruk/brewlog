@@ -3,13 +3,17 @@ use brewlog::application::{ServerConfig, serve};
 use brewlog::infrastructure::client::BrewlogClient;
 use brewlog::presentation::cli::{Cli, Commands, ServeCommand, roasters, roasts, tokens};
 use clap::Parser;
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+
+use tracing::{Subscriber, subscriber::set_global_default};
+use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
+use tracing_log::LogTracer;
+use tracing_subscriber::fmt::MakeWriter;
+use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    if let Err(err) = init_tracing() {
-        eprintln!("failed to initialize tracing: {err}");
-    }
+    let subscriber = get_subscriber("brewlog".into(), "info".into(), std::io::stdout);
+    init_subscriber(subscriber);
 
     let cli = Cli::parse();
 
@@ -51,12 +55,28 @@ async fn run_server(command: ServeCommand) -> Result<()> {
     serve(config).await
 }
 
-fn init_tracing() -> anyhow::Result<()> {
-    let env_filter = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new("info"))?;
+pub fn get_subscriber<Sink>(
+    name: String,
+    env_filter: String,
+    sink: Sink,
+) -> impl Subscriber + Send + Sync
+where
+    Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
+{
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
+    let formatting_layer = BunyanFormattingLayer::new(name, sink);
 
-    tracing_subscriber::registry()
+    Registry::default()
         .with(env_filter)
-        .with(fmt::layer())
-        .try_init()
-        .map_err(|err| anyhow::anyhow!("failed to initialize tracing: {err}"))
+        .with(JsonStorageLayer)
+        .with(formatting_layer)
+}
+
+/// Register a subscriber as global default to process span data.
+///
+/// This should only be called once!
+pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
+    LogTracer::init().expect("Failed to set logger");
+    set_global_default(subscriber).expect("Failed to set subscriber");
 }

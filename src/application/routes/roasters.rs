@@ -21,6 +21,7 @@ use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, Roast
 const ROASTER_PAGE_PATH: &str = "/roasters";
 const ROASTER_FRAGMENT_PATH: &str = "/roasters#roaster-list";
 
+#[tracing::instrument(skip(state))]
 async fn load_roaster_page(
     state: &AppState,
     request: ListRequest<RoasterSortKey>,
@@ -40,6 +41,7 @@ async fn load_roaster_page(
     ))
 }
 
+#[tracing::instrument(skip(state, cookies, headers, query))]
 pub(crate) async fn roasters_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
@@ -73,6 +75,7 @@ pub(crate) async fn roasters_page(
     render_html(template).map(IntoResponse::into_response)
 }
 
+#[tracing::instrument(skip(state, cookies))]
 pub(crate) async fn roaster_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
@@ -103,6 +106,7 @@ pub(crate) async fn roaster_page(
     render_html(template)
 }
 
+#[tracing::instrument(skip(state))]
 pub(crate) async fn list_roasters(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Roaster>>, ApiError> {
@@ -114,6 +118,7 @@ pub(crate) async fn list_roasters(
     Ok(Json(roasters))
 }
 
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -143,6 +148,7 @@ pub(crate) async fn create_roaster(
     }
 }
 
+#[tracing::instrument(skip(state))]
 pub(crate) async fn get_roaster(
     State(state): State<AppState>,
     Path(id): Path<RoasterId>,
@@ -151,6 +157,7 @@ pub(crate) async fn get_roaster(
     Ok(Json(roaster))
 }
 
+#[tracing::instrument(skip(state, _auth_user))]
 pub(crate) async fn update_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -175,6 +182,7 @@ pub(crate) async fn update_roaster(
     Ok(Json(roaster))
 }
 
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn delete_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

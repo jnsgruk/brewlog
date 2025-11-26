@@ -17,6 +17,7 @@ pub enum PayloadSource {
     Form,
 }
 
+#[derive(Debug)]
 pub struct FlexiblePayload<T> {
     inner: T,
     source: PayloadSource,

@@ -12,7 +12,7 @@ use crate::infrastructure::auth::hash_token;
 const SESSION_COOKIE_NAME: &str = "brewlog_session";
 
 /// Extension type to carry authenticated user through request handlers
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AuthenticatedUser(pub User);
 
 #[async_trait]

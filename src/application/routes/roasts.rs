@@ -21,6 +21,7 @@ use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, Roast
 const ROAST_PAGE_PATH: &str = "/roasts";
 const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";
 
+#[tracing::instrument(skip(state))]
 async fn load_roast_page(
     state: &AppState,
     request: ListRequest<RoastSortKey>,
@@ -40,6 +41,7 @@ async fn load_roast_page(
     ))
 }
 
+#[tracing::instrument(skip(state, cookies, headers, query))]
 pub(crate) async fn roasts_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
@@ -82,6 +84,7 @@ pub(crate) async fn roasts_page(
     render_html(template).map(IntoResponse::into_response)
 }
 
+#[tracing::instrument(skip(state, cookies))]
 pub(crate) async fn roast_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
@@ -111,6 +114,7 @@ pub(crate) async fn roast_page(
     render_html(template)
 }
 
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_roast(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -146,6 +150,7 @@ pub(crate) async fn create_roast(
     }
 }
 
+#[tracing::instrument(skip(state))]
 pub(crate) async fn list_roasts(
     State(state): State<AppState>,
     Query(params): Query<RoastsQuery>,
@@ -161,6 +166,7 @@ pub(crate) async fn list_roasts(
     Ok(Json(roasts))
 }
 
+#[tracing::instrument(skip(state))]
 pub(crate) async fn get_roast(
     State(state): State<AppState>,
     Path(id): Path<RoastId>,
@@ -169,6 +175,7 @@ pub(crate) async fn get_roast(
     Ok(Json(roast))
 }
 
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn delete_roast(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

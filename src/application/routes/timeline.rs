@@ -18,6 +18,7 @@ const TIMELINE_PAGE_PATH: &str = "/timeline";
 const TIMELINE_FRAGMENT_PATH: &str = "/timeline";
 const TIMELINE_DEFAULT_PAGE_SIZE: u32 = 5;
 
+#[tracing::instrument(skip(state, cookies, headers, query))]
 pub(crate) async fn timeline_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
@@ -75,6 +76,7 @@ struct TimelinePageData {
     months: Vec<TimelineMonthView>,
 }
 
+#[tracing::instrument(skip(state))]
 async fn load_timeline_page(
     state: &AppState,
     request: ListRequest<TimelineSortKey>,

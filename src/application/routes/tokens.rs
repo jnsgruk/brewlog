@@ -47,6 +47,7 @@ impl From<Token> for TokenResponse {
     }
 }
 
+#[tracing::instrument(skip(state, payload), fields(token_name = %payload.name, username = %payload.username))]
 pub async fn create_token(
     State(state): State<AppState>,
     Json(payload): Json<CreateTokenRequest>,
@@ -86,6 +87,7 @@ pub async fn create_token(
     }))
 }
 
+#[tracing::instrument(skip(state, auth_user))]
 pub async fn list_tokens(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
@@ -101,6 +103,7 @@ pub async fn list_tokens(
     Ok(Json(token_responses))
 }
 
+#[tracing::instrument(skip(state, auth_user), fields(token_id = %token_id, username = %auth_user.0.username))]
 pub async fn revoke_token(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
