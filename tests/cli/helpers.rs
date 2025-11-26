@@ -58,6 +58,7 @@ fn ensure_server_started() -> Result<(String, String), String> {
                 &db_url,
             ])
             .env("BREWLOG_ADMIN_PASSWORD", admin_password)
+            .env("BREWLOG_ADMIN_USERNAME", "admin")
             .env("RUST_LOG", "error")
             .stdout(Stdio::null())
             .stderr(Stdio::null())

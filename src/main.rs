@@ -50,6 +50,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         bind_address: command.bind_address,
         database_url: command.database_url,
         admin_password: command.admin_password,
+        admin_username: command.admin_username,
     };
 
     serve(config).await

@@ -20,13 +20,13 @@ B{rew}log ships as one executable. You decide whether it acts as a server or a c
 
 ### First-time setup
 
-On first start, you must set an admin password via the `BREWLOG_ADMIN_PASSWORD` environment variable:
+On first start, you must set an admin username and password via the `BREWLOG_ADMIN_USERNAME` and `BREWLOG_ADMIN_PASSWORD` environment variables:
 
 ```bash
-BREWLOG_ADMIN_PASSWORD="your-secure-password" brewlog serve
+BREWLOG_ADMIN_USERNAME="admin" BREWLOG_ADMIN_PASSWORD="your-secure-password" brewlog serve
 ```
 
-This creates the admin user in the database. On subsequent starts, the environment variable is not required.
+This creates the admin user in the database. On subsequent starts, the environment variables are not required.
 
 ### Authentication
 

@@ -26,6 +26,7 @@ pub struct ServerConfig {
     pub bind_address: SocketAddr,
     pub database_url: String,
     pub admin_password: Option<String>,
+    pub admin_username: Option<String>,
 }
 
 #[derive(Clone)]
@@ -75,7 +76,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         Arc::new(SqlSessionRepository::new(database.clone_pool()));
 
     // Bootstrap admin user if no users exist
-    bootstrap_admin_user(&user_repo, config.admin_password).await?;
+    bootstrap_admin_user(&user_repo, config.admin_username, config.admin_password).await?;
 
     let state = AppState::new(
         roaster_repo,
@@ -106,6 +107,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
 
 async fn bootstrap_admin_user(
     user_repo: &Arc<dyn UserRepository>,
+    admin_username: Option<String>,
     admin_password: Option<String>,
 ) -> anyhow::Result<()> {
     // Check if any users exist
@@ -120,6 +122,13 @@ async fn bootstrap_admin_user(
     }
 
     // No users exist - we need to create the admin user
+    let username = admin_username.ok_or_else(|| {
+        anyhow::anyhow!(
+            "No users exist in the database. Please provide BREWLOG_ADMIN_USERNAME \
+             environment variable to create the admin user."
+        )
+    })?;
+
     let password = admin_password.ok_or_else(|| {
         anyhow::anyhow!(
             "No users exist in the database. Please provide BREWLOG_ADMIN_PASSWORD \
@@ -127,11 +136,11 @@ async fn bootstrap_admin_user(
         )
     })?;
 
-    info!("No users found. Creating admin user...");
+    info!("No users found. Creating admin user '{}'...", username);
 
     let password_hash = hash_password(&password).context("failed to hash admin password")?;
 
-    let admin_user = NewUser::new("admin".to_string(), password_hash);
+    let admin_user = NewUser::new(username, password_hash);
 
     user_repo
         .insert(admin_user)
