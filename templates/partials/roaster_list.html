@@ -22,7 +22,7 @@
             type="button"
             class="inline-flex items-center gap-1 rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:border-amber-500 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
             {% if roasters.has_previous() %}
-            data-on:click="@get('{{ navigator.fragment_page_href(roasters.previous_page().unwrap()) }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+            data-on:click="history.pushState(null, '', '{{ navigator.page_href(roasters.previous_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(roasters.previous_page().unwrap())|safe }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
             {% else %}
             disabled
             {% endif %}
@@ -41,7 +41,7 @@
             type="button"
             class="inline-flex items-center gap-1 rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:border-amber-500 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
             {% if roasters.has_next() %}
-            data-on:click="@get('{{ navigator.fragment_page_href(roasters.next_page().unwrap()) }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+            data-on:click="history.pushState(null, '', '{{ navigator.page_href(roasters.next_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(roasters.next_page().unwrap())|safe }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
             {% else %}
             disabled
             {% endif %}
@@ -54,13 +54,13 @@
           <span>Rows</span>
           <select
             class="rounded-md border border-amber-300 bg-white px-2 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-400"
-            data-on:change="@get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+            data-on:change="history.pushState(null, '', evt.target.selectedOptions[0].dataset.url); @get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
           >
-            <option value="5" data-href="{{ navigator.fragment_rows_href("5") }}" {% if roasters.is_page_size(5) %}selected{% endif %}>5</option>
-            <option value="10" data-href="{{ navigator.fragment_rows_href("10") }}" {% if roasters.is_page_size(10) %}selected{% endif %}>10</option>
-            <option value="20" data-href="{{ navigator.fragment_rows_href("20") }}" {% if roasters.is_page_size(20) %}selected{% endif %}>20</option>
-            <option value="50" data-href="{{ navigator.fragment_rows_href("50") }}" {% if roasters.is_page_size(50) %}selected{% endif %}>50</option>
-            <option value="all" data-href="{{ navigator.fragment_rows_href("all") }}" {% if roasters.is_showing_all() %}selected{% endif %}>All</option>
+            <option value="5" data-href="{{ navigator.fragment_rows_href("5")|safe }}" data-url="{{ navigator.rows_href("5")|safe }}" {% if roasters.is_page_size(5) %}selected{% endif %}>5</option>
+            <option value="10" data-href="{{ navigator.fragment_rows_href("10")|safe }}" data-url="{{ navigator.rows_href("10")|safe }}" {% if roasters.is_page_size(10) %}selected{% endif %}>10</option>
+            <option value="20" data-href="{{ navigator.fragment_rows_href("20")|safe }}" data-url="{{ navigator.rows_href("20")|safe }}" {% if roasters.is_page_size(20) %}selected{% endif %}>20</option>
+            <option value="50" data-href="{{ navigator.fragment_rows_href("50")|safe }}" data-url="{{ navigator.rows_href("50")|safe }}" {% if roasters.is_page_size(50) %}selected{% endif %}>50</option>
+            <option value="all" data-href="{{ navigator.fragment_rows_href("all")|safe }}" data-url="{{ navigator.rows_href("all")|safe }}" {% if roasters.is_showing_all() %}selected{% endif %}>All</option>
           </select>
         </label>
       </div>
@@ -78,7 +78,7 @@
               <button
                 type="button"
                 class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="@get('{{ navigator.fragment_sort_href("created-at") }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("created-at")|safe }}'); @get('{{ navigator.fragment_sort_href("created-at")|safe }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
               >
                 <span>Added</span>
                 {% if created_sorted %}
@@ -101,7 +101,7 @@
               <button
                 type="button"
                 class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="@get('{{ navigator.fragment_sort_href("name") }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("name")|safe }}'); @get('{{ navigator.fragment_sort_href("name")|safe }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
               >
                 <span>Name</span>
                 {% if name_sorted %}
@@ -124,7 +124,7 @@
               <button
                 type="button"
                 class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="@get('{{ navigator.fragment_sort_href("country") }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("country")|safe }}'); @get('{{ navigator.fragment_sort_href("country")|safe }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
               >
                 <span>Country</span>
                 {% if country_sorted %}
@@ -147,7 +147,7 @@
               <button
                 type="button"
                 class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="@get('{{ navigator.fragment_sort_href("city") }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("city")|safe }}'); @get('{{ navigator.fragment_sort_href("city")|safe }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
               >
                 <span>City</span>
                 {% if city_sorted %}
