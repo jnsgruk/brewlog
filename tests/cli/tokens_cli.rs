@@ -1,8 +1,5 @@
 use crate::helpers::{create_token, run_brewlog, server_info};
 
-// Note: create-token CLI command tests are omitted due to stdin handling complexity.
-// Token creation for testing is done via API in the create_token() helper.
-
 #[test]
 fn test_list_tokens_requires_authentication() {
     let _ = server_info();

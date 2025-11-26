@@ -113,40 +113,38 @@ pub fn server_info() -> (String, String) {
     ensure_server_started().expect("Failed to start test server")
 }
 
-/// Create a token for testing using the API directly
+/// Create a token for testing using the CLI
 pub fn create_token(name: &str) -> String {
-    let (address, password) = ensure_server_started().expect("Failed to start test server");
+    let (_, password) = ensure_server_started().expect("Failed to start test server");
 
-    let client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs(5))
-        .build()
-        .expect("Failed to create HTTP client");
+    let output = run_brewlog(
+        &[
+            "create-token",
+            "--name",
+            name,
+            "--username",
+            "admin",
+            "--password",
+            &password,
+        ],
+        &[],
+    );
 
-    let response = client
-        .post(format!("{}/api/v1/tokens", address))
-        .json(&serde_json::json!({
-            "username": "admin",
-            "password": password,
-            "name": name
-        }))
-        .send()
-        .expect("Failed to send token creation request");
-
-    if !response.status().is_success() {
+    if !output.status.success() {
         panic!(
-            "Failed to create token: status={} body={}",
-            response.status(),
-            response.text().unwrap_or_default()
+            "Failed to create token: {}",
+            String::from_utf8_lossy(&output.stderr)
         );
     }
 
-    let token_response: serde_json::Value =
-        response.json().expect("Failed to parse token response");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines() {
+        if let Some(token) = line.trim().strip_prefix("export BREWLOG_TOKEN=") {
+            return token.to_string();
+        }
+    }
 
-    token_response["token"]
-        .as_str()
-        .expect("Token not found in response")
-        .to_string()
+    panic!("Could not find token in output: {}", stdout);
 }
 
 /// Run a brewlog CLI command and return the output

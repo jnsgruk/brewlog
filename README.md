@@ -48,6 +48,10 @@ First, create an API token:
 
 ```bash
 brewlog create-token --name "my-cli-token"
+# You will be prompted for username and password.
+# Alternatively, you can provide them via flags:
+# brewlog create-token --name "my-cli-token" --username admin --password secret
+
 # Username: admin
 # Password: ********
 #

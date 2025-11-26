@@ -11,6 +11,14 @@ pub struct CreateTokenCommand {
     /// A descriptive name for this token
     #[arg(long)]
     pub name: String,
+
+    /// The username to authenticate with
+    #[arg(long)]
+    pub username: Option<String>,
+
+    /// The password to authenticate with
+    #[arg(long)]
+    pub password: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -21,20 +29,28 @@ pub struct RevokeTokenCommand {
 }
 
 pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Result<()> {
-    // Prompt for username
-    print!("Username: ");
-    io::stdout().flush()?;
-    let mut username = String::new();
-    io::stdin().read_line(&mut username)?;
-    let username = username.trim();
+    let username = if let Some(u) = cmd.username {
+        u
+    } else {
+        // Prompt for username
+        print!("Username: ");
+        io::stdout().flush()?;
+        let mut username = String::new();
+        io::stdin().read_line(&mut username)?;
+        username.trim().to_string()
+    };
 
-    // Prompt for password (without echo)
-    let password = rpassword::prompt_password("Password: ").context("failed to read password")?;
+    let password = if let Some(p) = cmd.password {
+        p
+    } else {
+        // Prompt for password (without echo)
+        rpassword::prompt_password("Password: ").context("failed to read password")?
+    };
 
     // Create the token
     let token_response = client
         .tokens()
-        .create(username, &password, &cmd.name)
+        .create(&username, &password, &cmd.name)
         .await?;
 
     println!("\nToken created successfully!");
