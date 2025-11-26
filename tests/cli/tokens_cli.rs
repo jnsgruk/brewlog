@@ -57,21 +57,26 @@ fn test_revoke_token_with_authentication() {
     let tokens: serde_json::Value =
         serde_json::from_str(&list_stdout).expect("Should parse token list as JSON");
 
-    // Find a token to revoke
+    // Find the token to revoke by name
     let tokens_array = tokens.as_array().expect("Should be an array");
-    if let Some(first_token) = tokens_array.first() {
-        let token_id = first_token["id"].as_i64().expect("Token should have ID");
+    let token_to_revoke = tokens_array
+        .iter()
+        .find(|t| t["name"].as_str() == Some("test-revoke-token"))
+        .expect("Should find token to revoke");
 
-        let revoke_output = run_brewlog(
-            &["revoke-token", "--id", &token_id.to_string()],
-            &[("BREWLOG_TOKEN", &token)],
-        );
+    let token_id = token_to_revoke["id"]
+        .as_i64()
+        .expect("Token should have ID");
 
-        assert!(
-            revoke_output.status.success(),
-            "Should be able to revoke token"
-        );
-    }
+    let revoke_output = run_brewlog(
+        &["revoke-token", "--id", &token_id.to_string()],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+
+    assert!(
+        revoke_output.status.success(),
+        "Should be able to revoke token"
+    );
 }
 
 #[test]
