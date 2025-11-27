@@ -239,10 +239,16 @@ pub(crate) async fn update_bag(
                     action: "finished".to_string(),
                     occurred_at: chrono::Utc::now(),
                     title: format!("{}", roast.name),
-                    details: vec![TimelineEventDetail {
-                        label: "Roaster".to_string(),
-                        value: roaster.name,
-                    }],
+                    details: vec![
+                        TimelineEventDetail {
+                            label: "Roaster".to_string(),
+                            value: roaster.name,
+                        },
+                        TimelineEventDetail {
+                            label: "Amount".to_string(),
+                            value: format!("{}g", bag.amount),
+                        },
+                    ],
                     tasting_notes: vec![],
                 };
                 let _ = state.timeline_repo.insert(event).await;
