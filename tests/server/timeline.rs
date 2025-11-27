@@ -326,3 +326,92 @@ async fn timeline_chunk_endpoint_serves_remaining_events() {
         "Expected chunk to clear next URL once exhausted"
     );
 }
+
+#[tokio::test]
+async fn closing_a_bag_surfaces_on_the_timeline() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let roaster_id = create_roaster_with_payload(
+        &app,
+        NewRoaster {
+            name: "Bag Finish Timeline Roasters".to_string(),
+            country: "UK".to_string(),
+            city: Some("Bristol".to_string()),
+            homepage: Some("https://example.com".to_string()),
+            notes: None,
+        },
+    )
+    .await
+    .id;
+
+    sleep(Duration::from_millis(5)).await;
+    let roast_name = "Bag Finish Timeline Roast";
+    create_roast(&app, roaster_id, roast_name).await;
+
+    // Fetch the roast to get its ID
+    let roasts_response = client
+        .get(app.api_url("/roasts"))
+        .send()
+        .await
+        .expect("failed to fetch roasts");
+
+    let roasts: Vec<brewlog::domain::roasts::RoastWithRoaster> = roasts_response
+        .json()
+        .await
+        .expect("failed to parse roasts");
+    let roast_id = roasts.first().unwrap().roast.id;
+
+    // Create a bag
+    let bag_submission = serde_json::json!({
+        "roast_id": roast_id,
+        "roast_date": "2023-01-01",
+        "amount": 250.0
+    });
+
+    let response = client
+        .post(app.api_url("/bags"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&bag_submission)
+        .send()
+        .await
+        .expect("failed to create bag");
+
+    let bag: brewlog::domain::bags::Bag = response.json().await.expect("failed to parse bag");
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Close the bag
+    let update_submission = serde_json::json!({
+        "closed": true
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/bags/{}", bag.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update_submission)
+        .send()
+        .await
+        .expect("failed to update bag");
+    assert_eq!(response.status(), 200);
+
+    sleep(Duration::from_millis(10)).await;
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("failed to read response body");
+    assert!(
+        body.contains("Bag Finished"),
+        "Expected 'Bag Finished' badge in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains(&format!("Finished: {}", roast_name)),
+        "Expected bag finished title to appear in timeline HTML, got: {body}"
+    );
+}

@@ -244,3 +244,54 @@ async fn deleting_a_bag_returns_204() {
 
     assert_eq!(get_response.status(), 404);
 }
+
+#[tokio::test]
+async fn closing_a_bag_automatically_sets_finished_at() {
+    // Arrange
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let client = reqwest::Client::new();
+
+    let new_bag = NewBag {
+        roast_id: roast.id,
+        roast_date: None,
+        amount: 250.0,
+    };
+
+    let create_response = client
+        .post(app.api_url("/bags"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_bag)
+        .send()
+        .await
+        .expect("Failed to create bag");
+
+    let created_bag: Bag = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
+
+    let update_payload = serde_json::json!({
+        "closed": true
+    });
+
+    // Act
+    let response = client
+        .put(app.api_url(&format!("/bags/{}", created_bag.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update_payload)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 200);
+    let updated_bag: Bag = response.json().await.expect("Failed to parse response");
+    assert!(updated_bag.closed);
+    assert!(updated_bag.finished_at.is_some());
+    assert_eq!(
+        updated_bag.finished_at.unwrap(),
+        chrono::Utc::now().date_naive()
+    );
+}
