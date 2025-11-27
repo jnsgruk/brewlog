@@ -9,6 +9,16 @@ use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BagRepository;
 use crate::infrastructure::database::DatabasePool;
 
+const BASE_SELECT: &str = r#"
+    SELECT 
+        b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
+        r.name as roast_name, r.slug as roast_slug,
+        rr.name as roaster_name, rr.slug as roaster_slug
+    FROM bags b
+    JOIN roasts r ON b.roast_id = r.id
+    JOIN roasters rr ON r.roaster_id = rr.id
+"#;
+
 #[derive(Clone)]
 pub struct SqlBagRepository {
     pool: DatabasePool,
@@ -111,22 +121,12 @@ impl BagRepository for SqlBagRepository {
 
         let order_clause = format!("{} {}", sort_column, direction);
 
-        let base_query = r#"
-            SELECT 
-                b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
-                r.name as roast_name, r.slug as roast_slug,
-                rr.name as roaster_name, rr.slug as roaster_slug
-            FROM bags b
-            JOIN roasts r ON b.roast_id = r.id
-            JOIN roasters rr ON r.roaster_id = rr.id
-        "#;
-
         let count_query = "SELECT COUNT(*) FROM bags";
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
             request,
-            base_query,
+            BASE_SELECT,
             count_query,
             &order_clause,
             |record| Ok(Self::to_domain_with_roast(record)),
@@ -135,19 +135,12 @@ impl BagRepository for SqlBagRepository {
     }
 
     async fn list_by_roast(&self, roast_id: RoastId) -> Result<Vec<BagWithRoast>, RepositoryError> {
-        let query = r#"
-            SELECT 
-                b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
-                r.name as roast_name, r.slug as roast_slug,
-                rr.name as roaster_name, rr.slug as roaster_slug
-            FROM bags b
-            JOIN roasts r ON b.roast_id = r.id
-            JOIN roasters rr ON r.roaster_id = rr.id
-            WHERE b.roast_id = ?
-            ORDER BY b.roast_date DESC
-        "#;
+        let query = format!(
+            "{} WHERE b.roast_id = ? ORDER BY b.roast_date DESC",
+            BASE_SELECT
+        );
 
-        let records = query_as::<_, BagWithRoastRecord>(query)
+        let records = query_as::<_, BagWithRoastRecord>(&query)
             .bind(roast_id.into_inner())
             .fetch_all(&self.pool)
             .await
@@ -226,19 +219,12 @@ impl BagRepository for SqlBagRepository {
     }
 
     async fn list_open(&self) -> Result<Vec<BagWithRoast>, RepositoryError> {
-        let query = r#"
-            SELECT 
-                b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
-                r.name as roast_name, r.slug as roast_slug,
-                rr.name as roaster_name, rr.slug as roaster_slug
-            FROM bags b
-            JOIN roasts r ON b.roast_id = r.id
-            JOIN roasters rr ON r.roaster_id = rr.id
-            WHERE b.closed = FALSE
-            ORDER BY b.roast_date DESC
-        "#;
+        let query = format!(
+            "{} WHERE b.closed = FALSE ORDER BY b.roast_date DESC",
+            BASE_SELECT
+        );
 
-        let records = query_as::<_, BagWithRoastRecord>(query)
+        let records = query_as::<_, BagWithRoastRecord>(&query)
             .fetch_all(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -268,23 +254,14 @@ impl BagRepository for SqlBagRepository {
 
         let order_clause = format!("{} {}", sort_column, direction);
 
-        let base_query = r#"
-            SELECT 
-                b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
-                r.name as roast_name, r.slug as roast_slug,
-                rr.name as roaster_name, rr.slug as roaster_slug
-            FROM bags b
-            JOIN roasts r ON b.roast_id = r.id
-            JOIN roasters rr ON r.roaster_id = rr.id
-            WHERE b.closed = TRUE
-        "#;
+        let base_query = format!("{} WHERE b.closed = TRUE", BASE_SELECT);
 
         let count_query = "SELECT COUNT(*) FROM bags WHERE closed = TRUE";
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
             request,
-            base_query,
+            &base_query,
             count_query,
             &order_clause,
             |record| Ok(Self::to_domain_with_roast(record)),

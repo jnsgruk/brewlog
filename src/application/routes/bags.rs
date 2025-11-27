@@ -22,16 +22,19 @@ use crate::presentation::web::views::{BagView, ListNavigator, Paginated, Roaster
 const BAG_PAGE_PATH: &str = "/bags";
 const BAG_FRAGMENT_PATH: &str = "/bags#bag-list";
 
+struct BagPageData {
+    open_bags: Vec<BagView>,
+    bags: Paginated<BagView>,
+    navigator: ListNavigator<BagSortKey>,
+}
+
 #[tracing::instrument(skip(state))]
 async fn load_bag_page(
     state: &AppState,
     request: ListRequest<BagSortKey>,
-) -> Result<(Vec<BagView>, Paginated<BagView>, ListNavigator<BagSortKey>), AppError> {
+) -> Result<BagPageData, AppError> {
     let open_bags = state.bag_repo.list_open().await.map_err(AppError::from)?;
-    let open_bags_view = open_bags
-        .into_iter()
-        .map(BagView::from_with_roast)
-        .collect();
+    let open_bags_view = open_bags.into_iter().map(BagView::from_domain).collect();
 
     let page = state
         .bag_repo
@@ -42,12 +45,16 @@ async fn load_bag_page(
     let (bags, navigator) = crate::application::routes::support::build_page_view(
         page,
         request,
-        BagView::from_with_roast,
+        BagView::from_domain,
         BAG_PAGE_PATH,
         BAG_FRAGMENT_PATH,
     );
 
-    Ok((open_bags_view, bags, navigator))
+    Ok(BagPageData {
+        open_bags: open_bags_view,
+        bags,
+        navigator,
+    })
 }
 
 #[tracing::instrument(skip(state, cookies, headers, query))]
@@ -75,7 +82,11 @@ pub(crate) async fn bags_page(
 
     let roaster_options = roasters.into_iter().map(RoasterOptionView::from).collect();
 
-    let (open_bags, bags, navigator) = load_bag_page(&state, request)
+    let BagPageData {
+        open_bags,
+        bags,
+        navigator,
+    } = load_bag_page(&state, request)
         .await
         .map_err(map_app_error)?;
 
@@ -352,7 +363,11 @@ async fn render_bag_list_fragment(
     request: ListRequest<BagSortKey>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
-    let (open_bags, bags, navigator) = load_bag_page(&state, request).await?;
+    let BagPageData {
+        open_bags,
+        bags,
+        navigator,
+    } = load_bag_page(&state, request).await?;
 
     let template = BagListTemplate {
         is_authenticated,

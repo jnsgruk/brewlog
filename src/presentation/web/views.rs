@@ -1,4 +1,4 @@
-use crate::domain::bags::{Bag, BagWithRoast};
+use crate::domain::bags::BagWithRoast;
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
@@ -537,33 +537,7 @@ pub struct BagView {
 }
 
 impl BagView {
-    pub fn from_domain(
-        bag: Bag,
-        roast_name: &str,
-        roaster_name: &str,
-        roast_slug: &str,
-        roaster_slug: &str,
-    ) -> Self {
-        Self {
-            id: bag.id.to_string(),
-            roast_id: bag.roast_id.to_string(),
-            roast_date: bag.roast_date.map(|d| d.to_string()),
-            amount: format!("{:.1}", bag.amount),
-            remaining: format!("{:.1}", bag.remaining),
-            closed: bag.closed,
-            finished_at: bag
-                .finished_at
-                .map(|d| d.to_string())
-                .unwrap_or_else(|| "—".to_string()),
-            created_at: bag.created_at.format("%Y-%m-%d").to_string(),
-            roast_name: roast_name.to_string(),
-            roaster_name: roaster_name.to_string(),
-            roast_slug: roast_slug.to_string(),
-            roaster_slug: roaster_slug.to_string(),
-        }
-    }
-
-    pub fn from_with_roast(bag: BagWithRoast) -> Self {
+    pub fn from_domain(bag: BagWithRoast) -> Self {
         Self {
             id: bag.bag.id.to_string(),
             roast_id: bag.bag.roast_id.to_string(),

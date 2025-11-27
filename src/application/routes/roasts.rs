@@ -112,7 +112,7 @@ pub(crate) async fn roast_page(
 
     let bag_views = bags
         .into_iter()
-        .map(crate::presentation::web::views::BagView::from_with_roast)
+        .map(crate::presentation::web::views::BagView::from_domain)
         .collect();
 
     let is_authenticated =
