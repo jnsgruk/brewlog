@@ -1,4 +1,4 @@
-use crate::helpers::{create_token, run_brewlog, server_info};
+use crate::helpers::{create_roaster, create_token, run_brewlog, server_info};
 use serde_json::Value;
 
 #[test]
@@ -62,28 +62,7 @@ fn test_list_roasters_shows_added_roaster() {
     let token = create_token("test-list-roasters");
 
     // Add a roaster
-    let add_output = run_brewlog(
-        &[
-            "add-roaster",
-            "--name",
-            "Example Roasters",
-            "--country",
-            "USA",
-        ],
-        &[("BREWLOG_TOKEN", &token)],
-    );
-
-    assert!(
-        add_output.status.success(),
-        "Failed to add roaster: {}",
-        String::from_utf8_lossy(&add_output.stderr)
-    );
-
-    let stdout = String::from_utf8_lossy(&add_output.stdout);
-    let added_roaster: Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
-    let roaster_id = added_roaster["id"]
-        .as_i64()
-        .expect("roaster id should be numeric");
+    let roaster_id = create_roaster("Example Roasters", &token);
 
     // List roasters
     let list_output = run_brewlog(&["list-roasters"], &[]);
@@ -100,7 +79,7 @@ fn test_list_roasters_shows_added_roaster() {
     // Find our roaster in the list
     let found = roasters_array
         .iter()
-        .any(|r| r["id"].as_i64() == Some(roaster_id));
+        .any(|r| r["id"].as_i64().unwrap().to_string() == roaster_id);
     assert!(found, "Should find the added roaster in the list");
 }
 

@@ -1,3 +1,4 @@
+pub mod bags_cli;
 pub mod helpers;
 pub mod roasters_cli;
 pub mod roasts_cli;

@@ -161,3 +161,64 @@ pub fn run_brewlog(args: &[&str], env: &[(&str, &str)]) -> std::process::Output 
 
     cmd.output().expect("Failed to run brewlog command")
 }
+
+/// Helper to create a roaster and return its ID
+pub fn create_roaster(name: &str, token: &str) -> String {
+    let output = run_brewlog(
+        &["add-roaster", "--name", name, "--country", "UK"],
+        &[("BREWLOG_TOKEN", token)],
+    );
+
+    if !output.status.success() {
+        panic!(
+            "Failed to create roaster: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let roaster: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Should output valid JSON");
+    roaster["id"]
+        .as_i64()
+        .expect("roaster id should be numeric")
+        .to_string()
+}
+
+/// Helper to create a roast and return its ID
+pub fn create_roast(roaster_id: &str, name: &str, token: &str) -> String {
+    let output = run_brewlog(
+        &[
+            "add-roast",
+            "--roaster-id",
+            roaster_id,
+            "--name",
+            name,
+            "--origin",
+            "Kenya",
+            "--region",
+            "Nyeri",
+            "--producer",
+            "Coop",
+            "--process",
+            "Washed",
+            "--tasting-notes",
+            "Blackcurrant",
+        ],
+        &[("BREWLOG_TOKEN", token)],
+    );
+
+    if !output.status.success() {
+        panic!(
+            "Failed to create roast: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let roast: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
+    roast["id"]
+        .as_i64()
+        .expect("roast id should be numeric")
+        .to_string()
+}

@@ -1,4 +1,4 @@
-use crate::helpers::{create_token, run_brewlog, server_info};
+use crate::helpers::{create_roaster, create_token, run_brewlog, server_info};
 use serde_json::Value;
 
 #[test]
@@ -35,32 +35,14 @@ fn test_add_roast_with_authentication() {
     let token = create_token("test-add-roast");
 
     // First create a roaster
-    let roaster_output = run_brewlog(
-        &[
-            "add-roaster",
-            "--name",
-            "Test Roasters Add",
-            "--country",
-            "UK",
-        ],
-        &[("BREWLOG_TOKEN", &token)],
-    );
-
-    assert!(roaster_output.status.success());
-
-    let roaster_stdout = String::from_utf8_lossy(&roaster_output.stdout);
-    let roaster: Value = serde_json::from_str(&roaster_stdout).expect("Should output valid JSON");
-    let roaster_id = roaster["id"]
-        .as_i64()
-        .expect("roaster id should be numeric");
-    let roaster_id_arg = roaster_id.to_string();
+    let roaster_id = create_roaster("Test Roasters Add", &token);
 
     // Now add a roast
     let output = run_brewlog(
         &[
             "add-roast",
             "--roaster-id",
-            &roaster_id_arg,
+            &roaster_id,
             "--name",
             "Ethiopian Yirgacheffe",
             "--origin",
@@ -87,7 +69,10 @@ fn test_add_roast_with_authentication() {
     let roast: Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
 
     assert_eq!(roast["name"], "Ethiopian Yirgacheffe");
-    assert_eq!(roast["roaster_id"].as_i64(), Some(roaster_id));
+    assert_eq!(
+        roast["roaster_id"].as_i64().unwrap().to_string(),
+        roaster_id
+    );
     assert!(roast["id"].is_i64(), "Should have an ID");
 }
 
@@ -113,30 +98,14 @@ fn test_list_roasts_shows_added_roast() {
     let token = create_token("test-list-roasts");
 
     // First create a roaster
-    let roaster_output = run_brewlog(
-        &[
-            "add-roaster",
-            "--name",
-            "Test Roasters List",
-            "--country",
-            "UK",
-        ],
-        &[("BREWLOG_TOKEN", &token)],
-    );
-
-    let roaster_stdout = String::from_utf8_lossy(&roaster_output.stdout);
-    let roaster: Value = serde_json::from_str(&roaster_stdout).unwrap();
-    let roaster_id = roaster["id"]
-        .as_i64()
-        .expect("roaster id should be numeric");
-    let roaster_id_arg = roaster_id.to_string();
+    let roaster_id = create_roaster("Test Roasters List", &token);
 
     // Add a roast
     let add_output = run_brewlog(
         &[
             "add-roast",
             "--roaster-id",
-            &roaster_id_arg,
+            &roaster_id,
             "--name",
             "Colombian Supremo",
             "--origin",
