@@ -10,6 +10,7 @@ use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::NewUser;
 use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
+use brewlog::infrastructure::repositories::bags::SqlBagRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
 use brewlog::infrastructure::repositories::sessions::SqlSessionRepository;
@@ -53,6 +54,7 @@ pub async fn spawn_app() -> TestApp {
     // Create repositories
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
+    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -65,6 +67,7 @@ pub async fn spawn_app() -> TestApp {
     let state = AppState::new(
         roaster_repo.clone(),
         roast_repo.clone(),
+        bag_repo.clone(),
         timeline_repo.clone(),
         user_repo.clone(),
         token_repo.clone(),
@@ -154,6 +157,51 @@ pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> 
         .expect("failed to deserialize roaster from response")
 }
 
+pub async fn create_roast_with_payload(
+    app: &TestApp,
+    payload: brewlog::domain::roasts::NewRoast,
+) -> brewlog::domain::roasts::Roast {
+    let client = Client::new();
+    let mut request = client.post(app.api_url("/roasts")).json(&payload);
+
+    if let Some(token) = &app.auth_token {
+        request = request.bearer_auth(token);
+    }
+
+    let response = request
+        .send()
+        .await
+        .expect("failed to create roast via API");
+
+    response
+        .json()
+        .await
+        .expect("failed to deserialize roast from response")
+}
+
+pub async fn create_default_roaster(app: &TestApp) -> Roaster {
+    create_roaster_with_name(app, "Test Roasters").await
+}
+
+pub async fn create_default_roast(
+    app: &TestApp,
+    roaster_id: brewlog::domain::ids::RoasterId,
+) -> brewlog::domain::roasts::Roast {
+    create_roast_with_payload(
+        app,
+        brewlog::domain::roasts::NewRoast {
+            roaster_id,
+            name: "Test Roast".to_string(),
+            origin: "Ethiopia".to_string(),
+            region: "Yirgacheffe".to_string(),
+            producer: "Coop".to_string(),
+            tasting_notes: vec!["Blueberry".to_string()],
+            process: "Washed".to_string(),
+        },
+    )
+    .await
+}
+
 pub async fn create_roaster_with_name(app: &TestApp, name: &str) -> Roaster {
     create_roaster_with_payload(
         app,
@@ -166,8 +214,4 @@ pub async fn create_roaster_with_name(app: &TestApp, name: &str) -> Roaster {
         },
     )
     .await
-}
-
-pub async fn create_default_roaster(app: &TestApp) -> Roaster {
-    create_roaster_with_name(app, "Test Roasters").await
 }
