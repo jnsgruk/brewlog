@@ -9,12 +9,13 @@ use tracing::info;
 
 use crate::application::routes::app_router;
 use crate::domain::repositories::{
-    RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
+    BagRepository, RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
     TokenRepository, UserRepository,
 };
 use crate::domain::users::NewUser;
 use crate::infrastructure::auth::hash_password;
 use crate::infrastructure::database::Database;
+use crate::infrastructure::repositories::bags::SqlBagRepository;
 use crate::infrastructure::repositories::roasters::SqlRoasterRepository;
 use crate::infrastructure::repositories::roasts::SqlRoastRepository;
 use crate::infrastructure::repositories::sessions::SqlSessionRepository;
@@ -33,6 +34,7 @@ pub struct ServerConfig {
 pub struct AppState {
     pub roaster_repo: Arc<dyn RoasterRepository>,
     pub roast_repo: Arc<dyn RoastRepository>,
+    pub bag_repo: Arc<dyn BagRepository>,
     pub timeline_repo: Arc<dyn TimelineEventRepository>,
     pub user_repo: Arc<dyn UserRepository>,
     pub token_repo: Arc<dyn TokenRepository>,
@@ -43,6 +45,7 @@ impl AppState {
     pub fn new(
         roaster_repo: Arc<dyn RoasterRepository>,
         roast_repo: Arc<dyn RoastRepository>,
+        bag_repo: Arc<dyn BagRepository>,
         timeline_repo: Arc<dyn TimelineEventRepository>,
         user_repo: Arc<dyn UserRepository>,
         token_repo: Arc<dyn TokenRepository>,
@@ -51,6 +54,7 @@ impl AppState {
         Self {
             roaster_repo,
             roast_repo,
+            bag_repo,
             timeline_repo,
             user_repo,
             token_repo,
@@ -67,6 +71,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
 
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
+    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -81,6 +86,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     let state = AppState::new(
         roaster_repo,
         roast_repo,
+        bag_repo,
         timeline_repo,
         user_repo,
         token_repo,

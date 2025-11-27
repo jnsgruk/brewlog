@@ -54,3 +54,4 @@ define_id!(TimelineEventId);
 define_id!(UserId);
 define_id!(TokenId);
 define_id!(SessionId);
+define_id!(BagId);

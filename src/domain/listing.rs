@@ -68,10 +68,10 @@ pub const MAX_PAGE_SIZE: u32 = 50;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct ListRequest<K: SortKey> {
-    page: u32,
-    page_size: PageSize,
-    sort_key: K,
-    sort_direction: SortDirection,
+    pub page: u32,
+    pub page_size: PageSize,
+    pub sort_key: K,
+    pub sort_direction: SortDirection,
 }
 
 impl<K: SortKey> ListRequest<K> {

@@ -1,3 +1,4 @@
+pub mod bags;
 pub mod ids;
 pub mod listing;
 pub mod repositories;

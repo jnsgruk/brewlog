@@ -31,7 +31,7 @@ CREATE UNIQUE INDEX idx_roasts_roaster_slug ON roasts(roaster_id, slug);
 
 CREATE TABLE timeline_events (
     id INTEGER PRIMARY KEY,
-    entity_type TEXT NOT NULL CHECK (entity_type IN ('roaster', 'roast')),
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('roaster', 'roast', 'bag')),
     entity_id INTEGER NOT NULL,
     occurred_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     title TEXT NOT NULL,

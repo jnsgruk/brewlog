@@ -2,7 +2,9 @@ use crate::domain::RepositoryError;
 use crate::domain::ids::TimelineEventId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::TimelineEventRepository;
-use crate::domain::timeline::{TimelineEvent, TimelineEventDetail, TimelineSortKey};
+use crate::domain::timeline::{
+    NewTimelineEvent, TimelineEvent, TimelineEventDetail, TimelineSortKey,
+};
 use crate::infrastructure::database::DatabasePool;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -21,6 +23,37 @@ impl SqlTimelineEventRepository {
 
 #[async_trait]
 impl TimelineEventRepository for SqlTimelineEventRepository {
+    async fn insert(&self, event: NewTimelineEvent) -> Result<TimelineEvent, RepositoryError> {
+        let query = r#"
+            INSERT INTO timeline_events (entity_type, entity_id, occurred_at, title, details_json, tasting_notes_json)
+            VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id, entity_type, entity_id, occurred_at, title, details_json, tasting_notes_json
+        "#;
+
+        let details_json = serde_json::to_string(&event.details).map_err(|err| {
+            RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
+        })?;
+
+        let tasting_notes_json = serde_json::to_string(&event.tasting_notes).map_err(|err| {
+            RepositoryError::unexpected(format!(
+                "failed to encode timeline event tasting notes: {err}"
+            ))
+        })?;
+
+        let record = sqlx::query_as::<_, TimelineEventRecord>(query)
+            .bind(event.entity_type)
+            .bind(event.entity_id)
+            .bind(event.occurred_at)
+            .bind(event.title)
+            .bind(details_json)
+            .bind(tasting_notes_json)
+            .fetch_one(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        record.into_domain()
+    }
+
     async fn list(
         &self,
         request: &ListRequest<TimelineSortKey>,
@@ -36,16 +69,21 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
             CASE 
                 WHEN t.entity_type = 'roaster' THEN r.slug 
                 WHEN t.entity_type = 'roast' THEN rst.slug 
+                WHEN t.entity_type = 'bag' THEN b_r.slug
                 ELSE NULL 
             END as slug,
             CASE 
                 WHEN t.entity_type = 'roast' THEN rst_r.slug 
+                WHEN t.entity_type = 'bag' THEN b_rr.slug
                 ELSE NULL 
             END as roaster_slug
         FROM timeline_events t
         LEFT JOIN roasters r ON t.entity_type = 'roaster' AND t.entity_id = r.id
         LEFT JOIN roasts rst ON t.entity_type = 'roast' AND t.entity_id = rst.id
-        LEFT JOIN roasters rst_r ON rst.roaster_id = rst_r.id";
+        LEFT JOIN roasters rst_r ON rst.roaster_id = rst_r.id
+        LEFT JOIN bags b ON t.entity_type = 'bag' AND t.entity_id = b.id
+        LEFT JOIN roasts b_r ON b.roast_id = b_r.id
+        LEFT JOIN roasters b_rr ON b_r.roaster_id = b_rr.id";
         let count_query = "SELECT COUNT(*) FROM timeline_events";
 
         crate::infrastructure::repositories::pagination::paginate(

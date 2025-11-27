@@ -1,3 +1,4 @@
+pub mod bags;
 pub mod pagination;
 pub mod roasters;
 pub mod roasts;

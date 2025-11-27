@@ -1,13 +1,14 @@
 use super::RepositoryError;
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
-use crate::domain::ids::{RoastId, RoasterId, SessionId, TokenId, UserId};
+use crate::domain::bags::{Bag, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::ids::{BagId, RoastId, RoasterId, SessionId, TokenId, UserId};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
 use crate::domain::roasts::{NewRoast, Roast, RoastWithRoaster, UpdateRoast};
 use crate::domain::sessions::{NewSession, Session};
-use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
+use crate::domain::timeline::{NewTimelineEvent, TimelineEvent, TimelineSortKey};
 use crate::domain::tokens::{NewToken, Token};
 use crate::domain::users::{NewUser, User};
 use async_trait::async_trait;
@@ -77,6 +78,7 @@ pub trait RoastRepository: Send + Sync {
 
 #[async_trait]
 pub trait TimelineEventRepository: Send + Sync {
+    async fn insert(&self, event: NewTimelineEvent) -> Result<TimelineEvent, RepositoryError>;
     async fn list(
         &self,
         request: &ListRequest<TimelineSortKey>,
@@ -116,4 +118,22 @@ pub trait SessionRepository: Send + Sync {
     async fn get_by_token_hash(&self, token_hash: &str) -> Result<Session, RepositoryError>;
     async fn delete(&self, id: SessionId) -> Result<(), RepositoryError>;
     async fn delete_expired(&self) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait BagRepository: Send + Sync {
+    async fn insert(&self, bag: NewBag) -> Result<Bag, RepositoryError>;
+    async fn get(&self, id: BagId) -> Result<Bag, RepositoryError>;
+    async fn list(
+        &self,
+        request: &ListRequest<BagSortKey>,
+    ) -> Result<Page<BagWithRoast>, RepositoryError>;
+    async fn list_by_roast(&self, roast_id: RoastId) -> Result<Vec<BagWithRoast>, RepositoryError>;
+    async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError>;
+    async fn delete(&self, id: BagId) -> Result<(), RepositoryError>;
+    async fn list_open(&self) -> Result<Vec<BagWithRoast>, RepositoryError>;
+    async fn list_closed(
+        &self,
+        request: &ListRequest<BagSortKey>,
+    ) -> Result<Page<BagWithRoast>, RepositoryError>;
 }
