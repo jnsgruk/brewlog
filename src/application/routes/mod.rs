@@ -64,7 +64,6 @@ pub fn app_router(state: AppState) -> axum::Router {
             get(roasts::roast_page),
         )
         .route("/bags", get(bags::bags_page))
-        .route("/bags/:id/finish", post(bags::finish_bag))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
         .route("/favicon.ico", get(favicon))

@@ -118,6 +118,9 @@ pub fn render_fragment<T: Template>(
         .map_err(|err| AppError::unexpected(format!("failed to render fragment: {err}")))?;
 
     let mut response = Html(html).into_response();
+    response
+        .headers_mut()
+        .insert(CONTENT_TYPE, HeaderValue::from_static("text/html"));
     set_datastar_patch_headers(response.headers_mut(), selector);
     Ok(response)
 }

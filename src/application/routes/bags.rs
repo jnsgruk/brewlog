@@ -201,20 +201,37 @@ pub(crate) async fn get_bag(
     Ok(Json(bag))
 }
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn update_bag(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
     Path(id): Path<BagId>,
-    Json(payload): Json<UpdateBag>,
-) -> Result<Json<Bag>, ApiError> {
+    Query(query): Query<ListQuery>,
+    Query(update_params): Query<UpdateBag>,
+    payload: Option<Json<UpdateBag>>,
+) -> Result<Response, ApiError> {
+    let request = query.into_request::<BagSortKey>();
+
+    let body_update = payload.map(|Json(p)| p).unwrap_or(UpdateBag {
+        remaining: None,
+        closed: None,
+        finished_at: None,
+    });
+
+    let update = UpdateBag {
+        remaining: body_update.remaining.or(update_params.remaining),
+        closed: body_update.closed.or(update_params.closed),
+        finished_at: body_update.finished_at.or(update_params.finished_at),
+    };
+
     let bag = state
         .bag_repo
-        .update(id, payload.clone())
+        .update(id, update.clone())
         .await
         .map_err(AppError::from)?;
 
-    if let Some(true) = payload.closed {
+    if let Some(true) = update.closed {
         // Fetch roast and roaster for timeline event
         if let Ok(roast) = state.roast_repo.get(bag.roast_id).await
             && let Ok(roaster) = state.roaster_repo.get(roast.roaster_id).await
@@ -234,7 +251,13 @@ pub(crate) async fn update_bag(
         }
     }
 
-    Ok(Json(bag))
+    if is_datastar_request(&headers) {
+        render_bag_list_fragment(state, request, true)
+            .await
+            .map_err(ApiError::from)
+    } else {
+        Ok(Json(bag).into_response())
+    }
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
@@ -254,68 +277,6 @@ pub(crate) async fn delete_bag(
             .map_err(ApiError::from)
     } else {
         Ok(StatusCode::NO_CONTENT.into_response())
-    }
-}
-
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
-pub(crate) async fn finish_bag(
-    State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
-    headers: HeaderMap,
-    Path(id): Path<BagId>,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let request = query.into_request::<BagSortKey>();
-
-    let bag = state
-        .bag_repo
-        .get(id)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let update = UpdateBag {
-        remaining: Some(0.0),
-        closed: Some(true),
-        finished_at: Some(chrono::Utc::now().date_naive()),
-    };
-
-    let _ = state
-        .bag_repo
-        .update(id, update)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    // Add timeline event
-    if let Ok(roast) = state.roast_repo.get(bag.roast_id).await
-        && let Ok(roaster) = state.roaster_repo.get(roast.roaster_id).await
-    {
-        let event = NewTimelineEvent {
-            entity_type: "bag".to_string(),
-            entity_id: bag.id.into_inner(),
-            occurred_at: chrono::Utc::now(),
-            title: roast.name.to_string(),
-            details: vec![
-                TimelineEventDetail {
-                    label: "Roaster".to_string(),
-                    value: roaster.name,
-                },
-                TimelineEventDetail {
-                    label: "Amount".to_string(),
-                    value: format!("{:.1}g", bag.amount),
-                },
-            ],
-            tasting_notes: vec![],
-        };
-        let _ = state.timeline_repo.insert(event).await;
-    }
-
-    if is_datastar_request(&headers) {
-        render_bag_list_fragment(state, request, true)
-            .await
-            .map_err(map_app_error)
-    } else {
-        // Fallback for non-datastar requests (though the UI uses datastar)
-        Ok(Redirect::to(BAG_PAGE_PATH).into_response())
     }
 }
 
