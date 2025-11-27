@@ -1,11 +1,12 @@
 use askama::Template;
 
 use super::views::{
-    ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView, TimelineEventView,
-    TimelineMonthView,
+    BagView, ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView,
+    TimelineEventView, TimelineMonthView,
 };
+use crate::domain::bags::BagSortKey;
 use crate::domain::roasters::RoasterSortKey;
-use crate::domain::roasts::RoastSortKey;
+use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
 use crate::domain::timeline::TimelineSortKey;
 
 #[derive(Template)]
@@ -50,6 +51,7 @@ pub struct RoastDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub roast: RoastView,
+    pub bags: Vec<BagView>,
 }
 
 #[derive(Template)]
@@ -76,6 +78,32 @@ pub struct TimelineChunkTemplate {
     pub events: Paginated<TimelineEventView>,
     pub navigator: ListNavigator<TimelineSortKey>,
     pub months: Vec<TimelineMonthView>,
+}
+
+#[derive(Template)]
+#[template(path = "bags.html")]
+pub struct BagsTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub open_bags: Vec<BagView>,
+    pub bags: Paginated<BagView>,
+    pub roaster_options: Vec<RoasterOptionView>,
+    pub navigator: ListNavigator<BagSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/bag_list.html")]
+pub struct BagListTemplate {
+    pub is_authenticated: bool,
+    pub open_bags: Vec<BagView>,
+    pub bags: Paginated<BagView>,
+    pub navigator: ListNavigator<BagSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/roast_options.html")]
+pub struct RoastOptionsTemplate {
+    pub roasts: Vec<RoastWithRoaster>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

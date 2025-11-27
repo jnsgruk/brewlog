@@ -16,6 +16,84 @@ use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
+use crate::presentation::web::templates::{BagListTemplate, BagsTemplate};
+use crate::presentation::web::views::{BagView, ListNavigator, Paginated, RoasterOptionView};
+
+const BAG_PAGE_PATH: &str = "/bags";
+const BAG_FRAGMENT_PATH: &str = "/bags#bag-list";
+
+#[tracing::instrument(skip(state))]
+async fn load_bag_page(
+    state: &AppState,
+    request: ListRequest<BagSortKey>,
+) -> Result<(Vec<BagView>, Paginated<BagView>, ListNavigator<BagSortKey>), AppError> {
+    let open_bags = state.bag_repo.list_open().await.map_err(AppError::from)?;
+    let open_bags_view = open_bags
+        .into_iter()
+        .map(BagView::from_with_roast)
+        .collect();
+
+    let page = state
+        .bag_repo
+        .list_closed(&request)
+        .await
+        .map_err(AppError::from)?;
+
+    let (bags, navigator) = crate::application::routes::support::build_page_view(
+        page,
+        request,
+        BagView::from_with_roast,
+        BAG_PAGE_PATH,
+        BAG_FRAGMENT_PATH,
+    );
+
+    Ok((open_bags_view, bags, navigator))
+}
+
+#[tracing::instrument(skip(state, cookies, headers, query))]
+pub(crate) async fn bags_page(
+    State(state): State<AppState>,
+    cookies: tower_cookies::Cookies,
+    headers: HeaderMap,
+    Query(query): Query<ListQuery>,
+) -> Result<Response, StatusCode> {
+    let request = query.into_request::<BagSortKey>();
+
+    if is_datastar_request(&headers) {
+        let is_authenticated =
+            crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+        return render_bag_list_fragment(state, request, is_authenticated)
+            .await
+            .map_err(map_app_error);
+    }
+
+    let roasters = state
+        .roaster_repo
+        .list_all_sorted(RoasterSortKey::Name, SortDirection::Asc)
+        .await
+        .map_err(|err| map_app_error(AppError::from(err)))?;
+
+    let roaster_options = roasters.into_iter().map(RoasterOptionView::from).collect();
+
+    let (open_bags, bags, navigator) = load_bag_page(&state, request)
+        .await
+        .map_err(map_app_error)?;
+
+    let is_authenticated =
+        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+
+    let template = BagsTemplate {
+        nav_active: "bags",
+        is_authenticated,
+        open_bags,
+        bags,
+        roaster_options,
+        navigator,
+    };
+
+    render_html(template).map(IntoResponse::into_response)
+}
+
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_bag(
     State(state): State<AppState>,
@@ -228,4 +306,60 @@ pub(crate) async fn finish_bag(
         // Fallback for non-datastar requests (though the UI uses datastar)
         Ok(Redirect::to(BAG_PAGE_PATH).into_response())
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BagsQuery {
+    pub roast_id: Option<RoastId>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct NewBagSubmission {
+    roast_id: RoastId,
+    roast_date: Option<String>,
+    amount: f64,
+}
+
+impl NewBagSubmission {
+    fn into_new_bag(self) -> Result<NewBag, AppError> {
+        let roast_id = self.roast_id;
+        if roast_id.into_inner() <= 0 {
+            return Err(AppError::validation("invalid roast id"));
+        }
+
+        let roast_date = match self.roast_date {
+            Some(date_str) if !date_str.is_empty() => Some(
+                chrono::NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
+                    .map_err(|_| AppError::validation("invalid roast date format"))?,
+            ),
+            _ => None,
+        };
+
+        if self.amount <= 0.0 {
+            return Err(AppError::validation("amount must be positive"));
+        }
+
+        Ok(NewBag {
+            roast_id,
+            roast_date,
+            amount: self.amount,
+        })
+    }
+}
+
+async fn render_bag_list_fragment(
+    state: AppState,
+    request: ListRequest<BagSortKey>,
+    is_authenticated: bool,
+) -> Result<Response, AppError> {
+    let (open_bags, bags, navigator) = load_bag_page(&state, request).await?;
+
+    let template = BagListTemplate {
+        is_authenticated,
+        open_bags,
+        bags,
+        navigator,
+    };
+
+    crate::application::routes::support::render_fragment(template, "#bag-list")
 }

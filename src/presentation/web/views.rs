@@ -1,3 +1,4 @@
+use crate::domain::bags::{Bag, BagWithRoast};
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
@@ -417,10 +418,6 @@ pub struct TimelineEventDetailView {
 pub struct TimelineEventView {
     pub id: String,
     pub kind_label: &'static str,
-    pub badge_class: &'static str,
-    pub accent_class: &'static str,
-    pub card_border_class: &'static str,
-    pub title_class: &'static str,
     pub date_label: String,
     pub time_label: Option<String>,
     pub iso_timestamp: String,
@@ -454,12 +451,22 @@ impl TimelineEventView {
         let kind_label = match entity_type.as_str() {
             "roaster" => "Roaster Added",
             "roast" => "Roast Added",
+            "bag" => {
+                if title.starts_with("Finished") {
+                    "Bag Finished"
+                } else {
+                    "Bag Added"
+                }
+            }
             _ => "Event",
         };
 
         let link = match (entity_type.as_str(), slug, roaster_slug) {
             ("roaster", Some(slug), _) => format!("/roasters/{slug}"),
             ("roast", Some(slug), Some(roaster_slug)) => {
+                format!("/roasters/{roaster_slug}/roasts/{slug}")
+            }
+            ("bag", Some(slug), Some(roaster_slug)) => {
                 format!("/roasters/{roaster_slug}/roasts/{slug}")
             }
             ("roaster", None, _) => format!("/roasters/{entity_id}"),
@@ -501,10 +508,6 @@ impl TimelineEventView {
         Self {
             id: id.to_string(),
             kind_label,
-            badge_class: "bg-amber-200 text-amber-800",
-            accent_class: "bg-amber-600",
-            card_border_class: "border-amber-200 bg-amber-50/80",
-            title_class: "text-amber-800",
             date_label: occurred_at.format("%B %d, %Y").to_string(),
             time_label: Some(occurred_at.format("%H:%M UTC").to_string()),
             iso_timestamp: occurred_at.to_rfc3339(),
@@ -513,6 +516,71 @@ impl TimelineEventView {
             external_link,
             details: mapped_details,
             tasting_notes,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BagView {
+    pub id: String,
+    pub roast_id: String,
+    pub roast_date: Option<String>,
+    pub amount: String,
+    pub remaining: String,
+    pub closed: bool,
+    pub finished_at: String,
+    pub created_at: String,
+    pub roast_name: String,
+    pub roaster_name: String,
+    pub roast_slug: String,
+    pub roaster_slug: String,
+}
+
+impl BagView {
+    pub fn from_domain(
+        bag: Bag,
+        roast_name: &str,
+        roaster_name: &str,
+        roast_slug: &str,
+        roaster_slug: &str,
+    ) -> Self {
+        Self {
+            id: bag.id.to_string(),
+            roast_id: bag.roast_id.to_string(),
+            roast_date: bag.roast_date.map(|d| d.to_string()),
+            amount: format!("{:.1}", bag.amount),
+            remaining: format!("{:.1}", bag.remaining),
+            closed: bag.closed,
+            finished_at: bag
+                .finished_at
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "—".to_string()),
+            created_at: bag.created_at.format("%Y-%m-%d").to_string(),
+            roast_name: roast_name.to_string(),
+            roaster_name: roaster_name.to_string(),
+            roast_slug: roast_slug.to_string(),
+            roaster_slug: roaster_slug.to_string(),
+        }
+    }
+
+    pub fn from_with_roast(bag: BagWithRoast) -> Self {
+        Self {
+            id: bag.bag.id.to_string(),
+            roast_id: bag.bag.roast_id.to_string(),
+            roast_date: bag.bag.roast_date.map(|d| d.to_string()),
+            amount: format!("{:.1}", bag.bag.amount),
+            remaining: format!("{:.1}", bag.bag.remaining),
+            closed: bag.bag.closed,
+            finished_at: bag
+                .bag
+                .finished_at
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "—".to_string()),
+            created_at: bag.bag.created_at.format("%Y-%m-%d").to_string(),
+            roast_name: bag.roast_name,
+            roaster_name: bag.roaster_name,
+            roast_slug: bag.roast_slug,
+            roaster_slug: bag.roaster_slug,
         }
     }
 }

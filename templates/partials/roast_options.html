@@ -1,0 +1,5 @@
+<optgroup id="roast-select-options">
+  {% for roast in roasts %}
+  <option value="{{ roast.roast.id }}">{{ roast.roast.name }}</option>
+  {% endfor %}
+</optgroup>

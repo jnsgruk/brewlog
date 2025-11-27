@@ -1,3 +1,5 @@
+{% import "partials/table.html" as table %}
+
 <div id="roast-list" class="mt-6" data-star-scope="roasts">
   {% if roasts.items.is_empty() %}
   <div
@@ -7,181 +9,16 @@
   </div>
   {% else %}
   <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
-    <div
-      class="flex flex-col gap-3 border-b border-amber-200/70 px-4 py-3 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <p>
-        Showing {{ roasts.start_index() }}&ndash;{{ roasts.end_index() }} of {{ roasts.total }}
-        roasts
-      </p>
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:border-amber-500 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
-            {% if roasts.has_previous() %}
-            data-on:click="history.pushState(null, '', '{{ navigator.page_href(roasts.previous_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(roasts.previous_page().unwrap())|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-            {% else %}
-            disabled
-            {% endif %}
-          >
-            <span aria-hidden="true">←</span>
-            <span>Previous</span>
-          </button>
-          {% if roasts.is_showing_all() %}
-          <span class="font-semibold text-amber-800">Showing all results</span>
-          {% else %}
-          <span class="font-semibold text-amber-800"
-            >Page {{ roasts.page }} of {{ roasts.total_pages() }}</span
-          >
-          {% endif %}
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-full border border-amber-400 px-3 py-1 font-semibold transition hover:border-amber-500 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
-            {% if roasts.has_next() %}
-            data-on:click="history.pushState(null, '', '{{ navigator.page_href(roasts.next_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(roasts.next_page().unwrap())|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-            {% else %}
-            disabled
-            {% endif %}
-          >
-            <span>Next</span>
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
-        <label class="flex items-center gap-2 text-xs font-semibold text-stone-600">
-          <span>Rows</span>
-          <select
-            class="rounded-md border border-amber-300 bg-white px-2 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-400"
-            data-on:change="history.pushState(null, '', evt.target.selectedOptions[0].dataset.url); @get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-          >
-            <option value="5" data-href="{{ navigator.fragment_rows_href("5")|safe }}" data-url="{{ navigator.rows_href("5")|safe }}" {% if roasts.is_page_size(5) %}selected{% endif %}>5</option>
-            <option value="10" data-href="{{ navigator.fragment_rows_href("10")|safe }}" data-url="{{ navigator.rows_href("10")|safe }}" {% if roasts.is_page_size(10) %}selected{% endif %}>10</option>
-            <option value="20" data-href="{{ navigator.fragment_rows_href("20")|safe }}" data-url="{{ navigator.rows_href("20")|safe }}" {% if roasts.is_page_size(20) %}selected{% endif %}>20</option>
-            <option value="50" data-href="{{ navigator.fragment_rows_href("50")|safe }}" data-url="{{ navigator.rows_href("50")|safe }}" {% if roasts.is_page_size(50) %}selected{% endif %}>50</option>
-            <option value="all" data-href="{{ navigator.fragment_rows_href("all")|safe }}" data-url="{{ navigator.rows_href("all")|safe }}" {% if roasts.is_showing_all() %}selected{% endif %}>All</option>
-          </select>
-        </label>
-      </div>
-    </div>
+    {% call table::pagination_header(roasts, navigator, "#roast-list") %}
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
         <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
           <tr>
-            {% set created_sorted = navigator.is_sorted_by("created-at") %}
-            <th
-              scope="col"
-              class="px-4 py-3"
-              aria-sort="{% if created_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("created-at")|safe }}'); @get('{{ navigator.fragment_sort_href("created-at")|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-              >
-                <span>Added</span>
-                {% if created_sorted %}
-                {% if navigator.sort_direction() == "asc" %}
-                <span aria-hidden="true">↑</span>
-                {% else %}
-                <span aria-hidden="true">↓</span>
-                {% endif %}
-                {% else %}
-                <span aria-hidden="true">↕</span>
-                {% endif %}
-              </button>
-            </th>
-            {% set name_sorted = navigator.is_sorted_by("name") %}
-            <th
-              scope="col"
-              class="px-4 py-3"
-              aria-sort="{% if name_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("name")|safe }}'); @get('{{ navigator.fragment_sort_href("name")|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-              >
-                <span>Roast</span>
-                {% if name_sorted %}
-                {% if navigator.sort_direction() == "asc" %}
-                <span aria-hidden="true">↑</span>
-                {% else %}
-                <span aria-hidden="true">↓</span>
-                {% endif %}
-                {% else %}
-                <span aria-hidden="true">↕</span>
-                {% endif %}
-              </button>
-            </th>
-            {% set roaster_sorted = navigator.is_sorted_by("roaster") %}
-            <th
-              scope="col"
-              class="px-4 py-3"
-              aria-sort="{% if roaster_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("roaster")|safe }}'); @get('{{ navigator.fragment_sort_href("roaster")|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-              >
-                <span>Roaster</span>
-                {% if roaster_sorted %}
-                {% if navigator.sort_direction() == "asc" %}
-                <span aria-hidden="true">↑</span>
-                {% else %}
-                <span aria-hidden="true">↓</span>
-                {% endif %}
-                {% else %}
-                <span aria-hidden="true">↕</span>
-                {% endif %}
-              </button>
-            </th>
-            {% set origin_sorted = navigator.is_sorted_by("origin") %}
-            <th
-              scope="col"
-              class="px-4 py-3"
-              aria-sort="{% if origin_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("origin")|safe }}'); @get('{{ navigator.fragment_sort_href("origin")|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-              >
-                <span>Origin</span>
-                {% if origin_sorted %}
-                {% if navigator.sort_direction() == "asc" %}
-                <span aria-hidden="true">↑</span>
-                {% else %}
-                <span aria-hidden="true">↓</span>
-                {% endif %}
-                {% else %}
-                <span aria-hidden="true">↕</span>
-                {% endif %}
-              </button>
-            </th>
-            {% set producer_sorted = navigator.is_sorted_by("producer") %}
-            <th
-              scope="col"
-              class="px-4 py-3"
-              aria-sort="{% if producer_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
-            >
-              <button
-                type="button"
-                class="flex items-center gap-1 text-amber-900 hover:text-amber-700"
-                data-on:click="history.pushState(null, '', '{{ navigator.sort_href("producer")|safe }}'); @get('{{ navigator.fragment_sort_href("producer")|safe }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
-              >
-                <span>Producer</span>
-                {% if producer_sorted %}
-                {% if navigator.sort_direction() == "asc" %}
-                <span aria-hidden="true">↑</span>
-                {% else %}
-                <span aria-hidden="true">↓</span>
-                {% endif %}
-                {% else %}
-                <span aria-hidden="true">↕</span>
-                {% endif %}
-              </button>
-            </th>
+            {% call table::sortable_header("Added", "created-at", navigator, "#roast-list") %} {%
+            call table::sortable_header("Roast", "name", navigator, "#roast-list") %} {% call
+            table::sortable_header("Roaster", "roaster", navigator, "#roast-list") %} {% call
+            table::sortable_header("Origin", "origin", navigator, "#roast-list") %} {% call
+            table::sortable_header("Producer", "producer", navigator, "#roast-list") %}
             <th scope="col" class="px-4 py-3">Notes</th>
             {% if is_authenticated %}
             <th scope="col" class="px-4 py-3 text-right">Actions</th>

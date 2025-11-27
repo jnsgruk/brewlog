@@ -14,8 +14,10 @@ use crate::application::server::AppState;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
-use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster};
-use crate::presentation::web::templates::{RoastDetailTemplate, RoastListTemplate, RoastsTemplate};
+use crate::domain::roasts::{NewRoast, Roast, RoastSortKey};
+use crate::presentation::web::templates::{
+    RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
+};
 use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, RoasterOptionView};
 
 const ROAST_PAGE_PATH: &str = "/roasts";
@@ -102,6 +104,17 @@ pub(crate) async fn roast_page(
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
+    let bags = state
+        .bag_repo
+        .list_by_roast(roast.id)
+        .await
+        .map_err(|err| map_app_error(AppError::from(err)))?;
+
+    let bag_views = bags
+        .into_iter()
+        .map(crate::presentation::web::views::BagView::from_with_roast)
+        .collect();
+
     let is_authenticated =
         crate::application::routes::auth::is_authenticated(&state, &cookies).await;
 
@@ -109,6 +122,7 @@ pub(crate) async fn roast_page(
         nav_active: "roasts",
         is_authenticated,
         roast: RoastView::from_domain(roast, &roaster.name, &roaster.slug),
+        bags: bag_views,
     };
 
     render_html(template)
@@ -150,20 +164,45 @@ pub(crate) async fn create_roast(
     }
 }
 
-#[tracing::instrument(skip(state))]
+#[tracing::instrument(skip(state, headers))]
 pub(crate) async fn list_roasts(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Query(params): Query<RoastsQuery>,
-) -> Result<Json<Vec<RoastWithRoaster>>, ApiError> {
-    let roasts = match params.roaster_id {
+) -> Result<Response, ApiError> {
+    let roaster_id = match params.roaster_id.as_deref() {
+        Some(s) if !s.is_empty() => {
+            let s = s.trim();
+            Some(s.parse::<RoasterId>().map_err(|_| {
+                tracing::warn!("Invalid roaster_id: '{}'", s);
+                ApiError::from(AppError::validation(format!("Invalid roaster_id: '{}'", s)))
+            })?)
+        }
+        _ => None,
+    };
+
+    let roasts = match roaster_id {
         Some(roaster_id) => state
             .roast_repo
             .list_by_roaster(roaster_id)
             .await
             .map_err(AppError::from)?,
-        None => state.roast_repo.list_all().await.map_err(AppError::from)?,
+        None => {
+            if is_datastar_request(&headers) {
+                vec![]
+            } else {
+                state.roast_repo.list_all().await.map_err(AppError::from)?
+            }
+        }
     };
-    Ok(Json(roasts))
+
+    if is_datastar_request(&headers) {
+        let template = RoastOptionsTemplate { roasts };
+        crate::application::routes::support::render_fragment(template, "#roast-select-options")
+            .map_err(ApiError::from)
+    } else {
+        Ok(Json(roasts).into_response())
+    }
 }
 
 #[tracing::instrument(skip(state))]
@@ -197,7 +236,7 @@ pub(crate) async fn delete_roast(
 
 #[derive(Debug, Deserialize)]
 pub struct RoastsQuery {
-    pub roaster_id: Option<RoasterId>,
+    pub roaster_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

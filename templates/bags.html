@@ -1,0 +1,114 @@
+{% extends "base.html" %} {% block title %}Brewlog · Bags{% endblock %} {% block content %}
+<section data-signals:show-form="false" data-signals:is-submitting="false">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">Bags</h1>
+      <p class="max-w-2xl text-sm text-stone-600">Track your coffee bags.</p>
+    </div>
+    {% if is_authenticated && !roaster_options.is_empty() %}
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500 text-2xl font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
+      data-class:hidden="$showForm"
+      data-on:click="$showForm = true"
+      aria-label="Add new bag"
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+    {% endif %}
+  </header>
+
+  {% if is_authenticated %} {% if roaster_options.is_empty() %}
+  <div
+    class="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-5 text-sm text-stone-600"
+  >
+    <h2 class="text-lg font-semibold text-amber-700">Add a roaster first</h2>
+    <p class="mt-2">
+      Bags need a roaster and a roast.
+      <a class="text-amber-700 hover:text-amber-600 underline" href="/roasters"
+        >Create a roaster</a
+      >
+      to enable this form.
+    </p>
+  </div>
+  {% else %}
+  <div
+    class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm"
+    data-show="$showForm"
+    style="display: none"
+  >
+    <div>
+      <h2 class="text-lg font-semibold text-amber-700">New Bag</h2>
+      <p class="mt-1 text-sm text-stone-600">
+        Select a roaster, then a roast, and enter the details.
+      </p>
+    </div>
+    <form
+      method="post"
+      action="/api/v1/bags"
+      class="mt-4 flex flex-col gap-4"
+      data-on:submit="$isSubmitting = true; @post('/api/v1/bags?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#bag-list', mode: 'replace'}})"
+      data-ref="form"
+      data-on:datastar-fetch="evt.detail.type === 'finished' && $isSubmitting && ($showForm = false, $form && $form.reset(), $isSubmitting = false)"
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roaster *</span>
+          <select
+            name="roaster_id"
+            required
+            class="input-field"
+            data-on:change="@get('/api/v1/roasts?roaster_id=' + evt.target.value, {responseOverrides: {selector: '#roast-select-options', mode: 'replace'}})"
+          >
+            <option value="">Select a roaster</option>
+            {% for roaster in roaster_options %}
+            <option value="{{ roaster.id }}">{{ roaster.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roast *</span>
+          <select name="roast_id" required class="input-field" id="roast-select">
+            <option value="">Select a roast</option>
+            <optgroup id="roast-select-options"></optgroup>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roast Date</span>
+          <input type="date" name="roast_date" class="input-field" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Amount (g) *</span>
+          <input
+            type="number"
+            name="amount"
+            step="0.1"
+            required
+            class="input-field"
+            placeholder="250"
+          />
+        </label>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          class="rounded-md px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-200/50"
+          data-on:click="$showForm = false"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+        >
+          Save Bag
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %} {% endif %}
+
+  <div class="mt-8">{% include "partials/bag_list.html" %}</div>
+</section>
+{% endblock %}
