@@ -130,10 +130,11 @@ impl RoasterRepository for SqlRoasterRepository {
         let details_json = Self::details_for_roaster(&roaster)?;
 
         query(
-                "INSERT INTO timeline_events (entity_type, entity_id, occurred_at, title, details_json, tasting_notes_json) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json) VALUES (?, ?, ?, ?, ?, ?, ?)",
             )
             .bind("roaster")
             .bind(i64::from(roaster.id))
+            .bind("added")
             .bind(roaster.created_at)
             .bind(&roaster.name)
             .bind(details_json)

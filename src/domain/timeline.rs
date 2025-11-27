@@ -15,6 +15,7 @@ pub struct TimelineEvent {
     pub id: TimelineEventId,
     pub entity_type: String,
     pub entity_id: i64,
+    pub action: String,
     pub occurred_at: DateTime<Utc>,
     pub title: String,
     pub details: Vec<TimelineEventDetail>,
@@ -27,6 +28,7 @@ pub struct TimelineEvent {
 pub struct NewTimelineEvent {
     pub entity_type: String,
     pub entity_id: i64,
+    pub action: String,
     pub occurred_at: DateTime<Utc>,
     pub title: String,
     pub details: Vec<TimelineEventDetail>,

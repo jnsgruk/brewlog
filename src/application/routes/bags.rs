@@ -139,6 +139,7 @@ pub(crate) async fn create_bag(
     let event = NewTimelineEvent {
         entity_type: "bag".to_string(),
         entity_id: bag.id.into_inner(),
+        action: "added".to_string(),
         occurred_at: chrono::Utc::now(),
         title: roast.name.to_string(),
         details: vec![
@@ -235,6 +236,7 @@ pub(crate) async fn update_bag(
                 let event = NewTimelineEvent {
                     entity_type: "bag".to_string(),
                     entity_id: bag.id.into_inner(),
+                    action: "finished".to_string(),
                     occurred_at: chrono::Utc::now(),
                     title: format!("{}", roast.name),
                     details: vec![TimelineEventDetail {

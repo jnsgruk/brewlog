@@ -440,6 +440,7 @@ impl TimelineEventView {
             id,
             entity_type,
             entity_id,
+            action,
             occurred_at,
             title,
             details,
@@ -448,16 +449,11 @@ impl TimelineEventView {
             roaster_slug,
         } = event;
 
-        let kind_label = match entity_type.as_str() {
-            "roaster" => "Roaster Added",
-            "roast" => "Roast Added",
-            "bag" => {
-                if title.starts_with("Finished") {
-                    "Bag Finished"
-                } else {
-                    "Bag Added"
-                }
-            }
+        let kind_label = match (entity_type.as_str(), action.as_str()) {
+            ("roaster", "added") => "Roaster Added",
+            ("roast", "added") => "Roast Added",
+            ("bag", "added") => "Bag Added",
+            ("bag", "finished") => "Bag Finished",
             _ => "Event",
         };
 

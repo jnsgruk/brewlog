@@ -410,8 +410,4 @@ async fn closing_a_bag_surfaces_on_the_timeline() {
         body.contains("Bag Finished"),
         "Expected 'Bag Finished' badge in timeline HTML, got: {body}"
     );
-    assert!(
-        body.contains(&format!("Finished: {}", roast_name)),
-        "Expected bag finished title to appear in timeline HTML, got: {body}"
-    );
 }

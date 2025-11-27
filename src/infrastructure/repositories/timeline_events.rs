@@ -25,9 +25,9 @@ impl SqlTimelineEventRepository {
 impl TimelineEventRepository for SqlTimelineEventRepository {
     async fn insert(&self, event: NewTimelineEvent) -> Result<TimelineEvent, RepositoryError> {
         let query = r#"
-            INSERT INTO timeline_events (entity_type, entity_id, occurred_at, title, details_json, tasting_notes_json)
-            VALUES (?, ?, ?, ?, ?, ?)
-            RETURNING id, entity_type, entity_id, occurred_at, title, details_json, tasting_notes_json
+            INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json
         "#;
 
         let details_json = serde_json::to_string(&event.details).map_err(|err| {
@@ -43,6 +43,7 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
         let record = sqlx::query_as::<_, TimelineEventRecord>(query)
             .bind(event.entity_type)
             .bind(event.entity_id)
+            .bind(event.action)
             .bind(event.occurred_at)
             .bind(event.title)
             .bind(details_json)
@@ -65,7 +66,7 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
 
         let order_clause = format!("t.occurred_at {direction_sql}, t.id DESC");
         let base_query = "SELECT 
-            t.id, t.entity_type, t.entity_id, t.occurred_at, t.title, t.details_json, t.tasting_notes_json,
+            t.id, t.entity_type, t.entity_id, t.action, t.occurred_at, t.title, t.details_json, t.tasting_notes_json,
             CASE 
                 WHEN t.entity_type = 'roaster' THEN r.slug 
                 WHEN t.entity_type = 'roast' THEN rst.slug 
@@ -103,6 +104,7 @@ struct TimelineEventRecord {
     id: i64,
     entity_type: String,
     entity_id: i64,
+    action: String,
     occurred_at: DateTime<Utc>,
     title: String,
     details_json: Option<String>,
@@ -137,6 +139,7 @@ impl TimelineEventRecord {
             id: TimelineEventId::from(self.id),
             entity_type: self.entity_type,
             entity_id: self.entity_id,
+            action: self.action,
             occurred_at: self.occurred_at,
             title: self.title,
             details,
