@@ -1,9 +1,11 @@
+pub mod bags;
 pub mod roasters;
 pub mod roasts;
 pub mod tokens;
 
 use std::net::SocketAddr;
 
+use bags::{AddBagCommand, DeleteBagCommand, GetBagCommand, ListBagsCommand, UpdateBagCommand};
 use clap::{Args, Parser, Subcommand};
 use roasters::{AddRoasterCommand, DeleteRoasterCommand, GetRoasterCommand, UpdateRoasterCommand};
 use roasts::{AddRoastCommand, DeleteRoastCommand, GetRoastCommand, ListRoastsCommand};
@@ -58,6 +60,18 @@ pub enum Commands {
     GetRoast(GetRoastCommand),
     #[command(name = "delete-roast")]
     DeleteRoast(DeleteRoastCommand),
+
+    // Bags
+    #[command(name = "add-bag")]
+    AddBag(AddBagCommand),
+    #[command(name = "list-bags")]
+    ListBags(ListBagsCommand),
+    #[command(name = "get-bag")]
+    GetBag(GetBagCommand),
+    #[command(name = "update-bag")]
+    UpdateBag(UpdateBagCommand),
+    #[command(name = "delete-bag")]
+    DeleteBag(DeleteBagCommand),
 }
 
 #[derive(Debug, Args)]
