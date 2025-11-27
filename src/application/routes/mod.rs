@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod bags;
 pub mod roasters;
 pub mod roasts;
 pub mod support;
@@ -37,6 +38,13 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route(
             "/roasts/:id",
             get(roasts::get_roast).delete(roasts::delete_roast),
+        )
+        .route("/bags", get(bags::list_bags).post(bags::create_bag))
+        .route(
+            "/bags/:id",
+            get(bags::get_bag)
+                .put(bags::update_bag)
+                .delete(bags::delete_bag),
         )
         .route(
             "/tokens",
