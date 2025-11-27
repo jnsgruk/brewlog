@@ -125,6 +125,89 @@ fn test_list_bags_shows_added_bag() {
 }
 
 #[test]
+fn test_list_bags_without_roast_id_shows_all_bags() {
+    let token = create_token("test-list-all-bags");
+
+    // Setup
+    let roaster_id = create_roaster("Bag List All Roaster", &token);
+    let roast_id = create_roast(&roaster_id, "Bag List All Roast", &token);
+
+    let bag_output = run_brewlog(
+        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+    let bag: Value = serde_json::from_slice(&bag_output.stdout).unwrap();
+    let bag_id = bag["id"].as_i64().unwrap();
+
+    // Test: List Bags (Authenticated)
+    let output = run_brewlog(&["list-bags"], &[("BREWLOG_TOKEN", &token)]);
+
+    assert!(output.status.success());
+    let bags: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(bags.is_array());
+    let bags_array = bags.as_array().unwrap();
+    assert!(bags_array.iter().any(|b| b["id"].as_i64() == Some(bag_id)));
+}
+
+#[test]
+fn test_list_bags_shows_open_and_closed_bags() {
+    let token = create_token("test-list-mixed-bags");
+
+    // Setup
+    let roaster_id = create_roaster("Bag List Mixed Roaster", &token);
+    let roast_id = create_roast(&roaster_id, "Bag List Mixed Roast", &token);
+
+    // Create Open Bag
+    let open_bag_output = run_brewlog(
+        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+    let open_bag: Value = serde_json::from_slice(&open_bag_output.stdout).unwrap();
+    let open_bag_id = open_bag["id"].as_i64().unwrap();
+
+    // Create Closed Bag
+    let closed_bag_output = run_brewlog(
+        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+    let closed_bag: Value = serde_json::from_slice(&closed_bag_output.stdout).unwrap();
+    let closed_bag_id = closed_bag["id"].as_i64().unwrap();
+
+    // Close the second bag
+    let _ = run_brewlog(
+        &[
+            "update-bag",
+            "--id",
+            &closed_bag_id.to_string(),
+            "--closed",
+            "true",
+        ],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+
+    // Test: List Bags (Authenticated)
+    let output = run_brewlog(&["list-bags"], &[("BREWLOG_TOKEN", &token)]);
+
+    assert!(output.status.success());
+    let bags: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(bags.is_array());
+    let bags_array = bags.as_array().unwrap();
+
+    assert!(
+        bags_array
+            .iter()
+            .any(|b| b["id"].as_i64() == Some(open_bag_id)),
+        "Open bag should be listed"
+    );
+    assert!(
+        bags_array
+            .iter()
+            .any(|b| b["id"].as_i64() == Some(closed_bag_id)),
+        "Closed bag should be listed"
+    );
+}
+
+#[test]
 fn test_delete_bag_requires_authentication() {
     let _ = server_info();
     let output = run_brewlog(&["delete-bag", "--id", "123"], &[]);
