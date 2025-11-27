@@ -268,6 +268,20 @@ impl BagRepository for SqlBagRepository {
         )
         .await
     }
+
+    async fn list_all(&self) -> Result<Vec<BagWithRoast>, RepositoryError> {
+        let query = format!("{} ORDER BY b.roast_date DESC", BASE_SELECT);
+
+        let records = query_as::<_, BagWithRoastRecord>(&query)
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        Ok(records
+            .into_iter()
+            .map(Self::to_domain_with_roast)
+            .collect())
+    }
 }
 
 #[derive(sqlx::FromRow)]

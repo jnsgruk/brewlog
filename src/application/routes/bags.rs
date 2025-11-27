@@ -178,16 +178,7 @@ pub(crate) async fn list_bags(
             .list_by_roast(roast_id)
             .await
             .map_err(AppError::from)?,
-        None => {
-            // For API list all, we might want to implement list_all in repo or reuse list with pagination
-            // For now, let's just return empty or implement list_all if needed.
-            // The spec implies we need list endpoints.
-            // Let's implement list_all in repo later if needed, or just use list with large page size?
-            // Actually, let's just use list_by_roast for now as that's the main use case for API likely.
-            // Or better, let's add list_all to repo.
-            // For now, I'll return an error if no filter is provided, or empty list.
-            vec![]
-        }
+        None => state.bag_repo.list_all().await.map_err(AppError::from)?,
     };
     Ok(Json(bags))
 }

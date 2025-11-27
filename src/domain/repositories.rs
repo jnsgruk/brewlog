@@ -136,4 +136,5 @@ pub trait BagRepository: Send + Sync {
         &self,
         request: &ListRequest<BagSortKey>,
     ) -> Result<Page<BagWithRoast>, RepositoryError>;
+    async fn list_all(&self) -> Result<Vec<BagWithRoast>, RepositoryError>;
 }
