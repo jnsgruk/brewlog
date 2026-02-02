@@ -3,6 +3,7 @@
 ## Project Overview
 
 Brewlog is a self-hosted coffee logging platform built in Rust. It provides:
+
 - HTTP server with web UI (Axum + Askama templates + Datastar)
 - REST API for programmatic access
 - CLI client for command-line operations
@@ -17,7 +18,35 @@ cargo clippy --allow-dirty --fix  # Lint and auto-fix
 cargo fmt                      # Format code
 ```
 
-**Before committing**: Always run `cargo clippy --allow-dirty --fix && cargo fmt` and fix any issues.
+### Database Migrations
+
+Create new migrations using sqlx:
+
+```bash
+sqlx migrate add <migration_name>  # Creates migrations/NNNN_<migration_name>.sql
+```
+
+Migration files are plain SQL in the `migrations/` directory, numbered sequentially (e.g., `0008_remove_gear_notes.sql`).
+
+## Workflow Requirements
+
+**Before finishing any task**, always:
+
+1. Run `cargo clippy --allow-dirty --fix && cargo fmt` to lint and format
+2. Run `cargo build` to verify compilation
+3. Run `cargo test` if changes affect testable code
+4. Provide a **draft commit message** using Conventional Commits format
+
+Example commit message:
+
+```
+feat(gear): add category filtering to gear list
+
+- Add GearFilter with optional category field
+- Update repository to apply filter in SQL WHERE clause
+- Add --category flag to CLI list-gear command
+
+```
 
 ## Architecture
 
@@ -205,6 +234,7 @@ Templates use Datastar attributes for interactivity:
 ```
 
 Key attributes:
+
 - `data-signals:name="value"` - Reactive state signals
 - `data-show="$signal"` - Conditional visibility
 - `data-on:event="expression"` - Event handlers
