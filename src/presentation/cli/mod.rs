@@ -1,4 +1,5 @@
 pub mod bags;
+pub mod gear;
 mod macros;
 pub mod roasters;
 pub mod roasts;
@@ -8,6 +9,9 @@ use std::net::SocketAddr;
 
 use bags::{AddBagCommand, DeleteBagCommand, GetBagCommand, ListBagsCommand, UpdateBagCommand};
 use clap::{Args, Parser, Subcommand};
+use gear::{
+    AddGearCommand, DeleteGearCommand, GetGearCommand, ListGearCommand, UpdateGearCommand,
+};
 use roasters::{AddRoasterCommand, DeleteRoasterCommand, GetRoasterCommand, UpdateRoasterCommand};
 use roasts::{AddRoastCommand, DeleteRoastCommand, GetRoastCommand, ListRoastsCommand};
 use tokens::{CreateTokenCommand, RevokeTokenCommand};
@@ -73,6 +77,18 @@ pub enum Commands {
     UpdateBag(UpdateBagCommand),
     #[command(name = "delete-bag")]
     DeleteBag(DeleteBagCommand),
+
+    // Gear
+    #[command(name = "add-gear")]
+    AddGear(AddGearCommand),
+    #[command(name = "list-gear")]
+    ListGear(ListGearCommand),
+    #[command(name = "get-gear")]
+    GetGear(GetGearCommand),
+    #[command(name = "update-gear")]
+    UpdateGear(UpdateGearCommand),
+    #[command(name = "delete-gear")]
+    DeleteGear(DeleteGearCommand),
 }
 
 #[derive(Debug, Args)]

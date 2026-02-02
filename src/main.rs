@@ -1,7 +1,7 @@
 use anyhow::Result;
 use brewlog::application::{ServerConfig, serve};
 use brewlog::infrastructure::client::BrewlogClient;
-use brewlog::presentation::cli::{Cli, Commands, ServeCommand, bags, roasters, roasts, tokens};
+use brewlog::presentation::cli::{Cli, Commands, ServeCommand, bags, gear, roasters, roasts, tokens};
 use clap::Parser;
 
 use tracing::{Subscriber, subscriber::set_global_default};
@@ -46,6 +46,13 @@ async fn main() -> Result<()> {
                 Commands::GetBag(cmd) => bags::get_bag(&client, cmd).await,
                 Commands::UpdateBag(cmd) => bags::update_bag(&client, cmd).await,
                 Commands::DeleteBag(cmd) => bags::delete_bag(&client, cmd).await,
+
+                // Gear
+                Commands::AddGear(cmd) => gear::add_gear(&client, cmd).await,
+                Commands::ListGear(cmd) => gear::list_gear(&client, cmd).await,
+                Commands::GetGear(cmd) => gear::get_gear(&client, cmd).await,
+                Commands::UpdateGear(cmd) => gear::update_gear(&client, cmd).await,
+                Commands::DeleteGear(cmd) => gear::delete_gear(&client, cmd).await,
 
                 Commands::Serve(_) => unreachable!("serve command handled earlier"),
             }
