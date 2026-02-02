@@ -3,6 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 
+use super::macros::{define_delete_handler, define_get_handler};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -148,14 +149,7 @@ pub(crate) async fn create_roaster(
     }
 }
 
-#[tracing::instrument(skip(state))]
-pub(crate) async fn get_roaster(
-    State(state): State<AppState>,
-    Path(id): Path<RoasterId>,
-) -> Result<Json<Roaster>, ApiError> {
-    let roaster = state.roaster_repo.get(id).await.map_err(AppError::from)?;
-    Ok(Json(roaster))
-}
+define_get_handler!(get_roaster, RoasterId, Roaster, roaster_repo);
 
 #[tracing::instrument(skip(state, _auth_user))]
 pub(crate) async fn update_roaster(
@@ -182,29 +176,13 @@ pub(crate) async fn update_roaster(
     Ok(Json(roaster))
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
-pub(crate) async fn delete_roaster(
-    State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
-    headers: HeaderMap,
-    Path(id): Path<RoasterId>,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, ApiError> {
-    let request = query.into_request::<RoasterSortKey>();
-    state
-        .roaster_repo
-        .delete(id)
-        .await
-        .map_err(AppError::from)?;
-
-    if is_datastar_request(&headers) {
-        render_roaster_list_fragment(state, request, true)
-            .await
-            .map_err(ApiError::from)
-    } else {
-        Ok(StatusCode::NO_CONTENT.into_response())
-    }
-}
+define_delete_handler!(
+    delete_roaster,
+    RoasterId,
+    RoasterSortKey,
+    roaster_repo,
+    render_roaster_list_fragment
+);
 
 async fn render_roaster_list_fragment(
     state: AppState,

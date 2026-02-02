@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod bags;
+mod macros;
 pub mod roasters;
 pub mod roasts;
 pub mod support;

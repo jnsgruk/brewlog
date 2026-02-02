@@ -4,6 +4,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
+use super::macros::{define_delete_handler, define_get_handler};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -205,34 +206,15 @@ pub(crate) async fn list_roasts(
     }
 }
 
-#[tracing::instrument(skip(state))]
-pub(crate) async fn get_roast(
-    State(state): State<AppState>,
-    Path(id): Path<RoastId>,
-) -> Result<Json<Roast>, ApiError> {
-    let roast = state.roast_repo.get(id).await.map_err(AppError::from)?;
-    Ok(Json(roast))
-}
+define_get_handler!(get_roast, RoastId, Roast, roast_repo);
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
-pub(crate) async fn delete_roast(
-    State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
-    headers: HeaderMap,
-    Path(id): Path<RoastId>,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, ApiError> {
-    let request = query.into_request::<RoastSortKey>();
-    state.roast_repo.delete(id).await.map_err(AppError::from)?;
-
-    if is_datastar_request(&headers) {
-        render_roast_list_fragment(state, request, true)
-            .await
-            .map_err(ApiError::from)
-    } else {
-        Ok(StatusCode::NO_CONTENT.into_response())
-    }
-}
+define_delete_handler!(
+    delete_roast,
+    RoastId,
+    RoastSortKey,
+    roast_repo,
+    render_roast_list_fragment
+);
 
 #[derive(Debug, Deserialize)]
 pub struct RoastsQuery {

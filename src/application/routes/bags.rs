@@ -4,6 +4,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
+use super::macros::{define_delete_handler, define_get_handler};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -184,14 +185,7 @@ pub(crate) async fn list_bags(
     Ok(Json(bags))
 }
 
-#[tracing::instrument(skip(state))]
-pub(crate) async fn get_bag(
-    State(state): State<AppState>,
-    Path(id): Path<BagId>,
-) -> Result<Json<Bag>, ApiError> {
-    let bag = state.bag_repo.get(id).await.map_err(AppError::from)?;
-    Ok(Json(bag))
-}
+define_get_handler!(get_bag, BagId, Bag, bag_repo);
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn update_bag(
@@ -265,25 +259,13 @@ pub(crate) async fn update_bag(
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
-pub(crate) async fn delete_bag(
-    State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
-    headers: HeaderMap,
-    Path(id): Path<BagId>,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, ApiError> {
-    let request = query.into_request::<BagSortKey>();
-    state.bag_repo.delete(id).await.map_err(AppError::from)?;
-
-    if is_datastar_request(&headers) {
-        render_bag_list_fragment(state, request, true)
-            .await
-            .map_err(ApiError::from)
-    } else {
-        Ok(StatusCode::NO_CONTENT.into_response())
-    }
-}
+define_delete_handler!(
+    delete_bag,
+    BagId,
+    BagSortKey,
+    bag_repo,
+    render_bag_list_fragment
+);
 
 #[derive(Debug, Deserialize)]
 pub struct BagsQuery {
