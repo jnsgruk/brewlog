@@ -1,0 +1,153 @@
+{% extends "base.html" %} {% block title %}Brewlog · Brews{% endblock %} {% block content %}
+<section data-signals:show-form="false" data-signals:is-submitting="false" data-signals:temp="91.0" data-signals:grind="6.0" data-signals:volume="250" data-signals:weight="15.0">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">Brews</h1>
+      <p class="max-w-2xl text-sm text-stone-600">Log your coffee brews.</p>
+    </div>
+    {% if is_authenticated && !bag_options.is_empty() && !grinder_options.is_empty() && !brewer_options.is_empty() %}
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500 text-2xl font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
+      data-class:hidden="$showForm"
+      data-on:click="$showForm = true"
+      aria-label="Add new brew"
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+    {% endif %}
+  </header>
+
+  {% if is_authenticated %}
+  {% if bag_options.is_empty() %}
+  <div class="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-5 text-sm text-stone-600">
+    <h2 class="text-lg font-semibold text-amber-700">Open a bag first</h2>
+    <p class="mt-2">
+      Brews need an open bag of coffee.
+      <a class="text-amber-700 hover:text-amber-600 underline" href="/bags">Add a bag</a>
+      to enable this form.
+    </p>
+  </div>
+  {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
+  <div class="mt-6 rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-5 text-sm text-stone-600">
+    <h2 class="text-lg font-semibold text-amber-700">Add your gear first</h2>
+    <p class="mt-2">
+      Brews need a grinder and brewer.
+      <a class="text-amber-700 hover:text-amber-600 underline" href="/gear">Add your gear</a>
+      to enable this form.
+    </p>
+  </div>
+  {% else %}
+  <div
+    class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm"
+    data-show="$showForm"
+    style="display: none"
+  >
+    <div>
+      <h2 class="text-lg font-semibold text-amber-700">New Brew</h2>
+      <p class="mt-1 text-sm text-stone-600">Log a cup of coffee.</p>
+    </div>
+    <form
+      method="post"
+      action="/api/v1/brews"
+      class="mt-4 flex flex-col gap-4"
+      data-on:submit="$isSubmitting = true; @post('/api/v1/brews?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})"
+      data-ref="form"
+      data-on:datastar-fetch="evt.detail.type === 'finished' && $isSubmitting && ($showForm = false, $form && $form.reset(), $temp = 91.0, $grind = 6.0, $volume = 250, $weight = 15.0, $isSubmitting = false)"
+    >
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Bag selector -->
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Bag *</span>
+          <select name="bag_id" required class="input-field">
+            <option value="">Select a bag</option>
+            {% for bag in bag_options %}
+            <option value="{{ bag.id }}">{{ bag.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <!-- Grinder selector -->
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Grinder *</span>
+          <select name="grinder_id" required class="input-field">
+            {% for grinder in grinder_options %}
+            <option value="{{ grinder.id }}">{{ grinder.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <!-- Brewer selector -->
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Brewer *</span>
+          <select name="brewer_id" required class="input-field">
+            {% for brewer in brewer_options %}
+            <option value="{{ brewer.id }}">{{ brewer.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <!-- Coffee Weight with +/- buttons -->
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Coffee (g) *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$weight = Math.max(1, $weight - 1)">-</button>
+            <input type="number" name="coffee_weight" step="0.5" min="1" required class="input-field flex-1 text-center" data-bind:value="$weight" />
+            <button type="button" class="btn-adjust" data-on:click="$weight = $weight + 1">+</button>
+          </div>
+        </div>
+
+        <!-- Grind Setting with +/- buttons -->
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Grind Setting *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$grind = Math.max(0, $grind - 0.5)">-</button>
+            <input type="number" name="grind_setting" step="0.5" min="0" required class="input-field flex-1 text-center" data-bind:value="$grind" />
+            <button type="button" class="btn-adjust" data-on:click="$grind = $grind + 0.5">+</button>
+          </div>
+        </div>
+
+        <!-- Water Volume with +/- buttons -->
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Water (ml) *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$volume = Math.max(10, $volume - 10)">-</button>
+            <input type="number" name="water_volume" step="10" min="10" required class="input-field flex-1 text-center" data-bind:value="$volume" />
+            <button type="button" class="btn-adjust" data-on:click="$volume = $volume + 10">+</button>
+          </div>
+        </div>
+
+        <!-- Water Temperature with +/- buttons -->
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Temp (C) *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$temp = Math.max(0, $temp - 0.5)">-</button>
+            <input type="number" name="water_temp" step="0.5" min="0" max="100" required class="input-field flex-1 text-center" data-bind:value="$temp" />
+            <button type="button" class="btn-adjust" data-on:click="$temp = Math.min(100, $temp + 0.5)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          class="rounded-md px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-200/50"
+          data-on:click="$showForm = false"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+        >
+          Log Brew
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <div class="mt-8">{% include "partials/brew_list.html" %}</div>
+</section>
+{% endblock %}

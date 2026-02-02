@@ -1,4 +1,6 @@
 use crate::domain::bags::BagWithRoast;
+use crate::domain::brews::BrewWithDetails;
+use crate::domain::gear::Gear;
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
@@ -454,16 +456,18 @@ impl TimelineEventView {
             ("bag", "added") => "Bag Added",
             ("bag", "finished") => "Bag Finished",
             ("gear", "added") => "Gear Added",
+            ("brew", "brewed") => "Brewed",
             _ => "Event",
         };
 
         let link = match (entity_type.as_str(), slug, roaster_slug) {
             ("roaster", Some(slug), _) => format!("/roasters/{slug}"),
-            // Both roasts and bags link to the roast page
-            ("roast" | "bag", Some(slug), Some(roaster_slug)) => {
+            // Roasts, bags, and brews link to the roast page when we have slug info
+            ("roast" | "bag" | "brew", Some(slug), Some(roaster_slug)) => {
                 format!("/roasters/{roaster_slug}/roasts/{slug}")
             }
             ("gear", _, _) => "/gear".to_string(),
+            ("brew", _, _) => "/brews".to_string(),
             ("roaster", None, _) => format!("/roasters/{entity_id}"),
             ("roast", None, _) => format!("/roasts/{entity_id}"),
             _ => String::from("#"),
@@ -574,6 +578,87 @@ impl GearView {
             model: gear.model.clone(),
             full_name: format!("{} {}", gear.make, gear.model),
             created_at: gear.created_at.format("%Y-%m-%d").to_string(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct BrewView {
+    pub id: String,
+    pub bag_id: String,
+    pub roast_name: String,
+    pub roaster_name: String,
+    pub roast_slug: String,
+    pub roaster_slug: String,
+    pub coffee_weight: String,
+    pub grinder_name: String,
+    pub grind_setting: String,
+    pub brewer_name: String,
+    pub water_volume: String,
+    pub water_temp: String,
+    pub ratio: String,
+    pub created_at: String,
+}
+
+impl BrewView {
+    pub fn from_domain(brew: BrewWithDetails) -> Self {
+        let ratio = if brew.brew.coffee_weight > 0.0 {
+            format!(
+                "1:{:.1}",
+                f64::from(brew.brew.water_volume) / brew.brew.coffee_weight
+            )
+        } else {
+            "\u{2014}".to_string()
+        };
+
+        Self {
+            id: brew.brew.id.to_string(),
+            bag_id: brew.brew.bag_id.to_string(),
+            roast_name: brew.roast_name,
+            roaster_name: brew.roaster_name,
+            roast_slug: brew.roast_slug,
+            roaster_slug: brew.roaster_slug,
+            coffee_weight: format!("{:.1}g", brew.brew.coffee_weight),
+            grinder_name: brew.grinder_name,
+            grind_setting: format!("{:.1}", brew.brew.grind_setting),
+            brewer_name: brew.brewer_name,
+            water_volume: format!("{}ml", brew.brew.water_volume),
+            water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
+            ratio,
+            created_at: brew.brew.created_at.format("%Y-%m-%d %H:%M").to_string(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct BagOptionView {
+    pub id: String,
+    pub label: String,
+}
+
+impl From<BagWithRoast> for BagOptionView {
+    fn from(bag: BagWithRoast) -> Self {
+        Self {
+            id: bag.bag.id.to_string(),
+            label: format!(
+                "{} - {} ({:.0}g remaining)",
+                bag.roaster_name, bag.roast_name, bag.bag.remaining
+            ),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct GearOptionView {
+    pub id: String,
+    pub label: String,
+}
+
+impl From<Gear> for GearOptionView {
+    fn from(gear: Gear) -> Self {
+        Self {
+            id: gear.id.to_string(),
+            label: format!("{} {}", gear.make, gear.model),
         }
     }
 }

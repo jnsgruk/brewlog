@@ -1,10 +1,11 @@
 use askama::Template;
 
 use super::views::{
-    BagView, GearView, ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView,
-    TimelineEventView, TimelineMonthView,
+    BagOptionView, BagView, BrewView, GearOptionView, GearView, ListNavigator, Paginated,
+    RoastView, RoasterOptionView, RoasterView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
+use crate::domain::brews::BrewSortKey;
 use crate::domain::gear::GearSortKey;
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
@@ -122,6 +123,26 @@ pub struct GearListTemplate {
 #[template(path = "partials/roast_options.html")]
 pub struct RoastOptionsTemplate {
     pub roasts: Vec<RoastWithRoaster>,
+}
+
+#[derive(Template)]
+#[template(path = "brews.html")]
+pub struct BrewsTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub brews: Paginated<BrewView>,
+    pub bag_options: Vec<BagOptionView>,
+    pub grinder_options: Vec<GearOptionView>,
+    pub brewer_options: Vec<GearOptionView>,
+    pub navigator: ListNavigator<BrewSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/brew_list.html")]
+pub struct BrewListTemplate {
+    pub is_authenticated: bool,
+    pub brews: Paginated<BrewView>,
+    pub navigator: ListNavigator<BrewSortKey>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {
