@@ -20,6 +20,7 @@ pub struct Roast {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RoastWithRoaster {
+    #[serde(flatten)]
     pub roast: Roast,
     pub roaster_name: String,
     pub roaster_slug: String,

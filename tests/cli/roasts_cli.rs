@@ -141,10 +141,10 @@ fn test_list_roasts_shows_added_roast() {
     assert!(roasts.is_array());
     let roasts_array = roasts.as_array().unwrap();
 
-    // Find our roast in the list (note: list returns RoastWithRoaster which has nested structure)
+    // Find our roast in the list
     let found = roasts_array
         .iter()
-        .any(|item| item["roast"]["id"].as_i64() == Some(roast_id));
+        .any(|item| item["id"].as_i64() == Some(roast_id));
     assert!(
         found,
         "Should find the added roast in the list. Looking for id={}, found {} roasts",
