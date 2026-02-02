@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 cargo build
+
+BREWLOG_TOKEN="$(./target/debug/brewlog create-token --name "bootstrap-token" --username admin --password password | grep -Po "BREWLOG_TOKEN=\K.+$")"
+export BREWLOG_TOKEN
 
 if [[ -z "$BREWLOG_TOKEN" ]]; then
   echo "Error: BREWLOG_TOKEN environment variable is not set."
@@ -410,3 +414,7 @@ fi
   --producer "Simbi Co-op" \
   --process "Washed" \
   --tasting-notes "Black Tea, Orange, Cane Sugar"
+
+echo "Bootstrapped database"
+echo
+echo "Set token $BREWLOG_TOKEN to use the data added here."
