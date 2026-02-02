@@ -53,6 +53,7 @@ pub trait RoasterRepository: Send + Sync {
 pub trait RoastRepository: Send + Sync {
     async fn insert(&self, roast: NewRoast) -> Result<Roast, RepositoryError>;
     async fn get(&self, id: RoastId) -> Result<Roast, RepositoryError>;
+    async fn get_with_roaster(&self, id: RoastId) -> Result<RoastWithRoaster, RepositoryError>;
     async fn get_by_slug(
         &self,
         roaster_id: RoasterId,
@@ -125,6 +126,7 @@ pub trait SessionRepository: Send + Sync {
 pub trait BagRepository: Send + Sync {
     async fn insert(&self, bag: NewBag) -> Result<Bag, RepositoryError>;
     async fn get(&self, id: BagId) -> Result<Bag, RepositoryError>;
+    async fn get_with_roast(&self, id: BagId) -> Result<BagWithRoast, RepositoryError>;
     async fn list(
         &self,
         filter: BagFilter,

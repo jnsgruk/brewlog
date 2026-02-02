@@ -203,6 +203,22 @@ impl RoastRepository for SqlRoastRepository {
             .ok_or(RepositoryError::NotFound)
     }
 
+    async fn get_with_roaster(&self, id: RoastId) -> Result<RoastWithRoaster, RepositoryError> {
+        query_as::<_, RoastWithRoasterRecord>(
+            "SELECT r.id, r.roaster_id, r.name, r.slug, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name, ro.slug AS roaster_slug \
+             FROM roasts r \
+             JOIN roasters ro ON ro.id = r.roaster_id \
+             WHERE r.id = ?",
+        )
+        .bind(i64::from(id))
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+        .map(|record| record.into_with_roaster())
+        .transpose()?
+        .ok_or(RepositoryError::NotFound)
+    }
+
     async fn get_by_slug(
         &self,
         roaster_id: RoasterId,

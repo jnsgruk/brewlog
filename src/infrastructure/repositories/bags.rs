@@ -143,6 +143,19 @@ impl BagRepository for SqlBagRepository {
         Ok(Self::to_domain(record))
     }
 
+    async fn get_with_roast(&self, id: BagId) -> Result<BagWithRoast, RepositoryError> {
+        let query = format!("{} WHERE b.id = ?", BASE_SELECT);
+
+        let record = query_as::<_, BagWithRoastRecord>(&query)
+            .bind(id.into_inner())
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+            .ok_or(RepositoryError::NotFound)?;
+
+        Ok(Self::to_domain_with_roast(record))
+    }
+
     async fn list(
         &self,
         filter: BagFilter,

@@ -27,6 +27,36 @@ macro_rules! define_get_handler {
     };
 }
 
+/// Generates a GET-by-ID handler that retrieves an enriched entity using a custom method.
+///
+/// # Arguments
+/// * `$fn_name` - Name of the generated handler function
+/// * `$id_type` - Type of the ID path parameter (e.g., `RoastId`)
+/// * `$entity_type` - Type of the enriched entity returned as JSON (e.g., `RoastWithRoaster`)
+/// * `$repo_field` - Name of the repository field on `AppState` (e.g., `roast_repo`)
+/// * `$method` - Name of the repository method to call (e.g., `get_with_roaster`)
+///
+/// # Example
+/// ```ignore
+/// define_enriched_get_handler!(get_roast, RoastId, RoastWithRoaster, roast_repo, get_with_roaster);
+/// ```
+macro_rules! define_enriched_get_handler {
+    ($fn_name:ident, $id_type:ty, $entity_type:ty, $repo_field:ident, $method:ident) => {
+        #[tracing::instrument(skip(state))]
+        pub(crate) async fn $fn_name(
+            axum::extract::State(state): axum::extract::State<crate::application::server::AppState>,
+            axum::extract::Path(id): axum::extract::Path<$id_type>,
+        ) -> Result<axum::Json<$entity_type>, crate::application::errors::ApiError> {
+            let entity = state
+                .$repo_field
+                .$method(id)
+                .await
+                .map_err(crate::application::errors::AppError::from)?;
+            Ok(axum::Json(entity))
+        }
+    };
+}
+
 /// Generates a DELETE handler with Datastar fragment re-rendering support.
 ///
 /// # Arguments
@@ -77,4 +107,5 @@ macro_rules! define_delete_handler {
 }
 
 pub(super) use define_delete_handler;
+pub(super) use define_enriched_get_handler;
 pub(super) use define_get_handler;

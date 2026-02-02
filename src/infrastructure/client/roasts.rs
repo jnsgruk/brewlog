@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use reqwest::StatusCode;
 
 use crate::domain::ids::{RoastId, RoasterId};
-use crate::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
+use crate::domain::roasts::{NewRoast, RoastWithRoaster};
 
 use super::BrewlogClient;
 
@@ -15,7 +15,7 @@ impl<'a> RoastsClient<'a> {
         Self { inner }
     }
 
-    pub async fn create(&self, payload: &NewRoast) -> Result<Roast> {
+    pub async fn create(&self, payload: &NewRoast) -> Result<RoastWithRoaster> {
         let url = self.inner.endpoint("api/v1/roasts")?;
         let response = self
             .inner
@@ -45,7 +45,7 @@ impl<'a> RoastsClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn get(&self, id: RoastId) -> Result<Roast> {
+    pub async fn get(&self, id: RoastId) -> Result<RoastWithRoaster> {
         let url = self.inner.endpoint(&format!("api/v1/roasts/{id}"))?;
         let response = self
             .inner

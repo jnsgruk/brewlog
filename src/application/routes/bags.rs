@@ -4,7 +4,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
-use super::macros::{define_delete_handler, define_get_handler};
+use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -12,7 +12,7 @@ use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
-use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
@@ -172,7 +172,12 @@ pub(crate) async fn create_bag(
         let target = ListNavigator::new(BAG_PAGE_PATH, BAG_FRAGMENT_PATH, request).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
-        Ok((StatusCode::CREATED, Json(bag)).into_response())
+        let enriched = state
+            .bag_repo
+            .get_with_roast(bag.id)
+            .await
+            .map_err(AppError::from)?;
+        Ok((StatusCode::CREATED, Json(enriched)).into_response())
     }
 }
 
@@ -194,7 +199,7 @@ pub(crate) async fn list_bags(
     Ok(Json(page.items))
 }
 
-define_get_handler!(get_bag, BagId, Bag, bag_repo);
+define_enriched_get_handler!(get_bag, BagId, BagWithRoast, bag_repo, get_with_roast);
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn update_bag(
@@ -264,7 +269,12 @@ pub(crate) async fn update_bag(
             .await
             .map_err(ApiError::from)
     } else {
-        Ok(Json(bag).into_response())
+        let enriched = state
+            .bag_repo
+            .get_with_roast(bag.id)
+            .await
+            .map_err(AppError::from)?;
+        Ok(Json(enriched).into_response())
     }
 }
 

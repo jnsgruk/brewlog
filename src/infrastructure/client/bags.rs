@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::NaiveDate;
 
-use crate::domain::bags::{Bag, UpdateBag};
+use crate::domain::bags::{BagWithRoast, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 
 use super::BrewlogClient;
@@ -20,7 +20,7 @@ impl<'a> BagsClient<'a> {
         roast_id: RoastId,
         roast_date: Option<NaiveDate>,
         amount: f64,
-    ) -> Result<Bag> {
+    ) -> Result<BagWithRoast> {
         let url = self.inner.endpoint("api/v1/bags")?;
         let payload = serde_json::json!({
             "roast_id": roast_id,
@@ -39,7 +39,7 @@ impl<'a> BagsClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn list(&self, roast_id: Option<RoastId>) -> Result<Vec<Bag>> {
+    pub async fn list(&self, roast_id: Option<RoastId>) -> Result<Vec<BagWithRoast>> {
         let mut url = self.inner.endpoint("api/v1/bags")?;
         if let Some(roast_id) = roast_id {
             url.query_pairs_mut()
@@ -56,7 +56,7 @@ impl<'a> BagsClient<'a> {
         self.inner.handle_response(response).await
     }
 
-    pub async fn get(&self, id: BagId) -> Result<Bag> {
+    pub async fn get(&self, id: BagId) -> Result<BagWithRoast> {
         let url = self.inner.endpoint(&format!("api/v1/bags/{id}"))?;
         let response = self
             .inner
@@ -74,7 +74,7 @@ impl<'a> BagsClient<'a> {
         remaining: Option<f64>,
         closed: Option<bool>,
         finished_at: Option<NaiveDate>,
-    ) -> Result<Bag> {
+    ) -> Result<BagWithRoast> {
         let url = self.inner.endpoint(&format!("api/v1/bags/{id}"))?;
         let payload = UpdateBag {
             remaining,

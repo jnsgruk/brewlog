@@ -4,7 +4,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
-use super::macros::{define_delete_handler, define_get_handler};
+use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -16,7 +16,7 @@ use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
-use crate::domain::roasts::{NewRoast, Roast, RoastSortKey};
+use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster};
 use crate::presentation::web::templates::{
     RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
 };
@@ -161,7 +161,12 @@ pub(crate) async fn create_roast(
         let target = ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, request).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
-        Ok((StatusCode::CREATED, Json(roast)).into_response())
+        let enriched = state
+            .roast_repo
+            .get_with_roaster(roast.id)
+            .await
+            .map_err(AppError::from)?;
+        Ok((StatusCode::CREATED, Json(enriched)).into_response())
     }
 }
 
@@ -206,7 +211,13 @@ pub(crate) async fn list_roasts(
     }
 }
 
-define_get_handler!(get_roast, RoastId, Roast, roast_repo);
+define_enriched_get_handler!(
+    get_roast,
+    RoastId,
+    RoastWithRoaster,
+    roast_repo,
+    get_with_roaster
+);
 
 define_delete_handler!(
     delete_roast,
