@@ -1,11 +1,35 @@
 use anyhow::Result;
-use clap::Args;
+use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::RoasterId;
 use crate::domain::roasters::{NewRoaster, UpdateRoaster};
 use crate::infrastructure::client::BrewlogClient;
+
+#[derive(Debug, Subcommand)]
+pub enum RoasterCommands {
+    /// Add a new roaster
+    Add(AddRoasterCommand),
+    /// List all roasters
+    List,
+    /// Get a roaster by ID
+    Get(GetRoasterCommand),
+    /// Update a roaster
+    Update(UpdateRoasterCommand),
+    /// Delete a roaster
+    Delete(DeleteRoasterCommand),
+}
+
+pub async fn run(client: &BrewlogClient, cmd: RoasterCommands) -> Result<()> {
+    match cmd {
+        RoasterCommands::Add(c) => add_roaster(client, c).await,
+        RoasterCommands::List => list_roasters(client).await,
+        RoasterCommands::Get(c) => get_roaster(client, c).await,
+        RoasterCommands::Update(c) => update_roaster(client, c).await,
+        RoasterCommands::Delete(c) => delete_roaster(client, c).await,
+    }
+}
 
 #[derive(Debug, Args)]
 pub struct AddRoasterCommand {

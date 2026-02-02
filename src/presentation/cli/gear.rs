@@ -1,10 +1,34 @@
 use anyhow::Result;
-use clap::Args;
+use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::GearId;
 use crate::infrastructure::client::BrewlogClient;
+
+#[derive(Debug, Subcommand)]
+pub enum GearCommands {
+    /// Add new gear
+    Add(AddGearCommand),
+    /// List all gear
+    List(ListGearCommand),
+    /// Get gear by ID
+    Get(GetGearCommand),
+    /// Update gear
+    Update(UpdateGearCommand),
+    /// Delete gear
+    Delete(DeleteGearCommand),
+}
+
+pub async fn run(client: &BrewlogClient, cmd: GearCommands) -> Result<()> {
+    match cmd {
+        GearCommands::Add(c) => add_gear(client, c).await,
+        GearCommands::List(c) => list_gear(client, c).await,
+        GearCommands::Get(c) => get_gear(client, c).await,
+        GearCommands::Update(c) => update_gear(client, c).await,
+        GearCommands::Delete(c) => delete_gear(client, c).await,
+    }
+}
 
 #[derive(Debug, Args)]
 pub struct AddGearCommand {

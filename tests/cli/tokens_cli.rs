@@ -4,11 +4,11 @@ use crate::helpers::{create_token, run_brewlog, server_info};
 fn test_list_tokens_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["list-tokens"], &[]);
+    let output = run_brewlog(&["token", "list"], &[]);
 
     assert!(
         !output.status.success(),
-        "list-tokens without auth should fail"
+        "token list without auth should fail"
     );
 }
 
@@ -16,11 +16,11 @@ fn test_list_tokens_requires_authentication() {
 fn test_list_tokens_with_authentication() {
     let token = create_token("test-list-tokens");
 
-    let output = run_brewlog(&["list-tokens"], &[("BREWLOG_TOKEN", &token)]);
+    let output = run_brewlog(&["token", "list"], &[("BREWLOG_TOKEN", &token)]);
 
     assert!(
         output.status.success(),
-        "list-tokens with auth should succeed"
+        "token list with auth should succeed"
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -34,11 +34,11 @@ fn test_list_tokens_with_authentication() {
 fn test_revoke_token_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["revoke-token", "--id", "1"], &[]);
+    let output = run_brewlog(&["token", "revoke", "--id", "1"], &[]);
 
     assert!(
         !output.status.success(),
-        "revoke-token without auth should fail"
+        "token revoke without auth should fail"
     );
 }
 
@@ -47,7 +47,7 @@ fn test_revoke_token_with_authentication() {
     let token = create_token("test-revoke-token");
 
     // List tokens to get the ID
-    let list_output = run_brewlog(&["list-tokens"], &[("BREWLOG_TOKEN", &token)]);
+    let list_output = run_brewlog(&["token", "list"], &[("BREWLOG_TOKEN", &token)]);
     assert!(list_output.status.success());
 
     let list_stdout = String::from_utf8_lossy(&list_output.stdout);
@@ -66,7 +66,7 @@ fn test_revoke_token_with_authentication() {
         .expect("Token should have ID");
 
     let revoke_output = run_brewlog(
-        &["revoke-token", "--id", &token_id.to_string()],
+        &["token", "revoke", "--id", &token_id.to_string()],
         &[("BREWLOG_TOKEN", &token)],
     );
 
@@ -85,7 +85,7 @@ fn test_revoked_token_cannot_be_used() {
     let admin_token = create_token("test-admin-token");
 
     // List tokens to get the ID of the token we want to revoke
-    let list_output = run_brewlog(&["list-tokens"], &[("BREWLOG_TOKEN", &admin_token)]);
+    let list_output = run_brewlog(&["token", "list"], &[("BREWLOG_TOKEN", &admin_token)]);
     assert!(list_output.status.success());
 
     let list_stdout = String::from_utf8_lossy(&list_output.stdout);
@@ -105,7 +105,7 @@ fn test_revoked_token_cannot_be_used() {
 
     // Revoke the token
     let revoke_output = run_brewlog(
-        &["revoke-token", "--id", &token_id.to_string()],
+        &["token", "revoke", "--id", &token_id.to_string()],
         &[("BREWLOG_TOKEN", &admin_token)],
     );
     assert!(
@@ -115,7 +115,7 @@ fn test_revoked_token_cannot_be_used() {
 
     // Try to use the revoked token - it should fail
     let list_with_revoked_output =
-        run_brewlog(&["list-tokens"], &[("BREWLOG_TOKEN", &token_to_revoke)]);
+        run_brewlog(&["token", "list"], &[("BREWLOG_TOKEN", &token_to_revoke)]);
 
     assert!(
         !list_with_revoked_output.status.success(),

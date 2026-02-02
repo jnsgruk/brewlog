@@ -3,7 +3,7 @@ set -euo pipefail
 
 cargo build
 
-BREWLOG_TOKEN="$(./target/debug/brewlog create-token --name "bootstrap-token" --username admin --password password | grep -Po "BREWLOG_TOKEN=\K.+$")"
+BREWLOG_TOKEN="$(./target/debug/brewlog token create --name "bootstrap-token" --username admin --password password | grep -Po "BREWLOG_TOKEN=\K.+$")"
 export BREWLOG_TOKEN
 
 if [[ -z "$BREWLOG_TOKEN" ]]; then
@@ -12,15 +12,15 @@ if [[ -z "$BREWLOG_TOKEN" ]]; then
 fi
 
 # Tim Wendelboe (Norway)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Tim Wendelboe" \
   --country "Norway" \
   --city "Oslo" \
   --homepage "https://timwendelboe.no" \
   --notes "World-renowned Nordic micro-roastery dedicated to clarity and sustainability."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
   --name "Ben Saïd Natural" \
   --origin "Ethiopia" \
   --region "Sidamo" \
@@ -28,8 +28,8 @@ fi
   --process "Natural" \
   --tasting-notes "Bergamot, Apricot, Floral"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
   --name "Finca Tamana Washed" \
   --origin "Colombia" \
   --region "El Pital, Huila" \
@@ -39,15 +39,15 @@ fi
 
 
 # Coffee Collective (Denmark)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Coffee Collective" \
   --country "Denmark" \
   --city "Copenhagen" \
   --homepage "https://coffeecollective.dk" \
   --notes "Pioneers of transparency and sustainability; multi-time Nordic roaster award winners."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
   --name "Daterra Sweet Collection" \
   --origin "Brazil" \
   --region "Cerrado" \
@@ -55,8 +55,8 @@ fi
   --process "Pulped Natural" \
   --tasting-notes "Hazelnut, Milk Chocolate, Yellow Fruit"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
   --name "Kieni" \
   --origin "Kenya" \
   --region "Nyeri" \
@@ -66,15 +66,15 @@ fi
 
 
 # Drop Coffee (Sweden)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Drop Coffee" \
   --country "Sweden" \
   --city "Stockholm" \
   --homepage "https://dropcoffee.com" \
   --notes "Award-winning Swedish roastery prized for its elegance and clean Scandinavian style."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
   --name "La Linda" \
   --origin "Bolivia" \
   --region "Caranavi" \
@@ -82,8 +82,8 @@ fi
   --process "Washed" \
   --tasting-notes "Red Apple, Caramel, Floral"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
   --name "El Sunzita" \
   --origin "El Salvador" \
   --region "Ahuachapan" \
@@ -93,15 +93,15 @@ fi
 
 
 # La Cabra (Denmark)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "La Cabra" \
   --country "Denmark" \
   --city "Aarhus" \
   --homepage "https://www.lacabra.dk" \
   --notes "Scandinavian minimalist roastery known for clarity and innovative sourcing."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="La Cabra") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
   --name "Halo Beriti" \
   --origin "Ethiopia" \
   --region "Yirgacheffe" \
@@ -109,8 +109,8 @@ fi
   --process "Washed" \
   --tasting-notes "Jasmine, Lemon, Stone Fruit"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="La Cabra") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
   --name "Cerro Azul" \
   --origin "Colombia" \
   --region "Valle del Cauca" \
@@ -120,15 +120,15 @@ fi
 
 
 # April Coffee (Denmark)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "April Coffee" \
   --country "Denmark" \
   --city "Copenhagen" \
   --homepage "https://aprilcoffeeroasters.com" \
   --notes "Modern approach to Nordic coffee, emphasizing transparency and traceability."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="April Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
   --name "El Salvador Pacamara" \
   --origin "El Salvador" \
   --region "Santa Ana" \
@@ -136,8 +136,8 @@ fi
   --process "Honey" \
   --tasting-notes "Grapefruit, Sugar Cane, Plum"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="April Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
   --name "Guji Highland" \
   --origin "Ethiopia" \
   --region "Guji" \
@@ -147,15 +147,15 @@ fi
 
 
 # Assembly Coffee (UK)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Assembly Coffee" \
   --country "UK" \
   --city "London" \
   --homepage "https://assemblycoffee.co.uk" \
   --notes "Based in Brixton, Assembly focuses on collaborative sourcing and education."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
   --name "Kochere" \
   --origin "Ethiopia" \
   --region "Yirgacheffe" \
@@ -163,8 +163,8 @@ fi
   --process "Washed" \
   --tasting-notes "Peach, Lemon, Jasmine"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
   --name "La Laja" \
   --origin "Mexico" \
   --region "Veracruz" \
@@ -174,15 +174,15 @@ fi
 
 
 # Square Mile (UK)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Square Mile Coffee" \
   --country "UK" \
   --city "London" \
   --homepage "https://squaremilecoffee.com" \
   --notes "One of London's pioneers; delivers balanced and clear, fruit-forward coffees."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
   --name "Red Brick Espresso" \
   --origin "Blend" \
   --region "Multiple Origins" \
@@ -190,8 +190,8 @@ fi
   --process "Washed, Natural" \
   --tasting-notes "Berry, Chocolate, Citrus"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
   --name "Kamwangi" \
   --origin "Kenya" \
   --region "Kirinyaga" \
@@ -201,15 +201,15 @@ fi
 
 
 # Dak Coffee Roasters (Netherlands)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Dak Coffee Roasters" \
   --country "Netherlands" \
   --city "Amsterdam" \
   --homepage "https://www.dakcoffeeroasters.com" \
   --notes "Highly experimental Dutch roastery; celebrates vibrant acidity and alternative processing."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
   --name "El Paraiso 92 Anaerobic" \
   --origin "Colombia" \
   --region "Cauca" \
@@ -217,8 +217,8 @@ fi
   --process "Thermal Shock Anaerobic" \
   --tasting-notes "Passionfruit, Raspberry, Yogurt"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
   --name "Oreti SL28" \
   --origin "Kenya" \
   --region "Kirinyaga" \
@@ -228,15 +228,15 @@ fi
 
 
 # Bonanza Coffee (Germany)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Bonanza Coffee" \
   --country "Germany" \
   --city "Berlin" \
   --homepage "https://www.bonanzacoffee.de" \
   --notes "Pioneering Berlin roastery focused on brightness, balance, and freshness."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
   --name "Gatomboya" \
   --origin "Kenya" \
   --region "Nyeri" \
@@ -244,8 +244,8 @@ fi
   --process "Washed" \
   --tasting-notes "Blackcurrant, Lime, Tomato"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
   --name "Los Pirineos" \
   --origin "El Salvador" \
   --region "Usulután" \
@@ -255,15 +255,15 @@ fi
 
 
 # Friedhats (Netherlands)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Friedhats" \
   --country "Netherlands" \
   --city "Amsterdam" \
   --homepage "https://friedhats.com" \
   --notes "Quirky branding meets serious, awarded, fruit-forward coffees from Amsterdam."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Friedhats") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Friedhats") | .id')" \
   --name "Sidamo Guji" \
   --origin "Ethiopia" \
   --region "Guji" \
@@ -271,8 +271,8 @@ fi
   --process "Natural" \
   --tasting-notes "Peach, Raspberry, Rosehip"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Friedhats") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Friedhats") | .id')" \
   --name "La Esmeralda Geisha" \
   --origin "Panama" \
   --region "Boquete" \
@@ -282,15 +282,15 @@ fi
 
 
 # Origin Coffee (UK)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Origin Coffee" \
   --country "UK" \
   --city "Porthleven" \
   --homepage "https://origincoffee.co.uk" \
   --notes "Specialty roaster with close partnerships at origin; leading UK scene with cutting-edge lots."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
   --name "San Fermin" \
   --origin "Colombia" \
   --region "Tolima" \
@@ -298,8 +298,8 @@ fi
   --process "Washed" \
   --tasting-notes "Red Grape, Caramel, Blood Orange"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
   --name "Aricha" \
   --origin "Ethiopia" \
   --region "Yirgacheffe" \
@@ -309,15 +309,15 @@ fi
 
 
 # Dark Arts Coffee (UK)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Dark Arts Coffee" \
   --country "UK" \
   --city "London" \
   --homepage "https://www.darkartscoffee.co.uk" \
   --notes "Playful, disruptive roaster with a cult following and flavor-forward offerings."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
   --name "Death to Decaf" \
   --origin "Brazil" \
   --region "Minas Gerais" \
@@ -325,8 +325,8 @@ fi
   --process "Swiss Water Decaf" \
   --tasting-notes "Cocoa, Cherry, Almond"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
   --name "Snoop" \
   --origin "Guatemala" \
   --region "Huehuetenango" \
@@ -336,15 +336,15 @@ fi
 
 
 # KAWA Coffee (France)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "KAWA Coffee" \
   --country "France" \
   --city "Paris" \
   --homepage "https://www.kawa.coffee" \
   --notes "One of Paris’ most exciting specialty roasteries, known for unusual and competition-level lots."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
   --name "Sudan Rume" \
   --origin "Colombia" \
   --region "Cauca" \
@@ -352,8 +352,8 @@ fi
   --process "Natural" \
   --tasting-notes "Strawberry, Cinnamon, Grape"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
   --name "Arbegona" \
   --origin "Ethiopia" \
   --region "Sidama" \
@@ -363,15 +363,15 @@ fi
 
 
 # Stow Coffee (Slovenia)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Stow Coffee" \
   --country "Slovenia" \
   --city "Ljubljana" \
   --homepage "https://www.stowcoffee.com" \
   --notes "Slovenia’s specialty leader, awarded for pure, brightly acidic profiles and innovation."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
   --name "Santa Barbara" \
   --origin "Honduras" \
   --region "Santa Barbara" \
@@ -379,8 +379,8 @@ fi
   --process "Honey" \
   --tasting-notes "Red Currant, Honeydew, Cocoa"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
   --name "Suke Quto" \
   --origin "Ethiopia" \
   --region "Guji" \
@@ -390,15 +390,15 @@ fi
 
 
 # Bows Coffee (Canada)
-./target/debug/brewlog add-roaster \
+./target/debug/brewlog roaster add \
   --name "Bows Coffee" \
   --country "Canada" \
   --city "Victoria" \
   --homepage "https://bowscoffee.com" \
   --notes "Canadian micro-roaster with focus on clarity, complexity, and ethical sourcing."
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \
   --name "La Chumeca" \
   --origin "Costa Rica" \
   --region "Tarrazú" \
@@ -406,8 +406,8 @@ fi
   --process "White Honey" \
   --tasting-notes "Mandarin, Honeycomb, Almond"
 
-./target/debug/brewlog add-roast \
-  --roaster-id "$(./target/debug/brewlog list-roasters | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \
   --name "Simbi" \
   --origin "Rwanda" \
   --region "Huye" \
@@ -420,74 +420,74 @@ fi
 # ============================================================================
 
 # Tim Wendelboe - Ben Saïd Natural (250g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
   --roast-date "2026-01-15" \
   --amount 250
 
 # Tim Wendelboe - Finca Tamana Washed (350g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
   --roast-date "2026-01-18" \
   --amount 350
 
 # Coffee Collective - Daterra Sweet Collection (200g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
   --roast-date "2026-01-10" \
   --amount 200
 
 # Drop Coffee - La Linda (500g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="La Linda") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Linda") | .id')" \
   --roast-date "2026-01-20" \
   --amount 500
 
 # La Cabra - Halo Beriti (150g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
   --roast-date "2026-01-12" \
   --amount 150
 
 # April Coffee - Guji Highland (300g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
   --roast-date "2026-01-22" \
   --amount 300
 
 # Assembly Coffee - Kochere (250g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Kochere") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
   --roast-date "2026-01-08" \
   --amount 250
 
 # Square Mile Coffee - Red Brick Espresso (400g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
   --roast-date "2026-01-25" \
   --amount 400
 
 # Dak Coffee Roasters - El Paraiso 92 Anaerobic (100g - small competition lot)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
   --roast-date "2026-01-28" \
   --amount 100
 
 # Bonanza Coffee - Gatomboya (175g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
   --roast-date "2026-01-05" \
   --amount 175
 
 # Stow Coffee - Suke Quto (225g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
   --roast-date "2026-01-30" \
   --amount 225
 
 # Bows Coffee - Simbi (450g)
-./target/debug/brewlog add-bag \
-  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Simbi") | .id')" \
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Simbi") | .id')" \
   --roast-date "2026-01-14" \
   --amount 450
 
@@ -496,26 +496,26 @@ fi
 # ============================================================================
 
 # Finish Gatomboya bag (oldest - Jan 5)
-./target/debug/brewlog update-bag \
-  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Gatomboya") | .id')" \
+./target/debug/brewlog bag update \
+  --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Gatomboya") | .id')" \
   --closed true \
   --finished-at "2026-01-20"
 
 # Finish Kochere bag (Jan 8)
-./target/debug/brewlog update-bag \
-  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Kochere") | .id')" \
+./target/debug/brewlog bag update \
+  --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Kochere") | .id')" \
   --closed true \
   --finished-at "2026-01-22"
 
 # Finish Daterra Sweet Collection bag (Jan 10)
-./target/debug/brewlog update-bag \
-  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Daterra Sweet Collection") | .id')" \
+./target/debug/brewlog bag update \
+  --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Daterra Sweet Collection") | .id')" \
   --closed true \
   --finished-at "2026-01-25"
 
 # Finish Halo Beriti bag (Jan 12)
-./target/debug/brewlog update-bag \
-  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Halo Beriti") | .id')" \
+./target/debug/brewlog bag update \
+  --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Halo Beriti") | .id')" \
   --closed true \
   --finished-at "2026-01-28"
 
@@ -524,32 +524,33 @@ fi
 # ============================================================================
 
 # Grinders
-./target/debug/brewlog add-gear \
+./target/debug/brewlog gear add \
   --category "grinder" \
   --make "Comandante" \
   --model "C40 MK4"
 
-./target/debug/brewlog add-gear \
+./target/debug/brewlog gear add \
   --category "grinder" \
   --make "1Zpresso" \
   --model "J-Max"
 
 # Brewers
-./target/debug/brewlog add-gear \
+./target/debug/brewlog gear add \
   --category "brewer" \
   --make "Hario" \
   --model "V60 02"
 
-./target/debug/brewlog add-gear \
+./target/debug/brewlog gear add \
   --category "brewer" \
   --make "AeroPress" \
   --model "Original"
 
-./target/debug/brewlog add-gear \
+./target/debug/brewlog gear add \
   --category "brewer" \
   --make "Fellow" \
   --model "Stagg XF"
 
+echo
 echo "Bootstrapped database"
 echo
 echo "Set token $BREWLOG_TOKEN to use the data added here."

@@ -7,7 +7,8 @@ fn test_add_roast_requires_authentication() {
 
     let output = run_brewlog(
         &[
-            "add-roast",
+            "roast",
+            "add",
             "--roaster-id",
             "some-id",
             "--name",
@@ -26,7 +27,7 @@ fn test_add_roast_requires_authentication() {
 
     assert!(
         !output.status.success(),
-        "add-roast without auth should fail"
+        "roast add without auth should fail"
     );
 }
 
@@ -40,7 +41,8 @@ fn test_add_roast_with_authentication() {
     // Now add a roast
     let output = run_brewlog(
         &[
-            "add-roast",
+            "roast",
+            "add",
             "--roaster-id",
             &roaster_id,
             "--name",
@@ -61,7 +63,7 @@ fn test_add_roast_with_authentication() {
 
     assert!(
         output.status.success(),
-        "add-roast with auth should succeed: {}",
+        "roast add with auth should succeed: {}",
         String::from_utf8_lossy(&output.stderr)
     );
 
@@ -80,11 +82,11 @@ fn test_add_roast_with_authentication() {
 fn test_list_roasts_works_without_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["list-roasts"], &[]);
+    let output = run_brewlog(&["roast", "list"], &[]);
 
     assert!(
         output.status.success(),
-        "list-roasts should work without auth"
+        "roast list should work without auth"
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -103,7 +105,8 @@ fn test_list_roasts_shows_added_roast() {
     // Add a roast
     let add_output = run_brewlog(
         &[
-            "add-roast",
+            "roast",
+            "add",
             "--roaster-id",
             &roaster_id,
             "--name",
@@ -131,7 +134,7 @@ fn test_list_roasts_shows_added_roast() {
         .expect("roast id should be numeric");
 
     // List roasts
-    let list_output = run_brewlog(&["list-roasts"], &[]);
+    let list_output = run_brewlog(&["roast", "list"], &[]);
 
     assert!(list_output.status.success());
 
@@ -157,10 +160,10 @@ fn test_list_roasts_shows_added_roast() {
 fn test_delete_roast_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["delete-roast", "--id", "some-id"], &[]);
+    let output = run_brewlog(&["roast", "delete", "--id", "some-id"], &[]);
 
     assert!(
         !output.status.success(),
-        "delete-roast without auth should fail"
+        "roast delete without auth should fail"
     );
 }

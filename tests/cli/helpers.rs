@@ -119,7 +119,8 @@ pub fn create_token(name: &str) -> String {
 
     let output = run_brewlog(
         &[
-            "create-token",
+            "token",
+            "create",
             "--name",
             name,
             "--username",
@@ -165,7 +166,7 @@ pub fn run_brewlog(args: &[&str], env: &[(&str, &str)]) -> std::process::Output 
 /// Helper to create a roaster and return its ID
 pub fn create_roaster(name: &str, token: &str) -> String {
     let output = run_brewlog(
-        &["add-roaster", "--name", name, "--country", "UK"],
+        &["roaster", "add", "--name", name, "--country", "UK"],
         &[("BREWLOG_TOKEN", token)],
     );
 
@@ -189,7 +190,8 @@ pub fn create_roaster(name: &str, token: &str) -> String {
 pub fn create_roast(roaster_id: &str, name: &str, token: &str) -> String {
     let output = run_brewlog(
         &[
-            "add-roast",
+            "roast",
+            "add",
             "--roaster-id",
             roaster_id,
             "--name",

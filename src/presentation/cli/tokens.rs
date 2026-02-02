@@ -1,10 +1,28 @@
 use anyhow::{Context, Result};
-use clap::Args;
+use clap::{Args, Subcommand};
 use std::io::{self, Write};
 
 use super::print_json;
 use crate::domain::ids::TokenId;
 use crate::infrastructure::client::BrewlogClient;
+
+#[derive(Debug, Subcommand)]
+pub enum TokenCommands {
+    /// Create a new API token
+    Create(CreateTokenCommand),
+    /// List all tokens
+    List,
+    /// Revoke a token
+    Revoke(RevokeTokenCommand),
+}
+
+pub async fn run(client: &BrewlogClient, cmd: TokenCommands) -> Result<()> {
+    match cmd {
+        TokenCommands::Create(c) => create_token(client, c).await,
+        TokenCommands::List => list_tokens(client).await,
+        TokenCommands::Revoke(c) => revoke_token(client, c).await,
+    }
+}
 
 #[derive(Debug, Args)]
 pub struct CreateTokenCommand {

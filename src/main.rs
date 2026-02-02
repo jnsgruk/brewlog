@@ -21,43 +21,25 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Commands::Serve(cmd) => run_server(cmd).await,
-        command => {
+        Commands::Roaster { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
-            match command {
-                // Tokens
-                Commands::CreateToken(cmd) => tokens::create_token(&client, cmd).await,
-                Commands::ListTokens => tokens::list_tokens(&client).await,
-                Commands::RevokeToken(cmd) => tokens::revoke_token(&client, cmd).await,
-
-                // Roasters
-                Commands::AddRoaster(cmd) => roasters::add_roaster(&client, cmd).await,
-                Commands::ListRoasters => roasters::list_roasters(&client).await,
-                Commands::GetRoaster(cmd) => roasters::get_roaster(&client, cmd).await,
-                Commands::UpdateRoaster(cmd) => roasters::update_roaster(&client, cmd).await,
-                Commands::DeleteRoaster(cmd) => roasters::delete_roaster(&client, cmd).await,
-
-                // Roasts
-                Commands::AddRoast(cmd) => roasts::add_roast(&client, cmd).await,
-                Commands::ListRoasts(cmd) => roasts::list_roasts(&client, cmd).await,
-                Commands::GetRoast(cmd) => roasts::get_roast(&client, cmd).await,
-                Commands::DeleteRoast(cmd) => roasts::delete_roast(&client, cmd).await,
-
-                // Bags
-                Commands::AddBag(cmd) => bags::add_bag(&client, cmd).await,
-                Commands::ListBags(cmd) => bags::list_bags(&client, cmd).await,
-                Commands::GetBag(cmd) => bags::get_bag(&client, cmd).await,
-                Commands::UpdateBag(cmd) => bags::update_bag(&client, cmd).await,
-                Commands::DeleteBag(cmd) => bags::delete_bag(&client, cmd).await,
-
-                // Gear
-                Commands::AddGear(cmd) => gear::add_gear(&client, cmd).await,
-                Commands::ListGear(cmd) => gear::list_gear(&client, cmd).await,
-                Commands::GetGear(cmd) => gear::get_gear(&client, cmd).await,
-                Commands::UpdateGear(cmd) => gear::update_gear(&client, cmd).await,
-                Commands::DeleteGear(cmd) => gear::delete_gear(&client, cmd).await,
-
-                Commands::Serve(_) => unreachable!("serve command handled earlier"),
-            }
+            roasters::run(&client, command).await
+        }
+        Commands::Roast { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            roasts::run(&client, command).await
+        }
+        Commands::Bag { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            bags::run(&client, command).await
+        }
+        Commands::Gear { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            gear::run(&client, command).await
+        }
+        Commands::Token { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            tokens::run(&client, command).await
         }
     }
 }

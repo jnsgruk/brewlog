@@ -5,9 +5,12 @@ use serde_json::Value;
 fn test_add_bag_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["add-bag", "--roast-id", "123", "--amount", "250.0"], &[]);
+    let output = run_brewlog(
+        &["bag", "add", "--roast-id", "123", "--amount", "250.0"],
+        &[],
+    );
 
-    assert!(!output.status.success(), "add-bag without auth should fail");
+    assert!(!output.status.success(), "bag add without auth should fail");
 }
 
 #[test]
@@ -21,7 +24,8 @@ fn test_add_bag_with_authentication() {
     // Test: Add Bag
     let output = run_brewlog(
         &[
-            "add-bag",
+            "bag",
+            "add",
             "--roast-id",
             &roast_id,
             "--amount",
@@ -44,11 +48,14 @@ fn test_add_bag_with_authentication() {
 fn test_update_bag_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["update-bag", "--id", "123", "--remaining", "100.0"], &[]);
+    let output = run_brewlog(
+        &["bag", "update", "--id", "123", "--remaining", "100.0"],
+        &[],
+    );
 
     assert!(
         !output.status.success(),
-        "update-bag without auth should fail"
+        "bag update without auth should fail"
     );
 }
 
@@ -61,7 +68,7 @@ fn test_update_bag_with_authentication() {
     let roast_id = create_roast(&roaster_id, "Bag Update Roast", &token);
 
     let bag_output = run_brewlog(
-        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &["bag", "add", "--roast-id", &roast_id, "--amount", "250.0"],
         &[("BREWLOG_TOKEN", &token)],
     );
     let bag: Value = serde_json::from_slice(&bag_output.stdout).unwrap();
@@ -70,7 +77,8 @@ fn test_update_bag_with_authentication() {
     // Test: Update Bag
     let output = run_brewlog(
         &[
-            "update-bag",
+            "bag",
+            "update",
             "--id",
             &bag_id,
             "--remaining",
@@ -92,7 +100,7 @@ fn test_update_bag_with_authentication() {
 fn test_list_bags_works_without_authentication() {
     let _ = server_info();
     // Listing without roast_id might return all or empty, but should succeed (200 OK)
-    let output = run_brewlog(&["list-bags"], &[]);
+    let output = run_brewlog(&["bag", "list"], &[]);
     assert!(output.status.success());
 }
 
@@ -105,7 +113,7 @@ fn test_list_bags_shows_added_bag() {
     let roast_id = create_roast(&roaster_id, "Bag List Roast", &token);
 
     let bag_output = run_brewlog(
-        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &["bag", "add", "--roast-id", &roast_id, "--amount", "250.0"],
         &[("BREWLOG_TOKEN", &token)],
     );
     let bag: Value = serde_json::from_slice(&bag_output.stdout).unwrap();
@@ -113,7 +121,7 @@ fn test_list_bags_shows_added_bag() {
 
     // Test: List Bags (Authenticated)
     let output = run_brewlog(
-        &["list-bags", "--roast-id", &roast_id],
+        &["bag", "list", "--roast-id", &roast_id],
         &[("BREWLOG_TOKEN", &token)],
     );
 
@@ -133,14 +141,14 @@ fn test_list_bags_without_roast_id_shows_all_bags() {
     let roast_id = create_roast(&roaster_id, "Bag List All Roast", &token);
 
     let bag_output = run_brewlog(
-        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &["bag", "add", "--roast-id", &roast_id, "--amount", "250.0"],
         &[("BREWLOG_TOKEN", &token)],
     );
     let bag: Value = serde_json::from_slice(&bag_output.stdout).unwrap();
     let bag_id = bag["id"].as_i64().unwrap();
 
     // Test: List Bags (Authenticated)
-    let output = run_brewlog(&["list-bags"], &[("BREWLOG_TOKEN", &token)]);
+    let output = run_brewlog(&["bag", "list"], &[("BREWLOG_TOKEN", &token)]);
 
     assert!(output.status.success());
     let bags: Value = serde_json::from_slice(&output.stdout).unwrap();
@@ -159,7 +167,7 @@ fn test_list_bags_shows_open_and_closed_bags() {
 
     // Create Open Bag
     let open_bag_output = run_brewlog(
-        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &["bag", "add", "--roast-id", &roast_id, "--amount", "250.0"],
         &[("BREWLOG_TOKEN", &token)],
     );
     let open_bag: Value = serde_json::from_slice(&open_bag_output.stdout).unwrap();
@@ -167,7 +175,7 @@ fn test_list_bags_shows_open_and_closed_bags() {
 
     // Create Closed Bag
     let closed_bag_output = run_brewlog(
-        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &["bag", "add", "--roast-id", &roast_id, "--amount", "250.0"],
         &[("BREWLOG_TOKEN", &token)],
     );
     let closed_bag: Value = serde_json::from_slice(&closed_bag_output.stdout).unwrap();
@@ -176,7 +184,8 @@ fn test_list_bags_shows_open_and_closed_bags() {
     // Close the second bag
     let _ = run_brewlog(
         &[
-            "update-bag",
+            "bag",
+            "update",
             "--id",
             &closed_bag_id.to_string(),
             "--closed",
@@ -186,7 +195,7 @@ fn test_list_bags_shows_open_and_closed_bags() {
     );
 
     // Test: List Bags (Authenticated)
-    let output = run_brewlog(&["list-bags"], &[("BREWLOG_TOKEN", &token)]);
+    let output = run_brewlog(&["bag", "list"], &[("BREWLOG_TOKEN", &token)]);
 
     assert!(output.status.success());
     let bags: Value = serde_json::from_slice(&output.stdout).unwrap();
@@ -210,7 +219,7 @@ fn test_list_bags_shows_open_and_closed_bags() {
 #[test]
 fn test_delete_bag_requires_authentication() {
     let _ = server_info();
-    let output = run_brewlog(&["delete-bag", "--id", "123"], &[]);
+    let output = run_brewlog(&["bag", "delete", "--id", "123"], &[]);
     assert!(!output.status.success());
 }
 
@@ -223,7 +232,7 @@ fn test_delete_bag_with_authentication() {
     let roast_id = create_roast(&roaster_id, "Bag Delete Roast", &token);
 
     let bag_output = run_brewlog(
-        &["add-bag", "--roast-id", &roast_id, "--amount", "250.0"],
+        &["bag", "add", "--roast-id", &roast_id, "--amount", "250.0"],
         &[("BREWLOG_TOKEN", &token)],
     );
     let bag: Value = serde_json::from_slice(&bag_output.stdout).unwrap();
@@ -231,12 +240,12 @@ fn test_delete_bag_with_authentication() {
 
     // Test: Delete Bag
     let output = run_brewlog(
-        &["delete-bag", "--id", &bag_id],
+        &["bag", "delete", "--id", &bag_id],
         &[("BREWLOG_TOKEN", &token)],
     );
     assert!(output.status.success());
 
     // Verify deletion
-    let get_output = run_brewlog(&["get-bag", "--id", &bag_id], &[]);
+    let get_output = run_brewlog(&["bag", "get", "--id", &bag_id], &[]);
     assert!(!get_output.status.success());
 }

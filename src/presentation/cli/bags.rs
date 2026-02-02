@@ -1,10 +1,34 @@
 use anyhow::Result;
-use clap::Args;
+use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::{BagId, RoastId};
 use crate::infrastructure::client::BrewlogClient;
+
+#[derive(Debug, Subcommand)]
+pub enum BagCommands {
+    /// Add a new bag
+    Add(AddBagCommand),
+    /// List all bags
+    List(ListBagsCommand),
+    /// Get a bag by ID
+    Get(GetBagCommand),
+    /// Update a bag
+    Update(UpdateBagCommand),
+    /// Delete a bag
+    Delete(DeleteBagCommand),
+}
+
+pub async fn run(client: &BrewlogClient, cmd: BagCommands) -> Result<()> {
+    match cmd {
+        BagCommands::Add(c) => add_bag(client, c).await,
+        BagCommands::List(c) => list_bags(client, c).await,
+        BagCommands::Get(c) => get_bag(client, c).await,
+        BagCommands::Update(c) => update_bag(client, c).await,
+        BagCommands::Delete(c) => delete_bag(client, c).await,
+    }
+}
 
 #[derive(Debug, Args)]
 pub struct AddBagCommand {

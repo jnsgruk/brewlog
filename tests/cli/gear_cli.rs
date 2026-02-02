@@ -7,7 +7,8 @@ fn test_add_gear_requires_authentication() {
 
     let output = run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -20,7 +21,7 @@ fn test_add_gear_requires_authentication() {
 
     assert!(
         !output.status.success(),
-        "add-gear without auth should fail"
+        "gear add without auth should fail"
     );
 }
 
@@ -30,7 +31,8 @@ fn test_add_gear_with_authentication() {
 
     let output = run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -54,11 +56,11 @@ fn test_add_gear_with_authentication() {
 fn test_list_gear_works_without_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["list-gear"], &[]);
+    let output = run_brewlog(&["gear", "list"], &[]);
 
     assert!(
         output.status.success(),
-        "list-gear should work without auth"
+        "gear list should work without auth"
     );
 }
 
@@ -69,7 +71,8 @@ fn test_list_gear_shows_added_gear() {
     // Add gear
     let add_output = run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -82,7 +85,7 @@ fn test_list_gear_shows_added_gear() {
     assert!(add_output.status.success());
 
     // List gear
-    let list_output = run_brewlog(&["list-gear"], &[]);
+    let list_output = run_brewlog(&["gear", "list"], &[]);
     assert!(list_output.status.success());
 
     let gear_list: Value = serde_json::from_slice(&list_output.stdout).unwrap();
@@ -103,7 +106,8 @@ fn test_list_gear_filtered_by_category() {
     // Add grinder
     run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -117,7 +121,8 @@ fn test_list_gear_filtered_by_category() {
     // Add brewer
     run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "brewer",
             "--make",
@@ -129,7 +134,7 @@ fn test_list_gear_filtered_by_category() {
     );
 
     // List only grinders
-    let output = run_brewlog(&["list-gear", "--category", "grinder"], &[]);
+    let output = run_brewlog(&["gear", "list", "--category", "grinder"], &[]);
     assert!(output.status.success());
 
     let gear_list: Value = serde_json::from_slice(&output.stdout).unwrap();
@@ -151,7 +156,8 @@ fn test_get_gear_by_id() {
     // Add gear
     let add_output = run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -165,7 +171,7 @@ fn test_get_gear_by_id() {
     let gear_id = gear["id"].as_i64().unwrap().to_string();
 
     // Get gear by ID
-    let output = run_brewlog(&["get-gear", "--id", &gear_id], &[]);
+    let output = run_brewlog(&["gear", "get", "--id", &gear_id], &[]);
     assert!(output.status.success());
 
     let retrieved_gear: Value = serde_json::from_slice(&output.stdout).unwrap();
@@ -177,11 +183,11 @@ fn test_get_gear_by_id() {
 fn test_update_gear_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["update-gear", "--id", "123", "--make", "Updated"], &[]);
+    let output = run_brewlog(&["gear", "update", "--id", "123", "--make", "Updated"], &[]);
 
     assert!(
         !output.status.success(),
-        "update-gear without auth should fail"
+        "gear update without auth should fail"
     );
 }
 
@@ -192,7 +198,8 @@ fn test_update_gear_with_authentication() {
     // Add gear
     let add_output = run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -207,7 +214,7 @@ fn test_update_gear_with_authentication() {
 
     // Update gear
     let output = run_brewlog(
-        &["update-gear", "--id", &gear_id, "--model", "Mini II"],
+        &["gear", "update", "--id", &gear_id, "--model", "Mini II"],
         &[("BREWLOG_TOKEN", &token)],
     );
 
@@ -221,11 +228,11 @@ fn test_update_gear_with_authentication() {
 fn test_delete_gear_requires_authentication() {
     let _ = server_info();
 
-    let output = run_brewlog(&["delete-gear", "--id", "123"], &[]);
+    let output = run_brewlog(&["gear", "delete", "--id", "123"], &[]);
 
     assert!(
         !output.status.success(),
-        "delete-gear without auth should fail"
+        "gear delete without auth should fail"
     );
 }
 
@@ -236,7 +243,8 @@ fn test_delete_gear_with_authentication() {
     // Add gear
     let add_output = run_brewlog(
         &[
-            "add-gear",
+            "gear",
+            "add",
             "--category",
             "grinder",
             "--make",
@@ -251,12 +259,12 @@ fn test_delete_gear_with_authentication() {
 
     // Delete gear
     let delete_output = run_brewlog(
-        &["delete-gear", "--id", &gear_id],
+        &["gear", "delete", "--id", &gear_id],
         &[("BREWLOG_TOKEN", &token)],
     );
     assert!(delete_output.status.success());
 
     // Verify deletion - get should fail
-    let get_output = run_brewlog(&["get-gear", "--id", &gear_id], &[]);
+    let get_output = run_brewlog(&["gear", "get", "--id", &gear_id], &[]);
     assert!(!get_output.status.success());
 }

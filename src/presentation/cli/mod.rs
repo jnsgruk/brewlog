@@ -7,12 +7,12 @@ pub mod tokens;
 
 use std::net::SocketAddr;
 
-use bags::{AddBagCommand, DeleteBagCommand, GetBagCommand, ListBagsCommand, UpdateBagCommand};
+use bags::BagCommands;
 use clap::{Args, Parser, Subcommand};
-use gear::{AddGearCommand, DeleteGearCommand, GetGearCommand, ListGearCommand, UpdateGearCommand};
-use roasters::{AddRoasterCommand, DeleteRoasterCommand, GetRoasterCommand, UpdateRoasterCommand};
-use roasts::{AddRoastCommand, DeleteRoastCommand, GetRoastCommand, ListRoastsCommand};
-use tokens::{CreateTokenCommand, RevokeTokenCommand};
+use gear::GearCommands;
+use roasters::RoasterCommands;
+use roasts::RoastCommands;
+use tokens::TokenCommands;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about = "Track coffee roasts, brews, and cups", long_about = None)]
@@ -31,62 +31,38 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    #[command(name = "serve")]
+    /// Run the HTTP server
     Serve(ServeCommand),
 
-    // Tokens
-    #[command(name = "create-token")]
-    CreateToken(CreateTokenCommand),
-    #[command(name = "list-tokens")]
-    ListTokens,
-    #[command(name = "revoke-token")]
-    RevokeToken(RevokeTokenCommand),
+    /// Manage roasters
+    Roaster {
+        #[command(subcommand)]
+        command: RoasterCommands,
+    },
 
-    // Roasters
-    #[command(name = "add-roaster")]
-    AddRoaster(AddRoasterCommand),
-    #[command(name = "list-roasters")]
-    ListRoasters,
-    #[command(name = "get-roaster")]
-    GetRoaster(GetRoasterCommand),
-    #[command(name = "update-roaster")]
-    UpdateRoaster(UpdateRoasterCommand),
-    #[command(name = "delete-roaster")]
-    DeleteRoaster(DeleteRoasterCommand),
+    /// Manage roasts
+    Roast {
+        #[command(subcommand)]
+        command: RoastCommands,
+    },
 
-    // Roasts
-    #[command(name = "add-roast")]
-    AddRoast(AddRoastCommand),
-    #[command(name = "list-roasts")]
-    ListRoasts(ListRoastsCommand),
-    #[command(name = "get-roast")]
-    GetRoast(GetRoastCommand),
-    #[command(name = "delete-roast")]
-    DeleteRoast(DeleteRoastCommand),
+    /// Manage bags
+    Bag {
+        #[command(subcommand)]
+        command: BagCommands,
+    },
 
-    // Bags
-    #[command(name = "add-bag")]
-    AddBag(AddBagCommand),
-    #[command(name = "list-bags")]
-    ListBags(ListBagsCommand),
-    #[command(name = "get-bag")]
-    GetBag(GetBagCommand),
-    #[command(name = "update-bag")]
-    UpdateBag(UpdateBagCommand),
-    #[command(name = "delete-bag")]
-    DeleteBag(DeleteBagCommand),
+    /// Manage gear
+    Gear {
+        #[command(subcommand)]
+        command: GearCommands,
+    },
 
-    // Gear
-    #[command(name = "add-gear")]
-    AddGear(AddGearCommand),
-    #[command(name = "list-gear")]
-    ListGear(ListGearCommand),
-    #[command(name = "get-gear")]
-    GetGear(GetGearCommand),
-    #[command(name = "update-gear")]
-    UpdateGear(UpdateGearCommand),
-    #[command(name = "delete-gear")]
-    DeleteGear(DeleteGearCommand),
+    /// Manage API tokens
+    Token {
+        #[command(subcommand)]
+        command: TokenCommands,
+    },
 }
 
 #[derive(Debug, Args)]

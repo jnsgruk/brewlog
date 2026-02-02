@@ -1,11 +1,32 @@
 use anyhow::Result;
-use clap::Args;
+use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::roasts::NewRoast;
 use crate::infrastructure::client::BrewlogClient;
+
+#[derive(Debug, Subcommand)]
+pub enum RoastCommands {
+    /// Add a new roast
+    Add(AddRoastCommand),
+    /// List all roasts
+    List(ListRoastsCommand),
+    /// Get a roast by ID
+    Get(GetRoastCommand),
+    /// Delete a roast
+    Delete(DeleteRoastCommand),
+}
+
+pub async fn run(client: &BrewlogClient, cmd: RoastCommands) -> Result<()> {
+    match cmd {
+        RoastCommands::Add(c) => add_roast(client, c).await,
+        RoastCommands::List(c) => list_roasts(client, c).await,
+        RoastCommands::Get(c) => get_roast(client, c).await,
+        RoastCommands::Delete(c) => delete_roast(client, c).await,
+    }
+}
 
 #[derive(Debug, Args)]
 pub struct AddRoastCommand {
