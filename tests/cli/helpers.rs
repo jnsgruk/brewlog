@@ -22,8 +22,8 @@ static TEST_SERVER: Lazy<Mutex<Option<SharedServer>>> = Lazy::new(|| Mutex::new(
 
 /// Get path to the brewlog binary
 pub fn brewlog_bin() -> String {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    format!("{}/target/debug/brewlog", manifest_dir)
+    // Cargo sets this for integration tests - works for both debug and release
+    env!("CARGO_BIN_EXE_brewlog").to_string()
 }
 
 /// Get or start the shared test server - handles mutex poisoning gracefully
