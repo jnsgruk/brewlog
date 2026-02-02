@@ -634,7 +634,504 @@ fi
   --water-volume 256 \
   --water-temp 90.0
 
+# ============================================================================
+# Timestamp Distribution - Spread data over the last 6 months
+# ============================================================================
+
+DB_FILE="${DATABASE_URL:-brewlog.db}"
+# Strip sqlite:// prefix if present
+DB_FILE="${DB_FILE#sqlite://}"
+
+echo "Distributing timestamps over the last 6 months..."
+
+sqlite3 "$DB_FILE" <<'ENDSQL'
+-- Today is approximately 2026-02-02
+-- Spread data from 2025-08-01 to 2026-02-02 (6 months)
+
+-- ============================================================================
+-- GEAR: Added early (months 1-2) - you buy equipment before brewing
+-- ============================================================================
+UPDATE gear SET
+  created_at = datetime('2025-08-05 10:00:00'),
+  updated_at = datetime('2025-08-05 10:00:00')
+WHERE model = 'C40 MK4';  -- Comandante grinder
+
+UPDATE gear SET
+  created_at = datetime('2025-08-10 14:30:00'),
+  updated_at = datetime('2025-08-10 14:30:00')
+WHERE model = 'V60 02';  -- Hario V60
+
+UPDATE gear SET
+  created_at = datetime('2025-08-15 09:00:00'),
+  updated_at = datetime('2025-08-15 09:00:00')
+WHERE model = 'Original';  -- AeroPress
+
+UPDATE gear SET
+  created_at = datetime('2025-09-20 11:00:00'),
+  updated_at = datetime('2025-09-20 11:00:00')
+WHERE model = 'J-Max';  -- 1Zpresso grinder (second grinder)
+
+UPDATE gear SET
+  created_at = datetime('2025-10-12 16:00:00'),
+  updated_at = datetime('2025-10-12 16:00:00')
+WHERE model = 'Stagg XF';  -- Fellow dripper (upgrade)
+
+-- ============================================================================
+-- ROASTERS & ROASTS: Discovered over months 1-6
+-- Order: Early favorites first, newer discoveries later
+-- ============================================================================
+
+-- Month 1 (Aug 2025): First roasters discovered
+UPDATE roasters SET created_at = datetime('2025-08-03 08:00:00')
+WHERE name = 'Tim Wendelboe';
+UPDATE roasts SET created_at = datetime('2025-08-03 08:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Tim Wendelboe');
+
+UPDATE roasters SET created_at = datetime('2025-08-08 12:00:00')
+WHERE name = 'Square Mile Coffee';
+UPDATE roasts SET created_at = datetime('2025-08-08 12:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Square Mile Coffee');
+
+-- Month 2 (Sep 2025): More exploration
+UPDATE roasters SET created_at = datetime('2025-09-05 10:00:00')
+WHERE name = 'Coffee Collective';
+UPDATE roasts SET created_at = datetime('2025-09-05 10:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Coffee Collective');
+
+UPDATE roasters SET created_at = datetime('2025-09-15 14:00:00')
+WHERE name = 'Assembly Coffee';
+UPDATE roasts SET created_at = datetime('2025-09-15 14:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Assembly Coffee');
+
+UPDATE roasters SET created_at = datetime('2025-09-25 09:00:00')
+WHERE name = 'Bonanza Coffee';
+UPDATE roasts SET created_at = datetime('2025-09-25 09:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bonanza Coffee');
+
+-- Month 3 (Oct 2025): Nordic deep dive
+UPDATE roasters SET created_at = datetime('2025-10-05 11:00:00')
+WHERE name = 'Drop Coffee';
+UPDATE roasts SET created_at = datetime('2025-10-05 11:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Drop Coffee');
+
+UPDATE roasters SET created_at = datetime('2025-10-15 13:00:00')
+WHERE name = 'La Cabra';
+UPDATE roasts SET created_at = datetime('2025-10-15 13:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'La Cabra');
+
+UPDATE roasters SET created_at = datetime('2025-10-28 16:00:00')
+WHERE name = 'April Coffee';
+UPDATE roasts SET created_at = datetime('2025-10-28 16:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'April Coffee');
+
+-- Month 4 (Nov 2025): European expansion
+UPDATE roasters SET created_at = datetime('2025-11-02 10:00:00')
+WHERE name = 'Dak Coffee Roasters';
+UPDATE roasts SET created_at = datetime('2025-11-02 10:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dak Coffee Roasters');
+
+UPDATE roasters SET created_at = datetime('2025-11-12 15:00:00')
+WHERE name = 'Friedhats';
+UPDATE roasts SET created_at = datetime('2025-11-12 15:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Friedhats');
+
+UPDATE roasters SET created_at = datetime('2025-11-22 09:00:00')
+WHERE name = 'Origin Coffee';
+UPDATE roasts SET created_at = datetime('2025-11-22 09:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Origin Coffee');
+
+-- Month 5 (Dec 2025): Holiday discoveries
+UPDATE roasters SET created_at = datetime('2025-12-05 11:00:00')
+WHERE name = 'Dark Arts Coffee';
+UPDATE roasts SET created_at = datetime('2025-12-05 11:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dark Arts Coffee');
+
+UPDATE roasters SET created_at = datetime('2025-12-15 14:00:00')
+WHERE name = 'KAWA Coffee';
+UPDATE roasts SET created_at = datetime('2025-12-15 14:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'KAWA Coffee');
+
+UPDATE roasters SET created_at = datetime('2025-12-28 10:00:00')
+WHERE name = 'Stow Coffee';
+UPDATE roasts SET created_at = datetime('2025-12-28 10:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Stow Coffee');
+
+-- Month 6 (Jan 2026): New year additions
+UPDATE roasters SET created_at = datetime('2026-01-08 12:00:00')
+WHERE name = 'Bows Coffee';
+UPDATE roasts SET created_at = datetime('2026-01-08 12:05:00')
+WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee');
+
+-- ============================================================================
+-- BAGS: Purchased after roasts exist, spread over months 2-6
+-- Roast dates should be slightly before created_at (bag bought after roasting)
+-- ============================================================================
+
+-- Gatomboya (Bonanza) - Sep 2025, finished in Oct
+UPDATE bags SET
+  created_at = datetime('2025-09-28 10:00:00'),
+  updated_at = datetime('2025-10-15 09:00:00'),
+  roast_date = '2025-09-20',
+  finished_at = '2025-10-15'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya');
+
+-- Kochere (Assembly) - early Oct, finished mid-Oct
+UPDATE bags SET
+  created_at = datetime('2025-10-02 11:00:00'),
+  updated_at = datetime('2025-10-20 14:00:00'),
+  roast_date = '2025-09-25',
+  finished_at = '2025-10-20'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Kochere');
+
+-- Daterra Sweet Collection (Coffee Collective) - Oct, finished Nov
+UPDATE bags SET
+  created_at = datetime('2025-10-10 14:00:00'),
+  updated_at = datetime('2025-11-05 10:00:00'),
+  roast_date = '2025-10-05',
+  finished_at = '2025-11-05'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection');
+
+-- Halo Beriti (La Cabra) - late Oct, finished Nov
+UPDATE bags SET
+  created_at = datetime('2025-10-25 09:00:00'),
+  updated_at = datetime('2025-11-12 16:00:00'),
+  roast_date = '2025-10-18',
+  finished_at = '2025-11-12'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti');
+
+-- Ben Saïd Natural (Tim Wendelboe) - Nov, still open
+UPDATE bags SET
+  created_at = datetime('2025-11-15 10:00:00'),
+  updated_at = datetime('2025-11-15 10:00:00'),
+  roast_date = '2025-11-10'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural');
+
+-- Finca Tamana Washed (Tim Wendelboe) - Nov, still open
+UPDATE bags SET
+  created_at = datetime('2025-11-20 13:00:00'),
+  updated_at = datetime('2025-11-20 13:00:00'),
+  roast_date = '2025-11-15'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed');
+
+-- La Linda (Drop Coffee) - Dec, still open
+UPDATE bags SET
+  created_at = datetime('2025-12-10 11:00:00'),
+  updated_at = datetime('2025-12-10 11:00:00'),
+  roast_date = '2025-12-05'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'La Linda');
+
+-- Guji Highland (April Coffee) - Dec, still open
+UPDATE bags SET
+  created_at = datetime('2025-12-18 14:00:00'),
+  updated_at = datetime('2025-12-18 14:00:00'),
+  roast_date = '2025-12-12'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland');
+
+-- Red Brick Espresso (Square Mile) - late Dec, still open
+UPDATE bags SET
+  created_at = datetime('2025-12-28 09:00:00'),
+  updated_at = datetime('2025-12-28 09:00:00'),
+  roast_date = '2025-12-22'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso');
+
+-- El Paraiso 92 Anaerobic (Dak) - Jan 2026, still open
+UPDATE bags SET
+  created_at = datetime('2026-01-10 10:00:00'),
+  updated_at = datetime('2026-01-10 10:00:00'),
+  roast_date = '2026-01-05'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic');
+
+-- Suke Quto (Stow) - Jan 2026, still open
+UPDATE bags SET
+  created_at = datetime('2026-01-15 12:00:00'),
+  updated_at = datetime('2026-01-15 12:00:00'),
+  roast_date = '2026-01-10'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto');
+
+-- Simbi (Bows Coffee) - late Jan 2026, still open
+UPDATE bags SET
+  created_at = datetime('2026-01-22 15:00:00'),
+  updated_at = datetime('2026-01-22 15:00:00'),
+  roast_date = '2026-01-18'
+WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Simbi');
+
+-- ============================================================================
+-- BREWS: Created after bags exist, spread over recent months
+-- ============================================================================
+
+-- Brew 1: Ben Saïd Natural V60 - mid Nov
+UPDATE brews SET
+  created_at = datetime('2025-11-18 08:30:00'),
+  updated_at = datetime('2025-11-18 08:30:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural'))
+  AND water_volume = 250;
+
+-- Brew 2: Finca Tamana AeroPress - late Nov
+UPDATE brews SET
+  created_at = datetime('2025-11-25 09:00:00'),
+  updated_at = datetime('2025-11-25 09:00:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed'))
+  AND water_volume = 255;
+
+-- Brew 3: La Linda double V60 - mid Dec
+UPDATE brews SET
+  created_at = datetime('2025-12-15 10:00:00'),
+  updated_at = datetime('2025-12-15 10:00:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'La Linda'))
+  AND water_volume = 500;
+
+-- Brew 4: Guji Highland Stagg XF - late Dec
+UPDATE brews SET
+  created_at = datetime('2025-12-22 08:00:00'),
+  updated_at = datetime('2025-12-22 08:00:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland'))
+  AND water_volume = 300;
+
+-- Brew 5: Red Brick V60 - early Jan
+UPDATE brews SET
+  created_at = datetime('2026-01-02 09:30:00'),
+  updated_at = datetime('2026-01-02 09:30:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso'))
+  AND water_volume = 200;
+
+-- Brew 6: El Paraiso AeroPress - mid Jan
+UPDATE brews SET
+  created_at = datetime('2026-01-12 08:15:00'),
+  updated_at = datetime('2026-01-12 08:15:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic'))
+  AND water_volume = 225;
+
+-- Brew 7: Suke Quto V60 - late Jan
+UPDATE brews SET
+  created_at = datetime('2026-01-20 09:00:00'),
+  updated_at = datetime('2026-01-20 09:00:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto'))
+  AND water_volume = 320;
+
+-- Brew 8: Simbi Stagg XF - recent (late Jan)
+UPDATE brews SET
+  created_at = datetime('2026-01-28 08:45:00'),
+  updated_at = datetime('2026-01-28 08:45:00')
+WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Simbi'))
+  AND water_volume = 256;
+
+-- ============================================================================
+-- TIMELINE_EVENTS: Update to match entity creation times
+-- ============================================================================
+
+-- Gear timeline events
+UPDATE timeline_events SET occurred_at = datetime('2025-08-05 10:00:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'C40 MK4');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-10 14:30:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'V60 02');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-15 09:00:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Original');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-20 11:00:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'J-Max');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-12 16:00:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Stagg XF');
+
+-- Roaster timeline events
+UPDATE timeline_events SET occurred_at = datetime('2025-08-03 08:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Tim Wendelboe');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-08 12:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Square Mile Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-05 10:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Coffee Collective');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-15 14:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Assembly Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-25 09:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Bonanza Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-05 11:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Drop Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-15 13:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'La Cabra');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-28 16:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'April Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-02 10:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Dak Coffee Roasters');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-12 15:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Friedhats');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-22 09:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Origin Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-05 11:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Dark Arts Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-15 14:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'KAWA Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-28 10:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Stow Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-08 12:00:00')
+WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee');
+
+-- Roast timeline events (match roaster times + 5 min)
+UPDATE timeline_events SET occurred_at = datetime('2025-08-03 08:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Tim Wendelboe'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-08 12:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Square Mile Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-05 10:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Coffee Collective'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-15 14:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Assembly Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-25 09:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bonanza Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-05 11:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Drop Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-15 13:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'La Cabra'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-28 16:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'April Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-02 10:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dak Coffee Roasters'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-12 15:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Friedhats'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-22 09:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Origin Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-05 11:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dark Arts Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-15 14:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'KAWA Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-28 10:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Stow Coffee'));
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-08 12:05:00')
+WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee'));
+
+-- Bag timeline events (match bag created_at)
+UPDATE timeline_events SET occurred_at = datetime('2025-09-28 10:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-02 11:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Kochere'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-10 14:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-25 09:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-15 10:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-20 13:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-10 11:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'La Linda'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-18 14:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland'));
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-28 09:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso'));
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-10 10:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic'));
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-15 12:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto'));
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-22 15:00:00')
+WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Simbi'));
+
+-- Brew timeline events (match brew created_at)
+UPDATE timeline_events SET occurred_at = datetime('2025-11-18 08:30:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'Ben Saïd Natural' AND b.water_volume = 250
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-25 09:00:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'Finca Tamana Washed' AND b.water_volume = 255
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-15 10:00:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'La Linda' AND b.water_volume = 500
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-12-22 08:00:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'Guji Highland' AND b.water_volume = 300
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-02 09:30:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'Red Brick Espresso' AND b.water_volume = 200
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-12 08:15:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'El Paraiso 92 Anaerobic' AND b.water_volume = 225
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-20 09:00:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'Suke Quto' AND b.water_volume = 320
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-28 08:45:00')
+WHERE entity_type = 'brew' AND entity_id = (
+  SELECT b.id FROM brews b
+  JOIN bags ba ON b.bag_id = ba.id
+  JOIN roasts r ON ba.roast_id = r.id
+  WHERE r.name = 'Simbi' AND b.water_volume = 256
+);
+
+ENDSQL
+
 echo
-echo "Bootstrapped database"
+echo "Bootstrapped database with distributed timestamps"
 echo
 echo "Set token $BREWLOG_TOKEN to use the data added here."
