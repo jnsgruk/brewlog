@@ -1,4 +1,5 @@
 pub mod bags;
+pub mod gear;
 mod macros;
 pub mod pagination;
 pub mod roasters;
