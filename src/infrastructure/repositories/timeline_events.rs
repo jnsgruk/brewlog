@@ -24,11 +24,11 @@ impl SqlTimelineEventRepository {
 #[async_trait]
 impl TimelineEventRepository for SqlTimelineEventRepository {
     async fn insert(&self, event: NewTimelineEvent) -> Result<TimelineEvent, RepositoryError> {
-        let query = r#"
+        let query = r"
             INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             RETURNING id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json
-        "#;
+        ";
 
         let details_json = serde_json::to_string(&event.details).map_err(|err| {
             RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))

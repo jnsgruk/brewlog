@@ -10,7 +10,7 @@ use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BagRepository;
 use crate::infrastructure::database::DatabasePool;
 
-const BASE_SELECT: &str = r#"
+const BASE_SELECT: &str = r"
     SELECT 
         b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
         r.name as roast_name, r.slug as roast_slug,
@@ -18,7 +18,7 @@ const BASE_SELECT: &str = r#"
     FROM bags b
     JOIN roasts r ON b.roast_id = r.id
     JOIN roasters rr ON r.roaster_id = rr.id
-"#;
+";
 
 #[derive(Clone)]
 pub struct SqlBagRepository {
@@ -108,11 +108,11 @@ impl SqlBagRepository {
 #[async_trait]
 impl BagRepository for SqlBagRepository {
     async fn insert(&self, bag: NewBag) -> Result<Bag, RepositoryError> {
-        let query = r#"
+        let query = r"
             INSERT INTO bags (roast_id, roast_date, amount, remaining)
             VALUES (?, ?, ?, ?)
             RETURNING id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at
-        "#;
+        ";
 
         let record = query_as::<_, BagRecord>(query)
             .bind(bag.roast_id.into_inner())
@@ -127,11 +127,11 @@ impl BagRepository for SqlBagRepository {
     }
 
     async fn get(&self, id: BagId) -> Result<Bag, RepositoryError> {
-        let query = r#"
+        let query = r"
             SELECT id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at
             FROM bags
             WHERE id = ?
-        "#;
+        ";
 
         let record = query_as::<_, BagRecord>(query)
             .bind(id.into_inner())
@@ -144,7 +144,7 @@ impl BagRepository for SqlBagRepository {
     }
 
     async fn get_with_roast(&self, id: BagId) -> Result<BagWithRoast, RepositoryError> {
-        let query = format!("{} WHERE b.id = ?", BASE_SELECT);
+        let query = format!("{BASE_SELECT} WHERE b.id = ?");
 
         let record = query_as::<_, BagWithRoastRecord>(&query)
             .bind(id.into_inner())
@@ -167,12 +167,12 @@ impl BagRepository for SqlBagRepository {
         let where_clause = Self::build_where_clause(&filter);
 
         let base_query = match &where_clause {
-            Some(w) => format!("{} WHERE {}", BASE_SELECT, w),
+            Some(w) => format!("{BASE_SELECT} WHERE {w}"),
             None => BASE_SELECT.to_string(),
         };
 
         let count_query = match &where_clause {
-            Some(w) => format!("SELECT COUNT(*) FROM bags b WHERE {}", w),
+            Some(w) => format!("SELECT COUNT(*) FROM bags b WHERE {w}"),
             None => "SELECT COUNT(*) FROM bags".to_string(),
         };
 

@@ -165,6 +165,7 @@ async fn bootstrap_admin_user(
     Ok(())
 }
 
+#[allow(clippy::expect_used)] // Startup: panicking is appropriate if signal handlers fail
 async fn shutdown_signal() {
     let ctrl_c = async {
         signal::ctrl_c()
@@ -180,7 +181,7 @@ async fn shutdown_signal() {
     };
 
     tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
+        () = ctrl_c => {},
+        () = terminate => {},
     }
 }

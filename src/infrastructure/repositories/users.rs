@@ -18,7 +18,7 @@ impl SqlUserRepository {
         Self { pool }
     }
 
-    fn to_domain(record: UserRecord) -> Result<User, RepositoryError> {
+    fn to_domain(record: UserRecord) -> User {
         let UserRecord {
             id,
             username,
@@ -26,12 +26,7 @@ impl SqlUserRepository {
             created_at,
         } = record;
 
-        Ok(User::new(
-            UserId::from(id),
-            username,
-            password_hash,
-            created_at,
-        ))
+        User::new(UserId::from(id), username, password_hash, created_at)
     }
 }
 
@@ -54,7 +49,7 @@ impl UserRepository for SqlUserRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Self::to_domain(record)
+        Ok(Self::to_domain(record))
     }
 
     async fn get(&self, id: UserId) -> Result<User, RepositoryError> {
@@ -67,7 +62,7 @@ impl UserRepository for SqlUserRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Self::to_domain(record)
+        Ok(Self::to_domain(record))
     }
 
     async fn get_by_username(&self, username: &str) -> Result<User, RepositoryError> {
@@ -80,7 +75,7 @@ impl UserRepository for SqlUserRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Self::to_domain(record)
+        Ok(Self::to_domain(record))
     }
 
     async fn exists(&self) -> Result<bool, RepositoryError> {

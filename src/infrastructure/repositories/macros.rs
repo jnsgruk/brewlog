@@ -1,4 +1,4 @@
-/// Helper macro for building dynamic UPDATE queries with QueryBuilder.
+/// Helper macro for building dynamic UPDATE queries with `QueryBuilder`.
 ///
 /// Handles the common pattern of conditionally adding SET clauses with proper
 /// comma separation.

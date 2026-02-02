@@ -192,8 +192,7 @@ pub fn is_datastar_request(headers: &HeaderMap) -> bool {
     headers
         .get("datastar-request")
         .and_then(|value| value.to_str().ok())
-        .map(|value| value.eq_ignore_ascii_case("true"))
-        .unwrap_or(false)
+        .is_some_and(|value| value.eq_ignore_ascii_case("true"))
 }
 
 pub fn set_datastar_patch_headers(headers: &mut HeaderMap, selector: &'static str) {

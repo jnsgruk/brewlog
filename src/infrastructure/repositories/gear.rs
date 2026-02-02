@@ -37,7 +37,7 @@ impl SqlGearRepository {
     }
 
     fn to_domain(record: GearRecord) -> Result<Gear, RepositoryError> {
-        let category = GearCategory::from_str(&record.category).map_err(|_| {
+        let category = GearCategory::from_str(&record.category).map_err(|()| {
             RepositoryError::unexpected(format!("invalid category: {}", record.category))
         })?;
 
@@ -62,11 +62,11 @@ impl SqlGearRepository {
 #[async_trait]
 impl GearRepository for SqlGearRepository {
     async fn insert(&self, gear: NewGear) -> Result<Gear, RepositoryError> {
-        let query = r#"
+        let query = r"
             INSERT INTO gear (category, make, model)
             VALUES (?, ?, ?)
             RETURNING id, category, make, model, created_at, updated_at
-        "#;
+        ";
 
         let record = query_as::<_, GearRecord>(query)
             .bind(gear.category.as_str())
@@ -80,11 +80,11 @@ impl GearRepository for SqlGearRepository {
     }
 
     async fn get(&self, id: GearId) -> Result<Gear, RepositoryError> {
-        let query = r#"
+        let query = r"
             SELECT id, category, make, model, created_at, updated_at
             FROM gear
             WHERE id = ?
-        "#;
+        ";
 
         let record = query_as::<_, GearRecord>(query)
             .bind(id.into_inner())
@@ -106,8 +106,7 @@ impl GearRepository for SqlGearRepository {
 
         let base_query = match &where_clause {
             Some(w) => format!(
-                "SELECT id, category, make, model, created_at, updated_at FROM gear WHERE {}",
-                w
+                "SELECT id, category, make, model, created_at, updated_at FROM gear WHERE {w}"
             ),
             None => {
                 "SELECT id, category, make, model, created_at, updated_at FROM gear".to_string()
@@ -115,7 +114,7 @@ impl GearRepository for SqlGearRepository {
         };
 
         let count_query = match &where_clause {
-            Some(w) => format!("SELECT COUNT(*) FROM gear WHERE {}", w),
+            Some(w) => format!("SELECT COUNT(*) FROM gear WHERE {w}"),
             None => "SELECT COUNT(*) FROM gear".to_string(),
         };
 

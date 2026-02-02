@@ -14,7 +14,7 @@ pub fn hash_password(password: &str) -> Result<String> {
 
     let password_hash = argon2
         .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| anyhow::anyhow!("failed to hash password: {}", e))?
+        .map_err(|e| anyhow::anyhow!("failed to hash password: {e}"))?
         .to_string();
 
     Ok(password_hash)
@@ -23,7 +23,7 @@ pub fn hash_password(password: &str) -> Result<String> {
 /// Verifies a password against a hash
 pub fn verify_password(password: &str, password_hash: &str) -> Result<bool> {
     let parsed_hash = PasswordHash::new(password_hash)
-        .map_err(|e| anyhow::anyhow!("failed to parse password hash: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("failed to parse password hash: {e}"))?;
 
     let argon2 = Argon2::default();
 
@@ -57,6 +57,7 @@ pub fn generate_session_token() -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)] // Tests: unwrap is acceptable for test assertions
 mod tests {
     use super::*;
 

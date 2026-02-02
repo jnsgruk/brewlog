@@ -20,7 +20,7 @@ where
 {
     match request.page_size() {
         PageSize::All => {
-            let query = format!("{} ORDER BY {}", base_query, order_clause);
+            let query = format!("{base_query} ORDER BY {order_clause}");
             let records = query_as::<_, R>(&query)
                 .fetch_all(pool)
                 .await
@@ -35,11 +35,11 @@ where
             Ok(Page::new(items, 1, page_size.max(1), total, true))
         }
         PageSize::Limited(page_size) => {
-            let limit = page_size as i64;
+            let limit = i64::from(page_size);
             let mut page = request.page();
-            let offset = ((page - 1) as i64).saturating_mul(limit);
+            let offset = i64::from(page - 1).saturating_mul(limit);
 
-            let query_sql = format!("{} ORDER BY {} LIMIT ? OFFSET ?", base_query, order_clause);
+            let query_sql = format!("{base_query} ORDER BY {order_clause} LIMIT ? OFFSET ?");
 
             let mut records = query_as::<_, R>(&query_sql)
                 .bind(limit)
@@ -56,7 +56,7 @@ where
             if page > 1 && records.is_empty() && total > 0 {
                 let last_page = ((total + limit - 1) / limit) as u32;
                 page = last_page.max(1);
-                let offset = ((page - 1) as i64).saturating_mul(limit);
+                let offset = i64::from(page - 1).saturating_mul(limit);
                 records = query_as::<_, R>(&query_sql)
                     .bind(limit)
                     .bind(offset)

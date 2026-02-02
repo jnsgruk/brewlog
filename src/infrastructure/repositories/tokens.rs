@@ -18,7 +18,7 @@ impl SqlTokenRepository {
         Self { pool }
     }
 
-    fn to_domain(record: TokenRecord) -> Result<Token, RepositoryError> {
+    fn to_domain(record: TokenRecord) -> Token {
         let TokenRecord {
             id,
             user_id,
@@ -29,7 +29,7 @@ impl SqlTokenRepository {
             revoked_at,
         } = record;
 
-        Ok(Token::new(
+        Token::new(
             TokenId::from(id),
             UserId::from(user_id),
             token_hash,
@@ -37,7 +37,7 @@ impl SqlTokenRepository {
             created_at,
             last_used_at,
             revoked_at,
-        ))
+        )
     }
 }
 
@@ -67,7 +67,7 @@ impl TokenRepository for SqlTokenRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Self::to_domain(record)
+        Ok(Self::to_domain(record))
     }
 
     async fn get(&self, id: TokenId) -> Result<Token, RepositoryError> {
@@ -80,7 +80,7 @@ impl TokenRepository for SqlTokenRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Self::to_domain(record)
+        Ok(Self::to_domain(record))
     }
 
     async fn get_by_token_hash(&self, token_hash: &str) -> Result<Token, RepositoryError> {
@@ -93,7 +93,7 @@ impl TokenRepository for SqlTokenRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Self::to_domain(record)
+        Ok(Self::to_domain(record))
     }
 
     async fn list_by_user(&self, user_id: UserId) -> Result<Vec<Token>, RepositoryError> {
@@ -105,7 +105,7 @@ impl TokenRepository for SqlTokenRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        records.into_iter().map(Self::to_domain).collect()
+        Ok(records.into_iter().map(Self::to_domain).collect())
     }
 
     async fn revoke(&self, id: TokenId) -> Result<Token, RepositoryError> {
@@ -120,7 +120,7 @@ impl TokenRepository for SqlTokenRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Self::to_domain(record),
+            Some(record) => Ok(Self::to_domain(record)),
             None => Err(RepositoryError::NotFound),
         }
     }

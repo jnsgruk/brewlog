@@ -76,6 +76,7 @@ where
 /// Register a subscriber as global default to process span data.
 ///
 /// This should only be called once!
+#[allow(clippy::expect_used)] // Startup: panicking is appropriate if logging cannot be initialized
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
     LogTracer::init().expect("Failed to set logger");
     set_global_default(subscriber).expect("Failed to set subscriber");

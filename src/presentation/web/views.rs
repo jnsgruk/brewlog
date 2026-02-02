@@ -44,7 +44,7 @@ impl<T> Paginated<T> {
         if self.total == 0 || self.showing_all {
             1
         } else {
-            let page_size = self.page_size as u64;
+            let page_size = u64::from(self.page_size);
             self.total.div_ceil(page_size) as u32
         }
     }
@@ -77,7 +77,7 @@ impl<T> Paginated<T> {
         if self.total == 0 {
             0
         } else {
-            ((self.page - 1) as u64) * self.page_size as u64 + 1
+            u64::from(self.page - 1) * u64::from(self.page_size) + 1
         }
     }
 
@@ -181,9 +181,7 @@ impl<K: SortKey> ListNavigator<K> {
     }
 
     pub fn is_sorted_by(&self, key: &str) -> bool {
-        K::from_query(key)
-            .map(|candidate| candidate == self.request.sort_key())
-            .unwrap_or(false)
+        K::from_query(key).is_some_and(|candidate| candidate == self.request.sort_key())
     }
 
     pub fn next_sort_dir(&self, key: &str) -> &'static str {
@@ -212,6 +210,7 @@ impl<K: SortKey> ListNavigator<K> {
         Self::query_string(Self::request_for_sort(self.request, key))
     }
 
+    #[allow(clippy::unused_self)] // Keeps consistent method interface
     fn build_href(&self, path: &str, request: ListRequest<K>) -> String {
         if let Some((base, fragment)) = path.split_once('#') {
             format!("{}?{}#{}", base, Self::query_string(request), fragment)
@@ -460,10 +459,8 @@ impl TimelineEventView {
 
         let link = match (entity_type.as_str(), slug, roaster_slug) {
             ("roaster", Some(slug), _) => format!("/roasters/{slug}"),
-            ("roast", Some(slug), Some(roaster_slug)) => {
-                format!("/roasters/{roaster_slug}/roasts/{slug}")
-            }
-            ("bag", Some(slug), Some(roaster_slug)) => {
+            // Both roasts and bags link to the roast page
+            ("roast" | "bag", Some(slug), Some(roaster_slug)) => {
                 format!("/roasters/{roaster_slug}/roasts/{slug}")
             }
             ("gear", _, _) => "/gear".to_string(),
@@ -546,8 +543,7 @@ impl BagView {
             finished_at: bag
                 .bag
                 .finished_at
-                .map(|d| d.to_string())
-                .unwrap_or_else(|| "—".to_string()),
+                .map_or_else(|| "—".to_string(), |d| d.to_string()),
             created_at: bag.bag.created_at.format("%Y-%m-%d").to_string(),
             roast_name: bag.roast_name,
             roaster_name: bag.roaster_name,

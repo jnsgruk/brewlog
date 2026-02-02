@@ -52,6 +52,7 @@ impl SqlRoastRepository {
     }
 }
 
+#[allow(clippy::too_many_lines)] // Repository impl has many methods
 #[async_trait]
 impl RoastRepository for SqlRoastRepository {
     async fn insert(&self, new_roast: NewRoast) -> Result<Roast, RepositoryError> {
@@ -198,7 +199,7 @@ impl RoastRepository for SqlRoastRepository {
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
-            .map(|record| record.into_roast())
+            .map(RoastRecord::into_roast)
             .transpose()?
             .ok_or(RepositoryError::NotFound)
     }
@@ -214,7 +215,7 @@ impl RoastRepository for SqlRoastRepository {
         .fetch_optional(&self.pool)
         .await
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?
-        .map(|record| record.into_with_roaster())
+        .map(RoastWithRoasterRecord::into_with_roaster)
         .transpose()?
         .ok_or(RepositoryError::NotFound)
     }
@@ -232,7 +233,7 @@ impl RoastRepository for SqlRoastRepository {
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
-            .map(|record| record.into_roast())
+            .map(RoastRecord::into_roast)
             .transpose()?
             .ok_or(RepositoryError::NotFound)
     }
@@ -270,7 +271,7 @@ impl RoastRepository for SqlRoastRepository {
 
         records
             .into_iter()
-            .map(|record| record.into_with_roaster())
+            .map(RoastWithRoasterRecord::into_with_roaster)
             .collect()
     }
 

@@ -60,3 +60,23 @@ opt-level = 0
 name = "server"
 path = "tests/server/main.rs"
 harness = true
+
+[lints.clippy]
+# Enable pedantic lints with lower priority so individual allows take precedence
+pedantic = { level = "warn", priority = -1 }
+
+# Pedantic lints to disable (too noisy or not applicable)
+missing_errors_doc = "allow"       # Would require extensive doc changes
+missing_panics_doc = "allow"       # Would require extensive doc changes
+module_name_repetitions = "allow"  # Common pattern in domain types (e.g., RoasterId in roasters)
+must_use_candidate = "allow"       # Too aggressive for this codebase
+return_self_not_must_use = "allow" # Builder methods returning Self are common
+needless_pass_by_value = "allow"   # Generic T: ToString pattern and consumed value types
+cast_possible_truncation = "allow" # Pagination values won't exceed u32 in practice
+cast_sign_loss = "allow"           # Database counts are non-negative
+
+# Cherry-picked restriction lints (production safety)
+dbg_macro = "deny"                # Prevent debug macros in production
+todo = "warn"                     # Flag TODOs for attention
+unwrap_used = "warn"              # Flag unwrap() for review; allow where justified
+expect_used = "warn"              # Flag expect() for review; allow where justified

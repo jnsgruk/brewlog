@@ -149,7 +149,7 @@ pub(crate) async fn create_bag(
         entity_id: bag.id.into_inner(),
         action: "added".to_string(),
         occurred_at: chrono::Utc::now(),
-        title: roast.name.to_string(),
+        title: roast.name.clone(),
         details: vec![
             TimelineEventDetail {
                 label: "Roaster".to_string(),
@@ -213,11 +213,14 @@ pub(crate) async fn update_bag(
 ) -> Result<Response, ApiError> {
     let request = query.into_request::<BagSortKey>();
 
-    let body_update = payload.map(|Json(p)| p).unwrap_or(UpdateBag {
-        remaining: None,
-        closed: None,
-        finished_at: None,
-    });
+    let body_update = payload.map_or(
+        UpdateBag {
+            remaining: None,
+            closed: None,
+            finished_at: None,
+        },
+        |Json(p)| p,
+    );
 
     let mut update = UpdateBag {
         remaining: body_update.remaining.or(update_params.remaining),
@@ -247,7 +250,7 @@ pub(crate) async fn update_bag(
                 entity_id: bag.id.into_inner(),
                 action: "finished".to_string(),
                 occurred_at: chrono::Utc::now(),
-                title: roast.name.to_string(),
+                title: roast.name.clone(),
                 details: vec![
                     TimelineEventDetail {
                         label: "Roaster".to_string(),

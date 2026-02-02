@@ -181,7 +181,7 @@ pub(crate) async fn list_roasts(
             let s = s.trim();
             Some(s.parse::<RoasterId>().map_err(|_| {
                 tracing::warn!("Invalid roaster_id: '{}'", s);
-                ApiError::from(AppError::validation(format!("Invalid roaster_id: '{}'", s)))
+                ApiError::from(AppError::validation(format!("Invalid roaster_id: '{s}'")))
             })?)
         }
         _ => None,
