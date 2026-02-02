@@ -84,7 +84,8 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
         LEFT JOIN roasters rst_r ON rst.roaster_id = rst_r.id
         LEFT JOIN bags b ON t.entity_type = 'bag' AND t.entity_id = b.id
         LEFT JOIN roasts b_r ON b.roast_id = b_r.id
-        LEFT JOIN roasters b_rr ON b_r.roaster_id = b_rr.id";
+        LEFT JOIN roasters b_rr ON b_r.roaster_id = b_rr.id
+        LEFT JOIN gear g ON t.entity_type = 'gear' AND t.entity_id = g.id";
         let count_query = "SELECT COUNT(*) FROM timeline_events";
 
         crate::infrastructure::repositories::pagination::paginate(
