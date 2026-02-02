@@ -14,19 +14,12 @@ impl<'a> GearClient<'a> {
         Self { inner }
     }
 
-    pub async fn create(
-        &self,
-        category: &str,
-        make: String,
-        model: String,
-        notes: Option<String>,
-    ) -> Result<Gear> {
+    pub async fn create(&self, category: &str, make: String, model: String) -> Result<Gear> {
         let url = self.inner.endpoint("api/v1/gear")?;
         let payload = serde_json::json!({
             "category": category,
             "make": make,
             "model": model,
-            "notes": notes,
         });
 
         let response = self
@@ -73,10 +66,9 @@ impl<'a> GearClient<'a> {
         id: GearId,
         make: Option<String>,
         model: Option<String>,
-        notes: Option<String>,
     ) -> Result<Gear> {
         let url = self.inner.endpoint(&format!("api/v1/gear/{id}"))?;
-        let payload = UpdateGear { make, model, notes };
+        let payload = UpdateGear { make, model };
 
         let response = self
             .inner

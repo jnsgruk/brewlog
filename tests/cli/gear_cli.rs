@@ -51,34 +51,6 @@ fn test_add_gear_with_authentication() {
 }
 
 #[test]
-fn test_add_gear_with_notes() {
-    let token = create_token("test-add-gear-notes");
-
-    let output = run_brewlog(
-        &[
-            "add-gear",
-            "--category",
-            "brewer",
-            "--make",
-            "Hario",
-            "--model",
-            "V60",
-            "--notes",
-            "Size 02 plastic",
-        ],
-        &[("BREWLOG_TOKEN", &token)],
-    );
-
-    assert!(output.status.success());
-    let gear: Value = serde_json::from_slice(&output.stdout).unwrap();
-
-    assert_eq!(gear["make"], "Hario");
-    assert_eq!(gear["model"], "V60");
-    assert_eq!(gear["category"], "brewer");
-    assert_eq!(gear["notes"], "Size 02 plastic");
-}
-
-#[test]
 fn test_list_gear_works_without_authentication() {
     let _ = server_info();
 
@@ -235,15 +207,7 @@ fn test_update_gear_with_authentication() {
 
     // Update gear
     let output = run_brewlog(
-        &[
-            "update-gear",
-            "--id",
-            &gear_id,
-            "--model",
-            "Mini II",
-            "--notes",
-            "Upgraded version",
-        ],
+        &["update-gear", "--id", &gear_id, "--model", "Mini II"],
         &[("BREWLOG_TOKEN", &token)],
     );
 
@@ -251,7 +215,6 @@ fn test_update_gear_with_authentication() {
     let updated_gear: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(updated_gear["make"], "Porlex");
     assert_eq!(updated_gear["model"], "Mini II");
-    assert_eq!(updated_gear["notes"], "Upgraded version");
 }
 
 #[test]

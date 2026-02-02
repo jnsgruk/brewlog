@@ -19,7 +19,6 @@
             {% call table::sortable_header("Category", "category", navigator, "#gear-list") %}
             {% call table::sortable_header("Make", "make", navigator, "#gear-list") %}
             {% call table::sortable_header("Model", "model", navigator, "#gear-list") %}
-            <th scope="col" class="px-4 py-3">Notes</th>
             {% call table::sortable_header("Added", "created-at", navigator, "#gear-list") %}
             {% if is_authenticated %}
             <th scope="col" class="relative px-4 py-3">
@@ -41,9 +40,6 @@
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               {{ item.model }}
-            </td>
-            <td class="px-4 py-3">
-              <div class="max-w-xs truncate">{{ item.notes }}</div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               {{ item.created_at }}

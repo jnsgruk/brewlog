@@ -655,7 +655,6 @@ async fn gear_update_with_datastar_header_returns_fragment() {
     let update = brewlog::domain::gear::UpdateGear {
         make: Some("Updated Make".to_string()),
         model: None,
-        notes: Some("Test notes".to_string()),
     };
 
     let response = client
@@ -700,7 +699,6 @@ async fn gear_update_without_datastar_header_returns_json() {
     let update = brewlog::domain::gear::UpdateGear {
         make: Some("JSON Updated".to_string()),
         model: None,
-        notes: None,
     };
 
     let response = client

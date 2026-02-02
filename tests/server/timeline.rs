@@ -421,8 +421,7 @@ async fn creating_gear_surfaces_on_the_timeline() {
     let gear_submission = serde_json::json!({
         "category": "grinder",
         "make": "Baratza",
-        "model": "Encore",
-        "notes": "Timeline test grinder"
+        "model": "Encore"
     });
 
     let response = client

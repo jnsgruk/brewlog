@@ -47,7 +47,6 @@ pub struct Gear {
     pub category: GearCategory,
     pub make: String,
     pub model: String,
-    pub notes: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -57,14 +56,12 @@ pub struct NewGear {
     pub category: GearCategory,
     pub make: String,
     pub model: String,
-    pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateGear {
     pub make: Option<String>,
     pub model: Option<String>,
-    pub notes: Option<String>,
 }
 
 #[derive(Debug, Default, Clone)]

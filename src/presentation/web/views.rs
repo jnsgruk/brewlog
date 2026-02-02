@@ -565,7 +565,6 @@ pub struct GearView {
     pub make: String,
     pub model: String,
     pub full_name: String,
-    pub notes: String,
     pub created_at: String,
 }
 
@@ -578,7 +577,6 @@ impl GearView {
             make: gear.make.clone(),
             model: gear.model.clone(),
             full_name: format!("{} {}", gear.make, gear.model),
-            notes: gear.notes.unwrap_or_else(|| "No notes.".to_string()),
             created_at: gear.created_at.format("%Y-%m-%d").to_string(),
         }
     }

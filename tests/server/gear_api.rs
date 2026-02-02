@@ -10,8 +10,7 @@ async fn creating_gear_returns_201_for_valid_data() {
     let new_gear = serde_json::json!({
         "category": "grinder",
         "make": "Baratza",
-        "model": "Encore",
-        "notes": "Daily driver"
+        "model": "Encore"
     });
 
     // Act
@@ -29,7 +28,6 @@ async fn creating_gear_returns_201_for_valid_data() {
     let gear: Gear = response.json().await.expect("Failed to parse response");
     assert_eq!(gear.make, "Baratza");
     assert_eq!(gear.model, "Encore");
-    assert_eq!(gear.notes, Some("Daily driver".to_string()));
 }
 
 #[tokio::test]
@@ -284,7 +282,6 @@ async fn updating_gear_returns_updated_data() {
     let update = UpdateGear {
         make: Some("Comandante".to_string()),
         model: Some("C40".to_string()),
-        notes: Some("Upgraded grinder".to_string()),
     };
 
     let response = client
@@ -302,7 +299,6 @@ async fn updating_gear_returns_updated_data() {
     assert_eq!(updated_gear.id, created_gear.id);
     assert_eq!(updated_gear.make, "Comandante");
     assert_eq!(updated_gear.model, "C40");
-    assert_eq!(updated_gear.notes, Some("Upgraded grinder".to_string()));
 }
 
 #[tokio::test]
@@ -314,7 +310,6 @@ async fn updating_gear_without_auth_returns_401() {
     let update = UpdateGear {
         make: Some("Updated".to_string()),
         model: None,
-        notes: None,
     };
 
     // Act

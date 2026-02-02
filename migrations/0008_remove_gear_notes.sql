@@ -1,0 +1,1 @@
+ALTER TABLE gear DROP COLUMN notes;

@@ -46,7 +46,6 @@ impl SqlGearRepository {
             category,
             make: record.make,
             model: record.model,
-            notes: record.notes,
             created_at: record.created_at,
             updated_at: record.updated_at,
         })
@@ -64,16 +63,15 @@ impl SqlGearRepository {
 impl GearRepository for SqlGearRepository {
     async fn insert(&self, gear: NewGear) -> Result<Gear, RepositoryError> {
         let query = r#"
-            INSERT INTO gear (category, make, model, notes)
-            VALUES (?, ?, ?, ?)
-            RETURNING id, category, make, model, notes, created_at, updated_at
+            INSERT INTO gear (category, make, model)
+            VALUES (?, ?, ?)
+            RETURNING id, category, make, model, created_at, updated_at
         "#;
 
         let record = query_as::<_, GearRecord>(query)
             .bind(gear.category.as_str())
             .bind(&gear.make)
             .bind(&gear.model)
-            .bind(&gear.notes)
             .fetch_one(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -83,7 +81,7 @@ impl GearRepository for SqlGearRepository {
 
     async fn get(&self, id: GearId) -> Result<Gear, RepositoryError> {
         let query = r#"
-            SELECT id, category, make, model, notes, created_at, updated_at
+            SELECT id, category, make, model, created_at, updated_at
             FROM gear
             WHERE id = ?
         "#;
@@ -108,11 +106,12 @@ impl GearRepository for SqlGearRepository {
 
         let base_query = match &where_clause {
             Some(w) => format!(
-                "SELECT id, category, make, model, notes, created_at, updated_at FROM gear WHERE {}",
+                "SELECT id, category, make, model, created_at, updated_at FROM gear WHERE {}",
                 w
             ),
-            None => "SELECT id, category, make, model, notes, created_at, updated_at FROM gear"
-                .to_string(),
+            None => {
+                "SELECT id, category, make, model, created_at, updated_at FROM gear".to_string()
+            }
         };
 
         let count_query = match &where_clause {
@@ -137,12 +136,11 @@ impl GearRepository for SqlGearRepository {
 
         push_update_field!(builder, sep, "make", changes.make);
         push_update_field!(builder, sep, "model", changes.model);
-        push_update_field!(builder, sep, "notes", changes.notes);
         let _ = sep; // Suppress unused_assignments warning
 
         builder.push(" WHERE id = ");
         builder.push_bind(id.into_inner());
-        builder.push(" RETURNING id, category, make, model, notes, created_at, updated_at");
+        builder.push(" RETURNING id, category, make, model, created_at, updated_at");
 
         let record = builder
             .build_query_as::<GearRecord>()
@@ -177,7 +175,6 @@ struct GearRecord {
     category: String,
     make: String,
     model: String,
-    notes: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }

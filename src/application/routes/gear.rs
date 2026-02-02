@@ -202,7 +202,6 @@ pub(crate) struct NewGearSubmission {
     category: String,
     make: String,
     model: String,
-    notes: Option<String>,
 }
 
 impl NewGearSubmission {
@@ -222,7 +221,6 @@ impl NewGearSubmission {
             category,
             make: self.make,
             model: self.model,
-            notes: self.notes.filter(|s| !s.trim().is_empty()),
         })
     }
 }

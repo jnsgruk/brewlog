@@ -14,19 +14,12 @@ pub struct AddGearCommand {
     pub make: String,
     #[arg(long)]
     pub model: String,
-    #[arg(long)]
-    pub notes: Option<String>,
 }
 
 pub async fn add_gear(client: &BrewlogClient, command: AddGearCommand) -> Result<()> {
     let gear = client
         .gear()
-        .create(
-            &command.category,
-            command.make,
-            command.model,
-            command.notes,
-        )
+        .create(&command.category, command.make, command.model)
         .await?;
     print_json(&gear)
 }
@@ -52,19 +45,12 @@ pub struct UpdateGearCommand {
     pub make: Option<String>,
     #[arg(long)]
     pub model: Option<String>,
-    #[arg(long)]
-    pub notes: Option<String>,
 }
 
 pub async fn update_gear(client: &BrewlogClient, command: UpdateGearCommand) -> Result<()> {
     let gear = client
         .gear()
-        .update(
-            GearId::new(command.id),
-            command.make,
-            command.model,
-            command.notes,
-        )
+        .update(GearId::new(command.id), command.make, command.model)
         .await?;
     print_json(&gear)
 }
