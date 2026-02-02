@@ -1,15 +1,15 @@
+use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
-use axum::Json;
 use serde::Deserialize;
 
 use super::macros::{define_delete_handler, define_get_handler};
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{map_app_error, ApiError, AppError};
+use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
 use crate::application::routes::support::{
-    is_datastar_request, FlexiblePayload, ListQuery, PayloadSource,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};

@@ -1,10 +1,11 @@
 use askama::Template;
 
 use super::views::{
-    BagView, ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView,
+    BagView, GearView, ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView,
     TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
+use crate::domain::gear::GearSortKey;
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
 use crate::domain::timeline::TimelineSortKey;
@@ -98,6 +99,23 @@ pub struct BagListTemplate {
     pub open_bags: Vec<BagView>,
     pub bags: Paginated<BagView>,
     pub navigator: ListNavigator<BagSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "gear.html")]
+pub struct GearTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub gear: Paginated<GearView>,
+    pub navigator: ListNavigator<GearSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/gear_list.html")]
+pub struct GearListTemplate {
+    pub is_authenticated: bool,
+    pub gear: Paginated<GearView>,
+    pub navigator: ListNavigator<GearSortKey>,
 }
 
 #[derive(Template)]

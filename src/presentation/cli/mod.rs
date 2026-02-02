@@ -9,9 +9,7 @@ use std::net::SocketAddr;
 
 use bags::{AddBagCommand, DeleteBagCommand, GetBagCommand, ListBagsCommand, UpdateBagCommand};
 use clap::{Args, Parser, Subcommand};
-use gear::{
-    AddGearCommand, DeleteGearCommand, GetGearCommand, ListGearCommand, UpdateGearCommand,
-};
+use gear::{AddGearCommand, DeleteGearCommand, GetGearCommand, ListGearCommand, UpdateGearCommand};
 use roasters::{AddRoasterCommand, DeleteRoasterCommand, GetRoasterCommand, UpdateRoasterCommand};
 use roasts::{AddRoastCommand, DeleteRoastCommand, GetRoastCommand, ListRoastsCommand};
 use tokens::{CreateTokenCommand, RevokeTokenCommand};

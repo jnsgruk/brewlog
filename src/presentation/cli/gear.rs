@@ -21,7 +21,12 @@ pub struct AddGearCommand {
 pub async fn add_gear(client: &BrewlogClient, command: AddGearCommand) -> Result<()> {
     let gear = client
         .gear()
-        .create(&command.category, command.make, command.model, command.notes)
+        .create(
+            &command.category,
+            command.make,
+            command.model,
+            command.notes,
+        )
         .await?;
     print_json(&gear)
 }

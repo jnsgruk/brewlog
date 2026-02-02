@@ -1,7 +1,9 @@
 use anyhow::Result;
 use brewlog::application::{ServerConfig, serve};
 use brewlog::infrastructure::client::BrewlogClient;
-use brewlog::presentation::cli::{Cli, Commands, ServeCommand, bags, gear, roasters, roasts, tokens};
+use brewlog::presentation::cli::{
+    Cli, Commands, ServeCommand, bags, gear, roasters, roasts, tokens,
+};
 use clap::Parser;
 
 use tracing::{Subscriber, subscriber::set_global_default};

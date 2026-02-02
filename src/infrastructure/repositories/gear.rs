@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{query_as, QueryBuilder};
+use sqlx::{QueryBuilder, query_as};
 
 use super::macros::push_update_field;
+use crate::domain::RepositoryError;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::GearId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::GearRepository;
-use crate::domain::RepositoryError;
 use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
@@ -51,12 +51,10 @@ impl SqlGearRepository {
     }
 
     fn build_where_clause(filter: &GearFilter) -> Option<String> {
-        if let Some(category) = &filter.category {
-            // SAFETY: category.as_str() returns a fixed static string literal ('grinder' or 'brewer')
-            Some(format!("category = '{}'", category.as_str()))
-        } else {
-            None
-        }
+        filter
+            .category
+            .as_ref()
+            .map(|category| format!("category = '{}'", category.as_str()))
     }
 }
 
@@ -142,9 +140,7 @@ impl GearRepository for SqlGearRepository {
 
         builder.push(" WHERE id = ");
         builder.push_bind(id.into_inner());
-        builder.push(
-            " RETURNING id, category, make, model, notes, created_at, updated_at",
-        );
+        builder.push(" RETURNING id, category, make, model, notes, created_at, updated_at");
 
         let record = builder
             .build_query_as::<GearRecord>()

@@ -454,6 +454,7 @@ impl TimelineEventView {
             ("roast", "added") => "Roast Added",
             ("bag", "added") => "Bag Added",
             ("bag", "finished") => "Bag Finished",
+            ("gear", "added") => "Gear Added",
             _ => "Event",
         };
 
@@ -465,6 +466,7 @@ impl TimelineEventView {
             ("bag", Some(slug), Some(roaster_slug)) => {
                 format!("/roasters/{roaster_slug}/roasts/{slug}")
             }
+            ("gear", _, _) => "/gear".to_string(),
             ("roaster", None, _) => format!("/roasters/{entity_id}"),
             ("roast", None, _) => format!("/roasts/{entity_id}"),
             _ => String::from("#"),
@@ -551,6 +553,33 @@ impl BagView {
             roaster_name: bag.roaster_name,
             roast_slug: bag.roast_slug,
             roaster_slug: bag.roaster_slug,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct GearView {
+    pub id: String,
+    pub category: String,
+    pub category_label: String,
+    pub make: String,
+    pub model: String,
+    pub full_name: String,
+    pub notes: String,
+    pub created_at: String,
+}
+
+impl GearView {
+    pub fn from_domain(gear: crate::domain::gear::Gear) -> Self {
+        Self {
+            id: gear.id.to_string(),
+            category: gear.category.as_str().to_string(),
+            category_label: gear.category.display_label().to_string(),
+            make: gear.make.clone(),
+            model: gear.model.clone(),
+            full_name: format!("{} {}", gear.make, gear.model),
+            notes: gear.notes.unwrap_or_else(|| "No notes.".to_string()),
+            created_at: gear.created_at.format("%Y-%m-%d").to_string(),
         }
     }
 }

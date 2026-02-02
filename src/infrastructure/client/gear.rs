@@ -43,8 +43,7 @@ impl<'a> GearClient<'a> {
     pub async fn list(&self, category: Option<String>) -> Result<Vec<Gear>> {
         let mut url = self.inner.endpoint("api/v1/gear")?;
         if let Some(category) = category {
-            url.query_pairs_mut()
-                .append_pair("category", &category);
+            url.query_pairs_mut().append_pair("category", &category);
         }
 
         let response = self
@@ -77,11 +76,7 @@ impl<'a> GearClient<'a> {
         notes: Option<String>,
     ) -> Result<Gear> {
         let url = self.inner.endpoint(&format!("api/v1/gear/{id}"))?;
-        let payload = UpdateGear {
-            make,
-            model,
-            notes,
-        };
+        let payload = UpdateGear { make, model, notes };
 
         let response = self
             .inner
