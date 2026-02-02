@@ -42,3 +42,105 @@ a {
 .btn-adjust:hover {
   background-color: rgba(245, 245, 244, 1);
 }
+
+/* Timeline layout */
+
+/* Mobile: single column with line on left */
+.timeline-line {
+  left: 1rem;
+}
+
+.timeline-item {
+  padding-left: 3rem;
+}
+
+.timeline-node {
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.timeline-heading {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #fefce8; /* amber-50, matches page background */
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.timeline-heading.is-stuck {
+  border-bottom-color: #b45309; /* amber-700 */
+}
+
+.timeline-top-btn {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25rem;
+  color: #b45309; /* amber-700 */
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.timeline-top-btn:hover {
+  opacity: 1;
+}
+
+.timeline-heading.is-stuck .timeline-top-btn {
+  display: block;
+}
+
+/* Desktop: alternating cards with central line */
+@media (min-width: 768px) {
+  .timeline-heading {
+    text-align: center;
+  }
+
+  .timeline-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeline-line {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .timeline-item {
+    width: 50%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Left side items (odd) */
+  .timeline-item-left {
+    align-self: flex-start;
+    padding-right: 2rem;
+  }
+
+  .timeline-item-left .timeline-node {
+    right: -10px;
+    left: auto;
+  }
+
+  /* Right side items (even) */
+  .timeline-item-right {
+    align-self: flex-end;
+    padding-left: 2rem;
+  }
+
+  .timeline-item-right .timeline-node {
+    left: -10px;
+  }
+
+  /* Allow vertical overlap between alternating cards (skip first item) */
+  .timeline-item + .timeline-item {
+    margin-top: -4rem;
+  }
+}

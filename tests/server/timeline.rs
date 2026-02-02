@@ -249,8 +249,9 @@ async fn timeline_page_signals_more_results_when_over_page_size() {
 
     let client = Client::new();
 
+    // Explicitly request page_size=5 to test pagination with 6 events
     let response = client
-        .get(format!("{}/timeline", app.address))
+        .get(format!("{}/timeline?page_size=5", app.address))
         .send()
         .await
         .expect("failed to fetch timeline");
@@ -293,6 +294,7 @@ async fn timeline_chunk_endpoint_serves_remaining_events() {
         .clone();
     let client = Client::new();
 
+    // page_size=5 to test pagination with 6 events
     let chunk_url = format!(
         "{}/timeline?page=2&page_size=5&sort=occurred-at&dir=desc",
         app.address

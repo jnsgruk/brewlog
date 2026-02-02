@@ -1,12 +1,23 @@
 <div id="{{ month.anchor }}" class="scroll-mt-24" data-timeline-month>
-  <h2 class="text-2xl font-semibold text-amber-800">{{ month.heading }}</h2>
-  <ol class="mt-6 space-y-8 border-l-2 border-amber-200 pl-4 sm:pl-8">
+  <h2 class="timeline-heading mb-6 text-2xl font-semibold text-amber-800">
+    {{ month.heading }}
+    <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
+      <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </h2>
+  <ol class="timeline-list relative">
+    {# Central timeline line #}
+    <div class="timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200" aria-hidden="true"></div>
     {% for event in month.events %}
-    <li class="relative pl-6 sm:pl-10" data-timeline-event>
+    <li class="timeline-item {% if loop.index % 2 == 1 %}timeline-item-left{% else %}timeline-item-right{% endif %} relative mb-8 last:mb-0" data-timeline-event>
+      {# Timeline node/bullet #}
       <span
-        class="absolute left-[-10px] top-2 h-5 w-5 rounded-full border-[6px] border-amber-50 bg-amber-600 sm:left-[-14px]"
+        class="timeline-node absolute h-5 w-5 rounded-full border-4 border-amber-50 bg-amber-600"
+        aria-hidden="true"
       ></span>
-      <div class="rounded-lg border border-amber-200 bg-amber-50/80 p-5 shadow-sm">
+      <div class="rounded-lg border border-amber-200 bg-amber-50/80 p-5 shadow-sm text-left">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <span
             class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800"

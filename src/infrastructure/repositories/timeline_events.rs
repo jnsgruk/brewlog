@@ -65,7 +65,8 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
         };
 
         let order_clause = format!("t.occurred_at {direction_sql}, t.id DESC");
-        let base_query = "SELECT
+
+        let base_query = r"SELECT
             t.id, t.entity_type, t.entity_id, t.action, t.occurred_at, t.title, t.details_json, t.tasting_notes_json,
             CASE
                 WHEN t.entity_type = 'roaster' THEN r.slug
@@ -99,7 +100,8 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
         LEFT JOIN bags brew_bag ON brew.bag_id = brew_bag.id
         LEFT JOIN roasts brew_roast ON brew_bag.roast_id = brew_roast.id
         LEFT JOIN roasters brew_roaster ON brew_roast.roaster_id = brew_roaster.id";
-        let count_query = "SELECT COUNT(*) FROM timeline_events";
+
+        let count_query = "SELECT COUNT(*) FROM timeline_events t";
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,

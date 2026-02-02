@@ -6,7 +6,7 @@
   </p>
 </header>
 
-<div class="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1fr),14rem]">
+<div class="mt-8">
   <section
     class="space-y-12"
     id="timeline-events"
@@ -18,7 +18,7 @@
       class="rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-6 text-sm text-stone-600"
       data-role="timeline-empty-state"
     >
-      No events yet. Create roasters or roasts to populate the timeline.
+      No events yet.
     </p>
     {% else %} {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
     {% endif %}
@@ -34,69 +34,22 @@
         id="timeline-load-more"
         type="button"
         class="inline-flex items-center gap-2 rounded-full border border-amber-500 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
-        {%
-        if
-        months.is_empty()
-        %}hidden{%
-        endif
-        %}
-        {%
-        if
-        !events.has_next()
-        %}disabled{%
-        endif
-        %}
+        style="{% if months.is_empty() || !events.has_next() %}display: none{% endif %}"
       >
         <span aria-hidden="true">↓</span>
-        <span>Load more</span>
+        Load more
       </button>
       <p id="timeline-status" class="text-xs text-stone-500" hidden>Loading…</p>
-      <p
-        id="timeline-end"
-        class="text-sm text-stone-500"
-        {%
-        if
-        events.has_next()
-        %}hidden{%
-        endif
-        %}
-      >
-        No more events.
-      </p>
+      <p id="timeline-end" class="text-sm text-stone-500" style="{% if events.has_next() || months.is_empty() %}display: none{% endif %}">No more events.</p>
       <p id="timeline-error" class="text-sm text-red-600" hidden></p>
     </div>
     <div id="timeline-sentinel" class="h-1"></div>
   </section>
-  <aside class="sticky top-24 self-start lg:top-28">
-    <div class="rounded-lg border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">Jump to</h2>
-      {% if months.is_empty() %}
-      <p class="mt-3 text-sm text-stone-600">
-        Timeline navigation will appear once events are available.
-      </p>
-      {% else %}
-      <nav class="mt-3 text-sm">
-        <ul class="flex flex-col gap-2" data-role="timeline-nav-list">
-          {% for month in months %}
-          <li data-timeline-nav-item>
-            <a
-              href="#{{ month.anchor }}"
-              class="block rounded-md border border-transparent px-3 py-2 transition hover:border-amber-400 hover:bg-amber-100/70 hover:text-amber-700"
-              >{{ month.heading }}</a
-            >
-          </li>
-          {% endfor %}
-        </ul>
-      </nav>
-      {% endif %}
-    </div>
-  </aside>
 </div>
 
 <script type="module">
   const loader = document.getElementById("timeline-loader")
   const monthsContainer = document.getElementById("timeline-events")
-  const navList = document.querySelector('[data-role="timeline-nav-list"]')
   const loadMoreButton = document.getElementById("timeline-load-more")
   const statusLine = document.getElementById("timeline-status")
   const endLine = document.getElementById("timeline-end")
@@ -106,11 +59,12 @@
 
   if (loader && monthsContainer && sentinel) {
     let nextUrl = loader.dataset.nextUrl || ""
+    let hasMorePages = loader.dataset.hasMore === "true"
     let loading = false
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
+        if (entries.some((entry) => entry.isIntersecting) && hasMorePages && nextUrl) {
           void loadMore()
         }
       },
@@ -118,18 +72,14 @@
     )
 
     const setHasMore = (hasMore, url) => {
-      loader.dataset.hasMore = hasMore ? "true" : "false"
+      hasMorePages = hasMore
       nextUrl = url || ""
+      loader.dataset.hasMore = hasMore ? "true" : "false"
       loader.dataset.nextUrl = nextUrl
-      if (loadMoreButton) {
-        loadMoreButton.disabled = !hasMore
-      }
-      if (endLine) {
-        endLine.hidden = hasMore || loader.dataset.empty === "true"
-      }
-      if (hasMore) {
-        observer.observe(sentinel)
-      } else {
+
+      if (!hasMore) {
+        if (loadMoreButton) loadMoreButton.style.display = "none"
+        if (endLine) endLine.style.display = ""
         observer.disconnect()
       }
     }
@@ -149,33 +99,23 @@
           const existingList = existing.querySelector("ol")
           const newList = monthNode.querySelector("ol")
           if (existingList && newList) {
-            existingList.append(...Array.from(newList.children))
+            // Count existing items to continue the alternating pattern
+            const existingCount = existingList.querySelectorAll(".timeline-item").length
+            // Filter to only timeline-items (exclude the timeline-line div)
+            const newItems = Array.from(newList.querySelectorAll(".timeline-item"))
+
+            // Adjust left/right classes to continue the pattern
+            newItems.forEach((item, i) => {
+              const newIndex = existingCount + i + 1 // 1-based
+              const shouldBeLeft = newIndex % 2 === 1
+              item.classList.remove("timeline-item-left", "timeline-item-right")
+              item.classList.add(shouldBeLeft ? "timeline-item-left" : "timeline-item-right")
+            })
+
+            existingList.append(...newItems)
           }
         } else {
-          monthsContainer.appendChild(monthNode)
-        }
-      }
-    }
-
-    const appendNavItems = (chunk) => {
-      if (!navList) {
-        return
-      }
-      const navItemsContainer = chunk.querySelector("[data-chunk-nav-items]")
-      if (!navItemsContainer) {
-        return
-      }
-      for (const item of Array.from(navItemsContainer.children)) {
-        const link = item.querySelector("a")
-        if (!link) {
-          continue
-        }
-        const href = link.getAttribute("href")
-        if (!href) {
-          continue
-        }
-        if (!navList.querySelector(`a[href="${href}"]`)) {
-          navList.appendChild(item)
+          monthsContainer.insertBefore(monthNode, loader)
         }
       }
     }
@@ -188,9 +128,8 @@
     }
 
     const loadMore = async () => {
-      if (!nextUrl || loading) {
-        return
-      }
+      if (loading || !hasMorePages || !nextUrl) return
+
       loading = true
       if (statusLine) {
         statusLine.hidden = false
@@ -198,6 +137,7 @@
       if (errorLine) {
         errorLine.hidden = true
       }
+
       try {
         const response = await fetch(nextUrl, {
           headers: {
@@ -215,8 +155,8 @@
         if (!chunk) {
           throw new Error("Invalid timeline chunk payload")
         }
+
         appendMonths(chunk)
-        appendNavItems(chunk)
         clearEmptyState()
 
         const hasMore = chunk.dataset.hasMore === "true"
@@ -227,9 +167,6 @@
         if (errorLine) {
           errorLine.textContent = "Failed to load more events. Please try again."
           errorLine.hidden = false
-        }
-        if (loadMoreButton) {
-          loadMoreButton.disabled = false
         }
       } finally {
         loading = false
@@ -245,9 +182,43 @@
       })
     }
 
-    if (loader.dataset.empty !== "true" && nextUrl) {
+    if (hasMorePages && loader.dataset.empty !== "true") {
       observer.observe(sentinel)
     }
   }
+
+  // Sticky header detection - observe all current and future headings
+  const stickyObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        entry.target.classList.toggle("is-stuck", !entry.isIntersecting)
+      })
+    },
+    { rootMargin: "-1px 0px 0px 0px", threshold: 1 }
+  )
+
+  // Use MutationObserver to watch for new month headings being added
+  const mutationObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const heading = node.querySelector?.(".timeline-heading")
+          if (heading) {
+            stickyObserver.observe(heading)
+          }
+        }
+      })
+    })
+  })
+
+  const timelineContainer = document.getElementById("timeline-events")
+  if (timelineContainer) {
+    mutationObserver.observe(timelineContainer, { childList: true })
+  }
+
+  // Observe existing headings
+  document.querySelectorAll(".timeline-heading").forEach((heading) => {
+    stickyObserver.observe(heading)
+  })
 </script>
 {% endblock %}
