@@ -519,6 +519,37 @@ fi
   --closed true \
   --finished-at "2026-01-28"
 
+# ============================================================================
+# Gear - 2 grinders and 3 brewers
+# ============================================================================
+
+# Grinders
+./target/debug/brewlog add-gear \
+  --category "grinder" \
+  --make "Comandante" \
+  --model "C40 MK4"
+
+./target/debug/brewlog add-gear \
+  --category "grinder" \
+  --make "1Zpresso" \
+  --model "J-Max"
+
+# Brewers
+./target/debug/brewlog add-gear \
+  --category "brewer" \
+  --make "Hario" \
+  --model "V60 02"
+
+./target/debug/brewlog add-gear \
+  --category "brewer" \
+  --make "AeroPress" \
+  --model "Original"
+
+./target/debug/brewlog add-gear \
+  --category "brewer" \
+  --make "Fellow" \
+  --model "Stagg XF"
+
 echo "Bootstrapped database"
 echo
 echo "Set token $BREWLOG_TOKEN to use the data added here."
