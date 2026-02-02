@@ -1,4 +1,5 @@
 pub mod bags;
+pub mod brews;
 pub mod gear;
 mod macros;
 pub mod roasters;
@@ -8,6 +9,7 @@ pub mod tokens;
 use std::net::SocketAddr;
 
 use bags::BagCommands;
+use brews::BrewCommands;
 use clap::{Args, Parser, Subcommand};
 use gear::GearCommands;
 use roasters::RoasterCommands;
@@ -56,6 +58,12 @@ pub enum Commands {
     Gear {
         #[command(subcommand)]
         command: GearCommands,
+    },
+
+    /// Manage brews
+    Brew {
+        #[command(subcommand)]
+        command: BrewCommands,
     },
 
     /// Manage API tokens

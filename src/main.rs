@@ -2,7 +2,7 @@ use anyhow::Result;
 use brewlog::application::{ServerConfig, serve};
 use brewlog::infrastructure::client::BrewlogClient;
 use brewlog::presentation::cli::{
-    Cli, Commands, ServeCommand, bags, gear, roasters, roasts, tokens,
+    Cli, Commands, ServeCommand, bags, brews, gear, roasters, roasts, tokens,
 };
 use clap::Parser;
 
@@ -36,6 +36,10 @@ async fn main() -> Result<()> {
         Commands::Gear { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
             gear::run(&client, command).await
+        }
+        Commands::Brew { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            brews::run(&client, command).await
         }
         Commands::Token { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
