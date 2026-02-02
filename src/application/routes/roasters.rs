@@ -52,8 +52,7 @@ pub(crate) async fn roasters_page(
     let request = query.into_request::<RoasterSortKey>();
 
     if is_datastar_request(&headers) {
-        let is_authenticated =
-            crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+        let is_authenticated = super::is_authenticated(&state, &cookies).await;
         return render_roaster_list_fragment(state, request, is_authenticated)
             .await
             .map_err(map_app_error);
@@ -63,8 +62,7 @@ pub(crate) async fn roasters_page(
         .await
         .map_err(map_app_error)?;
 
-    let is_authenticated =
-        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
     let template = RoastersTemplate {
         nav_active: "roasters",
@@ -94,8 +92,7 @@ pub(crate) async fn roaster_page(
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
     let roaster_view = RoasterView::from(roaster);
-    let is_authenticated =
-        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
     let template = RoasterDetailTemplate {
         nav_active: "roasters",

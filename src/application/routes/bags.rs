@@ -77,8 +77,7 @@ pub(crate) async fn bags_page(
     let request = query.into_request::<BagSortKey>();
 
     if is_datastar_request(&headers) {
-        let is_authenticated =
-            crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+        let is_authenticated = super::is_authenticated(&state, &cookies).await;
         return render_bag_list_fragment(state, request, is_authenticated)
             .await
             .map_err(map_app_error);
@@ -100,8 +99,7 @@ pub(crate) async fn bags_page(
         .await
         .map_err(map_app_error)?;
 
-    let is_authenticated =
-        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
     let template = BagsTemplate {
         nav_active: "bags",

@@ -7,6 +7,8 @@ pub mod support;
 pub mod timeline;
 pub mod tokens;
 
+pub(crate) use auth::is_authenticated;
+
 use askama::Template;
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};

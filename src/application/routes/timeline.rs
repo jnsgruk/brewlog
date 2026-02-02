@@ -36,8 +36,7 @@ pub(crate) async fn timeline_page(
         .await
         .map_err(map_app_error)?;
 
-    let is_authenticated =
-        crate::application::routes::auth::is_authenticated(&state, &cookies).await;
+    let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
     let template = TimelineTemplate {
         nav_active: "timeline",
