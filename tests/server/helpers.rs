@@ -215,3 +215,74 @@ pub async fn create_roaster_with_name(app: &TestApp, name: &str) -> Roaster {
     )
     .await
 }
+
+pub async fn create_default_bag(
+    app: &TestApp,
+    roast_id: brewlog::domain::ids::RoastId,
+) -> brewlog::domain::bags::Bag {
+    let client = Client::new();
+    let new_bag = brewlog::domain::bags::NewBag {
+        roast_id,
+        roast_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 1, 1).unwrap()),
+        amount: 250.0,
+    };
+
+    let mut request = client.post(app.api_url("/bags")).json(&new_bag);
+
+    if let Some(token) = &app.auth_token {
+        request = request.bearer_auth(token);
+    }
+
+    let response = request.send().await.expect("failed to create bag via API");
+
+    response
+        .json()
+        .await
+        .expect("failed to deserialize bag from response")
+}
+
+/// Asserts that the response has valid Datastar fragment headers
+pub fn assert_datastar_headers(response: &reqwest::Response, expected_selector: &str) {
+    let selector = response
+        .headers()
+        .get("datastar-selector")
+        .and_then(|v| v.to_str().ok());
+    assert_eq!(
+        selector,
+        Some(expected_selector),
+        "Expected datastar-selector header to be '{}', got {:?}",
+        expected_selector,
+        selector
+    );
+
+    let mode = response
+        .headers()
+        .get("datastar-mode")
+        .and_then(|v| v.to_str().ok());
+    assert_eq!(
+        mode,
+        Some("replace"),
+        "Expected datastar-mode header to be 'replace', got {:?}",
+        mode
+    );
+}
+
+/// Asserts that the response body is an HTML fragment (not a full page)
+pub fn assert_html_fragment(body: &str) {
+    assert!(
+        !body.contains("<!DOCTYPE"),
+        "Expected HTML fragment, but found DOCTYPE declaration"
+    );
+    assert!(
+        !body.contains("<html"),
+        "Expected HTML fragment, but found <html> tag"
+    );
+}
+
+/// Asserts that the body contains full HTML page structure
+pub fn assert_full_page(body: &str) {
+    assert!(
+        body.contains("<!DOCTYPE") || body.contains("<html"),
+        "Expected full HTML page with DOCTYPE or <html> tag"
+    );
+}
