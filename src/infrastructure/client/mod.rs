@@ -1,4 +1,5 @@
 pub mod bags;
+pub mod brews;
 pub mod gear;
 pub mod roasters;
 pub mod roasts;
@@ -59,6 +60,10 @@ impl BrewlogClient {
 
     pub fn gear(&self) -> gear::GearClient<'_> {
         gear::GearClient::new(self)
+    }
+
+    pub fn brews(&self) -> brews::BrewsClient<'_> {
+        brews::BrewsClient::new(self)
     }
 
     pub(crate) fn endpoint(&self, path: &str) -> Result<Url> {
