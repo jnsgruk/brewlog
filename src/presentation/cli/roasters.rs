@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Args;
-use serde_json::json;
 
+use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::RoasterId;
 use crate::domain::roasters::{NewRoaster, UpdateRoaster};
@@ -39,16 +39,7 @@ pub async fn list_roasters(client: &BrewlogClient) -> Result<()> {
     print_json(&roasters)
 }
 
-#[derive(Debug, Args)]
-pub struct GetRoasterCommand {
-    #[arg(long)]
-    pub id: i64,
-}
-
-pub async fn get_roaster(client: &BrewlogClient, command: GetRoasterCommand) -> Result<()> {
-    let roaster = client.roasters().get(RoasterId::new(command.id)).await?;
-    print_json(&roaster)
-}
+define_get_command!(GetRoasterCommand, get_roaster, RoasterId, roasters);
 
 #[derive(Debug, Args)]
 pub struct UpdateRoasterCommand {
@@ -82,19 +73,4 @@ pub async fn update_roaster(client: &BrewlogClient, command: UpdateRoasterComman
     print_json(&roaster)
 }
 
-#[derive(Debug, Args)]
-pub struct DeleteRoasterCommand {
-    #[arg(long)]
-    pub id: i64,
-}
-
-pub async fn delete_roaster(client: &BrewlogClient, command: DeleteRoasterCommand) -> Result<()> {
-    let id = RoasterId::new(command.id);
-    client.roasters().delete(id).await?;
-    let response = json!({
-        "status": "deleted",
-        "resource": "roaster",
-        "id": id.into_inner(),
-    });
-    print_json(&response)
-}
+define_delete_command!(DeleteRoasterCommand, delete_roaster, RoasterId, roasters, "roaster");

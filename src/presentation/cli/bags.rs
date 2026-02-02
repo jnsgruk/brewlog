@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Args;
-use serde_json::json;
 
+use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::{BagId, RoastId};
 use crate::infrastructure::client::BrewlogClient;
@@ -42,16 +42,7 @@ pub async fn list_bags(client: &BrewlogClient, command: ListBagsCommand) -> Resu
     print_json(&bags)
 }
 
-#[derive(Debug, Args)]
-pub struct GetBagCommand {
-    #[arg(long)]
-    pub id: i64,
-}
-
-pub async fn get_bag(client: &BrewlogClient, command: GetBagCommand) -> Result<()> {
-    let bag = client.bags().get(BagId::new(command.id)).await?;
-    print_json(&bag)
-}
+define_get_command!(GetBagCommand, get_bag, BagId, bags);
 
 #[derive(Debug, Args)]
 pub struct UpdateBagCommand {
@@ -83,19 +74,4 @@ pub async fn update_bag(client: &BrewlogClient, command: UpdateBagCommand) -> Re
     print_json(&bag)
 }
 
-#[derive(Debug, Args)]
-pub struct DeleteBagCommand {
-    #[arg(long)]
-    pub id: i64,
-}
-
-pub async fn delete_bag(client: &BrewlogClient, command: DeleteBagCommand) -> Result<()> {
-    let id = BagId::new(command.id);
-    client.bags().delete(id).await?;
-    let response = json!({
-        "status": "deleted",
-        "resource": "bag",
-        "id": id.into_inner(),
-    });
-    print_json(&response)
-}
+define_delete_command!(DeleteBagCommand, delete_bag, BagId, bags, "bag");

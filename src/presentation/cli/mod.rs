@@ -1,3 +1,4 @@
+mod macros;
 pub mod bags;
 pub mod roasters;
 pub mod roasts;
