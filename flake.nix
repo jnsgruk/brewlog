@@ -33,8 +33,6 @@
           inherit (pkgsForSystem system)
             lib
             rustPlatform
-            pkg-config
-            openssl
             ;
 
           cargoToml = lib.trivial.importTOML ./Cargo.toml;
@@ -48,10 +46,6 @@
             version = version;
             src = lib.cleanSource ./.;
             cargoLock.lockFile = ./Cargo.lock;
-
-            nativeBuildInputs = [ pkg-config ];
-
-            buildInputs = [ openssl ];
 
             meta = {
               description = "Log your favourite roasters, roasts, brews and cafes!";
@@ -84,18 +78,13 @@
 
             NIX_CONFIG = "experimental-features = nix-command flakes";
             RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
-            LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [ openssl ];
 
             buildInputs =
               with pkgs;
               [
                 cargo-watch
-                clang
-                lld
                 nil
-                nixfmt-rfc-style
-                openssl
-                pkg-config
+                nixfmt
                 sqlite
                 sqlx-cli
               ]
