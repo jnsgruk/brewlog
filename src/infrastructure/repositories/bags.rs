@@ -84,6 +84,10 @@ impl SqlBagRepository {
     fn build_where_clause(filter: &BagFilter) -> Option<String> {
         let mut conditions = Vec::new();
 
+        // SAFETY: Direct interpolation is safe here because:
+        // - `closed` is a bool, outputting literal "TRUE"/"FALSE"
+        // - `roast_id` is an i64 from a typed wrapper
+        // If adding string-based filters, use parameterized queries instead.
         if let Some(closed) = filter.closed {
             conditions.push(format!(
                 "b.closed = {}",
