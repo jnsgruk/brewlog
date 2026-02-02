@@ -11,6 +11,7 @@ use brewlog::domain::users::NewUser;
 use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
+use brewlog::infrastructure::repositories::gear::SqlGearRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
 use brewlog::infrastructure::repositories::sessions::SqlSessionRepository;
@@ -55,6 +56,7 @@ pub async fn spawn_app() -> TestApp {
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
     let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
+    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -68,6 +70,7 @@ pub async fn spawn_app() -> TestApp {
         roaster_repo.clone(),
         roast_repo.clone(),
         bag_repo.clone(),
+        gear_repo.clone(),
         timeline_repo.clone(),
         user_repo.clone(),
         token_repo.clone(),

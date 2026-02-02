@@ -511,3 +511,247 @@ async fn timeline_without_datastar_header_returns_full_page() {
     let body = response.text().await.expect("failed to read body");
     assert_full_page(&body);
 }
+
+// ============================================================================
+// Gear
+// ============================================================================
+
+#[tokio::test]
+async fn gear_list_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    // Create gear
+    let new_gear = serde_json::json!({
+        "category": "grinder",
+        "make": "Baratza",
+        "model": "Encore"
+    });
+
+    client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_gear)
+        .send()
+        .await
+        .expect("failed to create gear");
+
+    let response = client
+        .get(format!("{}/gear", app.address))
+        .header("datastar-request", "true")
+        .send()
+        .await
+        .expect("failed to fetch gear");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#gear-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+    assert!(
+        body.contains("id=\"gear-list\""),
+        "Fragment should contain the selector element"
+    );
+}
+
+#[tokio::test]
+async fn gear_list_without_datastar_header_returns_full_page() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let response = client
+        .get(format!("{}/gear", app.address))
+        .send()
+        .await
+        .expect("failed to fetch gear");
+
+    assert_eq!(response.status(), 200);
+    assert!(response.headers().get("datastar-selector").is_none());
+
+    let body = response.text().await.expect("failed to read body");
+    assert_full_page(&body);
+}
+
+#[tokio::test]
+async fn gear_create_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let new_gear = serde_json::json!({
+        "category": "grinder",
+        "make": "Datastar Grinder",
+        "model": "Test Model"
+    });
+
+    let response = client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&new_gear)
+        .send()
+        .await
+        .expect("failed to create gear");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#gear-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+    assert!(
+        body.contains("Datastar Grinder"),
+        "Fragment should include created gear"
+    );
+}
+
+#[tokio::test]
+async fn gear_create_without_datastar_header_returns_json() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let new_gear = serde_json::json!({
+        "category": "brewer",
+        "make": "JSON Test Brewer",
+        "model": "V60"
+    });
+
+    let response = client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_gear)
+        .send()
+        .await
+        .expect("failed to create gear");
+
+    assert_eq!(response.status(), 201);
+    assert!(response.headers().get("datastar-selector").is_none());
+
+    let gear: brewlog::domain::gear::Gear = response.json().await.expect("failed to parse JSON");
+    assert_eq!(gear.make, "JSON Test Brewer");
+}
+
+#[tokio::test]
+async fn gear_update_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    // Create gear first
+    let new_gear = serde_json::json!({
+        "category": "grinder",
+        "make": "Original Make",
+        "model": "Original Model"
+    });
+
+    let create_response = client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_gear)
+        .send()
+        .await
+        .expect("failed to create gear");
+
+    let gear: brewlog::domain::gear::Gear = create_response.json().await.unwrap();
+
+    // Update gear
+    let update = brewlog::domain::gear::UpdateGear {
+        make: Some("Updated Make".to_string()),
+        model: None,
+        notes: Some("Test notes".to_string()),
+    };
+
+    let response = client
+        .put(app.api_url(&format!("/gear/{}", gear.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update gear");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#gear-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+}
+
+#[tokio::test]
+async fn gear_update_without_datastar_header_returns_json() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    // Create gear first
+    let new_gear = serde_json::json!({
+        "category": "grinder",
+        "make": "Original Make",
+        "model": "Original Model"
+    });
+
+    let create_response = client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_gear)
+        .send()
+        .await
+        .expect("failed to create gear");
+
+    let gear: brewlog::domain::gear::Gear = create_response.json().await.unwrap();
+
+    // Update gear
+    let update = brewlog::domain::gear::UpdateGear {
+        make: Some("JSON Updated".to_string()),
+        model: None,
+        notes: None,
+    };
+
+    let response = client
+        .put(app.api_url(&format!("/gear/{}", gear.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update gear");
+
+    assert_eq!(response.status(), 200);
+    assert!(response.headers().get("datastar-selector").is_none());
+
+    let updated_gear: brewlog::domain::gear::Gear =
+        response.json().await.expect("failed to parse JSON");
+    assert_eq!(updated_gear.make, "JSON Updated");
+}
+
+#[tokio::test]
+async fn gear_delete_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    // Create gear first
+    let new_gear = serde_json::json!({
+        "category": "grinder",
+        "make": "To Delete",
+        "model": "Test Model"
+    });
+
+    let create_response = client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_gear)
+        .send()
+        .await
+        .expect("failed to create gear");
+
+    let gear: brewlog::domain::gear::Gear = create_response.json().await.unwrap();
+
+    let response = client
+        .delete(app.api_url(&format!("/gear/{}", gear.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .send()
+        .await
+        .expect("failed to delete gear");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#gear-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+}

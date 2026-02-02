@@ -411,3 +411,50 @@ async fn closing_a_bag_surfaces_on_the_timeline() {
         "Expected 'Bag Finished' badge in timeline HTML, got: {body}"
     );
 }
+
+#[tokio::test]
+async fn creating_gear_surfaces_on_the_timeline() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    // Create gear
+    let gear_submission = serde_json::json!({
+        "category": "grinder",
+        "make": "Baratza",
+        "model": "Encore",
+        "notes": "Timeline test grinder"
+    });
+
+    let response = client
+        .post(app.api_url("/gear"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&gear_submission)
+        .send()
+        .await
+        .expect("failed to create gear");
+    assert_eq!(response.status(), 201);
+
+    sleep(Duration::from_millis(10)).await;
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("failed to read response body");
+    assert!(
+        body.contains("Gear Added"),
+        "Expected 'Gear Added' badge in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains("Baratza Encore"),
+        "Expected gear title to appear in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains("Grinder"),
+        "Expected gear category to appear in timeline HTML, got: {body}"
+    );
+}
