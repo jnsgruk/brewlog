@@ -415,6 +415,83 @@ fi
   --process "Washed" \
   --tasting-notes "Black Tea, Orange, Cane Sugar"
 
+# ============================================================================
+# Bags - Various bags from different roasters with amounts ranging 100g-500g
+# ============================================================================
+
+# Tim Wendelboe - Ben Saïd Natural (250g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
+  --roast-date "2026-01-15" \
+  --amount 250
+
+# Tim Wendelboe - Finca Tamana Washed (350g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
+  --roast-date "2026-01-18" \
+  --amount 350
+
+# Coffee Collective - Daterra Sweet Collection (200g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
+  --roast-date "2026-01-10" \
+  --amount 200
+
+# Drop Coffee - La Linda (500g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="La Linda") | .id')" \
+  --roast-date "2026-01-20" \
+  --amount 500
+
+# La Cabra - Halo Beriti (150g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
+  --roast-date "2026-01-12" \
+  --amount 150
+
+# April Coffee - Guji Highland (300g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
+  --roast-date "2026-01-22" \
+  --amount 300
+
+# Assembly Coffee - Kochere (250g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Kochere") | .id')" \
+  --roast-date "2026-01-08" \
+  --amount 250
+
+# Square Mile Coffee - Red Brick Espresso (400g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
+  --roast-date "2026-01-25" \
+  --amount 400
+
+# Dak Coffee Roasters - El Paraiso 92 Anaerobic (100g - small competition lot)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
+  --roast-date "2026-01-28" \
+  --amount 100
+
+# Bonanza Coffee - Gatomboya (175g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
+  --roast-date "2026-01-05" \
+  --amount 175
+
+# Stow Coffee - Suke Quto (225g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
+  --roast-date "2026-01-30" \
+  --amount 225
+
+# Bows Coffee - Simbi (450g)
+./target/debug/brewlog add-bag \
+  --roast-id "$(./target/debug/brewlog list-roasts | jq -r '.[] | select(.name=="Simbi") | .id')" \
+  --roast-date "2026-01-14" \
+  --amount 450
+
+
 echo "Bootstrapped database"
 echo
 echo "Set token $BREWLOG_TOKEN to use the data added here."
