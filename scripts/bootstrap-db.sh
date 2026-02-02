@@ -491,6 +491,33 @@ fi
   --roast-date "2026-01-14" \
   --amount 450
 
+# ============================================================================
+# Finished Bags - Mark 4 older bags as finished
+# ============================================================================
+
+# Finish Gatomboya bag (oldest - Jan 5)
+./target/debug/brewlog update-bag \
+  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Gatomboya") | .id')" \
+  --closed true \
+  --finished-at "2026-01-20"
+
+# Finish Kochere bag (Jan 8)
+./target/debug/brewlog update-bag \
+  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Kochere") | .id')" \
+  --closed true \
+  --finished-at "2026-01-22"
+
+# Finish Daterra Sweet Collection bag (Jan 10)
+./target/debug/brewlog update-bag \
+  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Daterra Sweet Collection") | .id')" \
+  --closed true \
+  --finished-at "2026-01-25"
+
+# Finish Halo Beriti bag (Jan 12)
+./target/debug/brewlog update-bag \
+  --id "$(./target/debug/brewlog list-bags | jq -r '.[] | select(.roast_name=="Halo Beriti") | .id')" \
+  --closed true \
+  --finished-at "2026-01-28"
 
 echo "Bootstrapped database"
 echo
