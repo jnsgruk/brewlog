@@ -2,8 +2,9 @@ use super::RepositoryError;
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::brews::{Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
 use crate::domain::gear::{Gear, GearFilter, GearSortKey, NewGear, UpdateGear};
-use crate::domain::ids::{BagId, GearId, RoastId, RoasterId, SessionId, TokenId, UserId};
+use crate::domain::ids::{BagId, BrewId, GearId, RoastId, RoasterId, SessionId, TokenId, UserId};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
@@ -147,4 +148,19 @@ pub trait GearRepository: Send + Sync {
     ) -> Result<Page<Gear>, RepositoryError>;
     async fn update(&self, id: GearId, changes: UpdateGear) -> Result<Gear, RepositoryError>;
     async fn delete(&self, id: GearId) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait BrewRepository: Send + Sync {
+    /// Insert a new brew and deduct `coffee_weight` from the bag's remaining amount.
+    /// This is a transactional operation.
+    async fn insert(&self, brew: NewBrew) -> Result<Brew, RepositoryError>;
+    async fn get(&self, id: BrewId) -> Result<Brew, RepositoryError>;
+    async fn get_with_details(&self, id: BrewId) -> Result<BrewWithDetails, RepositoryError>;
+    async fn list(
+        &self,
+        filter: BrewFilter,
+        request: &ListRequest<BrewSortKey>,
+    ) -> Result<Page<BrewWithDetails>, RepositoryError>;
+    async fn delete(&self, id: BrewId) -> Result<(), RepositoryError>;
 }

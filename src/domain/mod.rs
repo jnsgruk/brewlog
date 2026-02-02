@@ -1,4 +1,5 @@
 pub mod bags;
+pub mod brews;
 pub mod errors;
 pub mod gear;
 pub mod ids;
