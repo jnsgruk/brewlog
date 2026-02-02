@@ -1,4 +1,4 @@
-use crate::helpers::{create_roaster, create_token, run_brewlog, server_info};
+use crate::helpers::{create_roast, create_roaster, create_token, run_brewlog, server_info};
 use serde_json::Value;
 
 #[test]
@@ -154,6 +154,47 @@ fn test_list_roasts_shows_added_roast() {
         roast_id,
         roasts_array.len()
     );
+}
+
+#[test]
+fn test_update_roast_requires_authentication() {
+    let _ = server_info();
+
+    let output = run_brewlog(
+        &["roast", "update", "--id", "123", "--name", "Updated"],
+        &[],
+    );
+
+    assert!(
+        !output.status.success(),
+        "roast update without auth should fail"
+    );
+}
+
+#[test]
+fn test_update_roast_with_authentication() {
+    let token = create_token("test-update-roast");
+
+    // Setup: create roaster and roast
+    let roaster_id = create_roaster("Update Roast Roaster", &token);
+    let roast_id = create_roast(&roaster_id, "Original Name", &token);
+
+    // Update the roast
+    let output = run_brewlog(
+        &[
+            "roast",
+            "update",
+            "--id",
+            &roast_id,
+            "--name",
+            "Updated Name",
+        ],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+
+    assert!(output.status.success());
+    let updated_roast: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(updated_roast["name"], "Updated Name");
 }
 
 #[test]

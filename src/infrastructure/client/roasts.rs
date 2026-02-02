@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use reqwest::StatusCode;
 
 use crate::domain::ids::{RoastId, RoasterId};
-use crate::domain::roasts::{NewRoast, RoastWithRoaster};
+use crate::domain::roasts::{NewRoast, RoastWithRoaster, UpdateRoast};
 
 use super::BrewlogClient;
 
@@ -53,6 +53,19 @@ impl<'a> RoastsClient<'a> {
             .send()
             .await
             .context("failed to issue get roast request")?;
+
+        self.inner.handle_response(response).await
+    }
+
+    pub async fn update(&self, id: RoastId, payload: &UpdateRoast) -> Result<RoastWithRoaster> {
+        let url = self.inner.endpoint(&format!("api/v1/roasts/{id}"))?;
+        let response = self
+            .inner
+            .request(reqwest::Method::PUT, url)
+            .json(payload)
+            .send()
+            .await
+            .context("failed to issue update roast request")?;
 
         self.inner.handle_response(response).await
     }

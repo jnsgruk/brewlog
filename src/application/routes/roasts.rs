@@ -16,7 +16,7 @@ use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
-use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster};
+use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::presentation::web::templates::{
     RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
 };
@@ -226,6 +226,40 @@ define_delete_handler!(
     roast_repo,
     render_roast_list_fragment
 );
+
+#[tracing::instrument(skip(state, _auth_user))]
+pub(crate) async fn update_roast(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    Path(id): Path<RoastId>,
+    Json(payload): Json<UpdateRoast>,
+) -> Result<Json<RoastWithRoaster>, ApiError> {
+    let has_changes = payload.roaster_id.is_some()
+        || payload.name.is_some()
+        || payload.origin.is_some()
+        || payload.region.is_some()
+        || payload.producer.is_some()
+        || payload.tasting_notes.is_some()
+        || payload.process.is_some();
+
+    if !has_changes {
+        return Err(AppError::validation("no changes provided").into());
+    }
+
+    state
+        .roast_repo
+        .update(id, payload)
+        .await
+        .map_err(AppError::from)?;
+
+    let enriched = state
+        .roast_repo
+        .get_with_roaster(id)
+        .await
+        .map_err(AppError::from)?;
+
+    Ok(Json(enriched))
+}
 
 #[derive(Debug, Deserialize)]
 pub struct RoastsQuery {

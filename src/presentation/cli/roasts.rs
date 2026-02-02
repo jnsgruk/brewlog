@@ -4,7 +4,7 @@ use clap::{Args, Subcommand};
 use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
 use crate::domain::ids::{RoastId, RoasterId};
-use crate::domain::roasts::NewRoast;
+use crate::domain::roasts::{NewRoast, UpdateRoast};
 use crate::infrastructure::client::BrewlogClient;
 
 #[derive(Debug, Subcommand)]
@@ -15,6 +15,8 @@ pub enum RoastCommands {
     List(ListRoastsCommand),
     /// Get a roast by ID
     Get(GetRoastCommand),
+    /// Update a roast
+    Update(UpdateRoastCommand),
     /// Delete a roast
     Delete(DeleteRoastCommand),
 }
@@ -24,6 +26,7 @@ pub async fn run(client: &BrewlogClient, cmd: RoastCommands) -> Result<()> {
         RoastCommands::Add(c) => add_roast(client, c).await,
         RoastCommands::List(c) => list_roasts(client, c).await,
         RoastCommands::Get(c) => get_roast(client, c).await,
+        RoastCommands::Update(c) => update_roast(client, c).await,
         RoastCommands::Delete(c) => delete_roast(client, c).await,
     }
 }
@@ -76,4 +79,43 @@ pub async fn list_roasts(client: &BrewlogClient, command: ListRoastsCommand) -> 
 }
 
 define_get_command!(GetRoastCommand, get_roast, RoastId, roasts);
+
+#[derive(Debug, Args)]
+pub struct UpdateRoastCommand {
+    #[arg(long)]
+    pub id: i64,
+    #[arg(long)]
+    pub roaster_id: Option<i64>,
+    #[arg(long)]
+    pub name: Option<String>,
+    #[arg(long)]
+    pub origin: Option<String>,
+    #[arg(long)]
+    pub region: Option<String>,
+    #[arg(long)]
+    pub producer: Option<String>,
+    #[arg(long)]
+    pub process: Option<String>,
+    #[arg(long = "tasting-notes")]
+    pub tasting_notes: Option<Vec<String>>,
+}
+
+pub async fn update_roast(client: &BrewlogClient, command: UpdateRoastCommand) -> Result<()> {
+    let payload = UpdateRoast {
+        roaster_id: command.roaster_id.map(RoasterId::new),
+        name: command.name,
+        origin: command.origin,
+        region: command.region,
+        producer: command.producer,
+        tasting_notes: command.tasting_notes,
+        process: command.process,
+    };
+
+    let roast = client
+        .roasts()
+        .update(RoastId::new(command.id), &payload)
+        .await?;
+    print_json(&roast)
+}
+
 define_delete_command!(DeleteRoastCommand, delete_roast, RoastId, roasts, "roast");

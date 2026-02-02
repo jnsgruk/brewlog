@@ -41,7 +41,9 @@ pub fn app_router(state: AppState) -> axum::Router {
         )
         .route(
             "/roasts/:id",
-            get(roasts::get_roast).delete(roasts::delete_roast),
+            get(roasts::get_roast)
+                .put(roasts::update_roast)
+                .delete(roasts::delete_roast),
         )
         .route("/bags", get(bags::list_bags).post(bags::create_bag))
         .route(
