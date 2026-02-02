@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use serde_json::{from_str, to_string};
 use sqlx::{Error as SqlxError, QueryBuilder, query, query_as, query_scalar};
 
+use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
@@ -261,94 +262,50 @@ impl RoastRepository for SqlRoastRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        let UpdateRoast {
-            roaster_id,
-            name,
-            origin,
-            region,
-            producer,
-            tasting_notes,
-            process,
-        } = changes;
-
         let mut builder = QueryBuilder::new("UPDATE roasts SET ");
-        let mut wrote_field = false;
+        let mut sep = false;
 
-        if let Some(roaster_id) = roaster_id {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
+        // Handle roaster_id specially due to type conversion
+        if let Some(roaster_id) = changes.roaster_id {
+            sep = true;
             builder.push("roaster_id = ");
             builder.push_bind(i64::from(roaster_id));
         }
-        if let Some(name) = name {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("name = ");
-            builder.push_bind(name);
-        }
-        if let Some(origin) = origin {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("origin = ");
-            builder.push_bind(origin);
-        }
-        if let Some(region) = region {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("region = ");
-            builder.push_bind(region);
-        }
-        if let Some(producer) = producer {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("producer = ");
-            builder.push_bind(producer);
-        }
-        if let Some(process) = process {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("process = ");
-            builder.push_bind(process);
-        }
-        if let Some(tasting_notes) = tasting_notes {
+
+        push_update_field!(builder, sep, "name", changes.name);
+        push_update_field!(builder, sep, "origin", changes.origin);
+        push_update_field!(builder, sep, "region", changes.region);
+        push_update_field!(builder, sep, "producer", changes.producer);
+        push_update_field!(builder, sep, "process", changes.process);
+
+        // Handle tasting_notes specially due to JSON encoding
+        if let Some(tasting_notes) = changes.tasting_notes {
             let notes_json = Self::encode_notes(&tasting_notes)?;
-            if wrote_field {
+            if sep {
                 builder.push(", ");
             }
-            wrote_field = true;
+            sep = true;
             builder.push("tasting_notes = ");
             builder.push_bind(notes_json);
         }
 
-        if wrote_field {
-            builder.push(" WHERE id = ");
-            builder.push_bind(i64::from(id));
-
-            let result = builder
-                .build()
-                .execute(&mut *tx)
-                .await
-                .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-            if result.rows_affected() == 0 {
-                return Err(RepositoryError::NotFound);
-            }
-        } else {
+        if !sep {
             return Err(RepositoryError::unexpected(
                 "No fields provided for update".to_string(),
             ));
+        }
+
+        builder.push(" WHERE id = ");
+        builder.push_bind(i64::from(id));
+
+        let result = builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        if result.rows_affected() == 0 {
+            return Err(RepositoryError::NotFound);
         }
 
         tx.commit()

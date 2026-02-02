@@ -217,10 +217,10 @@ pub(crate) async fn update_bag(
         finished_at: body_update.finished_at.or(update_params.finished_at),
     };
 
-    if let Some(true) = update.closed {
-        if update.finished_at.is_none() {
-            update.finished_at = Some(chrono::Utc::now().date_naive());
-        }
+    if let Some(true) = update.closed
+        && update.finished_at.is_none()
+    {
+        update.finished_at = Some(chrono::Utc::now().date_naive());
     }
 
     let bag = state
@@ -231,28 +231,28 @@ pub(crate) async fn update_bag(
 
     if let Some(true) = update.closed {
         // Fetch roast and roaster for timeline event
-        if let Ok(roast) = state.roast_repo.get(bag.roast_id).await {
-            if let Ok(roaster) = state.roaster_repo.get(roast.roaster_id).await {
-                let event = NewTimelineEvent {
-                    entity_type: "bag".to_string(),
-                    entity_id: bag.id.into_inner(),
-                    action: "finished".to_string(),
-                    occurred_at: chrono::Utc::now(),
-                    title: format!("{}", roast.name),
-                    details: vec![
-                        TimelineEventDetail {
-                            label: "Roaster".to_string(),
-                            value: roaster.name,
-                        },
-                        TimelineEventDetail {
-                            label: "Amount".to_string(),
-                            value: format!("{}g", bag.amount),
-                        },
-                    ],
-                    tasting_notes: vec![],
-                };
-                let _ = state.timeline_repo.insert(event).await;
-            }
+        if let Ok(roast) = state.roast_repo.get(bag.roast_id).await
+            && let Ok(roaster) = state.roaster_repo.get(roast.roaster_id).await
+        {
+            let event = NewTimelineEvent {
+                entity_type: "bag".to_string(),
+                entity_id: bag.id.into_inner(),
+                action: "finished".to_string(),
+                occurred_at: chrono::Utc::now(),
+                title: roast.name.to_string(),
+                details: vec![
+                    TimelineEventDetail {
+                        label: "Roaster".to_string(),
+                        value: roaster.name,
+                    },
+                    TimelineEventDetail {
+                        label: "Amount".to_string(),
+                        value: format!("{}g", bag.amount),
+                    },
+                ],
+                tasting_notes: vec![],
+            };
+            let _ = state.timeline_repo.insert(event).await;
         }
     }
 

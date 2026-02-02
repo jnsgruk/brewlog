@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, query, query_as};
 
+use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
@@ -20,7 +21,7 @@ impl SqlRoasterRepository {
         Self { pool }
     }
 
-    fn sort_clause(request: &ListRequest<RoasterSortKey>) -> String {
+    fn order_clause(request: &ListRequest<RoasterSortKey>) -> String {
         let dir_sql = match request.sort_direction() {
             SortDirection::Asc => "ASC",
             SortDirection::Desc => "DESC",
@@ -184,7 +185,7 @@ impl RoasterRepository for SqlRoasterRepository {
         &self,
         request: &ListRequest<RoasterSortKey>,
     ) -> Result<Page<Roaster>, RepositoryError> {
-        let order_clause = Self::sort_clause(request);
+        let order_clause = Self::order_clause(request);
         let base_query =
             "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters";
         let count_query = "SELECT COUNT(*) FROM roasters";
@@ -206,50 +207,15 @@ impl RoasterRepository for SqlRoasterRepository {
         changes: UpdateRoaster,
     ) -> Result<Roaster, RepositoryError> {
         let mut builder = QueryBuilder::new("UPDATE roasters SET ");
-        let mut wrote_field = false;
+        let mut sep = false;
 
-        if let Some(name) = changes.name {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("name = ");
-            builder.push_bind(name);
-        }
-        if let Some(country) = changes.country {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("country = ");
-            builder.push_bind(country);
-        }
-        if let Some(city) = changes.city {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("city = ");
-            builder.push_bind(city);
-        }
-        if let Some(homepage) = changes.homepage {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("homepage = ");
-            builder.push_bind(homepage);
-        }
-        if let Some(notes) = changes.notes {
-            if wrote_field {
-                builder.push(", ");
-            }
-            wrote_field = true;
-            builder.push("notes = ");
-            builder.push_bind(notes);
-        }
+        push_update_field!(builder, sep, "name", changes.name);
+        push_update_field!(builder, sep, "country", changes.country);
+        push_update_field!(builder, sep, "city", changes.city);
+        push_update_field!(builder, sep, "homepage", changes.homepage);
+        push_update_field!(builder, sep, "notes", changes.notes);
 
-        if !wrote_field {
+        if !sep {
             return Err(RepositoryError::unexpected(
                 "No fields provided for update".to_string(),
             ));

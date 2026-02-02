@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
-use sqlx::query_as;
+use sqlx::{QueryBuilder, query_as};
 
+use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::bags::{Bag, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
@@ -27,6 +28,23 @@ pub struct SqlBagRepository {
 impl SqlBagRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
+    }
+
+    fn order_clause(request: &ListRequest<BagSortKey>) -> String {
+        let sort_column = match request.sort_key {
+            BagSortKey::RoastDate => "b.roast_date",
+            BagSortKey::CreatedAt => "b.created_at",
+            BagSortKey::Roaster => "rr.name",
+            BagSortKey::Roast => "r.name",
+            BagSortKey::FinishedAt => "b.finished_at",
+        };
+
+        let direction = match request.sort_direction {
+            SortDirection::Asc => "ASC",
+            SortDirection::Desc => "DESC",
+        };
+
+        format!("{} {}", sort_column, direction)
     }
 
     fn to_domain(record: BagRecord) -> Bag {
@@ -106,21 +124,7 @@ impl BagRepository for SqlBagRepository {
         &self,
         request: &ListRequest<BagSortKey>,
     ) -> Result<Page<BagWithRoast>, RepositoryError> {
-        let sort_column = match request.sort_key {
-            BagSortKey::RoastDate => "b.roast_date",
-            BagSortKey::CreatedAt => "b.created_at",
-            BagSortKey::Roaster => "rr.name",
-            BagSortKey::Roast => "r.name",
-            BagSortKey::FinishedAt => "b.finished_at",
-        };
-
-        let direction = match request.sort_direction {
-            SortDirection::Asc => "ASC",
-            SortDirection::Desc => "DESC",
-        };
-
-        let order_clause = format!("{} {}", sort_column, direction);
-
+        let order_clause = Self::order_clause(request);
         let count_query = "SELECT COUNT(*) FROM bags";
 
         crate::infrastructure::repositories::pagination::paginate(
@@ -153,47 +157,20 @@ impl BagRepository for SqlBagRepository {
     }
 
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError> {
-        let mut query = "UPDATE bags SET updated_at = CURRENT_TIMESTAMP".to_string();
-        let mut has_changes = false;
+        let mut builder = QueryBuilder::new("UPDATE bags SET updated_at = CURRENT_TIMESTAMP");
+        let mut sep = true; // Already have updated_at
 
-        if changes.remaining.is_some() {
-            query.push_str(", remaining = ?");
-            has_changes = true;
-        }
+        push_update_field!(builder, sep, "remaining", changes.remaining);
+        push_update_field!(builder, sep, "closed", changes.closed);
+        push_update_field!(builder, sep, "finished_at", changes.finished_at);
+        let _ = sep; // Suppress unused_assignments warning from macro
 
-        if changes.closed.is_some() {
-            query.push_str(", closed = ?");
-            has_changes = true;
-        }
+        builder.push(" WHERE id = ");
+        builder.push_bind(id.into_inner());
+        builder.push(" RETURNING id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at");
 
-        if changes.finished_at.is_some() {
-            query.push_str(", finished_at = ?");
-            has_changes = true;
-        }
-
-        if !has_changes {
-            return self.get(id).await;
-        }
-
-        query.push_str(" WHERE id = ? RETURNING id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at");
-
-        let mut q = query_as::<_, BagRecord>(&query);
-
-        if let Some(remaining) = changes.remaining {
-            q = q.bind(remaining);
-        }
-
-        if let Some(closed) = changes.closed {
-            q = q.bind(closed);
-        }
-
-        if let Some(finished_at) = changes.finished_at {
-            q = q.bind(finished_at);
-        }
-
-        q = q.bind(id.into_inner());
-
-        let record = q
+        let record = builder
+            .build_query_as::<BagRecord>()
             .fetch_optional(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
@@ -239,23 +216,8 @@ impl BagRepository for SqlBagRepository {
         &self,
         request: &ListRequest<BagSortKey>,
     ) -> Result<Page<BagWithRoast>, RepositoryError> {
-        let sort_column = match request.sort_key {
-            BagSortKey::RoastDate => "b.roast_date",
-            BagSortKey::CreatedAt => "b.created_at",
-            BagSortKey::Roaster => "rr.name",
-            BagSortKey::Roast => "r.name",
-            BagSortKey::FinishedAt => "b.finished_at",
-        };
-
-        let direction = match request.sort_direction {
-            SortDirection::Asc => "ASC",
-            SortDirection::Desc => "DESC",
-        };
-
-        let order_clause = format!("{} {}", sort_column, direction);
-
+        let order_clause = Self::order_clause(request);
         let base_query = format!("{} WHERE b.closed = TRUE", BASE_SELECT);
-
         let count_query = "SELECT COUNT(*) FROM bags WHERE closed = TRUE";
 
         crate::infrastructure::repositories::pagination::paginate(

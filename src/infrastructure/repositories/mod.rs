@@ -1,4 +1,5 @@
 pub mod bags;
+mod macros;
 pub mod pagination;
 pub mod roasters;
 pub mod roasts;

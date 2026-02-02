@@ -73,4 +73,10 @@ pub async fn update_roaster(client: &BrewlogClient, command: UpdateRoasterComman
     print_json(&roaster)
 }
 
-define_delete_command!(DeleteRoasterCommand, delete_roaster, RoasterId, roasters, "roaster");
+define_delete_command!(
+    DeleteRoasterCommand,
+    delete_roaster,
+    RoasterId,
+    roasters,
+    "roaster"
+);
