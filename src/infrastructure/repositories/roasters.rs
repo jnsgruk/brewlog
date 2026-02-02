@@ -120,11 +120,14 @@ impl RoasterRepository for SqlRoasterRepository {
             .fetch_one(&mut *tx)
             .await
             .map_err(|err| {
-                if err.to_string().contains("UNIQUE constraint failed") {
-                    RepositoryError::Conflict("A roaster with this name and city already exists".to_string())
-                } else {
-                    RepositoryError::unexpected(err.to_string())
+                if let sqlx::Error::Database(db_err) = &err
+                    && db_err.is_unique_violation()
+                {
+                    return RepositoryError::conflict(
+                        "A roaster with this name and city already exists",
+                    );
                 }
+                RepositoryError::unexpected(err.to_string())
             })?;
 
         let roaster = Self::into_domain(record);

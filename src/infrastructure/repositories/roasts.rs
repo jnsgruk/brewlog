@@ -112,11 +112,14 @@ impl RoastRepository for SqlRoastRepository {
             .fetch_one(&mut *tx)
             .await
             .map_err(|err| {
-                if err.to_string().contains("UNIQUE constraint failed") {
-                    RepositoryError::Conflict("A roast with this name already exists for this roaster".to_string())
-                } else {
-                    map_insert_error(err, "unknown roaster reference")
+                if let sqlx::Error::Database(db_err) = &err
+                    && db_err.is_unique_violation()
+                {
+                    return RepositoryError::conflict(
+                        "A roast with this name already exists for this roaster",
+                    );
                 }
+                map_insert_error(err, "unknown roaster reference")
             })?;
 
         let roast = record.into_roast()?;
