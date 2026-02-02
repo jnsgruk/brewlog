@@ -126,6 +126,142 @@ define_get_command!(GetRoasterCommand, get_roaster, RoasterId, roasters);
 define_delete_command!(DeleteRoasterCommand, delete_roaster, RoasterId, roasters, "roaster");
 ```
 
+### Datastar Integration
+
+The web UI uses [Datastar](https://data-star.dev/) for reactive updates without full page reloads. This provides HTMX-style interactions with a declarative API.
+
+#### Request Detection
+
+Datastar requests are identified by the `datastar-request: true` header:
+
+```rust
+// application/routes/support.rs
+pub fn is_datastar_request(headers: &HeaderMap) -> bool {
+    headers
+        .get("datastar-request")
+        .and_then(|value| value.to_str().ok())
+        .map(|value| value.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+```
+
+#### Fragment Rendering
+
+When a Datastar request is detected, return a fragment instead of a full page:
+
+```rust
+pub(crate) async fn roasters_page(...) -> Result<Response, StatusCode> {
+    let request = query.into_request::<RoasterSortKey>();
+
+    if is_datastar_request(&headers) {
+        // Datastar request → return fragment only
+        return render_roaster_list_fragment(state, request, is_authenticated).await;
+    }
+
+    // Traditional request → return full page with layout
+    let template = RoastersTemplate { ... };
+    render_html(template).map(IntoResponse::into_response)
+}
+```
+
+Fragments are rendered with special headers that tell Datastar where to patch the DOM:
+
+```rust
+// application/routes/support.rs
+pub fn render_fragment<T: Template>(template: T, selector: &'static str) -> Result<Response, AppError> {
+    let html = render_template(template)?;
+    let mut response = Html(html).into_response();
+    response.headers_mut().insert("datastar-selector", HeaderValue::from_static(selector));
+    response.headers_mut().insert("datastar-mode", HeaderValue::from_static("replace"));
+    Ok(response)
+}
+```
+
+#### Frontend Attributes
+
+Templates use Datastar attributes for interactivity:
+
+```html
+<!-- Reactive state -->
+<section data-signals:show-form="false" data-signals:is-submitting="false">
+
+  <!-- Visibility binding -->
+  <div data-show="$showForm" style="display: none">
+    <!-- Form content -->
+  </div>
+
+  <!-- Event handlers with HTTP actions -->
+  <form data-on:submit="@post('/api/v1/roasters', {
+    contentType: 'form',
+    responseOverrides: {selector: '#roaster-list', mode: 'replace'}
+  })">
+    <!-- Form fields -->
+  </form>
+
+  <!-- Reset form on completion -->
+  <form data-ref="form"
+        data-on:datastar-fetch="evt.detail.type === 'finished' && ($showForm = false, $form.reset())">
+</section>
+```
+
+Key attributes:
+- `data-signals:name="value"` - Reactive state signals
+- `data-show="$signal"` - Conditional visibility
+- `data-on:event="expression"` - Event handlers
+- `data-ref="name"` - DOM element references
+- `@get/@post/@put/@delete(url, options)` - HTTP actions with automatic Datastar headers
+
+#### URL Generation
+
+`ListNavigator` generates URLs for pagination and sorting:
+
+```rust
+// presentation/web/views.rs
+navigator.page_href(2)          // "/roasters?page=2&..." (full page)
+navigator.fragment_page_href(2) // "/roasters?page=2&...#roaster-list" (fragment)
+navigator.sort_href(key)        // "/roasters?sort=name&dir=..."
+```
+
+#### Flexible Payload Handling
+
+Handlers accept both JSON and form data via `FlexiblePayload<T>`:
+
+```rust
+pub(crate) async fn create_roaster(
+    payload: FlexiblePayload<NewRoaster>,
+) -> Result<Response, ApiError> {
+    let (new_roaster, source) = payload.into_parts();
+
+    if is_datastar_request(&headers) {
+        render_fragment(state, request, true).await  // Return updated fragment
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&target).into_response())    // Traditional form redirect
+    } else {
+        Ok((StatusCode::CREATED, Json(roaster)).into_response())  // JSON API
+    }
+}
+```
+
+### Route Handler Macros
+
+For simple get/delete API handlers, use the macros in `application/routes/macros.rs`:
+
+```rust
+use super::macros::{define_get_handler, define_delete_handler};
+
+// GET /api/v1/roasters/:id → returns JSON
+define_get_handler!(get_roaster, RoasterId, Roaster, roaster_repo);
+
+// DELETE /api/v1/roasters/:id → returns fragment for Datastar or 204 for API
+define_delete_handler!(
+    delete_roaster,
+    RoasterId,
+    RoasterSortKey,
+    roaster_repo,
+    render_roaster_list_fragment
+);
+```
+
 ### Error Handling
 
 - Domain errors: `RepositoryError` in `domain/errors.rs`
