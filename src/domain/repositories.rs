@@ -2,7 +2,8 @@ use super::RepositoryError;
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
-use crate::domain::ids::{BagId, RoastId, RoasterId, SessionId, TokenId, UserId};
+use crate::domain::gear::{Gear, GearFilter, GearSortKey, NewGear, UpdateGear};
+use crate::domain::ids::{BagId, GearId, RoastId, RoasterId, SessionId, TokenId, UserId};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
@@ -131,4 +132,17 @@ pub trait BagRepository: Send + Sync {
     ) -> Result<Page<BagWithRoast>, RepositoryError>;
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError>;
     async fn delete(&self, id: BagId) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait GearRepository: Send + Sync {
+    async fn insert(&self, gear: NewGear) -> Result<Gear, RepositoryError>;
+    async fn get(&self, id: GearId) -> Result<Gear, RepositoryError>;
+    async fn list(
+        &self,
+        filter: GearFilter,
+        request: &ListRequest<GearSortKey>,
+    ) -> Result<Page<Gear>, RepositoryError>;
+    async fn update(&self, id: GearId, changes: UpdateGear) -> Result<Gear, RepositoryError>;
+    async fn delete(&self, id: GearId) -> Result<(), RepositoryError>;
 }
