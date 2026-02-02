@@ -77,6 +77,7 @@ pub struct TimelineTemplate {
 #[derive(Template)]
 #[template(path = "partials/timeline_chunk.html")]
 pub struct TimelineChunkTemplate {
+    pub is_authenticated: bool,
     pub events: Paginated<TimelineEventView>,
     pub navigator: ListNavigator<TimelineSortKey>,
     pub months: Vec<TimelineMonthView>,

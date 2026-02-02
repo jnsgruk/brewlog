@@ -10,6 +10,18 @@ pub struct TimelineEventDetail {
     pub value: String,
 }
 
+/// Raw brew data for repeating a brew from the timeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimelineBrewData {
+    pub bag_id: i64,
+    pub grinder_id: i64,
+    pub brewer_id: i64,
+    pub coffee_weight: f64,
+    pub grind_setting: f64,
+    pub water_volume: i32,
+    pub water_temp: f64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimelineEvent {
     pub id: TimelineEventId,
@@ -22,6 +34,7 @@ pub struct TimelineEvent {
     pub tasting_notes: Vec<String>,
     pub slug: Option<String>,
     pub roaster_slug: Option<String>,
+    pub brew_data: Option<TimelineBrewData>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

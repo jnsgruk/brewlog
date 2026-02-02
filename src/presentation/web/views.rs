@@ -415,6 +415,18 @@ pub struct TimelineEventDetailView {
     pub value: String,
 }
 
+/// Raw brew data for repeating a brew from the timeline.
+#[derive(Clone)]
+pub struct TimelineBrewDataView {
+    pub bag_id: i64,
+    pub grinder_id: i64,
+    pub brewer_id: i64,
+    pub coffee_weight: f64,
+    pub grind_setting: f64,
+    pub water_volume: i32,
+    pub water_temp: f64,
+}
+
 #[derive(Clone)]
 pub struct TimelineEventView {
     pub id: String,
@@ -427,6 +439,7 @@ pub struct TimelineEventView {
     pub external_link: Option<String>,
     pub details: Vec<TimelineEventDetailView>,
     pub tasting_notes: Option<Vec<String>>,
+    pub brew_data: Option<TimelineBrewDataView>,
 }
 
 pub struct TimelineMonthView {
@@ -448,6 +461,7 @@ impl TimelineEventView {
             tasting_notes,
             slug,
             roaster_slug,
+            brew_data,
         } = event;
 
         let kind_label = match (entity_type.as_str(), action.as_str()) {
@@ -504,6 +518,16 @@ impl TimelineEventView {
             None
         };
 
+        let brew_data_view = brew_data.map(|bd| TimelineBrewDataView {
+            bag_id: bd.bag_id,
+            grinder_id: bd.grinder_id,
+            brewer_id: bd.brewer_id,
+            coffee_weight: bd.coffee_weight,
+            grind_setting: bd.grind_setting,
+            water_volume: bd.water_volume,
+            water_temp: bd.water_temp,
+        });
+
         Self {
             id: id.to_string(),
             kind_label,
@@ -515,6 +539,7 @@ impl TimelineEventView {
             external_link,
             details: mapped_details,
             tasting_notes,
+            brew_data: brew_data_view,
         }
     }
 }

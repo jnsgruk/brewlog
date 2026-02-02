@@ -43,6 +43,36 @@
             <span class="sr-only">Open external link</span>
           </a>
           {% endif %}
+          {% if is_authenticated %}
+          {% if let Some(brew) = event.brew_data %}
+          <form
+            class="inline ml-auto"
+            data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
+          >
+            <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
+            <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight }}" />
+            <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
+            <input type="hidden" name="grind_setting" value="{{ brew.grind_setting }}" />
+            <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
+            <input type="hidden" name="water_volume" value="{{ brew.water_volume }}" />
+            <input type="hidden" name="water_temp" value="{{ brew.water_temp }}" />
+            <button
+              type="submit"
+              class="inline-flex h-7 w-7 items-center justify-center rounded-md text-amber-700 transition hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+              title="Brew again"
+            >
+              <span class="sr-only">Brew again</span>
+              <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  fill-rule="evenodd"
+                  d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0v2.43l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389 5.5 5.5 0 0 1 9.2-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.22Z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </form>
+          {% endif %}
+          {% endif %}
         </h3>
         {% if event.details.len() > 0 %}
         <dl class="mt-4 flex flex-col gap-2 text-sm text-stone-600">

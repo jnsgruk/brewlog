@@ -26,8 +26,10 @@ pub(crate) async fn timeline_page(
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
     let request = query.into_request_with_default::<TimelineSortKey>(TIMELINE_DEFAULT_PAGE_SIZE);
+    let is_authenticated = super::is_authenticated(&state, &cookies).await;
+
     if is_datastar_request(&headers) {
-        return render_timeline_chunk(state, request)
+        return render_timeline_chunk(state, request, is_authenticated)
             .await
             .map_err(map_app_error);
     }
@@ -35,8 +37,6 @@ pub(crate) async fn timeline_page(
     let data = load_timeline_page(&state, request)
         .await
         .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
     let template = TimelineTemplate {
         nav_active: "timeline",
@@ -58,9 +58,11 @@ struct TimelinePreparedEvent {
 async fn render_timeline_chunk(
     state: AppState,
     request: ListRequest<TimelineSortKey>,
+    is_authenticated: bool,
 ) -> Result<Response, AppError> {
     let data = load_timeline_page(&state, request).await?;
     let template = TimelineChunkTemplate {
+        is_authenticated,
         events: data.events,
         navigator: data.navigator,
         months: data.months,
