@@ -31,20 +31,18 @@ impl SqlBagRepository {
     }
 
     fn order_clause(request: &ListRequest<BagSortKey>) -> String {
-        let sort_column = match request.sort_key {
-            BagSortKey::RoastDate => "b.roast_date",
-            BagSortKey::CreatedAt => "b.created_at",
-            BagSortKey::Roaster => "rr.name",
-            BagSortKey::Roast => "r.name",
-            BagSortKey::FinishedAt => "b.finished_at",
-        };
-
-        let direction = match request.sort_direction {
+        let dir_sql = match request.sort_direction() {
             SortDirection::Asc => "ASC",
             SortDirection::Desc => "DESC",
         };
 
-        format!("{} {}", sort_column, direction)
+        match request.sort_key() {
+            BagSortKey::RoastDate => format!("b.roast_date {dir_sql}, b.created_at DESC"),
+            BagSortKey::CreatedAt => format!("b.created_at {dir_sql}, b.id DESC"),
+            BagSortKey::Roaster => format!("LOWER(rr.name) {dir_sql}, b.created_at DESC"),
+            BagSortKey::Roast => format!("LOWER(r.name) {dir_sql}, b.created_at DESC"),
+            BagSortKey::FinishedAt => format!("b.finished_at {dir_sql}, b.created_at DESC"),
+        }
     }
 
     fn to_domain(record: BagRecord) -> Bag {
