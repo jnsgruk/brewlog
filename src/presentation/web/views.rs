@@ -585,19 +585,26 @@ impl GearView {
 #[derive(Clone)]
 pub struct BrewView {
     pub id: String,
-    pub bag_id: String,
+    pub bag_id: i64,
     pub roast_name: String,
     pub roaster_name: String,
     pub roast_slug: String,
     pub roaster_slug: String,
     pub coffee_weight: String,
+    pub grinder_id: i64,
     pub grinder_name: String,
     pub grind_setting: String,
+    pub brewer_id: i64,
     pub brewer_name: String,
     pub water_volume: String,
     pub water_temp: String,
     pub ratio: String,
     pub created_at: String,
+    // Raw values for "brew again" feature
+    pub coffee_weight_raw: f64,
+    pub grind_setting_raw: f64,
+    pub water_volume_raw: i32,
+    pub water_temp_raw: f64,
 }
 
 impl BrewView {
@@ -613,19 +620,25 @@ impl BrewView {
 
         Self {
             id: brew.brew.id.to_string(),
-            bag_id: brew.brew.bag_id.to_string(),
+            bag_id: brew.brew.bag_id.into_inner(),
             roast_name: brew.roast_name,
             roaster_name: brew.roaster_name,
             roast_slug: brew.roast_slug,
             roaster_slug: brew.roaster_slug,
             coffee_weight: format!("{:.1}g", brew.brew.coffee_weight),
+            grinder_id: brew.brew.grinder_id.into_inner(),
             grinder_name: brew.grinder_name,
             grind_setting: format!("{:.1}", brew.brew.grind_setting),
+            brewer_id: brew.brew.brewer_id.into_inner(),
             brewer_name: brew.brewer_name,
             water_volume: format!("{}ml", brew.brew.water_volume),
             water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
             ratio,
             created_at: brew.brew.created_at.format("%Y-%m-%d %H:%M").to_string(),
+            coffee_weight_raw: brew.brew.coffee_weight,
+            grind_setting_raw: brew.brew.grind_setting,
+            water_volume_raw: brew.brew.water_volume,
+            water_temp_raw: brew.brew.water_temp,
         }
     }
 }
