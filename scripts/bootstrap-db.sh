@@ -550,6 +550,90 @@ fi
   --make "Fellow" \
   --model "Stagg XF"
 
+# ============================================================================
+# Brews - Sample brews using open bags with realistic ratios (1:15 to 1:17)
+# ============================================================================
+
+# Standard V60 brew - Ben Saïd Natural with Comandante (ratio 1:16.7)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Ben Saïd Natural") | .id')" \
+  --coffee-weight 15.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
+  --grind-setting 24.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --water-volume 250 \
+  --water-temp 92.0
+
+# AeroPress brew - Finca Tamana with J-Max (ratio 1:15)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Finca Tamana Washed") | .id')" \
+  --coffee-weight 17.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="J-Max") | .id')" \
+  --grind-setting 20.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Original") | .id')" \
+  --water-volume 255 \
+  --water-temp 88.0
+
+# Double V60 brew - La Linda with Comandante (ratio 1:16.7)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="La Linda") | .id')" \
+  --coffee-weight 30.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
+  --grind-setting 25.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --water-volume 500 \
+  --water-temp 91.0
+
+# Stagg XF brew - Guji Highland with J-Max (ratio 1:16.7)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Guji Highland") | .id')" \
+  --coffee-weight 18.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="J-Max") | .id')" \
+  --grind-setting 22.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF") | .id')" \
+  --water-volume 300 \
+  --water-temp 93.0
+
+# Light V60 brew - Red Brick Espresso with Comandante (ratio 1:16.7)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Red Brick Espresso") | .id')" \
+  --coffee-weight 12.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
+  --grind-setting 26.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --water-volume 200 \
+  --water-temp 94.0
+
+# AeroPress inverted - El Paraiso Anaerobic with J-Max (ratio 1:15)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="El Paraiso 92 Anaerobic") | .id')" \
+  --coffee-weight 15.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="J-Max") | .id')" \
+  --grind-setting 18.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Original") | .id')" \
+  --water-volume 225 \
+  --water-temp 85.0
+
+# V60 brew - Suke Quto with J-Max (ratio 1:16)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Suke Quto") | .id')" \
+  --coffee-weight 20.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="J-Max") | .id')" \
+  --grind-setting 21.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --water-volume 320 \
+  --water-temp 92.0
+
+# Stagg XF brew - Simbi with Comandante (ratio 1:16)
+./target/debug/brewlog brew add \
+  --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Simbi") | .id')" \
+  --coffee-weight 16.0 \
+  --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
+  --grind-setting 23.0 \
+  --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF") | .id')" \
+  --water-volume 256 \
+  --water-temp 90.0
+
 echo
 echo "Bootstrapped database"
 echo
