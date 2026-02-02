@@ -12,6 +12,7 @@ use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
+use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
@@ -105,13 +106,15 @@ pub(crate) async fn roast_page(
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
-    let bags = state
+    let bag_request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
+    let bags_page = state
         .bag_repo
-        .list_by_roast(roast.id)
+        .list(BagFilter::for_roast(roast.id), &bag_request)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
-    let bag_views = bags
+    let bag_views = bags_page
+        .items
         .into_iter()
         .map(crate::presentation::web::views::BagView::from_domain)
         .collect();

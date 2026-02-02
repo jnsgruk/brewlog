@@ -12,7 +12,7 @@ use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
-use crate::domain::bags::{Bag, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::RoasterSortKey;
@@ -34,12 +34,21 @@ async fn load_bag_page(
     state: &AppState,
     request: ListRequest<BagSortKey>,
 ) -> Result<BagPageData, AppError> {
-    let open_bags = state.bag_repo.list_open().await.map_err(AppError::from)?;
-    let open_bags_view = open_bags.into_iter().map(BagView::from_domain).collect();
+    let open_request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
+    let open_page = state
+        .bag_repo
+        .list(BagFilter::open(), &open_request)
+        .await
+        .map_err(AppError::from)?;
+    let open_bags_view = open_page
+        .items
+        .into_iter()
+        .map(BagView::from_domain)
+        .collect();
 
     let page = state
         .bag_repo
-        .list_closed(&request)
+        .list(BagFilter::closed(), &request)
         .await
         .map_err(AppError::from)?;
 
@@ -174,15 +183,17 @@ pub(crate) async fn list_bags(
     State(state): State<AppState>,
     Query(params): Query<BagsQuery>,
 ) -> Result<Json<Vec<BagWithRoast>>, ApiError> {
-    let bags = match params.roast_id {
-        Some(roast_id) => state
-            .bag_repo
-            .list_by_roast(roast_id)
-            .await
-            .map_err(AppError::from)?,
-        None => state.bag_repo.list_all().await.map_err(AppError::from)?,
+    let filter = match params.roast_id {
+        Some(roast_id) => BagFilter::for_roast(roast_id),
+        None => BagFilter::all(),
     };
-    Ok(Json(bags))
+    let request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
+    let page = state
+        .bag_repo
+        .list(filter, &request)
+        .await
+        .map_err(AppError::from)?;
+    Ok(Json(page.items))
 }
 
 define_get_handler!(get_bag, BagId, Bag, bag_repo);

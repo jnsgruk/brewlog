@@ -41,6 +41,44 @@ pub struct UpdateBag {
     pub finished_at: Option<NaiveDate>,
 }
 
+/// Filter criteria for bag queries.
+#[derive(Debug, Default, Clone)]
+pub struct BagFilter {
+    pub closed: Option<bool>,
+    pub roast_id: Option<RoastId>,
+}
+
+impl BagFilter {
+    /// No filter - returns all bags.
+    pub fn all() -> Self {
+        Self::default()
+    }
+
+    /// Filter for open (unclosed) bags only.
+    pub fn open() -> Self {
+        Self {
+            closed: Some(false),
+            ..Default::default()
+        }
+    }
+
+    /// Filter for closed bags only.
+    pub fn closed() -> Self {
+        Self {
+            closed: Some(true),
+            ..Default::default()
+        }
+    }
+
+    /// Filter for bags of a specific roast.
+    pub fn for_roast(roast_id: RoastId) -> Self {
+        Self {
+            roast_id: Some(roast_id),
+            ..Default::default()
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum BagSortKey {
     RoastDate,

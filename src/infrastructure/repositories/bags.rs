@@ -4,7 +4,7 @@ use sqlx::{QueryBuilder, query_as};
 
 use super::macros::push_update_field;
 use crate::domain::RepositoryError;
-use crate::domain::bags::{Bag, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BagRepository;
@@ -80,6 +80,27 @@ impl SqlBagRepository {
             roaster_slug: record.roaster_slug,
         }
     }
+
+    fn build_where_clause(filter: &BagFilter) -> Option<String> {
+        let mut conditions = Vec::new();
+
+        if let Some(closed) = filter.closed {
+            conditions.push(format!(
+                "b.closed = {}",
+                if closed { "TRUE" } else { "FALSE" }
+            ));
+        }
+
+        if let Some(roast_id) = filter.roast_id {
+            conditions.push(format!("b.roast_id = {}", roast_id.into_inner()));
+        }
+
+        if conditions.is_empty() {
+            None
+        } else {
+            Some(conditions.join(" AND "))
+        }
+    }
 }
 
 #[async_trait]
@@ -122,38 +143,33 @@ impl BagRepository for SqlBagRepository {
 
     async fn list(
         &self,
+        filter: BagFilter,
         request: &ListRequest<BagSortKey>,
     ) -> Result<Page<BagWithRoast>, RepositoryError> {
         let order_clause = Self::order_clause(request);
-        let count_query = "SELECT COUNT(*) FROM bags";
+
+        // Build WHERE clause from filter
+        let where_clause = Self::build_where_clause(&filter);
+
+        let base_query = match &where_clause {
+            Some(w) => format!("{} WHERE {}", BASE_SELECT, w),
+            None => BASE_SELECT.to_string(),
+        };
+
+        let count_query = match &where_clause {
+            Some(w) => format!("SELECT COUNT(*) FROM bags b WHERE {}", w),
+            None => "SELECT COUNT(*) FROM bags".to_string(),
+        };
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
             request,
-            BASE_SELECT,
-            count_query,
+            &base_query,
+            &count_query,
             &order_clause,
             |record| Ok(Self::to_domain_with_roast(record)),
         )
         .await
-    }
-
-    async fn list_by_roast(&self, roast_id: RoastId) -> Result<Vec<BagWithRoast>, RepositoryError> {
-        let query = format!(
-            "{} WHERE b.roast_id = ? ORDER BY b.roast_date DESC",
-            BASE_SELECT
-        );
-
-        let records = query_as::<_, BagWithRoastRecord>(&query)
-            .bind(roast_id.into_inner())
-            .fetch_all(&self.pool)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(records
-            .into_iter()
-            .map(Self::to_domain_with_roast)
-            .collect())
     }
 
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError> {
@@ -193,56 +209,6 @@ impl BagRepository for SqlBagRepository {
         }
 
         Ok(())
-    }
-
-    async fn list_open(&self) -> Result<Vec<BagWithRoast>, RepositoryError> {
-        let query = format!(
-            "{} WHERE b.closed = FALSE ORDER BY b.roast_date DESC",
-            BASE_SELECT
-        );
-
-        let records = query_as::<_, BagWithRoastRecord>(&query)
-            .fetch_all(&self.pool)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(records
-            .into_iter()
-            .map(Self::to_domain_with_roast)
-            .collect())
-    }
-
-    async fn list_closed(
-        &self,
-        request: &ListRequest<BagSortKey>,
-    ) -> Result<Page<BagWithRoast>, RepositoryError> {
-        let order_clause = Self::order_clause(request);
-        let base_query = format!("{} WHERE b.closed = TRUE", BASE_SELECT);
-        let count_query = "SELECT COUNT(*) FROM bags WHERE closed = TRUE";
-
-        crate::infrastructure::repositories::pagination::paginate(
-            &self.pool,
-            request,
-            &base_query,
-            count_query,
-            &order_clause,
-            |record| Ok(Self::to_domain_with_roast(record)),
-        )
-        .await
-    }
-
-    async fn list_all(&self) -> Result<Vec<BagWithRoast>, RepositoryError> {
-        let query = format!("{} ORDER BY b.roast_date DESC", BASE_SELECT);
-
-        let records = query_as::<_, BagWithRoastRecord>(&query)
-            .fetch_all(&self.pool)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(records
-            .into_iter()
-            .map(Self::to_domain_with_roast)
-            .collect())
     }
 }
 

@@ -1,7 +1,7 @@
 use super::RepositoryError;
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
-use crate::domain::bags::{Bag, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId, RoasterId, SessionId, TokenId, UserId};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
@@ -126,15 +126,9 @@ pub trait BagRepository: Send + Sync {
     async fn get(&self, id: BagId) -> Result<Bag, RepositoryError>;
     async fn list(
         &self,
+        filter: BagFilter,
         request: &ListRequest<BagSortKey>,
     ) -> Result<Page<BagWithRoast>, RepositoryError>;
-    async fn list_by_roast(&self, roast_id: RoastId) -> Result<Vec<BagWithRoast>, RepositoryError>;
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError>;
     async fn delete(&self, id: BagId) -> Result<(), RepositoryError>;
-    async fn list_open(&self) -> Result<Vec<BagWithRoast>, RepositoryError>;
-    async fn list_closed(
-        &self,
-        request: &ListRequest<BagSortKey>,
-    ) -> Result<Page<BagWithRoast>, RepositoryError>;
-    async fn list_all(&self) -> Result<Vec<BagWithRoast>, RepositoryError>;
 }
