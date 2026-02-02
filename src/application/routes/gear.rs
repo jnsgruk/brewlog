@@ -1,0 +1,243 @@
+use axum::extract::{Path, Query, State};
+use axum::http::{HeaderMap, StatusCode};
+use axum::response::{IntoResponse, Redirect, Response};
+use axum::Json;
+use serde::Deserialize;
+
+use super::macros::{define_delete_handler, define_get_handler};
+use crate::application::auth::AuthenticatedUser;
+use crate::application::errors::{map_app_error, ApiError, AppError};
+use crate::application::routes::render_html;
+use crate::application::routes::support::{
+    is_datastar_request, FlexiblePayload, ListQuery, PayloadSource,
+};
+use crate::application::server::AppState;
+use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
+use crate::domain::ids::GearId;
+use crate::domain::listing::{ListRequest, SortDirection};
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
+use crate::presentation::web::templates::{GearListTemplate, GearTemplate};
+use crate::presentation::web::views::{GearView, ListNavigator, Paginated};
+
+const GEAR_PAGE_PATH: &str = "/gear";
+const GEAR_FRAGMENT_PATH: &str = "/gear#gear-list";
+
+#[tracing::instrument(skip(state))]
+async fn load_gear_page(
+    state: &AppState,
+    request: ListRequest<GearSortKey>,
+) -> Result<Paginated<GearView>, AppError> {
+    let page = state
+        .gear_repo
+        .list(GearFilter::all(), &request)
+        .await
+        .map_err(AppError::from)?;
+
+    let (gear, _navigator) = crate::application::routes::support::build_page_view(
+        page,
+        request,
+        GearView::from_domain,
+        GEAR_PAGE_PATH,
+        GEAR_FRAGMENT_PATH,
+    );
+
+    Ok(gear)
+}
+
+#[tracing::instrument(skip(state, cookies, headers, query))]
+pub(crate) async fn gear_page(
+    State(state): State<AppState>,
+    cookies: tower_cookies::Cookies,
+    headers: HeaderMap,
+    Query(query): Query<ListQuery>,
+) -> Result<Response, StatusCode> {
+    let request = query.into_request::<GearSortKey>();
+
+    if is_datastar_request(&headers) {
+        let is_authenticated = super::is_authenticated(&state, &cookies).await;
+        return render_gear_list_fragment(state, request, is_authenticated)
+            .await
+            .map_err(map_app_error);
+    }
+
+    let gear = load_gear_page(&state, request)
+        .await
+        .map_err(map_app_error)?;
+
+    let is_authenticated = super::is_authenticated(&state, &cookies).await;
+    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request);
+
+    let template = GearTemplate {
+        nav_active: "gear",
+        is_authenticated,
+        gear,
+        navigator,
+    };
+
+    render_html(template).map(IntoResponse::into_response)
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
+pub(crate) async fn create_gear(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
+    Query(query): Query<ListQuery>,
+    payload: FlexiblePayload<NewGearSubmission>,
+) -> Result<Response, ApiError> {
+    let request = query.into_request::<GearSortKey>();
+    let (submission, source) = payload.into_parts();
+    let new_gear = submission.into_new_gear().map_err(ApiError::from)?;
+
+    let gear = state
+        .gear_repo
+        .insert(new_gear)
+        .await
+        .map_err(AppError::from)?;
+
+    // Add timeline event
+    let event = NewTimelineEvent {
+        entity_type: "gear".to_string(),
+        entity_id: gear.id.into_inner(),
+        action: "added".to_string(),
+        occurred_at: chrono::Utc::now(),
+        title: format!("{} {}", gear.make, gear.model),
+        details: vec![
+            TimelineEventDetail {
+                label: "Category".to_string(),
+                value: gear.category.display_label().to_string(),
+            },
+            TimelineEventDetail {
+                label: "Make".to_string(),
+                value: gear.make.clone(),
+            },
+            TimelineEventDetail {
+                label: "Model".to_string(),
+                value: gear.model.clone(),
+            },
+        ],
+        tasting_notes: vec![],
+    };
+    let _ = state.timeline_repo.insert(event).await;
+
+    if is_datastar_request(&headers) {
+        render_gear_list_fragment(state, request, true)
+            .await
+            .map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        let target = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request).page_href(1);
+        Ok(Redirect::to(&target).into_response())
+    } else {
+        Ok((StatusCode::CREATED, Json(gear)).into_response())
+    }
+}
+
+#[tracing::instrument(skip(state))]
+pub(crate) async fn list_gear(
+    State(state): State<AppState>,
+    Query(params): Query<GearQuery>,
+) -> Result<Json<Vec<Gear>>, ApiError> {
+    let filter = match params.category {
+        Some(ref cat_str) => {
+            let category = GearCategory::from_str(cat_str)
+                .ok_or_else(|| AppError::validation("invalid category"))?;
+            GearFilter::for_category(category)
+        }
+        None => GearFilter::all(),
+    };
+    let request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
+    let page = state
+        .gear_repo
+        .list(filter, &request)
+        .await
+        .map_err(AppError::from)?;
+    Ok(Json(page.items))
+}
+
+define_get_handler!(get_gear, GearId, Gear, gear_repo);
+
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
+pub(crate) async fn update_gear(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
+    Path(id): Path<GearId>,
+    Query(query): Query<ListQuery>,
+    payload: Json<UpdateGear>,
+) -> Result<Response, ApiError> {
+    let request = query.into_request::<GearSortKey>();
+
+    let gear = state
+        .gear_repo
+        .update(id, payload.0)
+        .await
+        .map_err(AppError::from)?;
+
+    if is_datastar_request(&headers) {
+        render_gear_list_fragment(state, request, true)
+            .await
+            .map_err(ApiError::from)
+    } else {
+        Ok(Json(gear).into_response())
+    }
+}
+
+define_delete_handler!(
+    delete_gear,
+    GearId,
+    GearSortKey,
+    gear_repo,
+    render_gear_list_fragment
+);
+
+#[derive(Debug, Deserialize)]
+pub struct GearQuery {
+    pub category: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct NewGearSubmission {
+    category: String,
+    make: String,
+    model: String,
+    notes: Option<String>,
+}
+
+impl NewGearSubmission {
+    fn into_new_gear(self) -> Result<NewGear, AppError> {
+        let category = GearCategory::from_str(&self.category)
+            .ok_or_else(|| AppError::validation("invalid category"))?;
+
+        if self.make.trim().is_empty() {
+            return Err(AppError::validation("make cannot be empty"));
+        }
+
+        if self.model.trim().is_empty() {
+            return Err(AppError::validation("model cannot be empty"));
+        }
+
+        Ok(NewGear {
+            category,
+            make: self.make,
+            model: self.model,
+            notes: self.notes.filter(|s| !s.trim().is_empty()),
+        })
+    }
+}
+
+async fn render_gear_list_fragment(
+    state: AppState,
+    request: ListRequest<GearSortKey>,
+    is_authenticated: bool,
+) -> Result<Response, AppError> {
+    let gear = load_gear_page(&state, request).await?;
+    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request);
+
+    let template = GearListTemplate {
+        is_authenticated,
+        gear,
+        navigator,
+    };
+
+    crate::application::routes::support::render_fragment(template, "#gear-list")
+}
