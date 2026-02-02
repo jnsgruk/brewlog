@@ -44,6 +44,7 @@ pub struct AppState {
 }
 
 impl AppState {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         roaster_repo: Arc<dyn RoasterRepository>,
         roast_repo: Arc<dyn RoastRepository>,

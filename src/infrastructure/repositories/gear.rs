@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, query_as};
@@ -35,7 +37,7 @@ impl SqlGearRepository {
     }
 
     fn to_domain(record: GearRecord) -> Result<Gear, RepositoryError> {
-        let category = GearCategory::from_str(&record.category).ok_or_else(|| {
+        let category = GearCategory::from_str(&record.category).map_err(|_| {
             RepositoryError::unexpected(format!("invalid category: {}", record.category))
         })?;
 

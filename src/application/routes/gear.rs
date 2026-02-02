@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
@@ -140,7 +142,7 @@ pub(crate) async fn list_gear(
     let filter = match params.category {
         Some(ref cat_str) => {
             let category = GearCategory::from_str(cat_str)
-                .ok_or_else(|| AppError::validation("invalid category"))?;
+                .map_err(|_| AppError::validation("invalid category"))?;
             GearFilter::for_category(category)
         }
         None => GearFilter::all(),
@@ -206,7 +208,7 @@ pub(crate) struct NewGearSubmission {
 impl NewGearSubmission {
     fn into_new_gear(self) -> Result<NewGear, AppError> {
         let category = GearCategory::from_str(&self.category)
-            .ok_or_else(|| AppError::validation("invalid category"))?;
+            .map_err(|_| AppError::validation("invalid category"))?;
 
         if self.make.trim().is_empty() {
             return Err(AppError::validation("make cannot be empty"));

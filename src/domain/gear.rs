@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -19,18 +21,22 @@ impl GearCategory {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s.to_lowercase().as_str() {
-            "grinder" => Some(GearCategory::Grinder),
-            "brewer" => Some(GearCategory::Brewer),
-            _ => None,
-        }
-    }
-
     pub fn display_label(&self) -> &'static str {
         match self {
             GearCategory::Grinder => "Grinder",
             GearCategory::Brewer => "Brewer",
+        }
+    }
+}
+
+impl FromStr for GearCategory {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "grinder" => Ok(GearCategory::Grinder),
+            "brewer" => Ok(GearCategory::Brewer),
+            _ => Err(()),
         }
     }
 }
