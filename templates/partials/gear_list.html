@@ -21,9 +21,7 @@
             {% call table::sortable_header("Model", "model", navigator, "#gear-list") %}
             {% call table::sortable_header("Added", "created-at", navigator, "#gear-list") %}
             {% if is_authenticated %}
-            <th scope="col" class="relative px-4 py-3">
-              <span class="sr-only">Actions</span>
-            </th>
+            <th scope="col" class="px-4 py-3 text-right">Actions</th>
             {% endif %}
           </tr>
         </thead>
@@ -45,10 +43,11 @@
               {{ item.created_at }}
             </td>
             {% if is_authenticated %}
-            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+            <td class="px-4 py-3 text-right">
               <button
                 type="button"
-                class="text-red-600 hover:text-red-900"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                title="Delete gear"
                 data-on:click="confirm('Delete this gear?') && @delete('/api/v1/gear/{{ item.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#gear-list', mode: 'replace'}})"
               >
                 <span class="sr-only">Delete</span>
