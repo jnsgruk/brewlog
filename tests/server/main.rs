@@ -1,5 +1,6 @@
 pub mod auth_api;
 pub mod bags_api;
+pub mod brews_api;
 pub mod datastar;
 pub mod gear_api;
 pub mod helpers;

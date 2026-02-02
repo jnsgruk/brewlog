@@ -11,6 +11,7 @@ use brewlog::domain::users::NewUser;
 use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
+use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
 use brewlog::infrastructure::repositories::gear::SqlGearRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
@@ -57,6 +58,7 @@ pub async fn spawn_app() -> TestApp {
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
     let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
     let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
+    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -71,6 +73,7 @@ pub async fn spawn_app() -> TestApp {
         roast_repo.clone(),
         bag_repo.clone(),
         gear_repo.clone(),
+        brew_repo.clone(),
         timeline_repo.clone(),
         user_repo.clone(),
         token_repo.clone(),
@@ -288,4 +291,36 @@ pub fn assert_full_page(body: &str) {
         body.contains("<!DOCTYPE") || body.contains("<html"),
         "Expected full HTML page with DOCTYPE or <html> tag"
     );
+}
+
+pub async fn create_default_gear(
+    app: &TestApp,
+    category: &str,
+    make: &str,
+    model: &str,
+) -> brewlog::domain::gear::Gear {
+    let client = Client::new();
+    let gear_category = match category {
+        "grinder" => brewlog::domain::gear::GearCategory::Grinder,
+        "brewer" => brewlog::domain::gear::GearCategory::Brewer,
+        _ => panic!("Unknown gear category: {}", category),
+    };
+    let new_gear = brewlog::domain::gear::NewGear {
+        category: gear_category,
+        make: make.to_string(),
+        model: model.to_string(),
+    };
+
+    let mut request = client.post(app.api_url("/gear")).json(&new_gear);
+
+    if let Some(token) = &app.auth_token {
+        request = request.bearer_auth(token);
+    }
+
+    let response = request.send().await.expect("failed to create gear via API");
+
+    response
+        .json()
+        .await
+        .expect("failed to deserialize gear from response")
 }
