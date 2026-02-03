@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block title %}Brewlog · Brews{% endblock %} {% block content %}
-<section data-signals:_show-form="false" data-signals:_is-submitting="false" data-signals:_temp="91.0" data-signals:_grind="6.0" data-signals:_volume="250" data-signals:_weight="15.0">
+<section data-signals:_show-form="false" data-signals:_is-submitting="false" data-signals:_temp="{{ defaults.water_temp }}" data-signals:_grind="{{ defaults.grind_setting }}" data-signals:_volume="{{ defaults.water_volume }}" data-signals:_weight="{{ defaults.coffee_weight }}">
   <header class="flex flex-wrap items-start justify-between gap-4">
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">Brews</h1>
@@ -53,7 +53,7 @@
       class="mt-4 flex flex-col gap-4 overflow-hidden"
       data-on:submit="$_isSubmitting = true; @post('/api/v1/brews?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})"
       data-ref="_form"
-      data-on:datastar-fetch="evt.detail.type === 'finished' && $_isSubmitting && ($_showForm = false, $_form && $_form.reset(), $_temp = 91.0, $_grind = 6.0, $_volume = 250, $_weight = 15.0, $_isSubmitting = false)"
+      data-on:datastar-fetch="evt.detail.type === 'finished' && $_isSubmitting && ($_showForm = false, $_isSubmitting = false)"
     >
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <!-- Bag selector -->
@@ -62,7 +62,7 @@
           <select name="bag_id" required class="input-field">
             <option value="">Select a bag</option>
             {% for bag in bag_options %}
-            <option value="{{ bag.id }}">{{ bag.label }}</option>
+            <option value="{{ bag.id }}"{% if bag.id == defaults.bag_id %} selected{% endif %}>{{ bag.label }}</option>
             {% endfor %}
           </select>
         </label>
@@ -72,7 +72,7 @@
           <span class="text-stone-700">Grinder *</span>
           <select name="grinder_id" required class="input-field">
             {% for grinder in grinder_options %}
-            <option value="{{ grinder.id }}">{{ grinder.label }}</option>
+            <option value="{{ grinder.id }}"{% if grinder.id == defaults.grinder_id %} selected{% endif %}>{{ grinder.label }}</option>
             {% endfor %}
           </select>
         </label>
@@ -82,7 +82,7 @@
           <span class="text-stone-700">Brewer *</span>
           <select name="brewer_id" required class="input-field">
             {% for brewer in brewer_options %}
-            <option value="{{ brewer.id }}">{{ brewer.label }}</option>
+            <option value="{{ brewer.id }}"{% if brewer.id == defaults.brewer_id %} selected{% endif %}>{{ brewer.label }}</option>
             {% endfor %}
           </select>
         </label>
@@ -93,7 +93,7 @@
           <select name="filter_paper_id" class="input-field">
             <option value="">None</option>
             {% for fp in filter_paper_options %}
-            <option value="{{ fp.id }}">{{ fp.label }}</option>
+            <option value="{{ fp.id }}"{% if fp.id == defaults.filter_paper_id %} selected{% endif %}>{{ fp.label }}</option>
             {% endfor %}
           </select>
         </label>

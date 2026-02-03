@@ -1,8 +1,8 @@
 use askama::Template;
 
 use super::views::{
-    BagOptionView, BagView, BrewView, GearOptionView, GearView, ListNavigator, Paginated,
-    RoastView, RoasterOptionView, RoasterView, TimelineEventView, TimelineMonthView,
+    BagOptionView, BagView, BrewDefaultsView, BrewView, GearOptionView, GearView, ListNavigator,
+    Paginated, RoastView, RoasterOptionView, RoasterView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -136,6 +136,7 @@ pub struct BrewsTemplate {
     pub grinder_options: Vec<GearOptionView>,
     pub brewer_options: Vec<GearOptionView>,
     pub filter_paper_options: Vec<GearOptionView>,
+    pub defaults: BrewDefaultsView,
     pub navigator: ListNavigator<BrewSortKey>,
 }
 

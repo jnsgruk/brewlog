@@ -16,11 +16,11 @@ use crate::domain::bags::BagFilter;
 use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
-use crate::domain::listing::{ListRequest, SortDirection};
+use crate::domain::listing::{ListRequest, PageSize, SortDirection};
 use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
 use crate::presentation::web::templates::{BrewListTemplate, BrewsTemplate};
 use crate::presentation::web::views::{
-    BagOptionView, BrewView, GearOptionView, ListNavigator, Paginated,
+    BagOptionView, BrewDefaultsView, BrewView, GearOptionView, ListNavigator, Paginated,
 };
 
 const BREW_PAGE_PATH: &str = "/brews";
@@ -29,6 +29,104 @@ const BREW_FRAGMENT_PATH: &str = "/brews#brew-list";
 struct BrewPageData {
     brews: Paginated<BrewView>,
     navigator: ListNavigator<BrewSortKey>,
+}
+
+struct BrewFormData {
+    bag_options: Vec<BagOptionView>,
+    grinder_options: Vec<GearOptionView>,
+    brewer_options: Vec<GearOptionView>,
+    filter_paper_options: Vec<GearOptionView>,
+    defaults: BrewDefaultsView,
+}
+
+async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError> {
+    let open_bags_request = ListRequest::show_all(
+        crate::domain::bags::BagSortKey::RoastDate,
+        SortDirection::Desc,
+    );
+    let open_bags = state
+        .bag_repo
+        .list(BagFilter::open(), &open_bags_request, None)
+        .await
+        .map_err(AppError::from)?;
+    let bag_options: Vec<BagOptionView> = open_bags
+        .items
+        .into_iter()
+        .map(BagOptionView::from)
+        .collect();
+
+    let gear_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
+
+    let grinders = state
+        .gear_repo
+        .list(
+            GearFilter::for_category(GearCategory::Grinder),
+            &gear_request,
+            None,
+        )
+        .await
+        .map_err(AppError::from)?;
+    let grinder_options: Vec<GearOptionView> = grinders
+        .items
+        .into_iter()
+        .map(GearOptionView::from)
+        .collect();
+
+    let brewers = state
+        .gear_repo
+        .list(
+            GearFilter::for_category(GearCategory::Brewer),
+            &gear_request,
+            None,
+        )
+        .await
+        .map_err(AppError::from)?;
+    let brewer_options: Vec<GearOptionView> = brewers
+        .items
+        .into_iter()
+        .map(GearOptionView::from)
+        .collect();
+
+    let filter_papers = state
+        .gear_repo
+        .list(
+            GearFilter::for_category(GearCategory::FilterPaper),
+            &gear_request,
+            None,
+        )
+        .await
+        .map_err(AppError::from)?;
+    let filter_paper_options: Vec<GearOptionView> = filter_papers
+        .items
+        .into_iter()
+        .map(GearOptionView::from)
+        .collect();
+
+    let last_brew_request = ListRequest::new(
+        1,
+        PageSize::Limited(1),
+        BrewSortKey::CreatedAt,
+        SortDirection::Desc,
+    );
+    let last_brew_page = state
+        .brew_repo
+        .list(BrewFilter::all(), &last_brew_request, None)
+        .await
+        .map_err(AppError::from)?;
+    let defaults = last_brew_page
+        .items
+        .into_iter()
+        .next()
+        .map(|b| BrewDefaultsView::from(b.brew))
+        .unwrap_or_default();
+
+    Ok(BrewFormData {
+        bag_options,
+        grinder_options,
+        brewer_options,
+        filter_paper_options,
+        defaults,
+    })
 }
 
 #[tracing::instrument(skip(state))]
@@ -71,72 +169,13 @@ pub(crate) async fn brews_page(
             .map_err(map_app_error);
     }
 
-    // Load open bags for the form dropdown
-    let open_bags_request = ListRequest::show_all(
-        crate::domain::bags::BagSortKey::RoastDate,
-        SortDirection::Desc,
-    );
-    let open_bags = state
-        .bag_repo
-        .list(BagFilter::open(), &open_bags_request, None)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-    let bag_options: Vec<BagOptionView> = open_bags
-        .items
-        .into_iter()
-        .map(BagOptionView::from)
-        .collect();
-
-    // Load grinders for dropdown
-    let grinder_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
-    let grinders = state
-        .gear_repo
-        .list(
-            GearFilter::for_category(GearCategory::Grinder),
-            &grinder_request,
-            None,
-        )
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-    let grinder_options: Vec<GearOptionView> = grinders
-        .items
-        .into_iter()
-        .map(GearOptionView::from)
-        .collect();
-
-    // Load brewers for dropdown
-    let brewer_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
-    let brewers = state
-        .gear_repo
-        .list(
-            GearFilter::for_category(GearCategory::Brewer),
-            &brewer_request,
-            None,
-        )
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-    let brewer_options: Vec<GearOptionView> = brewers
-        .items
-        .into_iter()
-        .map(GearOptionView::from)
-        .collect();
-
-    // Load filter papers for dropdown (optional gear)
-    let filter_paper_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
-    let filter_papers = state
-        .gear_repo
-        .list(
-            GearFilter::for_category(GearCategory::FilterPaper),
-            &filter_paper_request,
-            None,
-        )
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-    let filter_paper_options: Vec<GearOptionView> = filter_papers
-        .items
-        .into_iter()
-        .map(GearOptionView::from)
-        .collect();
+    let BrewFormData {
+        bag_options,
+        grinder_options,
+        brewer_options,
+        filter_paper_options,
+        defaults,
+    } = load_brew_form_data(&state).await.map_err(map_app_error)?;
 
     let BrewPageData { brews, navigator } = load_brew_page(&state, request, search.as_deref())
         .await
@@ -152,6 +191,7 @@ pub(crate) async fn brews_page(
         grinder_options,
         brewer_options,
         filter_paper_options,
+        defaults,
         navigator,
     };
 

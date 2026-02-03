@@ -1,5 +1,5 @@
 use crate::domain::bags::BagWithRoast;
-use crate::domain::brews::BrewWithDetails;
+use crate::domain::brews::{Brew, BrewWithDetails};
 use crate::domain::gear::Gear;
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
@@ -753,6 +753,50 @@ impl From<Gear> for GearOptionView {
         Self {
             id: gear.id.to_string(),
             label: format!("{} {}", gear.make, gear.model),
+        }
+    }
+}
+
+pub struct BrewDefaultsView {
+    pub bag_id: String,
+    pub grinder_id: String,
+    pub brewer_id: String,
+    pub filter_paper_id: String,
+    pub coffee_weight: f64,
+    pub grind_setting: f64,
+    pub water_volume: i32,
+    pub water_temp: f64,
+}
+
+impl Default for BrewDefaultsView {
+    fn default() -> Self {
+        Self {
+            bag_id: String::new(),
+            grinder_id: String::new(),
+            brewer_id: String::new(),
+            filter_paper_id: String::new(),
+            coffee_weight: 15.0,
+            grind_setting: 6.0,
+            water_volume: 250,
+            water_temp: 91.0,
+        }
+    }
+}
+
+impl From<Brew> for BrewDefaultsView {
+    fn from(brew: Brew) -> Self {
+        Self {
+            bag_id: brew.bag_id.to_string(),
+            grinder_id: brew.grinder_id.to_string(),
+            brewer_id: brew.brewer_id.to_string(),
+            filter_paper_id: brew
+                .filter_paper_id
+                .map(|id| id.to_string())
+                .unwrap_or_default(),
+            coffee_weight: brew.coffee_weight,
+            grind_setting: brew.grind_setting,
+            water_volume: brew.water_volume,
+            water_temp: brew.water_temp,
         }
     }
 }
