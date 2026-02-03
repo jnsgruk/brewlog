@@ -21,7 +21,6 @@
             {% call table::sortable_header("Added", "created-at", navigator, "#roaster-list") %}
             {% call table::sortable_header("Name", "name", navigator, "#roaster-list") %}
             {% call table::sortable_header("Location", "country", navigator, "#roaster-list") %}
-            <th scope="col" class="px-4 py-3">Notes</th>
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -54,7 +53,6 @@
             {% if !roaster.city.is_empty() %}
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roaster.city }}</td>
             {% endif %}
-            <td data-label="Notes" class="mobile-hidden px-4 py-3 text-sm text-stone-600">{{ roaster.notes }}</td>
             <td data-label="" class="px-4 py-3 text-right">
               <div class="inline-flex items-center gap-1">
                 {% if roaster.has_homepage %}

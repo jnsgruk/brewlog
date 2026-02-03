@@ -43,7 +43,6 @@ impl SqlRoasterRepository {
             country,
             city,
             homepage,
-            notes,
             created_at,
         } = record;
 
@@ -54,7 +53,6 @@ impl SqlRoasterRepository {
             country,
             city,
             homepage,
-            notes,
             created_at,
         }
     }
@@ -107,15 +105,14 @@ impl RoasterRepository for SqlRoasterRepository {
         let created_at = Utc::now();
 
         let record = query_as::<_, RoasterRecord>(
-                "INSERT INTO roasters (name, slug, country, city, homepage, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)\
-                 RETURNING id, name, slug, country, city, homepage, notes, created_at",
+                "INSERT INTO roasters (name, slug, country, city, homepage, created_at) VALUES (?, ?, ?, ?, ?, ?)\
+                 RETURNING id, name, slug, country, city, homepage, created_at",
             )
             .bind(&new_roaster.name)
             .bind(&slug)
             .bind(&new_roaster.country)
             .bind(new_roaster.city.as_deref())
             .bind(new_roaster.homepage.as_deref())
-            .bind(new_roaster.notes.as_deref())
             .bind(created_at)
             .fetch_one(&mut *tx)
             .await
@@ -159,12 +156,12 @@ impl RoasterRepository for SqlRoasterRepository {
 
     async fn get(&self, id: RoasterId) -> Result<Roaster, RepositoryError> {
         let record = query_as::<_, RoasterRecord>(
-                "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters WHERE id = ?",
-            )
-            .bind(i64::from(id))
-            .fetch_optional(&self.pool)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+            "SELECT id, name, slug, country, city, homepage, created_at FROM roasters WHERE id = ?",
+        )
+        .bind(i64::from(id))
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
             Some(record) => Ok(Self::into_domain(record)),
@@ -174,7 +171,7 @@ impl RoasterRepository for SqlRoasterRepository {
 
     async fn get_by_slug(&self, slug: &str) -> Result<Roaster, RepositoryError> {
         let record = query_as::<_, RoasterRecord>(
-                "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters WHERE slug = ?",
+                "SELECT id, name, slug, country, city, homepage, created_at FROM roasters WHERE slug = ?",
             )
             .bind(slug)
             .fetch_optional(&self.pool)
@@ -195,8 +192,7 @@ impl RoasterRepository for SqlRoasterRepository {
         use crate::infrastructure::repositories::pagination::SearchFilter;
 
         let order_clause = Self::order_clause(request);
-        let base_query =
-            "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters";
+        let base_query = "SELECT id, name, slug, country, city, homepage, created_at FROM roasters";
         let count_query = "SELECT COUNT(*) FROM roasters";
         let sf =
             search.and_then(|t| SearchFilter::new(t, vec!["name", "country", "COALESCE(city,'')"]));
@@ -225,7 +221,6 @@ impl RoasterRepository for SqlRoasterRepository {
         push_update_field!(builder, sep, "country", changes.country);
         push_update_field!(builder, sep, "city", changes.city);
         push_update_field!(builder, sep, "homepage", changes.homepage);
-        push_update_field!(builder, sep, "notes", changes.notes);
 
         if !sep {
             return Err(RepositoryError::unexpected(
@@ -272,6 +267,5 @@ struct RoasterRecord {
     country: String,
     city: Option<String>,
     homepage: Option<String>,
-    notes: Option<String>,
     created_at: DateTime<Utc>,
 }

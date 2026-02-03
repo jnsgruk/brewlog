@@ -58,7 +58,6 @@ pub(crate) struct BagScanSubmission {
     roaster_country: String,
     roaster_city: Option<String>,
     roaster_homepage: Option<String>,
-    roaster_notes: Option<String>,
     roast_name: String,
     origin: String,
     region: String,
@@ -84,7 +83,6 @@ pub(crate) async fn submit_scan(
         country: submission.roaster_country,
         city: submission.roaster_city,
         homepage: submission.roaster_homepage,
-        notes: submission.roaster_notes,
     }
     .normalize();
 

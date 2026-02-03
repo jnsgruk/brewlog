@@ -41,7 +41,6 @@ async fn seed_timeline_with_roasts(
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
-            notes: None,
         },
     )
     .await;
@@ -94,7 +93,6 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
-            notes: None,
         },
     )
     .await;
@@ -136,7 +134,6 @@ async fn creating_a_roast_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
-            notes: None,
         },
     )
     .await
@@ -181,7 +178,6 @@ async fn creating_a_bag_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
-            notes: None,
         },
     )
     .await
@@ -342,7 +338,6 @@ async fn closing_a_bag_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
-            notes: None,
         },
     )
     .await

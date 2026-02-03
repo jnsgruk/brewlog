@@ -13,7 +13,6 @@ const ROASTER_PROMPT: &str = r#"Extract coffee roaster information from this inp
 - "country": the country the roaster is based in
 - "city": the city the roaster is based in
 - "homepage": the roaster's website URL
-- "notes": a single sentence describing the roaster (e.g. sourcing philosophy, speciality, or founding story)
 
 Return ONLY the JSON object, no other text."#;
 
@@ -35,8 +34,7 @@ const SCAN_PROMPT: &str = r#"Extract both the coffee roaster and the roast infor
     "name": "the roaster's name",
     "country": "country the roaster is based in",
     "city": "city the roaster is based in",
-    "homepage": "the roaster's website URL",
-    "notes": "a single sentence describing the roaster"
+    "homepage": "the roaster's website URL"
   },
   "roast": {
     "name": "the name of this specific coffee/roast",
@@ -64,7 +62,6 @@ pub struct ExtractedRoaster {
     pub country: Option<String>,
     pub city: Option<String>,
     pub homepage: Option<String>,
-    pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

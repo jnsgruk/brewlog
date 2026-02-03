@@ -325,7 +325,6 @@ pub async fn create_roaster_with_name(app: &TestApp, name: &str) -> Roaster {
             country: "UK".to_string(),
             city: None,
             homepage: None,
-            notes: None,
         },
     )
     .await

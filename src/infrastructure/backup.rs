@@ -87,7 +87,7 @@ impl BackupService {
 
     async fn export_roasters(&self) -> anyhow::Result<Vec<Roaster>> {
         let records = sqlx::query_as::<_, RoasterRecord>(
-            "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters ORDER BY id",
+            "SELECT id, name, slug, country, city, homepage, created_at FROM roasters ORDER BY id",
         )
         .fetch_all(&self.pool)
         .await
@@ -212,7 +212,7 @@ impl BackupService {
     ) -> anyhow::Result<()> {
         for roaster in roasters {
             sqlx::query(
-                "INSERT INTO roasters (id, name, slug, country, city, homepage, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO roasters (id, name, slug, country, city, homepage, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(i64::from(roaster.id))
             .bind(&roaster.name)
@@ -220,7 +220,6 @@ impl BackupService {
             .bind(&roaster.country)
             .bind(roaster.city.as_deref())
             .bind(roaster.homepage.as_deref())
-            .bind(roaster.notes.as_deref())
             .bind(roaster.created_at)
             .execute(&mut **tx)
             .await
@@ -422,7 +421,6 @@ struct RoasterRecord {
     country: String,
     city: Option<String>,
     homepage: Option<String>,
-    notes: Option<String>,
     created_at: DateTime<Utc>,
 }
 
@@ -435,7 +433,6 @@ impl RoasterRecord {
             country: self.country,
             city: self.city,
             homepage: self.homepage,
-            notes: self.notes,
             created_at: self.created_at,
         }
     }

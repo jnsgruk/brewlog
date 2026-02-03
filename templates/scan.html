@@ -13,7 +13,6 @@
       if (data.roaster.country) form.querySelector('[name="roaster_country"]').value = data.roaster.country;
       if (data.roaster.city) form.querySelector('[name="roaster_city"]').value = data.roaster.city;
       if (data.roaster.homepage) form.querySelector('[name="roaster_homepage"]').value = data.roaster.homepage;
-      if (data.roaster.notes) form.querySelector('[name="roaster_notes"]').value = data.roaster.notes;
     }
     if (data.roast) {
       if (data.roast.name) form.querySelector('[name="roast_name"]').value = data.roast.name;
@@ -151,10 +150,6 @@
           <label class="flex flex-col gap-1 text-sm">
             <span class="text-stone-700">Homepage</span>
             <input type="url" name="roaster_homepage" class="input-field" placeholder="https://example.coffee" />
-          </label>
-          <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Notes</span>
-            <textarea name="roaster_notes" rows="2" class="input-field" placeholder="Short description of the roaster"></textarea>
           </label>
         </div>
       </div>

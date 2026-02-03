@@ -32,7 +32,6 @@ pub struct RoasterView {
     pub has_homepage: bool,
     pub homepage_url: String,
     pub homepage_label: String,
-    pub notes: String,
     pub created_at: String,
     pub created_at_sort_key: i64,
 }
@@ -46,7 +45,6 @@ impl From<Roaster> for RoasterView {
             country,
             city,
             homepage,
-            notes,
             created_at,
         } = roaster;
 
@@ -66,7 +64,6 @@ impl From<Roaster> for RoasterView {
             has_homepage,
             homepage_url: homepage.clone(),
             homepage_label: homepage,
-            notes: notes.unwrap_or_else(|| "This roaster has no notes yet.".to_string()),
             created_at: created_at_label,
             created_at_sort_key,
         }

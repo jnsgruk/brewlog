@@ -12,7 +12,6 @@ async fn creating_a_roaster_returns_a_201_for_valid_data() {
         country: "United Kingdom".to_string(),
         city: Some("London".to_string()),
         homepage: Some("https://example.com".to_string()),
-        notes: Some("Great coffee".to_string()),
     };
 
     // Act
@@ -32,7 +31,6 @@ async fn creating_a_roaster_returns_a_201_for_valid_data() {
     assert_eq!(roaster.country, "United Kingdom");
     assert_eq!(roaster.city, Some("London".to_string()));
     assert_eq!(roaster.homepage, Some("https://example.com".to_string()));
-    assert_eq!(roaster.notes, Some("Great coffee".to_string()));
 }
 
 #[tokio::test]
@@ -46,7 +44,6 @@ async fn creating_a_roaster_persists_the_data() {
         country: "France".to_string(),
         city: Some("Paris".to_string()),
         homepage: None,
-        notes: None,
     };
 
     // Act
@@ -83,7 +80,6 @@ async fn getting_a_roaster_returns_a_200_for_valid_id() {
         country: "Germany".to_string(),
         city: Some("Berlin".to_string()),
         homepage: None,
-        notes: None,
     };
 
     let create_response = client
@@ -163,7 +159,6 @@ async fn listing_roasters_returns_a_200_with_multiple_roasters() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
-        notes: None,
     };
 
     let roaster2 = NewRoaster {
@@ -171,7 +166,6 @@ async fn listing_roasters_returns_a_200_with_multiple_roasters() {
         country: "USA".to_string(),
         city: Some("New York".to_string()),
         homepage: None,
-        notes: None,
     };
 
     client
@@ -215,7 +209,6 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
         country: "UK".to_string(),
         city: Some("Manchester".to_string()),
         homepage: None,
-        notes: None,
     };
 
     let create_response = client
@@ -236,7 +229,6 @@ async fn updating_a_roaster_returns_a_200_for_valid_data() {
         country: None,
         city: Some("Liverpool".to_string()),
         homepage: Some("https://updated.com".to_string()),
-        notes: None,
     };
 
     // Act
@@ -272,7 +264,6 @@ async fn updating_a_roaster_with_no_changes_returns_a_400() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
-        notes: None,
     };
 
     let create_response = client
@@ -293,7 +284,6 @@ async fn updating_a_roaster_with_no_changes_returns_a_400() {
         country: None,
         city: None,
         homepage: None,
-        notes: None,
     };
 
     // Act
@@ -320,7 +310,6 @@ async fn updating_a_nonexistent_roaster_returns_a_404() {
         country: None,
         city: None,
         homepage: None,
-        notes: None,
     };
 
     // Act
@@ -347,7 +336,6 @@ async fn deleting_a_roaster_returns_a_204_for_valid_id() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
-        notes: None,
     };
 
     let create_response = client
@@ -414,7 +402,6 @@ async fn creating_a_roaster_with_empty_name_returns_a_201_after_normalization() 
         country: "UK".to_string(),
         city: None,
         homepage: None,
-        notes: None,
     };
 
     // Act

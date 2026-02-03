@@ -16,8 +16,7 @@ fi
   --name "Tim Wendelboe" \
   --country "Norway" \
   --city "Oslo" \
-  --homepage "https://timwendelboe.no" \
-  --notes "World-renowned Nordic micro-roastery dedicated to clarity and sustainability."
+  --homepage "https://timwendelboe.no"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
@@ -43,8 +42,7 @@ fi
   --name "Coffee Collective" \
   --country "Denmark" \
   --city "Copenhagen" \
-  --homepage "https://coffeecollective.dk" \
-  --notes "Pioneers of transparency and sustainability; multi-time Nordic roaster award winners."
+  --homepage "https://coffeecollective.dk"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
@@ -70,8 +68,7 @@ fi
   --name "Drop Coffee" \
   --country "Sweden" \
   --city "Stockholm" \
-  --homepage "https://dropcoffee.com" \
-  --notes "Award-winning Swedish roastery prized for its elegance and clean Scandinavian style."
+  --homepage "https://dropcoffee.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
@@ -97,8 +94,7 @@ fi
   --name "La Cabra" \
   --country "Denmark" \
   --city "Aarhus" \
-  --homepage "https://www.lacabra.dk" \
-  --notes "Scandinavian minimalist roastery known for clarity and innovative sourcing."
+  --homepage "https://www.lacabra.dk"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
@@ -124,8 +120,7 @@ fi
   --name "April Coffee" \
   --country "Denmark" \
   --city "Copenhagen" \
-  --homepage "https://aprilcoffeeroasters.com" \
-  --notes "Modern approach to Nordic coffee, emphasizing transparency and traceability."
+  --homepage "https://aprilcoffeeroasters.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
@@ -151,8 +146,7 @@ fi
   --name "Assembly Coffee" \
   --country "United Kingdom" \
   --city "London" \
-  --homepage "https://assemblycoffee.co.uk" \
-  --notes "Based in Brixton, Assembly focuses on collaborative sourcing and education."
+  --homepage "https://assemblycoffee.co.uk"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
@@ -178,8 +172,7 @@ fi
   --name "Square Mile Coffee" \
   --country "United Kingdom" \
   --city "London" \
-  --homepage "https://squaremilecoffee.com" \
-  --notes "One of London's pioneers; delivers balanced and clear, fruit-forward coffees."
+  --homepage "https://squaremilecoffee.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
@@ -205,8 +198,7 @@ fi
   --name "Dak Coffee Roasters" \
   --country "Netherlands" \
   --city "Amsterdam" \
-  --homepage "https://www.dakcoffeeroasters.com" \
-  --notes "Highly experimental Dutch roastery; celebrates vibrant acidity and alternative processing."
+  --homepage "https://www.dakcoffeeroasters.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
@@ -232,8 +224,7 @@ fi
   --name "Bonanza Coffee" \
   --country "Germany" \
   --city "Berlin" \
-  --homepage "https://www.bonanzacoffee.de" \
-  --notes "Pioneering Berlin roastery focused on brightness, balance, and freshness."
+  --homepage "https://www.bonanzacoffee.de"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
@@ -259,8 +250,7 @@ fi
   --name "Friedhats" \
   --country "Netherlands" \
   --city "Amsterdam" \
-  --homepage "https://friedhats.com" \
-  --notes "Quirky branding meets serious, awarded, fruit-forward coffees from Amsterdam."
+  --homepage "https://friedhats.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Friedhats") | .id')" \
@@ -286,8 +276,7 @@ fi
   --name "Origin Coffee" \
   --country "United Kingdom" \
   --city "Porthleven" \
-  --homepage "https://origincoffee.co.uk" \
-  --notes "Specialty roaster with close partnerships at origin; leading UK scene with cutting-edge lots."
+  --homepage "https://origincoffee.co.uk"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
@@ -313,8 +302,7 @@ fi
   --name "Dark Arts Coffee" \
   --country "United Kingdom" \
   --city "London" \
-  --homepage "https://www.darkartscoffee.co.uk" \
-  --notes "Playful, disruptive roaster with a cult following and flavor-forward offerings."
+  --homepage "https://www.darkartscoffee.co.uk"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
@@ -340,8 +328,7 @@ fi
   --name "KAWA Coffee" \
   --country "France" \
   --city "Paris" \
-  --homepage "https://www.kawa.coffee" \
-  --notes "One of Paris’ most exciting specialty roasteries, known for unusual and competition-level lots."
+  --homepage "https://www.kawa.coffee"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
@@ -367,8 +354,7 @@ fi
   --name "Stow Coffee" \
   --country "Slovenia" \
   --city "Ljubljana" \
-  --homepage "https://www.stowcoffee.com" \
-  --notes "Slovenia’s specialty leader, awarded for pure, brightly acidic profiles and innovation."
+  --homepage "https://www.stowcoffee.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
@@ -394,8 +380,7 @@ fi
   --name "Bows Coffee" \
   --country "Canada" \
   --city "Victoria" \
-  --homepage "https://bowscoffee.com" \
-  --notes "Canadian micro-roaster with focus on clarity, complexity, and ethical sourcing."
+  --homepage "https://bowscoffee.com"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \

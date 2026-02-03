@@ -122,7 +122,6 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             country: "UK".to_string(),
             city: Some("London".to_string()),
             homepage: Some("https://shop.squaremilecoffee.com".to_string()),
-            notes: Some("Great seasonal espresso".to_string()),
         })
         .await
         .expect("failed to create roaster");
@@ -305,7 +304,6 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(restored_roaster.country, roaster.country);
     assert_eq!(restored_roaster.city, roaster.city);
     assert_eq!(restored_roaster.homepage, roaster.homepage);
-    assert_eq!(restored_roaster.notes, roaster.notes);
     assert_eq!(restored_roaster.created_at, roaster.created_at);
 
     // Roasts
@@ -405,7 +403,6 @@ async fn restore_to_non_empty_database_fails() {
             country: "UK".to_string(),
             city: None,
             homepage: None,
-            notes: None,
         })
         .await
         .expect("failed to create roaster");

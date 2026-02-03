@@ -70,7 +70,6 @@ async fn roasters_create_with_datastar_header_returns_fragment() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
-        notes: None,
     };
 
     let response = client
@@ -103,7 +102,6 @@ async fn roasters_create_without_datastar_header_returns_json() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
-        notes: None,
     };
 
     let response = client

@@ -12,7 +12,6 @@ pub struct Roaster {
     pub country: String,
     pub city: Option<String>,
     pub homepage: Option<String>,
-    pub notes: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -22,7 +21,6 @@ pub struct NewRoaster {
     pub country: String,
     pub city: Option<String>,
     pub homepage: Option<String>,
-    pub notes: Option<String>,
 }
 
 impl NewRoaster {
@@ -31,7 +29,6 @@ impl NewRoaster {
         self.country = self.country.trim().to_string();
         self.city = normalize_optional_field(self.city);
         self.homepage = normalize_optional_field(self.homepage);
-        self.notes = normalize_optional_field(self.notes);
         self
     }
 
@@ -61,7 +58,6 @@ pub struct UpdateRoaster {
     pub country: Option<String>,
     pub city: Option<String>,
     pub homepage: Option<String>,
-    pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

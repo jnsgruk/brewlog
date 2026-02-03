@@ -41,8 +41,6 @@ pub struct AddRoasterCommand {
     pub city: Option<String>,
     #[arg(long)]
     pub homepage: Option<String>,
-    #[arg(long)]
-    pub notes: Option<String>,
 }
 
 pub async fn add_roaster(client: &BrewlogClient, command: AddRoasterCommand) -> Result<()> {
@@ -51,7 +49,6 @@ pub async fn add_roaster(client: &BrewlogClient, command: AddRoasterCommand) -> 
         country: command.country,
         city: command.city,
         homepage: command.homepage,
-        notes: command.notes,
     };
 
     let roaster = client.roasters().create(&payload).await?;
@@ -77,8 +74,6 @@ pub struct UpdateRoasterCommand {
     pub city: Option<String>,
     #[arg(long)]
     pub homepage: Option<String>,
-    #[arg(long)]
-    pub notes: Option<String>,
 }
 
 pub async fn update_roaster(client: &BrewlogClient, command: UpdateRoasterCommand) -> Result<()> {
@@ -87,7 +82,6 @@ pub async fn update_roaster(client: &BrewlogClient, command: UpdateRoasterComman
         country: command.country,
         city: command.city,
         homepage: command.homepage,
-        notes: command.notes,
     };
 
     let roaster = client
