@@ -3,8 +3,11 @@ use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::brews::{Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
+use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::gear::{Gear, GearFilter, GearSortKey, NewGear, UpdateGear};
-use crate::domain::ids::{BagId, BrewId, GearId, RoastId, RoasterId, SessionId, TokenId, UserId};
+use crate::domain::ids::{
+    BagId, BrewId, CafeId, GearId, RoastId, RoasterId, SessionId, TokenId, UserId,
+};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
@@ -168,4 +171,35 @@ pub trait BrewRepository: Send + Sync {
         search: Option<&str>,
     ) -> Result<Page<BrewWithDetails>, RepositoryError>;
     async fn delete(&self, id: BrewId) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait CafeRepository: Send + Sync {
+    async fn insert(&self, cafe: NewCafe) -> Result<Cafe, RepositoryError>;
+    async fn get(&self, id: CafeId) -> Result<Cafe, RepositoryError>;
+    async fn get_by_slug(&self, slug: &str) -> Result<Cafe, RepositoryError>;
+    async fn list(
+        &self,
+        request: &ListRequest<CafeSortKey>,
+        search: Option<&str>,
+    ) -> Result<Page<Cafe>, RepositoryError>;
+    async fn update(&self, id: CafeId, changes: UpdateCafe) -> Result<Cafe, RepositoryError>;
+    async fn delete(&self, id: CafeId) -> Result<(), RepositoryError>;
+
+    async fn list_all(&self) -> Result<Vec<Cafe>, RepositoryError> {
+        let sort_key = <CafeSortKey as SortKey>::default();
+        let request = ListRequest::<CafeSortKey>::show_all(sort_key, sort_key.default_direction());
+        let page = self.list(&request, None).await?;
+        Ok(page.items)
+    }
+
+    async fn list_all_sorted(
+        &self,
+        sort_key: CafeSortKey,
+        direction: SortDirection,
+    ) -> Result<Vec<Cafe>, RepositoryError> {
+        let request = ListRequest::show_all(sort_key, direction);
+        let page = self.list(&request, None).await?;
+        Ok(page.items)
+    }
 }
