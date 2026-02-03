@@ -366,6 +366,21 @@ Every table has a sortable "Added" column as its **first column**, sorted by `cr
 
 The `text-xs font-medium text-stone-600` classes give it a muted, compact appearance compared to the default `text-sm` body text.
 
+### Actions Column
+
+When a row has multiple action buttons/icons, wrap them in `<div class="inline-flex items-center gap-1">` inside the `<td>` to keep them horizontal. Without this wrapper, block-level elements like `<form>` will stack vertically.
+
+```html
+<td data-label="" class="px-4 py-3 text-right">
+  <div class="inline-flex items-center gap-1">
+    <form class="inline" ...>
+      <button type="submit" class="inline-flex h-8 w-8 ...">...</button>
+    </form>
+    <button type="button" class="inline-flex h-8 w-8 ...">...</button>
+  </div>
+</td>
+```
+
 ### Responsive Table Pattern
 
 Tables use the `responsive-table` CSS class which converts rows to card-style layout on mobile (`max-width: 767px`). The CSS in `styles.css` hides `<thead>` and uses `data-label` attributes on `<td>` elements to show field labels.
