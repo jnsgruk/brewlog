@@ -190,11 +190,16 @@ impl RoasterRepository for SqlRoasterRepository {
     async fn list(
         &self,
         request: &ListRequest<RoasterSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<Roaster>, RepositoryError> {
+        use crate::infrastructure::repositories::pagination::SearchFilter;
+
         let order_clause = Self::order_clause(request);
         let base_query =
             "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters";
         let count_query = "SELECT COUNT(*) FROM roasters";
+        let sf =
+            search.and_then(|t| SearchFilter::new(t, vec!["name", "country", "COALESCE(city,'')"]));
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
@@ -202,6 +207,7 @@ impl RoasterRepository for SqlRoasterRepository {
             base_query,
             count_query,
             &order_clause,
+            sf.as_ref(),
             |record| Ok(Self::into_domain(record)),
         )
         .await

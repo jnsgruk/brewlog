@@ -197,7 +197,10 @@ impl BrewRepository for SqlBrewRepository {
         &self,
         filter: BrewFilter,
         request: &ListRequest<BrewSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<BrewWithDetails>, RepositoryError> {
+        use crate::infrastructure::repositories::pagination::SearchFilter;
+
         let order_clause = Self::order_clause(request);
         let where_clause = Self::build_where_clause(&filter);
 
@@ -209,6 +212,8 @@ impl BrewRepository for SqlBrewRepository {
         let count_base = r"
             SELECT COUNT(*) FROM brews br
             JOIN bags b ON br.bag_id = b.id
+            JOIN roasts r ON b.roast_id = r.id
+            JOIN roasters rr ON r.roaster_id = rr.id
         ";
 
         let count_query = match &where_clause {
@@ -216,12 +221,15 @@ impl BrewRepository for SqlBrewRepository {
             None => count_base.to_string(),
         };
 
+        let sf = search.and_then(|t| SearchFilter::new(t, vec!["r.name", "rr.name"]));
+
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
             request,
             &base_query,
             &count_query,
             &order_clause,
+            sf.as_ref(),
             |record| Ok(Self::to_domain_with_details(record)),
         )
         .await

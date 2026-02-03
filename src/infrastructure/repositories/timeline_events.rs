@@ -92,6 +92,7 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
             base_query,
             count_query,
             &order_clause,
+            None,
             |record: TimelineEventRecord| record.into_domain(),
         )
         .await

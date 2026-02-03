@@ -100,7 +100,10 @@ impl GearRepository for SqlGearRepository {
         &self,
         filter: GearFilter,
         request: &ListRequest<GearSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<Gear>, RepositoryError> {
+        use crate::infrastructure::repositories::pagination::SearchFilter;
+
         let order_clause = Self::order_clause(request);
         let where_clause = Self::build_where_clause(&filter);
 
@@ -118,12 +121,15 @@ impl GearRepository for SqlGearRepository {
             None => "SELECT COUNT(*) FROM gear".to_string(),
         };
 
+        let sf = search.and_then(|t| SearchFilter::new(t, vec!["make", "model"]));
+
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
             request,
             &base_query,
             &count_query,
             &order_clause,
+            sf.as_ref(),
             Self::to_domain,
         )
         .await

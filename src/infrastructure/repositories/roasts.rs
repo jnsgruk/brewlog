@@ -249,10 +249,24 @@ impl RoastRepository for SqlRoastRepository {
     async fn list(
         &self,
         request: &ListRequest<RoastSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<RoastWithRoaster>, RepositoryError> {
+        use crate::infrastructure::repositories::pagination::SearchFilter;
+
         let order_clause = Self::order_clause(request);
         let base_query = "SELECT r.id, r.roaster_id, r.name, r.slug, r.origin, r.region, r.producer, r.process, r.tasting_notes, r.created_at, ro.name AS roaster_name, ro.slug AS roaster_slug \n                     FROM roasts r \n                     JOIN roasters ro ON ro.id = r.roaster_id";
-        let count_query = "SELECT COUNT(*) FROM roasts";
+        let count_query = "SELECT COUNT(*) FROM roasts r JOIN roasters ro ON ro.id = r.roaster_id";
+        let sf = search.and_then(|t| {
+            SearchFilter::new(
+                t,
+                vec![
+                    "r.name",
+                    "ro.name",
+                    "COALESCE(r.origin,'')",
+                    "COALESCE(r.producer,'')",
+                ],
+            )
+        });
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
@@ -260,6 +274,7 @@ impl RoastRepository for SqlRoastRepository {
             base_query,
             count_query,
             &order_clause,
+            sf.as_ref(),
             |record: RoastWithRoasterRecord| record.into_with_roaster(),
         )
         .await

@@ -160,7 +160,10 @@ impl BagRepository for SqlBagRepository {
         &self,
         filter: BagFilter,
         request: &ListRequest<BagSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<BagWithRoast>, RepositoryError> {
+        use crate::infrastructure::repositories::pagination::SearchFilter;
+
         let order_clause = Self::order_clause(request);
 
         // Build WHERE clause from filter
@@ -172,9 +175,13 @@ impl BagRepository for SqlBagRepository {
         };
 
         let count_query = match &where_clause {
-            Some(w) => format!("SELECT COUNT(*) FROM bags b WHERE {w}"),
-            None => "SELECT COUNT(*) FROM bags".to_string(),
+            Some(w) => format!(
+                "SELECT COUNT(*) FROM bags b JOIN roasts r ON b.roast_id = r.id JOIN roasters rr ON r.roaster_id = rr.id WHERE {w}"
+            ),
+            None => "SELECT COUNT(*) FROM bags b JOIN roasts r ON b.roast_id = r.id JOIN roasters rr ON r.roaster_id = rr.id".to_string(),
         };
+
+        let sf = search.and_then(|t| SearchFilter::new(t, vec!["rr.name", "r.name"]));
 
         crate::infrastructure::repositories::pagination::paginate(
             &self.pool,
@@ -182,6 +189,7 @@ impl BagRepository for SqlBagRepository {
             &base_query,
             &count_query,
             &order_clause,
+            sf.as_ref(),
             |record| Ok(Self::to_domain_with_roast(record)),
         )
         .await
