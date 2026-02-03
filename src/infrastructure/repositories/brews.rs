@@ -12,17 +12,20 @@ use crate::infrastructure::database::DatabasePool;
 const BASE_SELECT: &str = r"
     SELECT
         br.id, br.bag_id, br.coffee_weight, br.grinder_id, br.grind_setting,
-        br.brewer_id, br.water_volume, br.water_temp, br.created_at, br.updated_at,
+        br.brewer_id, br.filter_paper_id, br.water_volume, br.water_temp,
+        br.created_at, br.updated_at,
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug,
         (g_grinder.make || ' ' || g_grinder.model) as grinder_name,
-        (g_brewer.make || ' ' || g_brewer.model) as brewer_name
+        (g_brewer.make || ' ' || g_brewer.model) as brewer_name,
+        (g_fp.make || ' ' || g_fp.model) as filter_paper_name
     FROM brews br
     JOIN bags b ON br.bag_id = b.id
     JOIN roasts r ON b.roast_id = r.id
     JOIN roasters rr ON r.roaster_id = rr.id
     JOIN gear g_grinder ON br.grinder_id = g_grinder.id
     JOIN gear g_brewer ON br.brewer_id = g_brewer.id
+    LEFT JOIN gear g_fp ON br.filter_paper_id = g_fp.id
 ";
 
 #[derive(Clone)]
@@ -56,6 +59,7 @@ impl SqlBrewRepository {
             grinder_id: GearId::new(record.grinder_id),
             grind_setting: record.grind_setting,
             brewer_id: GearId::new(record.brewer_id),
+            filter_paper_id: record.filter_paper_id.map(GearId::new),
             water_volume: record.water_volume,
             water_temp: record.water_temp,
             created_at: record.created_at,
@@ -72,6 +76,7 @@ impl SqlBrewRepository {
                 grinder_id: GearId::new(record.grinder_id),
                 grind_setting: record.grind_setting,
                 brewer_id: GearId::new(record.brewer_id),
+                filter_paper_id: record.filter_paper_id.map(GearId::new),
                 water_volume: record.water_volume,
                 water_temp: record.water_temp,
                 created_at: record.created_at,
@@ -83,6 +88,7 @@ impl SqlBrewRepository {
             roaster_slug: record.roaster_slug,
             grinder_name: record.grinder_name,
             brewer_name: record.brewer_name,
+            filter_paper_name: record.filter_paper_name,
         }
     }
 
@@ -129,9 +135,9 @@ impl BrewRepository for SqlBrewRepository {
 
         // Insert the brew
         let insert_query = r"
-            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, water_volume, water_temp)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, water_volume, water_temp, created_at, updated_at
+            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at
         ";
 
         let record = query_as::<_, BrewRecord>(insert_query)
@@ -140,6 +146,10 @@ impl BrewRepository for SqlBrewRepository {
             .bind(brew.grinder_id.into_inner())
             .bind(brew.grind_setting)
             .bind(brew.brewer_id.into_inner())
+            .bind(
+                brew.filter_paper_id
+                    .map(crate::domain::ids::GearId::into_inner),
+            )
             .bind(brew.water_volume)
             .bind(brew.water_temp)
             .fetch_one(&mut *tx)
@@ -155,7 +165,7 @@ impl BrewRepository for SqlBrewRepository {
 
     async fn get(&self, id: BrewId) -> Result<Brew, RepositoryError> {
         let query = r"
-            SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, water_volume, water_temp, created_at, updated_at
+            SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at
             FROM brews
             WHERE id = ?
         ";
@@ -242,6 +252,7 @@ struct BrewRecord {
     grinder_id: i64,
     grind_setting: f64,
     brewer_id: i64,
+    filter_paper_id: Option<i64>,
     water_volume: i32,
     water_temp: f64,
     created_at: DateTime<Utc>,
@@ -256,6 +267,7 @@ struct BrewWithDetailsRecord {
     grinder_id: i64,
     grind_setting: f64,
     brewer_id: i64,
+    filter_paper_id: Option<i64>,
     water_volume: i32,
     water_temp: f64,
     created_at: DateTime<Utc>,
@@ -266,4 +278,5 @@ struct BrewWithDetailsRecord {
     roaster_slug: String,
     grinder_name: String,
     brewer_name: String,
+    filter_paper_name: Option<String>,
 }

@@ -22,11 +22,12 @@ impl<'a> BrewsClient<'a> {
         grinder_id: GearId,
         grind_setting: f64,
         brewer_id: GearId,
+        filter_paper_id: Option<GearId>,
         water_volume: i32,
         water_temp: f64,
     ) -> Result<BrewWithDetails> {
         let url = self.inner.endpoint("api/v1/brews")?;
-        let payload = serde_json::json!({
+        let mut payload = serde_json::json!({
             "bag_id": bag_id,
             "coffee_weight": coffee_weight,
             "grinder_id": grinder_id,
@@ -35,6 +36,9 @@ impl<'a> BrewsClient<'a> {
             "water_volume": water_volume,
             "water_temp": water_temp,
         });
+        if let Some(fp_id) = filter_paper_id {
+            payload["filter_paper_id"] = serde_json::json!(fp_id);
+        }
 
         let response = self
             .inner
