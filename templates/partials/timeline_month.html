@@ -89,7 +89,13 @@
       {% for detail in event.details %}
       <div class="flex justify-between gap-2">
         <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
-        {% if let Some(url) = detail.link %}
+        {% if detail.label.eq_ignore_ascii_case("position") && detail.link.is_some() %}
+        <dd class="text-right">
+          <a href="{{ detail.link.as_ref().unwrap() }}" target="_blank" rel="noreferrer noopener" class="text-amber-700 hover:text-amber-500">View on Map</a>
+          <span class="text-stone-400">/</span>
+          <button type="button" onclick="navigator.clipboard.writeText('{{ detail.value }}')" class="text-amber-700 hover:text-amber-500 transition" title="Copy coordinates" aria-label="Copy coordinates">Copy</button>
+        </dd>
+        {% else if let Some(url) = detail.link %}
         <dd class="text-right"><a href="{{ url }}" target="_blank" rel="noreferrer noopener" class="text-amber-700 hover:text-amber-500">{{ detail.value }}</a></dd>
         {% else %}
         <dd class="text-right">{{ detail.value }}</dd>
