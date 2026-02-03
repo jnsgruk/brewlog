@@ -11,7 +11,7 @@
     {# Central timeline line #}
     <div class="timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200" aria-hidden="true"></div>
     {% for event in month.events %}
-    <li class="timeline-item {% if loop.index % 2 == 1 %}timeline-item-left{% else %}timeline-item-right{% endif %} relative mb-8 last:mb-0" data-timeline-event>
+    <li class="timeline-item relative mb-8 last:mb-0" data-timeline-event>
       {# Timeline node/bullet #}
       <span
         class="timeline-node absolute h-5 w-5 rounded-full border-4 border-amber-50 bg-amber-600"

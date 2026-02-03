@@ -119,6 +119,9 @@ pub(crate) async fn create_gear(
             },
         ],
         tasting_notes: vec![],
+        slug: None,         // Gear has no slug
+        roaster_slug: None, // Gear is not related to roasters
+        brew_data: None,
     };
     let _ = state.timeline_repo.insert(event).await;
 

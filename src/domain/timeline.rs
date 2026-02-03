@@ -46,6 +46,9 @@ pub struct NewTimelineEvent {
     pub title: String,
     pub details: Vec<TimelineEventDetail>,
     pub tasting_notes: Vec<String>,
+    pub slug: Option<String>,
+    pub roaster_slug: Option<String>,
+    pub brew_data: Option<TimelineBrewData>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

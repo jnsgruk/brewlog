@@ -17,7 +17,7 @@ use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
+use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
 use crate::presentation::web::templates::{BrewListTemplate, BrewsTemplate};
 use crate::presentation::web::views::{
     BagOptionView, BrewView, GearOptionView, ListNavigator, Paginated,
@@ -250,6 +250,17 @@ pub(crate) async fn create_brew(
             },
         ],
         tasting_notes: vec![],
+        slug: Some(enriched.roast_slug.clone()),
+        roaster_slug: Some(enriched.roaster_slug.clone()),
+        brew_data: Some(TimelineBrewData {
+            bag_id: enriched.brew.bag_id.into_inner(),
+            grinder_id: enriched.brew.grinder_id.into_inner(),
+            brewer_id: enriched.brew.brewer_id.into_inner(),
+            coffee_weight: enriched.brew.coffee_weight,
+            grind_setting: enriched.brew.grind_setting,
+            water_volume: enriched.brew.water_volume,
+            water_temp: enriched.brew.water_temp,
+        }),
     };
     let _ = state.timeline_repo.insert(event).await;
 

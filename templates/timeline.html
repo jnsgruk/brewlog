@@ -96,22 +96,12 @@
         }
         const existing = document.getElementById(anchor)
         if (existing) {
+          // Merge new events into existing month
           const existingList = existing.querySelector("ol")
           const newList = monthNode.querySelector("ol")
           if (existingList && newList) {
-            // Count existing items to continue the alternating pattern
-            const existingCount = existingList.querySelectorAll(".timeline-item").length
-            // Filter to only timeline-items (exclude the timeline-line div)
+            // CSS :nth-of-type handles alternating pattern automatically
             const newItems = Array.from(newList.querySelectorAll(".timeline-item"))
-
-            // Adjust left/right classes to continue the pattern
-            newItems.forEach((item, i) => {
-              const newIndex = existingCount + i + 1 // 1-based
-              const shouldBeLeft = newIndex % 2 === 1
-              item.classList.remove("timeline-item-left", "timeline-item-right")
-              item.classList.add(shouldBeLeft ? "timeline-item-left" : "timeline-item-right")
-            })
-
             existingList.append(...newItems)
           }
         } else {

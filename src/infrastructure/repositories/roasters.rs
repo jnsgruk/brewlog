@@ -134,7 +134,7 @@ impl RoasterRepository for SqlRoasterRepository {
         let details_json = Self::details_for_roaster(&roaster)?;
 
         query(
-                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind("roaster")
             .bind(i64::from(roaster.id))
@@ -143,6 +143,9 @@ impl RoasterRepository for SqlRoasterRepository {
             .bind(&roaster.name)
             .bind(details_json)
             .bind::<Option<&str>>(None)
+            .bind(&roaster.slug) // slug = roaster's own slug
+            .bind::<Option<&str>>(None) // roaster_slug not applicable for roaster events
+            .bind::<Option<&str>>(None) // brew_data_json not applicable
             .execute(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;

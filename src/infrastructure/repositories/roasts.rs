@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde_json::{from_str, to_string};
-use sqlx::{Error as SqlxError, QueryBuilder, query, query_as, query_scalar};
+use sqlx::{Error as SqlxError, QueryBuilder, query, query_as};
 
 use super::macros::push_update_field;
 use crate::domain::RepositoryError;
@@ -125,13 +125,18 @@ impl RoastRepository for SqlRoastRepository {
 
         let roast = record.into_roast()?;
 
-        let roaster_name: Option<String> = query_scalar("SELECT name FROM roasters WHERE id = ?")
-            .bind(i64::from(roast.roaster_id))
-            .fetch_optional(&mut *tx)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        // Fetch roaster info for timeline event
+        let roaster_info: Option<(String, String)> =
+            query_as("SELECT name, slug FROM roasters WHERE id = ?")
+                .bind(i64::from(roast.roaster_id))
+                .fetch_optional(&mut *tx)
+                .await
+                .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        let roaster_label = roaster_name.unwrap_or_else(|| "Unknown roaster".to_string());
+        let (roaster_label, roaster_slug) = roaster_info.map_or_else(
+            || ("Unknown roaster".to_string(), None),
+            |(name, slug)| (name, Some(slug)),
+        );
 
         let details = vec![
             TimelineEventDetail {
@@ -171,7 +176,7 @@ impl RoastRepository for SqlRoastRepository {
         };
 
         query(
-                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind("roast")
             .bind(i64::from(roast.id))
@@ -180,6 +185,9 @@ impl RoastRepository for SqlRoastRepository {
             .bind(&roast.name)
             .bind(details_json)
             .bind(tasting_notes_json.as_deref())
+            .bind(&roast.slug) // slug = roast's own slug
+            .bind(roaster_slug.as_deref()) // roaster_slug from the roaster
+            .bind::<Option<&str>>(None) // brew_data_json not applicable
             .execute(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;

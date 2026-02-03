@@ -153,7 +153,7 @@ pub(crate) async fn create_bag(
         details: vec![
             TimelineEventDetail {
                 label: "Roaster".to_string(),
-                value: roaster.name,
+                value: roaster.name.clone(),
             },
             TimelineEventDetail {
                 label: "Amount".to_string(),
@@ -161,6 +161,9 @@ pub(crate) async fn create_bag(
             },
         ],
         tasting_notes: vec![],
+        slug: Some(roast.slug.clone()),
+        roaster_slug: Some(roaster.slug.clone()),
+        brew_data: None,
     };
     let _ = state.timeline_repo.insert(event).await;
 
@@ -254,7 +257,7 @@ pub(crate) async fn update_bag(
                 details: vec![
                     TimelineEventDetail {
                         label: "Roaster".to_string(),
-                        value: roaster.name,
+                        value: roaster.name.clone(),
                     },
                     TimelineEventDetail {
                         label: "Amount".to_string(),
@@ -262,6 +265,9 @@ pub(crate) async fn update_bag(
                     },
                 ],
                 tasting_notes: vec![],
+                slug: Some(roast.slug.clone()),
+                roaster_slug: Some(roaster.slug.clone()),
+                brew_data: None,
             };
             let _ = state.timeline_repo.insert(event).await;
         }
