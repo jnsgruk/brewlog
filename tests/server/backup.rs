@@ -58,7 +58,7 @@ fn list_all_request<K: brewlog::domain::listing::SortKey>() -> ListRequest<K> {
 }
 
 async fn list_all_roasters(repo: &dyn RoasterRepository) -> Vec<Roaster> {
-    repo.list(&list_all_request::<RoasterSortKey>())
+    repo.list(&list_all_request::<RoasterSortKey>(), None)
         .await
         .expect("failed to list roasters")
         .items
@@ -66,7 +66,7 @@ async fn list_all_roasters(repo: &dyn RoasterRepository) -> Vec<Roaster> {
 
 async fn list_all_roasts(repo: &dyn RoastRepository) -> Vec<Roast> {
     let page = repo
-        .list(&list_all_request::<RoastSortKey>())
+        .list(&list_all_request::<RoastSortKey>(), None)
         .await
         .expect("failed to list roasts");
     page.items.into_iter().map(|rwr| rwr.roast).collect()
@@ -74,14 +74,14 @@ async fn list_all_roasts(repo: &dyn RoastRepository) -> Vec<Roast> {
 
 async fn list_all_bags(repo: &dyn BagRepository) -> Vec<Bag> {
     let page = repo
-        .list(BagFilter::all(), &list_all_request::<BagSortKey>())
+        .list(BagFilter::all(), &list_all_request::<BagSortKey>(), None)
         .await
         .expect("failed to list bags");
     page.items.into_iter().map(|bwr| bwr.bag).collect()
 }
 
 async fn list_all_gear(repo: &dyn GearRepository) -> Vec<Gear> {
-    repo.list(GearFilter::all(), &list_all_request::<GearSortKey>())
+    repo.list(GearFilter::all(), &list_all_request::<GearSortKey>(), None)
         .await
         .expect("failed to list gear")
         .items
@@ -89,7 +89,7 @@ async fn list_all_gear(repo: &dyn GearRepository) -> Vec<Gear> {
 
 async fn list_all_brews(repo: &dyn BrewRepository) -> Vec<Brew> {
     let page = repo
-        .list(BrewFilter::all(), &list_all_request::<BrewSortKey>())
+        .list(BrewFilter::all(), &list_all_request::<BrewSortKey>(), None)
         .await
         .expect("failed to list brews");
     page.items.into_iter().map(|bwd| bwd.brew).collect()

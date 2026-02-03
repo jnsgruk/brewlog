@@ -108,11 +108,12 @@ impl<T> Paginated<T> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct ListNavigator<K: SortKey> {
     base_path: &'static str,
     fragment_path: &'static str,
     request: ListRequest<K>,
+    search: Option<String>,
 }
 
 impl<K: SortKey> ListNavigator<K> {
@@ -120,11 +121,13 @@ impl<K: SortKey> ListNavigator<K> {
         base_path: &'static str,
         fragment_path: &'static str,
         request: ListRequest<K>,
+        search: Option<String>,
     ) -> Self {
         Self {
             base_path,
             fragment_path,
             request,
+            search,
         }
     }
 
@@ -197,27 +200,50 @@ impl<K: SortKey> ListNavigator<K> {
     }
 
     pub fn query(&self) -> String {
-        Self::query_string(self.request)
+        self.build_query_string(self.request)
     }
 
     pub fn query_for_page(&self, page: u32) -> String {
-        Self::query_string(self.request.with_page(page))
+        self.build_query_string(self.request.with_page(page))
     }
 
     pub fn query_for_rows(&self, value: &str) -> String {
-        Self::query_string(Self::request_for_rows(self.request, value))
+        self.build_query_string(Self::request_for_rows(self.request, value))
     }
 
     pub fn query_for_sort(&self, key: &str) -> String {
-        Self::query_string(Self::request_for_sort(self.request, key))
+        self.build_query_string(Self::request_for_sort(self.request, key))
     }
 
-    #[allow(clippy::unused_self)] // Keeps consistent method interface
+    pub fn search_value(&self) -> &str {
+        self.search.as_deref().unwrap_or("")
+    }
+
+    pub fn has_search(&self) -> bool {
+        self.search.is_some()
+    }
+
+    /// Returns the base path (e.g., "/roasters") without query or fragment.
+    pub fn path(&self) -> &str {
+        self.base_path
+    }
+
+    /// Returns query params for search actions (page reset to 1, preserves `sort/page_size`).
+    /// Does NOT include the `q` parameter — the template appends it dynamically from JS.
+    pub fn search_query_base(&self) -> String {
+        format!(
+            "page=1&page_size={}&sort={}&dir={}",
+            self.request.page_size().to_query_value(),
+            self.request.sort_key().query_value(),
+            self.request.sort_direction().as_str()
+        )
+    }
+
     fn build_href(&self, path: &str, request: ListRequest<K>) -> String {
         if let Some((base, fragment)) = path.split_once('#') {
-            format!("{}?{}#{}", base, Self::query_string(request), fragment)
+            format!("{}?{}#{}", base, self.build_query_string(request), fragment)
         } else {
-            format!("{}?{}", path, Self::query_string(request))
+            format!("{}?{}", path, self.build_query_string(request))
         }
     }
 
@@ -231,15 +257,36 @@ impl<K: SortKey> ListNavigator<K> {
         request.with_page(1).with_sort(sort_key)
     }
 
-    fn query_string(request: ListRequest<K>) -> String {
-        format!(
+    fn build_query_string(&self, request: ListRequest<K>) -> String {
+        let mut qs = format!(
             "page={}&page_size={}&sort={}&dir={}",
             request.page(),
             request.page_size().to_query_value(),
             request.sort_key().query_value(),
             request.sort_direction().as_str()
-        )
+        );
+        if let Some(ref q) = self.search {
+            qs.push_str("&q=");
+            qs.push_str(&encode_uri_component(q));
+        }
+        qs
     }
+}
+
+fn encode_uri_component(s: &str) -> String {
+    use std::fmt::Write;
+    let mut result = String::with_capacity(s.len() * 3);
+    for byte in s.as_bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                result.push(*byte as char);
+            }
+            _ => {
+                let _ = write!(result, "%{byte:02X}");
+            }
+        }
+    }
+    result
 }
 
 fn page_size_from_text(value: &str) -> PageSize {

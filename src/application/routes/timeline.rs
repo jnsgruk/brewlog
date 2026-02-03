@@ -165,6 +165,7 @@ async fn load_timeline_page(
         TIMELINE_PAGE_PATH,
         TIMELINE_FRAGMENT_PATH,
         normalized_request,
+        None,
     );
 
     Ok(TimelinePageData {

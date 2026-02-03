@@ -35,10 +35,11 @@ struct BrewPageData {
 async fn load_brew_page(
     state: &AppState,
     request: ListRequest<BrewSortKey>,
+    search: Option<&str>,
 ) -> Result<BrewPageData, AppError> {
     let page = state
         .brew_repo
-        .list(BrewFilter::all(), &request)
+        .list(BrewFilter::all(), &request, search)
         .await
         .map_err(AppError::from)?;
 
@@ -48,6 +49,7 @@ async fn load_brew_page(
         BrewView::from_domain,
         BREW_PAGE_PATH,
         BREW_FRAGMENT_PATH,
+        search.map(String::from),
     );
 
     Ok(BrewPageData { brews, navigator })
@@ -60,11 +62,11 @@ pub(crate) async fn brews_page(
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
-    let request = query.into_request::<BrewSortKey>();
+    let (request, search) = query.into_request_and_search::<BrewSortKey>();
 
     if is_datastar_request(&headers) {
         let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_brew_list_fragment(state, request, is_authenticated)
+        return render_brew_list_fragment(state, request, search, is_authenticated)
             .await
             .map_err(map_app_error);
     }
@@ -76,7 +78,7 @@ pub(crate) async fn brews_page(
     );
     let open_bags = state
         .bag_repo
-        .list(BagFilter::open(), &open_bags_request)
+        .list(BagFilter::open(), &open_bags_request, None)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
     let bag_options: Vec<BagOptionView> = open_bags
@@ -92,6 +94,7 @@ pub(crate) async fn brews_page(
         .list(
             GearFilter::for_category(GearCategory::Grinder),
             &grinder_request,
+            None,
         )
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
@@ -108,6 +111,7 @@ pub(crate) async fn brews_page(
         .list(
             GearFilter::for_category(GearCategory::Brewer),
             &brewer_request,
+            None,
         )
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
@@ -124,6 +128,7 @@ pub(crate) async fn brews_page(
         .list(
             GearFilter::for_category(GearCategory::FilterPaper),
             &filter_paper_request,
+            None,
         )
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
@@ -133,7 +138,7 @@ pub(crate) async fn brews_page(
         .map(GearOptionView::from)
         .collect();
 
-    let BrewPageData { brews, navigator } = load_brew_page(&state, request)
+    let BrewPageData { brews, navigator } = load_brew_page(&state, request, search.as_deref())
         .await
         .map_err(map_app_error)?;
 
@@ -225,7 +230,7 @@ pub(crate) async fn create_brew(
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewBrewSubmission>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<BrewSortKey>();
+    let (request, search) = query.into_request_and_search::<BrewSortKey>();
     let (submission, source) = payload.into_parts();
     let new_brew = submission.into_new_brew().map_err(ApiError::from)?;
 
@@ -267,12 +272,13 @@ pub(crate) async fn create_brew(
                 .insert("datastar-mode", HeaderValue::from_static("append"));
             Ok(response)
         } else {
-            render_brew_list_fragment(state, request, true)
+            render_brew_list_fragment(state, request, search, true)
                 .await
                 .map_err(ApiError::from)
         }
     } else if matches!(source, PayloadSource::Form) {
-        let target = ListNavigator::new(BREW_PAGE_PATH, BREW_FRAGMENT_PATH, request).page_href(1);
+        let target =
+            ListNavigator::new(BREW_PAGE_PATH, BREW_FRAGMENT_PATH, request, search).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(enriched)).into_response())
@@ -373,7 +379,7 @@ pub(crate) async fn list_brews(
     let request = ListRequest::show_all(BrewSortKey::CreatedAt, SortDirection::Desc);
     let page = state
         .brew_repo
-        .list(filter, &request)
+        .list(filter, &request, None)
         .await
         .map_err(AppError::from)?;
     Ok(Json(page.items))
@@ -398,9 +404,11 @@ define_delete_handler!(
 async fn render_brew_list_fragment(
     state: AppState,
     request: ListRequest<BrewSortKey>,
+    search: Option<String>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
-    let BrewPageData { brews, navigator } = load_brew_page(&state, request).await?;
+    let BrewPageData { brews, navigator } =
+        load_brew_page(&state, request, search.as_deref()).await?;
 
     let template = BrewListTemplate {
         is_authenticated,

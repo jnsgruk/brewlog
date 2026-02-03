@@ -33,11 +33,12 @@ struct BagPageData {
 async fn load_bag_page(
     state: &AppState,
     request: ListRequest<BagSortKey>,
+    search: Option<&str>,
 ) -> Result<BagPageData, AppError> {
     let open_request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
     let open_page = state
         .bag_repo
-        .list(BagFilter::open(), &open_request)
+        .list(BagFilter::open(), &open_request, None)
         .await
         .map_err(AppError::from)?;
     let open_bags_view = open_page
@@ -48,7 +49,7 @@ async fn load_bag_page(
 
     let page = state
         .bag_repo
-        .list(BagFilter::closed(), &request)
+        .list(BagFilter::closed(), &request, search)
         .await
         .map_err(AppError::from)?;
 
@@ -58,6 +59,7 @@ async fn load_bag_page(
         BagView::from_domain,
         BAG_PAGE_PATH,
         BAG_FRAGMENT_PATH,
+        search.map(String::from),
     );
 
     Ok(BagPageData {
@@ -74,11 +76,11 @@ pub(crate) async fn bags_page(
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
-    let request = query.into_request::<BagSortKey>();
+    let (request, search) = query.into_request_and_search::<BagSortKey>();
 
     if is_datastar_request(&headers) {
         let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_bag_list_fragment(state, request, is_authenticated)
+        return render_bag_list_fragment(state, request, search, is_authenticated)
             .await
             .map_err(map_app_error);
     }
@@ -95,7 +97,7 @@ pub(crate) async fn bags_page(
         open_bags,
         bags,
         navigator,
-    } = load_bag_page(&state, request)
+    } = load_bag_page(&state, request, search.as_deref())
         .await
         .map_err(map_app_error)?;
 
@@ -121,7 +123,7 @@ pub(crate) async fn create_bag(
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewBagSubmission>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<BagSortKey>();
+    let (request, search) = query.into_request_and_search::<BagSortKey>();
     let (submission, source) = payload.into_parts();
     let new_bag = submission.into_new_bag().map_err(ApiError::from)?;
 
@@ -168,11 +170,12 @@ pub(crate) async fn create_bag(
     let _ = state.timeline_repo.insert(event).await;
 
     if is_datastar_request(&headers) {
-        render_bag_list_fragment(state, request, true)
+        render_bag_list_fragment(state, request, search, true)
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
-        let target = ListNavigator::new(BAG_PAGE_PATH, BAG_FRAGMENT_PATH, request).page_href(1);
+        let target =
+            ListNavigator::new(BAG_PAGE_PATH, BAG_FRAGMENT_PATH, request, search).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         let enriched = state
@@ -196,7 +199,7 @@ pub(crate) async fn list_bags(
     let request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
     let page = state
         .bag_repo
-        .list(filter, &request)
+        .list(filter, &request, None)
         .await
         .map_err(AppError::from)?;
     Ok(Json(page.items))
@@ -214,7 +217,7 @@ pub(crate) async fn update_bag(
     Query(update_params): Query<UpdateBag>,
     payload: Option<Json<UpdateBag>>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<BagSortKey>();
+    let (request, search) = query.into_request_and_search::<BagSortKey>();
 
     let body_update = payload.map_or(
         UpdateBag {
@@ -274,7 +277,7 @@ pub(crate) async fn update_bag(
     }
 
     if is_datastar_request(&headers) {
-        render_bag_list_fragment(state, request, true)
+        render_bag_list_fragment(state, request, search, true)
             .await
             .map_err(ApiError::from)
     } else {
@@ -337,13 +340,14 @@ impl NewBagSubmission {
 async fn render_bag_list_fragment(
     state: AppState,
     request: ListRequest<BagSortKey>,
+    search: Option<String>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
     let BagPageData {
         open_bags,
         bags,
         navigator,
-    } = load_bag_page(&state, request).await?;
+    } = load_bag_page(&state, request, search.as_deref()).await?;
 
     let template = BagListTemplate {
         is_authenticated,

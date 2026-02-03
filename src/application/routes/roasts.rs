@@ -29,10 +29,11 @@ const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";
 async fn load_roast_page(
     state: &AppState,
     request: ListRequest<RoastSortKey>,
+    search: Option<&str>,
 ) -> Result<(Paginated<RoastView>, ListNavigator<RoastSortKey>), AppError> {
     let page = state
         .roast_repo
-        .list(&request)
+        .list(&request, search)
         .await
         .map_err(AppError::from)?;
 
@@ -42,6 +43,7 @@ async fn load_roast_page(
         RoastView::from_list_item,
         ROAST_PAGE_PATH,
         ROAST_FRAGMENT_PATH,
+        search.map(String::from),
     ))
 }
 
@@ -52,11 +54,11 @@ pub(crate) async fn roasts_page(
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
-    let request = query.into_request::<RoastSortKey>();
+    let (request, search) = query.into_request_and_search::<RoastSortKey>();
 
     if is_datastar_request(&headers) {
         let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_roast_list_fragment(state, request, is_authenticated)
+        return render_roast_list_fragment(state, request, search, is_authenticated)
             .await
             .map_err(map_app_error);
     }
@@ -69,7 +71,7 @@ pub(crate) async fn roasts_page(
 
     let roaster_options = roasters.into_iter().map(RoasterOptionView::from).collect();
 
-    let (roasts, navigator) = load_roast_page(&state, request)
+    let (roasts, navigator) = load_roast_page(&state, request, search.as_deref())
         .await
         .map_err(map_app_error)?;
 
@@ -107,7 +109,7 @@ pub(crate) async fn roast_page(
     let bag_request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
     let bags_page = state
         .bag_repo
-        .list(BagFilter::for_roast(roast.id), &bag_request)
+        .list(BagFilter::for_roast(roast.id), &bag_request, None)
         .await
         .map_err(|err| map_app_error(AppError::from(err)))?;
 
@@ -137,7 +139,7 @@ pub(crate) async fn create_roast(
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewRoastSubmission>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<RoastSortKey>();
+    let (request, search) = query.into_request_and_search::<RoastSortKey>();
     let (submission, source) = payload.into_parts();
     let new_roast = submission.into_new_roast().map_err(ApiError::from)?;
 
@@ -154,11 +156,12 @@ pub(crate) async fn create_roast(
         .map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_roast_list_fragment(state, request, true)
+        render_roast_list_fragment(state, request, search, true)
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
-        let target = ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, request).page_href(1);
+        let target =
+            ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, request, search).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         let enriched = state
@@ -343,9 +346,10 @@ impl TastingNotesInput {
 async fn render_roast_list_fragment(
     state: AppState,
     request: ListRequest<RoastSortKey>,
+    search: Option<String>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
-    let (roasts, navigator) = load_roast_page(&state, request).await?;
+    let (roasts, navigator) = load_roast_page(&state, request, search.as_deref()).await?;
 
     let template = RoastListTemplate {
         is_authenticated,

@@ -26,10 +26,11 @@ const ROASTER_FRAGMENT_PATH: &str = "/roasters#roaster-list";
 async fn load_roaster_page(
     state: &AppState,
     request: ListRequest<RoasterSortKey>,
+    search: Option<&str>,
 ) -> Result<(Paginated<RoasterView>, ListNavigator<RoasterSortKey>), AppError> {
     let page = state
         .roaster_repo
-        .list(&request)
+        .list(&request, search)
         .await
         .map_err(AppError::from)?;
 
@@ -39,6 +40,7 @@ async fn load_roaster_page(
         RoasterView::from,
         ROASTER_PAGE_PATH,
         ROASTER_FRAGMENT_PATH,
+        search.map(String::from),
     ))
 }
 
@@ -49,16 +51,16 @@ pub(crate) async fn roasters_page(
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
-    let request = query.into_request::<RoasterSortKey>();
+    let (request, search) = query.into_request_and_search::<RoasterSortKey>();
 
     if is_datastar_request(&headers) {
         let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_roaster_list_fragment(state, request, is_authenticated)
+        return render_roaster_list_fragment(state, request, search, is_authenticated)
             .await
             .map_err(map_app_error);
     }
 
-    let (roasters, navigator) = load_roaster_page(&state, request)
+    let (roasters, navigator) = load_roaster_page(&state, request, search.as_deref())
         .await
         .map_err(map_app_error)?;
 
@@ -124,7 +126,7 @@ pub(crate) async fn create_roaster(
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewRoaster>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<RoasterSortKey>();
+    let (request, search) = query.into_request_and_search::<RoasterSortKey>();
     let (new_roaster, source) = payload.into_parts();
     let new_roaster = new_roaster.normalize();
     let roaster = state
@@ -134,12 +136,12 @@ pub(crate) async fn create_roaster(
         .map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_roaster_list_fragment(state, request, true)
+        render_roaster_list_fragment(state, request, search, true)
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
-        let target =
-            ListNavigator::new(ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, request).page_href(1);
+        let target = ListNavigator::new(ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, request, search)
+            .page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(roaster)).into_response())
@@ -184,9 +186,10 @@ define_delete_handler!(
 async fn render_roaster_list_fragment(
     state: AppState,
     request: ListRequest<RoasterSortKey>,
+    search: Option<String>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
-    let (roasters, navigator) = load_roaster_page(&state, request).await?;
+    let (roasters, navigator) = load_roaster_page(&state, request, search.as_deref()).await?;
 
     let template = RoasterListTemplate {
         is_authenticated,

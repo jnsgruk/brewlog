@@ -28,10 +28,11 @@ const GEAR_FRAGMENT_PATH: &str = "/gear#gear-list";
 async fn load_gear_page(
     state: &AppState,
     request: ListRequest<GearSortKey>,
+    search: Option<&str>,
 ) -> Result<Paginated<GearView>, AppError> {
     let page = state
         .gear_repo
-        .list(GearFilter::all(), &request)
+        .list(GearFilter::all(), &request, search)
         .await
         .map_err(AppError::from)?;
 
@@ -41,6 +42,7 @@ async fn load_gear_page(
         GearView::from_domain,
         GEAR_PAGE_PATH,
         GEAR_FRAGMENT_PATH,
+        search.map(String::from),
     );
 
     Ok(gear)
@@ -53,21 +55,21 @@ pub(crate) async fn gear_page(
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
-    let request = query.into_request::<GearSortKey>();
+    let (request, search) = query.into_request_and_search::<GearSortKey>();
 
     if is_datastar_request(&headers) {
         let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_gear_list_fragment(state, request, is_authenticated)
+        return render_gear_list_fragment(state, request, search, is_authenticated)
             .await
             .map_err(map_app_error);
     }
 
-    let gear = load_gear_page(&state, request)
+    let gear = load_gear_page(&state, request, search.as_deref())
         .await
         .map_err(map_app_error)?;
 
     let is_authenticated = super::is_authenticated(&state, &cookies).await;
-    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request);
+    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request, search);
 
     let template = GearTemplate {
         nav_active: "gear",
@@ -87,7 +89,7 @@ pub(crate) async fn create_gear(
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewGearSubmission>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<GearSortKey>();
+    let (request, search) = query.into_request_and_search::<GearSortKey>();
     let (submission, source) = payload.into_parts();
     let new_gear = submission.into_new_gear().map_err(ApiError::from)?;
 
@@ -126,11 +128,12 @@ pub(crate) async fn create_gear(
     let _ = state.timeline_repo.insert(event).await;
 
     if is_datastar_request(&headers) {
-        render_gear_list_fragment(state, request, true)
+        render_gear_list_fragment(state, request, search, true)
             .await
             .map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
-        let target = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request).page_href(1);
+        let target =
+            ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request, search).page_href(1);
         Ok(Redirect::to(&target).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(gear)).into_response())
@@ -153,7 +156,7 @@ pub(crate) async fn list_gear(
     let request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
     let page = state
         .gear_repo
-        .list(filter, &request)
+        .list(filter, &request, None)
         .await
         .map_err(AppError::from)?;
     Ok(Json(page.items))
@@ -170,7 +173,7 @@ pub(crate) async fn update_gear(
     Query(query): Query<ListQuery>,
     payload: Json<UpdateGear>,
 ) -> Result<Response, ApiError> {
-    let request = query.into_request::<GearSortKey>();
+    let (request, search) = query.into_request_and_search::<GearSortKey>();
 
     let gear = state
         .gear_repo
@@ -179,7 +182,7 @@ pub(crate) async fn update_gear(
         .map_err(AppError::from)?;
 
     if is_datastar_request(&headers) {
-        render_gear_list_fragment(state, request, true)
+        render_gear_list_fragment(state, request, search, true)
             .await
             .map_err(ApiError::from)
     } else {
@@ -231,10 +234,11 @@ impl NewGearSubmission {
 async fn render_gear_list_fragment(
     state: AppState,
     request: ListRequest<GearSortKey>,
+    search: Option<String>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
-    let gear = load_gear_page(&state, request).await?;
-    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request);
+    let gear = load_gear_page(&state, request, search.as_deref()).await?;
+    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request, search);
 
     let template = GearListTemplate {
         is_authenticated,

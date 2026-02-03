@@ -88,7 +88,7 @@ macro_rules! define_delete_handler {
                 crate::application::routes::support::ListQuery,
             >,
         ) -> Result<axum::response::Response, crate::application::errors::ApiError> {
-            let request = query.into_request::<$sort_key>();
+            let (request, search) = query.into_request_and_search::<$sort_key>();
             state
                 .$repo_field
                 .delete(id)
@@ -96,7 +96,7 @@ macro_rules! define_delete_handler {
                 .map_err(crate::application::errors::AppError::from)?;
 
             if crate::application::routes::support::is_datastar_request(&headers) {
-                $render_fragment(state, request, true)
+                $render_fragment(state, request, search, true)
                     .await
                     .map_err(crate::application::errors::ApiError::from)
             } else {

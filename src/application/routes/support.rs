@@ -38,6 +38,8 @@ pub(crate) struct ListQuery {
     sort_key: Option<String>,
     #[serde(default, rename = "dir")]
     sort_dir: Option<String>,
+    #[serde(default)]
+    q: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,31 +50,42 @@ enum PageSizeParam {
 }
 
 impl ListQuery {
-    pub fn into_request<K: SortKey>(self) -> ListRequest<K> {
-        self.into_request_with_default::<K>(DEFAULT_PAGE_SIZE)
+    pub fn into_request_and_search<K: SortKey>(self) -> (ListRequest<K>, Option<String>) {
+        self.into_request_and_search_with_default::<K>(DEFAULT_PAGE_SIZE)
     }
 
-    pub fn into_request_with_default<K: SortKey>(self, default_page_size: u32) -> ListRequest<K> {
-        let page = self.page.unwrap_or(1);
-        let page_size = match self.page_size {
+    pub fn into_request_and_search_with_default<K: SortKey>(
+        self,
+        default_page_size: u32,
+    ) -> (ListRequest<K>, Option<String>) {
+        let ListQuery {
+            page,
+            page_size,
+            sort_key,
+            sort_dir,
+            q,
+        } = self;
+
+        let search = q.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+
+        let page = page.unwrap_or(1);
+        let page_size = match page_size {
             Some(PageSizeParam::Number(value)) => PageSize::limited(value),
             Some(PageSizeParam::Text(text)) => page_size_from_text(&text),
             None => PageSize::limited(default_page_size.max(1)),
         };
 
-        let sort_key = self
-            .sort_key
+        let sk = sort_key
             .as_deref()
             .and_then(K::from_query)
             .unwrap_or_else(K::default);
 
-        let sort_direction = self
-            .sort_dir
+        let sd = sort_dir
             .as_deref()
             .and_then(parse_direction)
-            .unwrap_or_else(|| sort_key.default_direction());
+            .unwrap_or_else(|| sk.default_direction());
 
-        ListRequest::new(page, page_size, sort_key, sort_direction)
+        (ListRequest::new(page, page_size, sk, sd), search)
     }
 }
 
@@ -100,13 +113,14 @@ pub fn build_page_view<K, T, V>(
     view_mapper: impl FnMut(T) -> V,
     base_path: &'static str,
     fragment_path: &'static str,
+    search: Option<String>,
 ) -> (Paginated<V>, ListNavigator<K>)
 where
     K: SortKey,
 {
     let normalized_request = normalize_request(request, &page);
     let view_page = Paginated::from_page(page, view_mapper);
-    let navigator = ListNavigator::new(base_path, fragment_path, normalized_request);
+    let navigator = ListNavigator::new(base_path, fragment_path, normalized_request, search);
     (view_page, navigator)
 }
 
