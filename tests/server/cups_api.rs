@@ -16,7 +16,6 @@ async fn creating_a_cup_returns_a_201_for_valid_data() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: Some("Excellent pour-over".to_string()),
         rating: Some(5),
     };
 
@@ -33,7 +32,6 @@ async fn creating_a_cup_returns_a_201_for_valid_data() {
     let cup: Cup = response.json().await.expect("Failed to parse response");
     assert_eq!(cup.roast_id, roast.id);
     assert_eq!(cup.cafe_id, cafe.id);
-    assert_eq!(cup.notes, Some("Excellent pour-over".to_string()));
     assert_eq!(cup.rating, Some(5));
 }
 
@@ -49,7 +47,6 @@ async fn creating_a_cup_without_optional_fields_returns_a_201() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: None,
         rating: None,
     };
 
@@ -64,7 +61,6 @@ async fn creating_a_cup_without_optional_fields_returns_a_201() {
     assert_eq!(response.status(), 201);
 
     let cup: Cup = response.json().await.expect("Failed to parse response");
-    assert_eq!(cup.notes, None);
     assert_eq!(cup.rating, None);
 }
 
@@ -76,7 +72,6 @@ async fn creating_a_cup_requires_authentication() {
     let new_cup = NewCup {
         roast_id: RoastId::new(1),
         cafe_id: CafeId::new(1),
-        notes: None,
         rating: None,
     };
 
@@ -119,7 +114,6 @@ async fn listing_cups_returns_a_200_with_enriched_data() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: None,
         rating: Some(4),
     };
 
@@ -158,7 +152,6 @@ async fn getting_a_cup_returns_a_200_with_details() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: Some("Great".to_string()),
         rating: Some(3),
     };
 
@@ -215,7 +208,6 @@ async fn updating_a_cup_returns_a_200_for_valid_data() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: None,
         rating: None,
     };
 
@@ -232,10 +224,7 @@ async fn updating_a_cup_returns_a_200_for_valid_data() {
         .await
         .expect("Failed to parse response");
 
-    let update = UpdateCup {
-        notes: Some("Updated notes".to_string()),
-        rating: Some(4),
-    };
+    let update = UpdateCup { rating: Some(4) };
 
     let response = client
         .put(app.api_url(&format!("/cups/{}", cup.id)))
@@ -248,7 +237,6 @@ async fn updating_a_cup_returns_a_200_for_valid_data() {
     assert_eq!(response.status(), 200);
 
     let updated: Cup = response.json().await.expect("Failed to parse response");
-    assert_eq!(updated.notes, Some("Updated notes".to_string()));
     assert_eq!(updated.rating, Some(4));
 }
 
@@ -264,7 +252,6 @@ async fn updating_a_cup_with_no_changes_returns_a_400() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: None,
         rating: None,
     };
 
@@ -281,10 +268,7 @@ async fn updating_a_cup_with_no_changes_returns_a_400() {
         .await
         .expect("Failed to parse response");
 
-    let update = UpdateCup {
-        notes: None,
-        rating: None,
-    };
+    let update = UpdateCup { rating: None };
 
     let response = client
         .put(app.api_url(&format!("/cups/{}", cup.id)))
@@ -309,7 +293,6 @@ async fn deleting_a_cup_returns_a_204_for_valid_id() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
-        notes: None,
         rating: None,
     };
 

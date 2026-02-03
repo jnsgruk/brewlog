@@ -13,7 +13,7 @@ use crate::infrastructure::database::DatabasePool;
 
 const BASE_SELECT: &str = r"
     SELECT
-        c.id, c.roast_id, c.cafe_id, c.notes, c.rating,
+        c.id, c.roast_id, c.cafe_id, c.rating,
         c.created_at, c.updated_at,
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug,
@@ -57,7 +57,6 @@ impl SqlCupRepository {
             id: CupId::new(record.id),
             roast_id: RoastId::new(record.roast_id),
             cafe_id: CafeId::new(record.cafe_id),
-            notes: record.notes,
             rating: record.rating,
             created_at: record.created_at,
             updated_at: record.updated_at,
@@ -70,7 +69,6 @@ impl SqlCupRepository {
                 id: CupId::new(record.id),
                 roast_id: RoastId::new(record.roast_id),
                 cafe_id: CafeId::new(record.cafe_id),
-                notes: record.notes,
                 rating: record.rating,
                 created_at: record.created_at,
                 updated_at: record.updated_at,
@@ -141,12 +139,11 @@ impl CupRepository for SqlCupRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         let record = query_as::<_, CupRecord>(
-            "INSERT INTO cups (roast_id, cafe_id, notes, rating) VALUES (?, ?, ?, ?) \
-             RETURNING id, roast_id, cafe_id, notes, rating, created_at, updated_at",
+            "INSERT INTO cups (roast_id, cafe_id, rating) VALUES (?, ?, ?) \
+             RETURNING id, roast_id, cafe_id, rating, created_at, updated_at",
         )
         .bind(new_cup.roast_id.into_inner())
         .bind(new_cup.cafe_id.into_inner())
-        .bind(new_cup.notes.as_deref())
         .bind(new_cup.rating)
         .fetch_one(&mut *tx)
         .await
@@ -196,7 +193,7 @@ impl CupRepository for SqlCupRepository {
 
     async fn get(&self, id: CupId) -> Result<Cup, RepositoryError> {
         let record = query_as::<_, CupRecord>(
-            "SELECT id, roast_id, cafe_id, notes, rating, created_at, updated_at FROM cups WHERE id = ?",
+            "SELECT id, roast_id, cafe_id, rating, created_at, updated_at FROM cups WHERE id = ?",
         )
         .bind(i64::from(id))
         .fetch_optional(&self.pool)
@@ -268,7 +265,6 @@ impl CupRepository for SqlCupRepository {
         let mut builder = QueryBuilder::new("UPDATE cups SET updated_at = CURRENT_TIMESTAMP");
         let mut sep = true;
 
-        push_update_field!(builder, sep, "notes", changes.notes);
         push_update_field!(builder, sep, "rating", changes.rating);
         let _ = sep;
 
@@ -308,7 +304,6 @@ struct CupRecord {
     id: i64,
     roast_id: i64,
     cafe_id: i64,
-    notes: Option<String>,
     rating: Option<i32>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
@@ -319,7 +314,6 @@ struct CupWithDetailsRecord {
     id: i64,
     roast_id: i64,
     cafe_id: i64,
-    notes: Option<String>,
     rating: Option<i32>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,

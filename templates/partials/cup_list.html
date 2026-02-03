@@ -22,7 +22,6 @@
             {% call table::sortable_header("Coffee", "roast", navigator, "#cup-list") %}
             {% call table::sortable_header("Cafe", "cafe", navigator, "#cup-list") %}
             {% call table::sortable_header("Rating", "rating", navigator, "#cup-list") %}
-            <th scope="col" class="mobile-hidden px-4 py-3">Notes</th>
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -52,9 +51,6 @@
               >
             </td>
             <td data-label="Rating" class="px-4 py-3 whitespace-nowrap">{{ cup.rating }}</td>
-            <td data-label="Notes" class="mobile-hidden px-4 py-3 text-sm text-stone-600">
-              {% if cup.has_notes %}{{ cup.notes }}{% else %}&mdash;{% endif %}
-            </td>
             <td data-label="" class="px-4 py-3 text-right">
               {% if is_authenticated %}
               <div class="inline-flex items-center gap-1">

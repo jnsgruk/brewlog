@@ -515,129 +515,128 @@ fi
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
-  --notes "Rich and balanced; the house espresso blend is a crowd-pleaser." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kamwangi") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
-  --notes "Juicy Kenyan pour-over, bright blackcurrant notes." \
+
   --rating 5
 
 # Prufrock Coffee (London) - 3 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
-  --notes "Delicate floral Ethiopian; exceptional barista technique." \
+
   --rating 5
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Laja") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
-  --notes "Interesting Mexican natural, lots of chocolate." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
-  --notes "Guest roast from Tim Wendelboe; bergamot hit was incredible." \
+
   --rating 5
 
 # Hola Coffee (Madrid) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Cerro Azul") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
-  --notes "Clean Colombian washed, plum and grapefruit forward." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
-  --notes "Peachy natural from April Coffee, worked well as espresso." \
+
   --rating 3
 
 # Toma Café (Madrid) - 1 cup
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Toma Café") | .id')" \
-  --notes "Smooth Brazilian, hazelnut and chocolate. Nice afternoon flat white."
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Toma Café") | .id')"
 
 # The Barn (Berlin) - 3 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
-  --notes "Their own roast; classic Kenyan brightness with tomato acidity." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Los Pirineos") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
-  --notes "Honey-processed El Salvador, maple sweetness." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
-  --notes "La Cabra guest roast, jasmine and lemon." \
+
   --rating 5
 
 # Companion Coffee (Berlin) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
-  --notes "Wild anaerobic from Dak; passionfruit explosion." \
+
   --rating 5
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Oreti SL28") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
-  --notes "Crisp Kenyan SL28, grapefruit and plum." \
+
   --rating 4
 
 # Man Versus Machine (Munich) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
-  --notes "Clean Colombian, red apple and caramel. Beautiful V60." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Esmeralda Geisha") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
-  --notes "Incredible Geisha from Friedhats; jasmine and papaya. Worth every penny." \
+
   --rating 5
 
 # Vits der Kaffee (Munich) - 1 cup
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="San Fermin") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Vits der Kaffee") | .id')" \
-  --notes "Origin Coffee guest roast; fruity Colombian, blood orange finish." \
+
   --rating 3
 
 # Full Court Press (Bristol) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
-  --notes "Natural Ethiopian from Stow Coffee; blackberry and jasmine." \
+
   --rating 5
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Death to Decaf") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
-  --notes "Surprisingly good decaf from Dark Arts. Cocoa and cherry." \
+
   --rating 3
 
 # Small Street Espresso (Bristol) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Simbi") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
-  --notes "Rwandan washed from Bows; clean black tea and orange." \
+
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Chumeca") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
-  --notes "Costa Rican honey from Bows; sweet mandarin and honeycomb." \
+
   --rating 4
 
 # ============================================================================

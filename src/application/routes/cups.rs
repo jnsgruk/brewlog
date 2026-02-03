@@ -142,7 +142,7 @@ pub(crate) async fn update_cup(
     Path(id): Path<CupId>,
     Json(payload): Json<UpdateCup>,
 ) -> Result<Json<Cup>, ApiError> {
-    let has_changes = payload.notes.is_some() || payload.rating.is_some();
+    let has_changes = payload.rating.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());

@@ -38,8 +38,6 @@ pub struct AddCupCommand {
     #[arg(long)]
     pub cafe_id: i64,
     #[arg(long)]
-    pub notes: Option<String>,
-    #[arg(long)]
     pub rating: Option<i32>,
 }
 
@@ -47,7 +45,6 @@ pub async fn add_cup(client: &BrewlogClient, command: AddCupCommand) -> Result<(
     let payload = NewCup {
         roast_id: RoastId::new(command.roast_id),
         cafe_id: CafeId::new(command.cafe_id),
-        notes: command.notes,
         rating: command.rating,
     };
 
@@ -67,14 +64,11 @@ pub struct UpdateCupCommand {
     #[arg(long)]
     pub id: i64,
     #[arg(long)]
-    pub notes: Option<String>,
-    #[arg(long)]
     pub rating: Option<i32>,
 }
 
 pub async fn update_cup(client: &BrewlogClient, command: UpdateCupCommand) -> Result<()> {
     let payload = UpdateCup {
-        notes: command.notes,
         rating: command.rating,
     };
 

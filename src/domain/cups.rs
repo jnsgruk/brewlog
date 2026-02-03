@@ -9,7 +9,6 @@ pub struct Cup {
     pub id: CupId,
     pub roast_id: RoastId,
     pub cafe_id: CafeId,
-    pub notes: Option<String>,
     pub rating: Option<i32>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -31,13 +30,11 @@ pub struct CupWithDetails {
 pub struct NewCup {
     pub roast_id: RoastId,
     pub cafe_id: CafeId,
-    pub notes: Option<String>,
     pub rating: Option<i32>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UpdateCup {
-    pub notes: Option<String>,
     pub rating: Option<i32>,
 }
 
