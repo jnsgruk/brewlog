@@ -520,7 +520,7 @@ fi
   --finished-at "2026-01-28"
 
 # ============================================================================
-# Gear - 2 grinders and 3 brewers
+# Gear - 2 grinders, 3 brewers, and 3 filter papers
 # ============================================================================
 
 # Grinders
@@ -550,6 +550,22 @@ fi
   --make "Fellow" \
   --model "Stagg XF"
 
+# Filter Papers
+./target/debug/brewlog gear add \
+  --category "filter_paper" \
+  --make "Hario" \
+  --model "V60 Tabbed 02"
+
+./target/debug/brewlog gear add \
+  --category "filter_paper" \
+  --make "Sibarist" \
+  --model "FAST Specialty 02"
+
+./target/debug/brewlog gear add \
+  --category "filter_paper" \
+  --make "Fellow" \
+  --model "Stagg XF Filters"
+
 # ============================================================================
 # Brews - Sample brews using open bags with realistic ratios (1:15 to 1:17)
 # ============================================================================
@@ -561,6 +577,7 @@ fi
   --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
   --grind-setting 24.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 Tabbed 02") | .id')" \
   --water-volume 250 \
   --water-temp 92.0
 
@@ -581,6 +598,7 @@ fi
   --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
   --grind-setting 25.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="FAST Specialty 02") | .id')" \
   --water-volume 500 \
   --water-temp 91.0
 
@@ -591,6 +609,7 @@ fi
   --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="J-Max") | .id')" \
   --grind-setting 22.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF") | .id')" \
+  --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF Filters") | .id')" \
   --water-volume 300 \
   --water-temp 93.0
 
@@ -601,6 +620,7 @@ fi
   --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
   --grind-setting 26.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 Tabbed 02") | .id')" \
   --water-volume 200 \
   --water-temp 94.0
 
@@ -621,6 +641,7 @@ fi
   --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="J-Max") | .id')" \
   --grind-setting 21.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
+  --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="FAST Specialty 02") | .id')" \
   --water-volume 320 \
   --water-temp 92.0
 
@@ -631,6 +652,7 @@ fi
   --grinder-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="C40 MK4") | .id')" \
   --grind-setting 23.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF") | .id')" \
+  --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF Filters") | .id')" \
   --water-volume 256 \
   --water-temp 90.0
 
@@ -675,6 +697,21 @@ UPDATE gear SET
   created_at = datetime('2025-10-12 16:00:00'),
   updated_at = datetime('2025-10-12 16:00:00')
 WHERE model = 'Stagg XF';  -- Fellow dripper (upgrade)
+
+UPDATE gear SET
+  created_at = datetime('2025-08-10 14:45:00'),
+  updated_at = datetime('2025-08-10 14:45:00')
+WHERE model = 'V60 Tabbed 02';  -- Hario filter papers (bought with V60)
+
+UPDATE gear SET
+  created_at = datetime('2025-10-01 09:00:00'),
+  updated_at = datetime('2025-10-01 09:00:00')
+WHERE model = 'FAST Specialty 02';  -- Sibarist upgrade papers
+
+UPDATE gear SET
+  created_at = datetime('2025-10-12 16:15:00'),
+  updated_at = datetime('2025-10-12 16:15:00')
+WHERE model = 'Stagg XF Filters';  -- Fellow filters (bought with Stagg XF)
 
 -- ============================================================================
 -- ROASTERS & ROASTS: Discovered over months 1-6
@@ -934,6 +971,15 @@ WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'J
 
 UPDATE timeline_events SET occurred_at = datetime('2025-10-12 16:00:00')
 WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Stagg XF');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-10 14:45:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'V60 Tabbed 02');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-01 09:00:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'FAST Specialty 02');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-12 16:15:00')
+WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Stagg XF Filters');
 
 -- Roaster timeline events
 UPDATE timeline_events SET occurred_at = datetime('2025-08-03 08:00:00')
