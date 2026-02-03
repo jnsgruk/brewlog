@@ -416,6 +416,108 @@ fi
   --tasting-notes "Black Tea, Orange, Cane Sugar"
 
 # ============================================================================
+# Cafes - 10 cafes across London, Madrid, Berlin, Munich, and Bristol
+# ============================================================================
+
+# London - Monmouth Coffee (Borough Market)
+./target/debug/brewlog cafe add \
+  --name "Monmouth Coffee" \
+  --city "London" \
+  --country "UK" \
+  --latitude 51.5055 \
+  --longitude -0.0910 \
+  --website "https://www.monmouthcoffee.co.uk" \
+  --notes "Iconic Borough Market cafe; queues around the block for a reason."
+
+# London - Prufrock Coffee
+./target/debug/brewlog cafe add \
+  --name "Prufrock Coffee" \
+  --city "London" \
+  --country "UK" \
+  --latitude 51.5246 \
+  --longitude -0.1098 \
+  --website "https://www.prufrockcoffee.com" \
+  --notes "Award-winning Leather Lane cafe with stellar barista training programme."
+
+# Madrid - Hola Coffee
+./target/debug/brewlog cafe add \
+  --name "Hola Coffee" \
+  --city "Madrid" \
+  --country "Spain" \
+  --latitude 40.4285 \
+  --longitude -3.7025 \
+  --website "https://www.holacoffee.es" \
+  --notes "Pioneering specialty coffee in the Malasaña neighbourhood."
+
+# Madrid - Toma Café
+./target/debug/brewlog cafe add \
+  --name "Toma Café" \
+  --city "Madrid" \
+  --country "Spain" \
+  --latitude 40.4260 \
+  --longitude -3.7075 \
+  --notes "Relaxed Malasaña spot known for excellent filter and warm atmosphere."
+
+# Berlin - The Barn
+./target/debug/brewlog cafe add \
+  --name "The Barn" \
+  --city "Berlin" \
+  --country "Germany" \
+  --latitude 52.5298 \
+  --longitude 13.4020 \
+  --website "https://thebarn.de" \
+  --notes "Light-roast pioneer in Prenzlauer Berg; their own roastery supplies the cafe."
+
+# Berlin - Companion Coffee
+./target/debug/brewlog cafe add \
+  --name "Companion Coffee" \
+  --city "Berlin" \
+  --country "Germany" \
+  --latitude 52.4952 \
+  --longitude 13.4188 \
+  --website "https://www.companion.coffee" \
+  --notes "Minimalist Neukölln cafe with a curated rotating menu of guest roasters."
+
+# Munich - Man Versus Machine
+./target/debug/brewlog cafe add \
+  --name "Man Versus Machine" \
+  --city "Munich" \
+  --country "Germany" \
+  --latitude 48.1310 \
+  --longitude 11.5690 \
+  --website "https://www.mvsmcoffee.de" \
+  --notes "Munich's specialty flagship; roasts in-house and competes internationally."
+
+# Munich - Vits der Kaffee
+./target/debug/brewlog cafe add \
+  --name "Vits der Kaffee" \
+  --city "Munich" \
+  --country "Germany" \
+  --latitude 48.1353 \
+  --longitude 11.5741 \
+  --website "https://www.vfrischekaffee.de" \
+  --notes "Modern cafe near Viktualienmarkt with thoughtful sourcing and seasonal offerings."
+
+# Bristol - Full Court Press
+./target/debug/brewlog cafe add \
+  --name "Full Court Press" \
+  --city "Bristol" \
+  --country "UK" \
+  --latitude 51.4543 \
+  --longitude -2.5930 \
+  --website "https://www.fullcourtpress.coffee" \
+  --notes "Bristol institution on Broad Street; brunch and specialty coffee done right."
+
+# Bristol - Small Street Espresso
+./target/debug/brewlog cafe add \
+  --name "Small Street Espresso" \
+  --city "Bristol" \
+  --country "UK" \
+  --latitude 51.4540 \
+  --longitude -2.5955 \
+  --notes "Tiny takeaway bar with a cult following for its espresso and flat whites."
+
+# ============================================================================
 # Bags - Various bags from different roasters with amounts ranging 100g-500g
 # ============================================================================
 
@@ -667,6 +769,7 @@ DB_FILE="${DB_FILE#sqlite://}"
 echo "Distributing timestamps over the last 6 months..."
 
 sqlite3 "$DB_FILE" <<'ENDSQL'
+.timeout 5000
 -- Today is approximately 2026-02-02
 -- Spread data from 2025-08-01 to 2026-02-02 (6 months)
 
@@ -798,6 +901,65 @@ UPDATE roasters SET created_at = datetime('2026-01-08 12:00:00')
 WHERE name = 'Bows Coffee';
 UPDATE roasts SET created_at = datetime('2026-01-08 12:05:00')
 WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee');
+
+-- ============================================================================
+-- CAFES: Visited over months 1-6, spread across 5 cities
+-- ============================================================================
+
+-- Month 1 (Aug 2025): First London cafes
+UPDATE cafes SET
+  created_at = datetime('2025-08-12 11:00:00'),
+  updated_at = datetime('2025-08-12 11:00:00')
+WHERE name = 'Monmouth Coffee';
+
+UPDATE cafes SET
+  created_at = datetime('2025-08-20 14:30:00'),
+  updated_at = datetime('2025-08-20 14:30:00')
+WHERE name = 'Prufrock Coffee';
+
+-- Month 2 (Sep 2025): Berlin trip
+UPDATE cafes SET
+  created_at = datetime('2025-09-08 10:00:00'),
+  updated_at = datetime('2025-09-08 10:00:00')
+WHERE name = 'The Barn';
+
+UPDATE cafes SET
+  created_at = datetime('2025-09-10 15:00:00'),
+  updated_at = datetime('2025-09-10 15:00:00')
+WHERE name = 'Companion Coffee';
+
+-- Month 3 (Oct 2025): Munich visit
+UPDATE cafes SET
+  created_at = datetime('2025-10-07 09:30:00'),
+  updated_at = datetime('2025-10-07 09:30:00')
+WHERE name = 'Man Versus Machine';
+
+UPDATE cafes SET
+  created_at = datetime('2025-10-09 11:00:00'),
+  updated_at = datetime('2025-10-09 11:00:00')
+WHERE name = 'Vits der Kaffee';
+
+-- Month 4 (Nov 2025): Madrid trip
+UPDATE cafes SET
+  created_at = datetime('2025-11-05 12:00:00'),
+  updated_at = datetime('2025-11-05 12:00:00')
+WHERE name = 'Hola Coffee';
+
+UPDATE cafes SET
+  created_at = datetime('2025-11-07 10:30:00'),
+  updated_at = datetime('2025-11-07 10:30:00')
+WHERE name = 'Toma Café';
+
+-- Month 6 (Jan 2026): Bristol day trip
+UPDATE cafes SET
+  created_at = datetime('2026-01-11 10:00:00'),
+  updated_at = datetime('2026-01-11 10:00:00')
+WHERE name = 'Full Court Press';
+
+UPDATE cafes SET
+  created_at = datetime('2026-01-11 14:00:00'),
+  updated_at = datetime('2026-01-11 14:00:00')
+WHERE name = 'Small Street Espresso';
 
 -- ============================================================================
 -- BAGS: Purchased after roasts exist, spread over months 2-6
@@ -1072,6 +1234,37 @@ WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaste
 
 UPDATE timeline_events SET occurred_at = datetime('2026-01-08 12:05:00')
 WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee'));
+
+-- Cafe timeline events (match cafe created_at)
+UPDATE timeline_events SET occurred_at = datetime('2025-08-12 11:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-20 14:30:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-08 10:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'The Barn');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-10 15:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-07 09:30:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-09 11:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Vits der Kaffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-05 12:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee');
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-07 10:30:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Toma Café');
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-11 10:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Full Court Press');
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-11 14:00:00')
+WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso');
 
 -- Bag timeline events (match bag created_at)
 UPDATE timeline_events SET occurred_at = datetime('2025-09-28 10:00:00')
