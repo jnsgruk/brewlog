@@ -500,45 +500,38 @@ fi
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kamwangi") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
-
   --rating 5
 
 # Prufrock Coffee (London) - 3 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
-
   --rating 5
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Laja") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
-
   --rating 5
 
 # Hola Coffee (Madrid) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Cerro Azul") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
-
   --rating 3
 
 # Toma Café (Madrid) - 1 cup
@@ -550,78 +543,66 @@ fi
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Los Pirineos") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
-
   --rating 5
 
 # Companion Coffee (Berlin) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
-
   --rating 5
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Oreti SL28") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
-
   --rating 4
 
 # Man Versus Machine (Munich) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Esmeralda Geisha") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
-
   --rating 5
 
 # Vits der Kaffee (Munich) - 1 cup
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="San Fermin") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Vits der Kaffee") | .id')" \
-
   --rating 3
 
 # Full Court Press (Bristol) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
-
   --rating 5
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Death to Decaf") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
-
   --rating 3
 
 # Small Street Espresso (Bristol) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Simbi") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
-
   --rating 4
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Chumeca") | .id')" \
   --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
-
   --rating 4
 
 # ============================================================================
