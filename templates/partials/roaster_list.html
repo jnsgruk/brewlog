@@ -18,15 +18,11 @@
       <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
         <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
           <tr>
-            {% call table::sortable_header("Added", "created-at", navigator, "#roaster-list") %} {%
-            call table::sortable_header("Name", "name", navigator, "#roaster-list") %} {% call
-            table::sortable_header("Country", "country", navigator, "#roaster-list") %} {% call
-            table::sortable_header("City", "city", navigator, "#roaster-list") %}
-            <th scope="col" class="px-4 py-3">Homepage</th>
+            {% call table::sortable_header("Added", "created-at", navigator, "#roaster-list") %}
+            {% call table::sortable_header("Name", "name", navigator, "#roaster-list") %}
+            {% call table::sortable_header("Location", "country", navigator, "#roaster-list") %}
             <th scope="col" class="px-4 py-3">Notes</th>
-            {% if is_authenticated %}
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
-            {% endif %}
           </tr>
         </thead>
         <tbody class="divide-y divide-amber-200/70">
@@ -49,52 +45,58 @@
                 >{{ roaster.name }}</a
               >
             </td>
-            <td data-label="Country" class="px-4 py-3 whitespace-nowrap">{{ roaster.country }}</td>
-            <td data-label="City" class="px-4 py-3 whitespace-nowrap">{{ roaster.city }}</td>
-            <td data-label="Homepage" class="mobile-hidden px-4 py-3">
-              {% if roaster.has_homepage %}
-              <a
-                class="inline-flex items-center justify-center rounded-md border border-amber-400 bg-amber-200/50 p-2 text-amber-800 transition hover:border-amber-500 hover:text-amber-900"
-                href="{{ roaster.homepage_url }}"
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label="Visit {{ roaster.name }} homepage"
-              >
-                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
-                    clip-rule="evenodd"
-                  />
-                  <path
-                    d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
-                  />
-                </svg>
-              </a>
-              {% else %}
-              <span class="text-stone-400">&mdash;</span>
+            <td data-label="Location" class="px-4 py-3 whitespace-nowrap">
+              {{ roaster.country }}
+              {% if !roaster.city.is_empty() %}
+              <div class="hidden md:block text-xs text-stone-500">{{ roaster.city }}</div>
               {% endif %}
             </td>
-            <td data-label="Notes" class="mobile-hidden px-4 py-3 text-sm text-stone-600">{{ roaster.notes }}</td>
-            {% if is_authenticated %}
-            <td data-label="" class="px-4 py-3 text-right">
-              <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
-                title="Delete roaster"
-                data-on:click="confirm('Delete this roaster?') && @delete('/api/v1/roasters/{{ roaster.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
-              >
-                <span class="sr-only">Delete</span>
-                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1H15a1 1 0 1 1 0 2h-.4l-.74 10.36A2 2 0 0 1 11.87 17H8.13a2 2 0 0 1-1.99-1.64L5.4 5H5a1 1 0 1 1 0-2h2.5Zm.9 4.5a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm3.4 0a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </td>
+            {% if !roaster.city.is_empty() %}
+            <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roaster.city }}</td>
             {% endif %}
+            <td data-label="Notes" class="mobile-hidden px-4 py-3 text-sm text-stone-600">{{ roaster.notes }}</td>
+            <td data-label="" class="px-4 py-3 text-right">
+              <div class="inline-flex items-center gap-1">
+                {% if roaster.has_homepage %}
+                <a
+                  class="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+                  href="{{ roaster.homepage_url }}"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  title="Visit homepage"
+                >
+                  <span class="sr-only">Visit {{ roaster.name }} homepage</span>
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+                      clip-rule="evenodd"
+                    />
+                    <path
+                      d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+                    />
+                  </svg>
+                </a>
+                {% endif %}
+                {% if is_authenticated %}
+                <button
+                  type="button"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                  title="Delete roaster"
+                  data-on:click="confirm('Delete this roaster?') && @delete('/api/v1/roasters/{{ roaster.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+                >
+                  <span class="sr-only">Delete</span>
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1H15a1 1 0 1 1 0 2h-.4l-.74 10.36A2 2 0 0 1 11.87 17H8.13a2 2 0 0 1-1.99-1.64L5.4 5H5a1 1 0 1 1 0-2h2.5Zm.9 4.5a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm3.4 0a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+                {% endif %}
+              </div>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
