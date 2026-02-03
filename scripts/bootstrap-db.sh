@@ -149,7 +149,7 @@ fi
 # Assembly Coffee (UK)
 ./target/debug/brewlog roaster add \
   --name "Assembly Coffee" \
-  --country "UK" \
+  --country "United Kingdom" \
   --city "London" \
   --homepage "https://assemblycoffee.co.uk" \
   --notes "Based in Brixton, Assembly focuses on collaborative sourcing and education."
@@ -176,7 +176,7 @@ fi
 # Square Mile (UK)
 ./target/debug/brewlog roaster add \
   --name "Square Mile Coffee" \
-  --country "UK" \
+  --country "United Kingdom" \
   --city "London" \
   --homepage "https://squaremilecoffee.com" \
   --notes "One of London's pioneers; delivers balanced and clear, fruit-forward coffees."
@@ -284,7 +284,7 @@ fi
 # Origin Coffee (UK)
 ./target/debug/brewlog roaster add \
   --name "Origin Coffee" \
-  --country "UK" \
+  --country "United Kingdom" \
   --city "Porthleven" \
   --homepage "https://origincoffee.co.uk" \
   --notes "Specialty roaster with close partnerships at origin; leading UK scene with cutting-edge lots."
@@ -311,7 +311,7 @@ fi
 # Dark Arts Coffee (UK)
 ./target/debug/brewlog roaster add \
   --name "Dark Arts Coffee" \
-  --country "UK" \
+  --country "United Kingdom" \
   --city "London" \
   --homepage "https://www.darkartscoffee.co.uk" \
   --notes "Playful, disruptive roaster with a cult following and flavor-forward offerings."
@@ -423,7 +423,7 @@ fi
 ./target/debug/brewlog cafe add \
   --name "Monmouth Coffee" \
   --city "London" \
-  --country "UK" \
+  --country "United Kingdom" \
   --latitude 51.5055 \
   --longitude -0.0910 \
   --website "https://www.monmouthcoffee.co.uk" \
@@ -433,7 +433,7 @@ fi
 ./target/debug/brewlog cafe add \
   --name "Prufrock Coffee" \
   --city "London" \
-  --country "UK" \
+  --country "United Kingdom" \
   --latitude 51.5246 \
   --longitude -0.1098 \
   --website "https://www.prufrockcoffee.com" \
@@ -502,7 +502,7 @@ fi
 ./target/debug/brewlog cafe add \
   --name "Full Court Press" \
   --city "Bristol" \
-  --country "UK" \
+  --country "United Kingdom" \
   --latitude 51.4543 \
   --longitude -2.5930 \
   --website "https://www.fullcourtpress.coffee" \
@@ -512,7 +512,7 @@ fi
 ./target/debug/brewlog cafe add \
   --name "Small Street Espresso" \
   --city "Bristol" \
-  --country "UK" \
+  --country "United Kingdom" \
   --latitude 51.4540 \
   --longitude -2.5955 \
   --notes "Tiny takeaway bar with a cult following for its espresso and flat whites."
