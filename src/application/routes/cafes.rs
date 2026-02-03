@@ -69,6 +69,7 @@ pub(crate) async fn cafes_page(
     let template = CafesTemplate {
         nav_active: "cafes",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         cafes,
         navigator,
     };
@@ -94,6 +95,7 @@ pub(crate) async fn cafe_page(
     let template = CafeDetailTemplate {
         nav_active: "cafes",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         cafe: cafe_view,
     };
 

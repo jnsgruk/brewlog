@@ -93,6 +93,7 @@ pub(crate) async fn timeline_page(
     let template = TimelineTemplate {
         nav_active: "timeline",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         events: data.events,
         navigator: data.navigator,
         months: data.months,

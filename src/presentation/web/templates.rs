@@ -37,6 +37,7 @@ pub struct RoasterListTemplate {
 pub struct RoasterDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub roaster: RoasterView,
     pub roasts: Vec<RoastView>,
 }
@@ -57,6 +58,7 @@ pub struct RoastsTemplate {
 pub struct RoastDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub roast: RoastView,
     pub bags: Vec<BagView>,
 }
@@ -74,6 +76,7 @@ pub struct RoastListTemplate {
 pub struct TimelineTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub events: Paginated<TimelineEventView>,
     pub navigator: ListNavigator<TimelineSortKey>,
     pub months: Vec<TimelineMonthView>,
@@ -93,6 +96,7 @@ pub struct TimelineChunkTemplate {
 pub struct BagsTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub open_bags: Vec<BagView>,
     pub bags: Paginated<BagView>,
     pub roaster_options: Vec<RoasterOptionView>,
@@ -113,6 +117,7 @@ pub struct BagListTemplate {
 pub struct GearTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub gear: Paginated<GearView>,
     pub navigator: ListNavigator<GearSortKey>,
 }
@@ -136,6 +141,7 @@ pub struct RoastOptionsTemplate {
 pub struct BrewsTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub brews: Paginated<BrewView>,
     pub bag_options: Vec<BagOptionView>,
     pub grinder_options: Vec<GearOptionView>,
@@ -158,6 +164,7 @@ pub struct BrewListTemplate {
 pub struct CafesTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub cafes: Paginated<CafeView>,
     pub navigator: ListNavigator<CafeSortKey>,
 }
@@ -175,6 +182,7 @@ pub struct CafeListTemplate {
 pub struct CafeDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub cafe: CafeView,
 }
 
@@ -183,6 +191,7 @@ pub struct CafeDetailTemplate {
 pub struct CupsTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub cups: Paginated<CupView>,
     pub roast_options: Vec<RoastOptionView>,
     pub cafe_options: Vec<CafeOptionView>,
@@ -195,6 +204,14 @@ pub struct CupListTemplate {
     pub is_authenticated: bool,
     pub cups: Paginated<CupView>,
     pub navigator: ListNavigator<CupSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "scan.html")]
+pub struct ScanTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub has_ai_extract: bool,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

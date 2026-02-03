@@ -101,6 +101,7 @@ pub(crate) async fn roaster_page(
     let template = RoasterDetailTemplate {
         nav_active: "roasters",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         roaster: roaster_view,
         roasts: roasts.into_iter().map(RoastView::from_list_item).collect(),
     };

@@ -71,6 +71,7 @@ pub(crate) async fn gear_page(
     let template = GearTemplate {
         nav_active: "gear",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         gear,
         navigator,
     };

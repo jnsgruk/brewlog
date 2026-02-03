@@ -99,6 +99,7 @@ pub(crate) async fn bags_page(
     let template = BagsTemplate {
         nav_active: "bags",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         open_bags,
         bags,
         roaster_options,

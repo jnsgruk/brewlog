@@ -121,6 +121,7 @@ pub(crate) async fn roast_page(
     let template = RoastDetailTemplate {
         nav_active: "roasts",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         roast: RoastView::from_domain(roast, &roaster.name, &roaster.slug),
         bags: bag_views,
     };
