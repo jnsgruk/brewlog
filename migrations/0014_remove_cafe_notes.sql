@@ -1,0 +1,1 @@
+ALTER TABLE cafes DROP COLUMN notes;

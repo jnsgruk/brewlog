@@ -21,7 +21,6 @@
             {% call table::sortable_header("Added", "created-at", navigator, "#cafe-list") %}
             {% call table::sortable_header("Name", "name", navigator, "#cafe-list") %}
             {% call table::sortable_header("Location", "country", navigator, "#cafe-list") %}
-            <th scope="col" class="mobile-hidden px-4 py-3">Notes</th>
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -50,7 +49,6 @@
               <div class="hidden md:block text-xs text-stone-500">{{ cafe.city }}</div>
             </td>
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cafe.city }}</td>
-            <td data-label="Notes" class="mobile-hidden px-4 py-3 text-sm text-stone-600">{{ cafe.notes }}</td>
             <td data-label="" class="px-4 py-3 text-right">
               <div class="inline-flex items-center gap-1">
                 <a

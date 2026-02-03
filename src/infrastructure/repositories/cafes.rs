@@ -45,7 +45,6 @@ impl SqlCafeRepository {
             latitude,
             longitude,
             website,
-            notes,
             created_at,
             updated_at,
         } = record;
@@ -59,7 +58,6 @@ impl SqlCafeRepository {
             latitude,
             longitude,
             website,
-            notes,
             created_at,
             updated_at,
         }
@@ -115,8 +113,8 @@ impl CafeRepository for SqlCafeRepository {
         let now = Utc::now();
 
         let record = query_as::<_, CafeRecord>(
-                "INSERT INTO cafes (name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\
-                 RETURNING id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at",
+                "INSERT INTO cafes (name, slug, city, country, latitude, longitude, website, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\
+                 RETURNING id, name, slug, city, country, latitude, longitude, website, created_at, updated_at",
             )
             .bind(&new_cafe.name)
             .bind(&slug)
@@ -125,7 +123,6 @@ impl CafeRepository for SqlCafeRepository {
             .bind(new_cafe.latitude)
             .bind(new_cafe.longitude)
             .bind(new_cafe.website.as_deref())
-            .bind(new_cafe.notes.as_deref())
             .bind(now)
             .bind(now)
             .fetch_one(&mut *tx)
@@ -170,7 +167,7 @@ impl CafeRepository for SqlCafeRepository {
 
     async fn get(&self, id: CafeId) -> Result<Cafe, RepositoryError> {
         let record = query_as::<_, CafeRecord>(
-                "SELECT id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at FROM cafes WHERE id = ?",
+                "SELECT id, name, slug, city, country, latitude, longitude, website, created_at, updated_at FROM cafes WHERE id = ?",
             )
             .bind(i64::from(id))
             .fetch_optional(&self.pool)
@@ -185,7 +182,7 @@ impl CafeRepository for SqlCafeRepository {
 
     async fn get_by_slug(&self, slug: &str) -> Result<Cafe, RepositoryError> {
         let record = query_as::<_, CafeRecord>(
-                "SELECT id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at FROM cafes WHERE slug = ?",
+                "SELECT id, name, slug, city, country, latitude, longitude, website, created_at, updated_at FROM cafes WHERE slug = ?",
             )
             .bind(slug)
             .fetch_optional(&self.pool)
@@ -206,7 +203,7 @@ impl CafeRepository for SqlCafeRepository {
         use crate::infrastructure::repositories::pagination::SearchFilter;
 
         let order_clause = Self::order_clause(request);
-        let base_query = "SELECT id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at FROM cafes";
+        let base_query = "SELECT id, name, slug, city, country, latitude, longitude, website, created_at, updated_at FROM cafes";
         let count_query = "SELECT COUNT(*) FROM cafes";
         let sf = search.and_then(|t| SearchFilter::new(t, vec!["name", "city", "country"]));
 
@@ -232,7 +229,6 @@ impl CafeRepository for SqlCafeRepository {
         push_update_field!(builder, sep, "latitude", changes.latitude);
         push_update_field!(builder, sep, "longitude", changes.longitude);
         push_update_field!(builder, sep, "website", changes.website);
-        push_update_field!(builder, sep, "notes", changes.notes);
         let _ = sep;
 
         builder.push(" WHERE id = ");
@@ -276,7 +272,6 @@ struct CafeRecord {
     latitude: f64,
     longitude: f64,
     website: Option<String>,
-    notes: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }

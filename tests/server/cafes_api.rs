@@ -13,7 +13,6 @@ async fn creating_a_cafe_returns_a_201_for_valid_data() {
         latitude: 37.7749,
         longitude: -122.4194,
         website: Some("https://bluebottlecoffee.com".to_string()),
-        notes: Some("Great pour-over".to_string()),
     };
 
     let response = client
@@ -36,7 +35,6 @@ async fn creating_a_cafe_returns_a_201_for_valid_data() {
         cafe.website,
         Some("https://bluebottlecoffee.com".to_string())
     );
-    assert_eq!(cafe.notes, Some("Great pour-over".to_string()));
 }
 
 #[tokio::test]
@@ -51,7 +49,6 @@ async fn creating_a_cafe_persists_the_data() {
         latitude: 48.8566,
         longitude: 2.3522,
         website: None,
-        notes: None,
     };
 
     let response = client
@@ -87,7 +84,6 @@ async fn creating_a_cafe_requires_authentication() {
         latitude: 51.5074,
         longitude: -0.1278,
         website: None,
-        notes: None,
     };
 
     let response = client
@@ -163,7 +159,6 @@ async fn listing_cafes_returns_a_200_with_multiple_cafes() {
         latitude: 51.5074,
         longitude: -0.1278,
         website: None,
-        notes: None,
     };
 
     let cafe2 = NewCafe {
@@ -173,7 +168,6 @@ async fn listing_cafes_returns_a_200_with_multiple_cafes() {
         latitude: 52.52,
         longitude: 13.405,
         website: None,
-        notes: None,
     };
 
     client
@@ -250,7 +244,6 @@ async fn updating_a_cafe_returns_a_200_for_valid_data() {
         latitude: None,
         longitude: None,
         website: Some("https://updated.com".to_string()),
-        notes: None,
     };
 
     let response = client
@@ -282,7 +275,6 @@ async fn updating_a_cafe_with_no_changes_returns_a_400() {
         latitude: None,
         longitude: None,
         website: None,
-        notes: None,
     };
 
     let response = client
@@ -308,7 +300,6 @@ async fn updating_a_nonexistent_cafe_returns_a_404() {
         latitude: None,
         longitude: None,
         website: None,
-        notes: None,
     };
 
     let response = client

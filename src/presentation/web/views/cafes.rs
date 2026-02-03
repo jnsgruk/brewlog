@@ -12,7 +12,6 @@ pub struct CafeView {
     pub has_website: bool,
     pub website_url: String,
     pub website_label: String,
-    pub notes: String,
     pub created_at: String,
     pub created_at_sort_key: i64,
 }
@@ -28,7 +27,6 @@ impl From<Cafe> for CafeView {
             latitude,
             longitude,
             website,
-            notes,
             created_at,
             updated_at: _,
         } = cafe;
@@ -53,7 +51,6 @@ impl From<Cafe> for CafeView {
             has_website,
             website_url: website.clone(),
             website_label: website,
-            notes: notes.unwrap_or_else(|| "This cafe has no notes yet.".to_string()),
             created_at: created_at_label,
             created_at_sort_key,
         }

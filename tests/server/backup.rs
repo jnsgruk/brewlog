@@ -226,7 +226,6 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             latitude: 51.5246,
             longitude: -0.1098,
             website: Some("https://prufrockcoffee.com".to_string()),
-            notes: Some("Award-winning espresso bar".to_string()),
         })
         .await
         .expect("failed to create cafe");
@@ -378,7 +377,6 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(restored_cafe.latitude, cafe.latitude);
     assert_eq!(restored_cafe.longitude, cafe.longitude);
     assert_eq!(restored_cafe.website, cafe.website);
-    assert_eq!(restored_cafe.notes, cafe.notes);
 
     // Timeline events
     let target_timeline = list_all_timeline_events(target.timeline_repo.as_ref()).await;

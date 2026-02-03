@@ -426,8 +426,7 @@ fi
   --country "United Kingdom" \
   --latitude 51.5055 \
   --longitude -0.0910 \
-  --website "https://www.monmouthcoffee.co.uk" \
-  --notes "Iconic Borough Market cafe; queues around the block for a reason."
+  --website "https://www.monmouthcoffee.co.uk"
 
 # London - Prufrock Coffee
 ./target/debug/brewlog cafe add \
@@ -436,8 +435,7 @@ fi
   --country "United Kingdom" \
   --latitude 51.5246 \
   --longitude -0.1098 \
-  --website "https://www.prufrockcoffee.com" \
-  --notes "Award-winning Leather Lane cafe with stellar barista training programme."
+  --website "https://www.prufrockcoffee.com"
 
 # Madrid - Hola Coffee
 ./target/debug/brewlog cafe add \
@@ -446,8 +444,7 @@ fi
   --country "Spain" \
   --latitude 40.4285 \
   --longitude -3.7025 \
-  --website "https://www.holacoffee.es" \
-  --notes "Pioneering specialty coffee in the Malasaña neighbourhood."
+  --website "https://www.holacoffee.es"
 
 # Madrid - Toma Café
 ./target/debug/brewlog cafe add \
@@ -455,8 +452,7 @@ fi
   --city "Madrid" \
   --country "Spain" \
   --latitude 40.4260 \
-  --longitude -3.7075 \
-  --notes "Relaxed Malasaña spot known for excellent filter and warm atmosphere."
+  --longitude -3.7075
 
 # Berlin - The Barn
 ./target/debug/brewlog cafe add \
@@ -465,8 +461,7 @@ fi
   --country "Germany" \
   --latitude 52.5298 \
   --longitude 13.4020 \
-  --website "https://thebarn.de" \
-  --notes "Light-roast pioneer in Prenzlauer Berg; their own roastery supplies the cafe."
+  --website "https://thebarn.de"
 
 # Berlin - Companion Coffee
 ./target/debug/brewlog cafe add \
@@ -475,8 +470,7 @@ fi
   --country "Germany" \
   --latitude 52.4952 \
   --longitude 13.4188 \
-  --website "https://www.companion.coffee" \
-  --notes "Minimalist Neukölln cafe with a curated rotating menu of guest roasters."
+  --website "https://www.companion.coffee"
 
 # Munich - Man Versus Machine
 ./target/debug/brewlog cafe add \
@@ -485,8 +479,7 @@ fi
   --country "Germany" \
   --latitude 48.1310 \
   --longitude 11.5690 \
-  --website "https://www.mvsmcoffee.de" \
-  --notes "Munich's specialty flagship; roasts in-house and competes internationally."
+  --website "https://www.mvsmcoffee.de"
 
 # Munich - Vits der Kaffee
 ./target/debug/brewlog cafe add \
@@ -495,8 +488,7 @@ fi
   --country "Germany" \
   --latitude 48.1353 \
   --longitude 11.5741 \
-  --website "https://www.vfrischekaffee.de" \
-  --notes "Modern cafe near Viktualienmarkt with thoughtful sourcing and seasonal offerings."
+  --website "https://www.vfrischekaffee.de"
 
 # Bristol - Full Court Press
 ./target/debug/brewlog cafe add \
@@ -505,8 +497,7 @@ fi
   --country "United Kingdom" \
   --latitude 51.4543 \
   --longitude -2.5930 \
-  --website "https://www.fullcourtpress.coffee" \
-  --notes "Bristol institution on Broad Street; brunch and specialty coffee done right."
+  --website "https://www.fullcourtpress.coffee"
 
 # Bristol - Small Street Espresso
 ./target/debug/brewlog cafe add \
@@ -514,8 +505,7 @@ fi
   --city "Bristol" \
   --country "United Kingdom" \
   --latitude 51.4540 \
-  --longitude -2.5955 \
-  --notes "Tiny takeaway bar with a cult following for its espresso and flat whites."
+  --longitude -2.5955
 
 # ============================================================================
 # Cups - 1 to 3 cups per cafe, pairing roasts with cafes visited

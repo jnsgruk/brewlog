@@ -45,8 +45,6 @@ pub struct AddCafeCommand {
     pub longitude: f64,
     #[arg(long)]
     pub website: Option<String>,
-    #[arg(long)]
-    pub notes: Option<String>,
 }
 
 pub async fn add_cafe(client: &BrewlogClient, command: AddCafeCommand) -> Result<()> {
@@ -57,7 +55,6 @@ pub async fn add_cafe(client: &BrewlogClient, command: AddCafeCommand) -> Result
         latitude: command.latitude,
         longitude: command.longitude,
         website: command.website,
-        notes: command.notes,
     };
 
     let cafe = client.cafes().create(&payload).await?;
@@ -87,8 +84,6 @@ pub struct UpdateCafeCommand {
     pub longitude: Option<f64>,
     #[arg(long)]
     pub website: Option<String>,
-    #[arg(long)]
-    pub notes: Option<String>,
 }
 
 pub async fn update_cafe(client: &BrewlogClient, command: UpdateCafeCommand) -> Result<()> {
@@ -99,7 +94,6 @@ pub async fn update_cafe(client: &BrewlogClient, command: UpdateCafeCommand) -> 
         latitude: command.latitude,
         longitude: command.longitude,
         website: command.website,
-        notes: command.notes,
     };
 
     let cafe = client

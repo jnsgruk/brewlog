@@ -151,7 +151,7 @@ impl BackupService {
 
     async fn export_cafes(&self) -> anyhow::Result<Vec<Cafe>> {
         let records = sqlx::query_as::<_, CafeRecord>(
-            "SELECT id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at FROM cafes ORDER BY id",
+            "SELECT id, name, slug, city, country, latitude, longitude, website, created_at, updated_at FROM cafes ORDER BY id",
         )
         .fetch_all(&self.pool)
         .await
@@ -350,7 +350,7 @@ impl BackupService {
     ) -> anyhow::Result<()> {
         for cafe in cafes {
             sqlx::query(
-                "INSERT INTO cafes (id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO cafes (id, name, slug, city, country, latitude, longitude, website, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(i64::from(cafe.id))
             .bind(&cafe.name)
@@ -360,7 +360,6 @@ impl BackupService {
             .bind(cafe.latitude)
             .bind(cafe.longitude)
             .bind(cafe.website.as_deref())
-            .bind(cafe.notes.as_deref())
             .bind(cafe.created_at)
             .bind(cafe.updated_at)
             .execute(&mut **tx)
@@ -577,7 +576,6 @@ struct CafeRecord {
     latitude: f64,
     longitude: f64,
     website: Option<String>,
-    notes: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -593,7 +591,6 @@ impl CafeRecord {
             latitude: self.latitude,
             longitude: self.longitude,
             website: self.website,
-            notes: self.notes,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

@@ -14,7 +14,6 @@ pub struct Cafe {
     pub latitude: f64,
     pub longitude: f64,
     pub website: Option<String>,
-    pub notes: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -27,7 +26,6 @@ pub struct NewCafe {
     pub latitude: f64,
     pub longitude: f64,
     pub website: Option<String>,
-    pub notes: Option<String>,
 }
 
 impl NewCafe {
@@ -36,7 +34,6 @@ impl NewCafe {
         self.city = self.city.trim().to_string();
         self.country = self.country.trim().to_string();
         self.website = normalize_optional_field(self.website);
-        self.notes = normalize_optional_field(self.notes);
         self
     }
 
@@ -64,7 +61,6 @@ pub struct UpdateCafe {
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
     pub website: Option<String>,
-    pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

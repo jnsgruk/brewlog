@@ -445,7 +445,6 @@ pub async fn create_default_cafe(app: &TestApp) -> Cafe {
             latitude: 37.7749,
             longitude: -122.4194,
             website: Some("https://bluebottlecoffee.com".to_string()),
-            notes: Some("Great pour-over".to_string()),
         },
     )
     .await

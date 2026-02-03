@@ -814,7 +814,6 @@ async fn cafes_create_with_datastar_header_returns_fragment() {
         latitude: 51.5074,
         longitude: -0.1278,
         website: None,
-        notes: None,
     };
 
     let response = client

@@ -476,7 +476,6 @@ async fn creating_a_cafe_surfaces_on_the_timeline() {
             latitude: 51.4545,
             longitude: -2.5879,
             website: Some("https://example.com".to_string()),
-            notes: None,
         },
     )
     .await;
