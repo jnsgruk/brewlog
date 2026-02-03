@@ -22,6 +22,7 @@ async fn creating_a_brew_returns_201_for_valid_data() {
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
     };
@@ -44,8 +45,48 @@ async fn creating_a_brew_returns_201_for_valid_data() {
     assert_eq!(brew.grinder_id, grinder.id);
     assert_eq!(brew.grind_setting, 24.0);
     assert_eq!(brew.brewer_id, brewer.id);
+    assert_eq!(brew.filter_paper_id, None);
     assert_eq!(brew.water_volume, 250);
     assert_eq!(brew.water_temp, 92.0);
+}
+
+#[tokio::test]
+async fn creating_a_brew_with_filter_paper_returns_201() {
+    // Arrange
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let filter_paper = create_default_gear(&app, "filter_paper", "Hario", "V60 Tabbed 02").await;
+    let client = reqwest::Client::new();
+
+    let new_brew = NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 15.0,
+        grinder_id: grinder.id,
+        grind_setting: 24.0,
+        brewer_id: brewer.id,
+        filter_paper_id: Some(filter_paper.id),
+        water_volume: 250,
+        water_temp: 92.0,
+    };
+
+    // Act
+    let response = client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 201);
+
+    let brew: Brew = response.json().await.expect("Failed to parse response");
+    assert_eq!(brew.filter_paper_id, Some(filter_paper.id));
 }
 
 #[tokio::test]
@@ -65,6 +106,7 @@ async fn creating_a_brew_deducts_from_bag_remaining() {
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
     };
@@ -106,6 +148,7 @@ async fn creating_a_brew_fails_if_insufficient_coffee_in_bag() {
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
     };
@@ -160,15 +203,18 @@ async fn listing_brews_returns_200_and_enriched_data() {
     let bag = create_default_bag(&app, roast.id).await;
     let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
     let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let filter_paper =
+        create_default_gear(&app, "filter_paper", "Sibarist", "FAST Specialty 02").await;
     let client = reqwest::Client::new();
 
-    // Create a brew
+    // Create a brew with filter paper
     let new_brew = NewBrew {
         bag_id: bag.id,
         coffee_weight: 15.0,
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: Some(filter_paper.id),
         water_volume: 250,
         water_temp: 92.0,
     };
@@ -197,6 +243,57 @@ async fn listing_brews_returns_200_and_enriched_data() {
     assert_eq!(brews[0].roaster_name, roaster.name);
     assert_eq!(brews[0].grinder_name, "Comandante C40 MK4");
     assert_eq!(brews[0].brewer_name, "Hario V60 02");
+    assert_eq!(
+        brews[0].filter_paper_name.as_deref(),
+        Some("Sibarist FAST Specialty 02")
+    );
+}
+
+#[tokio::test]
+async fn listing_brews_without_filter_paper_returns_none() {
+    // Arrange
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "AeroPress", "Original").await;
+    let client = reqwest::Client::new();
+
+    // Create a brew without filter paper
+    let new_brew = NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 17.0,
+        grinder_id: grinder.id,
+        grind_setting: 20.0,
+        brewer_id: brewer.id,
+        filter_paper_id: None,
+        water_volume: 255,
+        water_temp: 88.0,
+    };
+
+    client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("Failed to create brew");
+
+    // Act
+    let response = client
+        .get(app.api_url("/brews"))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 200);
+
+    let brews: Vec<BrewWithDetails> = response.json().await.expect("Failed to parse response");
+    assert_eq!(brews.len(), 1);
+    assert_eq!(brews[0].filter_paper_name, None);
+    assert_eq!(brews[0].brew.filter_paper_id, None);
 }
 
 #[tokio::test]
@@ -218,6 +315,7 @@ async fn listing_brews_with_bag_filter_returns_filtered_results() {
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
     };
@@ -237,6 +335,7 @@ async fn listing_brews_with_bag_filter_returns_filtered_results() {
         grinder_id: grinder.id,
         grind_setting: 22.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 255,
         water_temp: 88.0,
     };
@@ -281,6 +380,7 @@ async fn getting_a_brew_returns_200_for_valid_id() {
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
     };
@@ -329,6 +429,7 @@ async fn deleting_a_brew_returns_204() {
         grinder_id: grinder.id,
         grind_setting: 24.0,
         brewer_id: brewer.id,
+        filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
     };

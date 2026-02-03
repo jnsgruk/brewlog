@@ -303,6 +303,7 @@ pub async fn create_default_gear(
     let gear_category = match category {
         "grinder" => brewlog::domain::gear::GearCategory::Grinder,
         "brewer" => brewlog::domain::gear::GearCategory::Brewer,
+        "filter_paper" => brewlog::domain::gear::GearCategory::FilterPaper,
         _ => panic!("Unknown gear category: {}", category),
     };
     let new_gear = brewlog::domain::gear::NewGear {
