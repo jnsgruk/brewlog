@@ -32,9 +32,11 @@
     if (_extracting) return;
     _extracting = true;
     var errorEl = document.getElementById('scan-extract-error');
-    var spinnerEl = document.getElementById('scan-extract-spinner');
+    var controlsEl = document.getElementById('scan-extract-controls');
+    var waitingEl = document.getElementById('scan-extract-waiting');
     errorEl.classList.add('hidden');
-    spinnerEl.classList.remove('hidden');
+    controlsEl.classList.add('hidden');
+    waitingEl.classList.remove('hidden');
 
     try {
       var resp = await fetch('/api/v1/extract-bag-scan', {
@@ -55,7 +57,8 @@
       errorEl.textContent = 'Extraction failed: ' + e.message;
       errorEl.classList.remove('hidden');
     } finally {
-      spinnerEl.classList.add('hidden');
+      waitingEl.classList.add('hidden');
+      controlsEl.classList.remove('hidden');
       _extracting = false;
     }
   }
@@ -136,7 +139,7 @@
 
   <!-- Input section: photo or text -->
   <div id="scan-input-section" class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
-    <div class="flex flex-wrap items-center gap-3">
+    <div id="scan-extract-controls" class="flex flex-wrap items-center gap-3">
       <button
         type="button"
         onclick="triggerScanPhoto()"
@@ -164,10 +167,13 @@
           Go
         </button>
       </div>
-      <svg id="scan-extract-spinner" class="hidden h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+    </div>
+    <div id="scan-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
+      <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
       </svg>
+      Waiting for response&hellip;
     </div>
     <p id="scan-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
   </div>

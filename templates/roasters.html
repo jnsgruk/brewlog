@@ -32,9 +32,11 @@
     if (_extracting) return;
     _extracting = true;
     var errorEl = document.getElementById(formId + '-extract-error');
-    var spinnerEl = document.getElementById(formId + '-extract-spinner');
+    var controlsEl = document.getElementById(formId + '-extract-controls');
+    var waitingEl = document.getElementById(formId + '-extract-waiting');
     errorEl.classList.add('hidden');
-    spinnerEl.classList.remove('hidden');
+    controlsEl.classList.add('hidden');
+    waitingEl.classList.remove('hidden');
 
     try {
       var resp = await fetch(endpoint, {
@@ -53,7 +55,8 @@
       errorEl.textContent = 'Extraction failed: ' + e.message;
       errorEl.classList.remove('hidden');
     } finally {
-      spinnerEl.classList.add('hidden');
+      waitingEl.classList.add('hidden');
+      controlsEl.classList.remove('hidden');
       _extracting = false;
     }
   }
@@ -114,7 +117,7 @@
     >
       {% if has_ai_extract %}
       <div class="relative border-b border-amber-200 pb-4">
-        <div class="flex flex-wrap items-center gap-3">
+        <div id="roaster-form-extract-controls" class="flex flex-wrap items-center gap-3">
           <button
             type="button"
             onclick="triggerPhotoExtract('roaster-form', '/api/v1/extract-roaster')"
@@ -142,10 +145,13 @@
               Go
             </button>
           </div>
-          <svg id="roaster-form-extract-spinner" class="hidden h-4 w-4 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        </div>
+        <div id="roaster-form-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
+          <svg class="h-4 w-4 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
           </svg>
+          Waiting for response&hellip;
         </div>
         <p id="roaster-form-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
       </div>
