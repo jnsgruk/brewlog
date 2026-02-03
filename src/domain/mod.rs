@@ -1,6 +1,7 @@
 pub mod bags;
 pub mod brews;
 pub mod cafes;
+pub mod cups;
 pub mod errors;
 pub mod gear;
 pub mod ids;

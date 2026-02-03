@@ -58,3 +58,4 @@ define_id!(BagId);
 define_id!(GearId);
 define_id!(BrewId);
 define_id!(CafeId);
+define_id!(CupId);
