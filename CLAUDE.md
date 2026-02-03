@@ -36,7 +36,8 @@ Migration files are plain SQL in the `migrations/` directory, numbered sequentia
 2. Run `cargo build` to verify compilation
 3. Run `cargo test` if changes affect testable code
 4. Update `README.md` if the change adds/removes/renames CLI commands, environment variables, or user-facing features
-5. Provide a **draft commit message** using Conventional Commits format
+5. Update `scripts/bootstrap-db.sh` if the change adds/removes/renames CLI commands, flags, or entity fields used by the bootstrap script
+6. Provide a **draft commit message** using Conventional Commits format
 
 Example commit message:
 
