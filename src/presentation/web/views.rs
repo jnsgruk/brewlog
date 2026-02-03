@@ -6,7 +6,7 @@ use crate::domain::gear::Gear;
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
-use crate::domain::timeline::TimelineEvent;
+use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
 pub struct Paginated<T> {
     pub items: Vec<T>,
@@ -542,36 +542,7 @@ impl TimelineEventView {
             _ => String::from("#"),
         };
 
-        let mut mapped_details = Vec::new();
-        let mut external_link = None;
-        for detail in details {
-            if detail.label.eq_ignore_ascii_case("homepage")
-                || detail.label.eq_ignore_ascii_case("website")
-            {
-                let trimmed = detail.value.trim();
-                if !trimmed.is_empty() && trimmed != "—" {
-                    external_link = Some(trimmed.to_string());
-                }
-            } else if detail.label.eq_ignore_ascii_case("position") {
-                let trimmed = detail.value.trim();
-                if !trimmed.is_empty() {
-                    let display = trimmed
-                        .strip_prefix("https://www.google.com/maps?q=")
-                        .unwrap_or(trimmed);
-                    mapped_details.push(TimelineEventDetailView {
-                        label: detail.label,
-                        value: display.to_string(),
-                        link: Some(trimmed.to_string()),
-                    });
-                }
-            } else {
-                mapped_details.push(TimelineEventDetailView {
-                    label: detail.label,
-                    value: detail.value,
-                    link: None,
-                });
-            }
-        }
+        let (mapped_details, external_link) = Self::map_details(details);
 
         let tasting_notes = if entity_type == "roast" {
             let notes = tasting_notes
@@ -612,6 +583,42 @@ impl TimelineEventView {
             tasting_notes,
             brew_data: brew_data_view,
         }
+    }
+
+    fn map_details(
+        details: Vec<TimelineEventDetail>,
+    ) -> (Vec<TimelineEventDetailView>, Option<String>) {
+        let mut mapped = Vec::new();
+        let mut external_link = None;
+        for detail in details {
+            if detail.label.eq_ignore_ascii_case("homepage")
+                || detail.label.eq_ignore_ascii_case("website")
+            {
+                let trimmed = detail.value.trim();
+                if !trimmed.is_empty() && trimmed != "—" {
+                    external_link = Some(trimmed.to_string());
+                }
+            } else if detail.label.eq_ignore_ascii_case("position") {
+                let trimmed = detail.value.trim();
+                if !trimmed.is_empty() {
+                    let display = trimmed
+                        .strip_prefix("https://www.google.com/maps?q=")
+                        .unwrap_or(trimmed);
+                    mapped.push(TimelineEventDetailView {
+                        label: detail.label,
+                        value: display.to_string(),
+                        link: Some(trimmed.to_string()),
+                    });
+                }
+            } else {
+                mapped.push(TimelineEventDetailView {
+                    label: detail.label,
+                    value: detail.value,
+                    link: None,
+                });
+            }
+        }
+        (mapped, external_link)
     }
 }
 
