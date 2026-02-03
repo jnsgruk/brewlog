@@ -202,6 +202,43 @@ pub(crate) async fn create_brew(
         .map_err(AppError::from)?;
 
     // Add timeline event
+    let _ = state
+        .timeline_repo
+        .insert(brew_timeline_event(&enriched))
+        .await;
+
+    if is_datastar_request(&headers) {
+        // Check if request came from timeline - return a script that redirects
+        let from_timeline = headers
+            .get("referer")
+            .and_then(|v| v.to_str().ok())
+            .is_some_and(|r| r.contains("/timeline"));
+
+        if from_timeline {
+            use axum::http::header::HeaderValue;
+            let mut response =
+                axum::response::Html("<script>window.location.reload()</script>").into_response();
+            response
+                .headers_mut()
+                .insert("datastar-selector", HeaderValue::from_static("body"));
+            response
+                .headers_mut()
+                .insert("datastar-mode", HeaderValue::from_static("append"));
+            Ok(response)
+        } else {
+            render_brew_list_fragment(state, request, true)
+                .await
+                .map_err(ApiError::from)
+        }
+    } else if matches!(source, PayloadSource::Form) {
+        let target = ListNavigator::new(BREW_PAGE_PATH, BREW_FRAGMENT_PATH, request).page_href(1);
+        Ok(Redirect::to(&target).into_response())
+    } else {
+        Ok((StatusCode::CREATED, Json(enriched)).into_response())
+    }
+}
+
+fn brew_timeline_event(enriched: &BrewWithDetails) -> NewTimelineEvent {
     let ratio = if enriched.brew.coffee_weight > 0.0 {
         format!(
             "1:{:.1}",
@@ -211,9 +248,9 @@ pub(crate) async fn create_brew(
         "N/A".to_string()
     };
 
-    let event = NewTimelineEvent {
+    NewTimelineEvent {
         entity_type: "brew".to_string(),
-        entity_id: brew.id.into_inner(),
+        entity_id: enriched.brew.id.into_inner(),
         action: "brewed".to_string(),
         occurred_at: chrono::Utc::now(),
         title: enriched.roast_name.clone(),
@@ -261,37 +298,6 @@ pub(crate) async fn create_brew(
             water_volume: enriched.brew.water_volume,
             water_temp: enriched.brew.water_temp,
         }),
-    };
-    let _ = state.timeline_repo.insert(event).await;
-
-    if is_datastar_request(&headers) {
-        // Check if request came from timeline - return a script that redirects
-        let from_timeline = headers
-            .get("referer")
-            .and_then(|v| v.to_str().ok())
-            .is_some_and(|r| r.contains("/timeline"));
-
-        if from_timeline {
-            use axum::http::header::HeaderValue;
-            let mut response =
-                axum::response::Html("<script>window.location.reload()</script>").into_response();
-            response
-                .headers_mut()
-                .insert("datastar-selector", HeaderValue::from_static("body"));
-            response
-                .headers_mut()
-                .insert("datastar-mode", HeaderValue::from_static("append"));
-            Ok(response)
-        } else {
-            render_brew_list_fragment(state, request, true)
-                .await
-                .map_err(ApiError::from)
-        }
-    } else if matches!(source, PayloadSource::Form) {
-        let target = ListNavigator::new(BREW_PAGE_PATH, BREW_FRAGMENT_PATH, request).page_href(1);
-        Ok(Redirect::to(&target).into_response())
-    } else {
-        Ok((StatusCode::CREATED, Json(enriched)).into_response())
     }
 }
 
