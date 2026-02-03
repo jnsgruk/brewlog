@@ -7,8 +7,9 @@ use serde_json::{from_str, to_string};
 
 use crate::domain::bags::Bag;
 use crate::domain::brews::Brew;
+use crate::domain::cafes::Cafe;
 use crate::domain::gear::{Gear, GearCategory};
-use crate::domain::ids::{BagId, BrewId, GearId, RoastId, RoasterId, TimelineEventId};
+use crate::domain::ids::{BagId, BrewId, CafeId, GearId, RoastId, RoasterId, TimelineEventId};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 use crate::domain::timeline::{TimelineBrewData, TimelineEvent, TimelineEventDetail};
@@ -23,6 +24,8 @@ pub struct BackupData {
     pub roasts: Vec<Roast>,
     pub bags: Vec<Bag>,
     pub brews: Vec<Brew>,
+    #[serde(default)]
+    pub cafes: Vec<Cafe>,
     pub timeline_events: Vec<TimelineEvent>,
 }
 
@@ -41,6 +44,7 @@ impl BackupService {
         let roasts = self.export_roasts().await?;
         let bags = self.export_bags().await?;
         let brews = self.export_brews().await?;
+        let cafes = self.export_cafes().await?;
         let timeline_events = self.export_timeline_events().await?;
 
         Ok(BackupData {
@@ -51,6 +55,7 @@ impl BackupService {
             roasts,
             bags,
             brews,
+            cafes,
             timeline_events,
         })
     }
@@ -69,6 +74,7 @@ impl BackupService {
         self.restore_roasts(&mut tx, &data.roasts).await?;
         self.restore_bags(&mut tx, &data.bags).await?;
         self.restore_brews(&mut tx, &data.brews).await?;
+        self.restore_cafes(&mut tx, &data.cafes).await?;
         self.restore_timeline_events(&mut tx, &data.timeline_events)
             .await?;
 
@@ -143,6 +149,17 @@ impl BackupService {
         Ok(records.into_iter().map(BrewRecord::into_domain).collect())
     }
 
+    async fn export_cafes(&self) -> anyhow::Result<Vec<Cafe>> {
+        let records = sqlx::query_as::<_, CafeRecord>(
+            "SELECT id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at FROM cafes ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export cafes")?;
+
+        Ok(records.into_iter().map(CafeRecord::into_domain).collect())
+    }
+
     async fn export_timeline_events(&self) -> anyhow::Result<Vec<TimelineEvent>> {
         let records = sqlx::query_as::<_, TimelineEventRecord>(
             "SELECT id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json FROM timeline_events ORDER BY id",
@@ -166,6 +183,7 @@ impl BackupService {
             "bags",
             "gear",
             "brews",
+            "cafes",
             "timeline_events",
         ];
 
@@ -320,6 +338,34 @@ impl BackupService {
             .execute(&mut **tx)
             .await
             .context("failed to restore brew")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_cafes(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        cafes: &[Cafe],
+    ) -> anyhow::Result<()> {
+        for cafe in cafes {
+            sqlx::query(
+                "INSERT INTO cafes (id, name, slug, city, country, latitude, longitude, website, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(cafe.id))
+            .bind(&cafe.name)
+            .bind(&cafe.slug)
+            .bind(&cafe.city)
+            .bind(&cafe.country)
+            .bind(cafe.latitude)
+            .bind(cafe.longitude)
+            .bind(cafe.website.as_deref())
+            .bind(cafe.notes.as_deref())
+            .bind(cafe.created_at)
+            .bind(cafe.updated_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore cafe")?;
         }
 
         Ok(())
@@ -515,6 +561,39 @@ impl BrewRecord {
             filter_paper_id: self.filter_paper_id.map(GearId::new),
             water_volume: self.water_volume,
             water_temp: self.water_temp,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct CafeRecord {
+    id: i64,
+    name: String,
+    slug: String,
+    city: String,
+    country: String,
+    latitude: f64,
+    longitude: f64,
+    website: Option<String>,
+    notes: Option<String>,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+}
+
+impl CafeRecord {
+    fn into_domain(self) -> Cafe {
+        Cafe {
+            id: CafeId::from(self.id),
+            name: self.name,
+            slug: self.slug,
+            city: self.city,
+            country: self.country,
+            latitude: self.latitude,
+            longitude: self.longitude,
+            website: self.website,
+            notes: self.notes,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

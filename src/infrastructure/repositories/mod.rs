@@ -1,5 +1,6 @@
 pub mod bags;
 pub mod brews;
+pub mod cafes;
 pub mod gear;
 mod macros;
 pub mod pagination;
