@@ -9,8 +9,10 @@
     {% endif %}
   </div>
   {% else %}
-  <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
-    {% call table::pagination_header(gear, navigator, "#gear-list") %}
+  <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+    {% if gear.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(gear.next_page().unwrap())|safe }}" data-target="#gear-list"{% endif %}
+  >
+    {% call table::search_header(navigator, "#gear-list") %}
 
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
@@ -62,6 +64,10 @@
         </tbody>
       </table>
     </div>
+    {% call table::pagination_header(gear, navigator, "#gear-list") %}
+    {% if gear.has_next() %}
+    <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
+    {% endif %}
   </div>
   {% endif %}
 </div>

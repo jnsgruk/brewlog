@@ -1,8 +1,10 @@
 {% import "partials/table.html" as table %}
 
 <div id="brew-list" class="space-y-4" data-star-scope="brews">
-  <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
-    {% call table::pagination_header(brews, navigator, "#brew-list") %}
+  <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+    {% if brews.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(brews.next_page().unwrap())|safe }}" data-target="#brew-list"{% endif %}
+  >
+    {% call table::search_header(navigator, "#brew-list") %}
 
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
@@ -105,6 +107,12 @@
     <div class="p-8 text-center text-stone-500">
       No brews logged yet. Start by logging your first cup!
     </div>
+    {% endif %}
+
+    {% call table::pagination_header(brews, navigator, "#brew-list") %}
+
+    {% if brews.has_next() %}
+    <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
     {% endif %}
   </div>
 </div>

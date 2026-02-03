@@ -1,11 +1,25 @@
+{% macro search_header(navigator, target_selector) %}
+    <div class="border-b border-amber-200/70 px-4 py-3">
+      <input
+        type="search"
+        placeholder="Search..."
+        value="{{ navigator.search_value() }}"
+        class="input-field w-full text-sm"
+        data-search-url="{{ navigator.path()|safe }}?{{ navigator.search_query_base()|safe }}&q="
+        data-on:input__debounce.300ms="history.pushState(null, '', el.dataset.searchUrl + el.value); @get(el.dataset.searchUrl + el.value, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
+        {% if navigator.has_search() %}data-init="el.focus(); el.selectionStart = el.value.length"{% endif %}
+      />
+    </div>
+{% endmacro %}
+
 {% macro pagination_header(items, navigator, target_selector) %}
     <div
-      class="flex flex-col gap-3 border-b border-amber-200/70 px-4 py-3 text-xs text-stone-600 sm:flex-row sm:items-center sm:justify-between"
+      class="pagination-controls flex flex-wrap items-center justify-between gap-x-3 border-t border-amber-200/70 px-4 py-1.5 text-xs leading-none text-stone-600"
     >
-      <p>
+      <span>
         Showing {{ items.start_index() }}&ndash;{{ items.end_index() }} of {{ items.total }}
         results
-      </p>
+      </span>
       <div class="flex flex-wrap items-center gap-3">
         <div class="flex items-center gap-2">
           <button

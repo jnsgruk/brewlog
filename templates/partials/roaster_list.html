@@ -10,8 +10,10 @@
     </p>
   </div>
   {% else %}
-  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
-    {% call table::pagination_header(roasters, navigator, "#roaster-list") %}
+  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+    {% if roasters.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(roasters.next_page().unwrap())|safe }}" data-target="#roaster-list"{% endif %}
+  >
+    {% call table::search_header(navigator, "#roaster-list") %}
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
         <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
@@ -98,6 +100,10 @@
         </tbody>
       </table>
     </div>
+    {% call table::pagination_header(roasters, navigator, "#roaster-list") %}
+    {% if roasters.has_next() %}
+    <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
+    {% endif %}
   </section>
   {% endif %}
 </div>

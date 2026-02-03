@@ -93,8 +93,10 @@
 
   <section>
     <h2 class="text-2xl font-bold mb-4 text-stone-800">History</h2>
-    <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm">
-      {% call table::pagination_header(bags, navigator, "#bag-list") %}
+    <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+      {% if bags.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(bags.next_page().unwrap())|safe }}" data-target="#bag-list"{% endif %}
+    >
+      {% call table::search_header(navigator, "#bag-list") %}
 
       <div class="overflow-x-auto">
         <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
@@ -122,6 +124,10 @@
           </tbody>
         </table>
       </div>
+      {% call table::pagination_header(bags, navigator, "#bag-list") %}
+      {% if bags.has_next() %}
+      <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
+      {% endif %}
     </div>
   </section>
 </div>
