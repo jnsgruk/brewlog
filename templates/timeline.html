@@ -201,6 +201,9 @@
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.matches?.(".timeline-heading")) {
+              stickyObserver.observe(node)
+            }
             const heading = node.querySelector?.(".timeline-heading")
             if (heading) {
               stickyObserver.observe(heading)

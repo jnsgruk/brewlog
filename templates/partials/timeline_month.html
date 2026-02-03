@@ -1,13 +1,11 @@
-<div id="{{ month.anchor }}" class="scroll-mt-24" data-timeline-month>
-  <h2 class="timeline-heading mb-6 text-2xl font-semibold text-amber-800">
-    {{ month.heading }}
-    <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
-      <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" />
-      </svg>
-    </button>
-  </h2>
-</div>
+<h2 id="{{ month.anchor }}" class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-amber-800" data-timeline-month>
+  {{ month.heading }}
+  <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
+    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" />
+    </svg>
+  </button>
+</h2>
 {% for event in month.events %}
 <div class="timeline-item relative mb-8" data-timeline-event>
   {# Timeline node/bullet #}
