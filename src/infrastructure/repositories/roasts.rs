@@ -264,6 +264,7 @@ impl RoastRepository for SqlRoastRepository {
                     "ro.name",
                     "COALESCE(r.origin,'')",
                     "COALESCE(r.producer,'')",
+                    "COALESCE(r.tasting_notes,'')",
                 ],
             )
         });
