@@ -211,11 +211,11 @@ pub fn render_fragment<T: Template>(template: T, selector: &'static str) -> Resu
 Templates use Datastar attributes for interactivity:
 
 ```html
-<!-- Reactive state -->
-<section data-signals:show-form="false" data-signals:is-submitting="false">
+<!-- Local signals (underscore prefix = not sent to server) -->
+<section data-signals:_show-form="false" data-signals:_is-submitting="false">
 
   <!-- Visibility binding -->
-  <div data-show="$showForm" style="display: none">
+  <div data-show="$_showForm" style="display: none">
     <!-- Form content -->
   </div>
 
@@ -228,17 +228,17 @@ Templates use Datastar attributes for interactivity:
   </form>
 
   <!-- Reset form on completion -->
-  <form data-ref="form"
-        data-on:datastar-fetch="evt.detail.type === 'finished' && ($showForm = false, $form.reset())">
+  <form data-ref="_form"
+        data-on:datastar-fetch="evt.detail.type === 'finished' && ($_showForm = false, $_form.reset())">
 </section>
 ```
 
 Key attributes:
 
-- `data-signals:name="value"` - Reactive state signals
-- `data-show="$signal"` - Conditional visibility
+- `data-signals:_name="value"` - Local signals (underscore prefix excludes from backend requests)
+- `data-show="$_signal"` - Conditional visibility
 - `data-on:event="expression"` - Event handlers
-- `data-ref="name"` - DOM element references
+- `data-ref="_name"` - DOM element references (underscore prefix for local refs)
 - `@get/@post/@put/@delete(url, options)` - HTTP actions with automatic Datastar headers
 
 #### URL Generation

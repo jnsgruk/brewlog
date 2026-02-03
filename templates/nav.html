@@ -1,4 +1,4 @@
-<nav class="relative rounded-lg border border-amber-300 bg-amber-100/80 p-3 text-sm text-stone-600" data-signals:nav-open="false">
+<nav class="relative rounded-lg border border-amber-300 bg-amber-100/80 p-3 text-sm text-stone-600" data-signals:_nav-open="false">
     <div class="flex items-center justify-between">
         <div class="font-semibold uppercase tracking-[0.25em] text-amber-700"><a href="/timeline">B{rew}log</a></div>
         <!-- Desktop links -->
@@ -18,17 +18,17 @@
             {% endif %}
         </div>
         <!-- Hamburger button (mobile only) -->
-        <button class="md:hidden p-1 text-amber-700" data-on:click="$navOpen = !$navOpen" aria-label="Toggle menu">
-            <svg data-show="!$navOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <button class="md:hidden p-1 text-amber-700" data-on:click="$_navOpen = !$_navOpen" aria-label="Toggle menu">
+            <svg data-show="!$_navOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <svg data-show="$navOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+            <svg data-show="$_navOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
     </div>
     <!-- Mobile menu -->
-    <div class="md:hidden flex flex-col gap-2 pt-3 mt-3 border-t border-amber-300" data-show="$navOpen" style="display:none">
+    <div class="md:hidden flex flex-col gap-2 pt-3 mt-3 border-t border-amber-300" data-show="$_navOpen" style="display:none">
         <a class="py-1 transition {% if nav_active == "roasters" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/roasters">Roasters</a>
         <a class="py-1 transition {% if nav_active == "roasts" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/roasts">Roasts</a>
         <a class="py-1 transition {% if nav_active == "bags" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/bags">Bags</a>
