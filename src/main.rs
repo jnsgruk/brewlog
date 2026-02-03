@@ -1,6 +1,8 @@
 use anyhow::Result;
 use brewlog::application::{ServerConfig, serve};
+use brewlog::infrastructure::backup::{BackupData, BackupService};
 use brewlog::infrastructure::client::BrewlogClient;
+use brewlog::infrastructure::database::Database;
 use brewlog::presentation::cli::{
     Cli, Commands, ServeCommand, bags, brews, gear, roasters, roasts, tokens,
 };
@@ -44,6 +46,23 @@ async fn main() -> Result<()> {
         Commands::Token { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
             tokens::run(&client, command).await
+        }
+        Commands::Backup(cmd) => {
+            let database = Database::connect(&cmd.database_url).await?;
+            let service = BackupService::new(database.clone_pool());
+            let data = service.export().await?;
+            let json = serde_json::to_string_pretty(&data)?;
+            println!("{json}");
+            Ok(())
+        }
+        Commands::Restore(cmd) => {
+            let contents = std::fs::read_to_string(&cmd.file)?;
+            let data: BackupData = serde_json::from_str(&contents)?;
+            let database = Database::connect(&cmd.database_url).await?;
+            let service = BackupService::new(database.clone_pool());
+            service.restore(data).await?;
+            eprintln!("Restore complete.");
+            Ok(())
         }
     }
 }

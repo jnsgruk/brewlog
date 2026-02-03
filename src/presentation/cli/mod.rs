@@ -1,3 +1,4 @@
+pub mod backup;
 pub mod bags;
 pub mod brews;
 pub mod gear;
@@ -8,6 +9,7 @@ pub mod tokens;
 
 use std::net::SocketAddr;
 
+use backup::{BackupCommand, RestoreCommand};
 use bags::BagCommands;
 use brews::BrewCommands;
 use clap::{Args, Parser, Subcommand};
@@ -71,6 +73,12 @@ pub enum Commands {
         #[command(subcommand)]
         command: TokenCommands,
     },
+
+    /// Back up all coffee data to JSON (stdout)
+    Backup(BackupCommand),
+
+    /// Restore coffee data from a JSON backup file
+    Restore(RestoreCommand),
 }
 
 #[derive(Debug, Args)]

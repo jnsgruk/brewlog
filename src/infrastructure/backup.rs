@@ -1,0 +1,575 @@
+use std::str::FromStr;
+
+use anyhow::{Context, bail};
+use chrono::{DateTime, NaiveDate, Utc};
+use serde::{Deserialize, Serialize};
+use serde_json::{from_str, to_string};
+
+use crate::domain::bags::Bag;
+use crate::domain::brews::Brew;
+use crate::domain::gear::{Gear, GearCategory};
+use crate::domain::ids::{BagId, BrewId, GearId, RoastId, RoasterId, TimelineEventId};
+use crate::domain::roasters::Roaster;
+use crate::domain::roasts::Roast;
+use crate::domain::timeline::{TimelineBrewData, TimelineEvent, TimelineEventDetail};
+use crate::infrastructure::database::{DatabasePool, DatabaseTransaction};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupData {
+    pub version: u32,
+    pub created_at: DateTime<Utc>,
+    pub roasters: Vec<Roaster>,
+    pub gear: Vec<Gear>,
+    pub roasts: Vec<Roast>,
+    pub bags: Vec<Bag>,
+    pub brews: Vec<Brew>,
+    pub timeline_events: Vec<TimelineEvent>,
+}
+
+pub struct BackupService {
+    pool: DatabasePool,
+}
+
+impl BackupService {
+    pub fn new(pool: DatabasePool) -> Self {
+        Self { pool }
+    }
+
+    pub async fn export(&self) -> anyhow::Result<BackupData> {
+        let roasters = self.export_roasters().await?;
+        let gear = self.export_gear().await?;
+        let roasts = self.export_roasts().await?;
+        let bags = self.export_bags().await?;
+        let brews = self.export_brews().await?;
+        let timeline_events = self.export_timeline_events().await?;
+
+        Ok(BackupData {
+            version: 1,
+            created_at: Utc::now(),
+            roasters,
+            gear,
+            roasts,
+            bags,
+            brews,
+            timeline_events,
+        })
+    }
+
+    pub async fn restore(&self, data: BackupData) -> anyhow::Result<()> {
+        self.verify_empty_database().await?;
+
+        let mut tx = self
+            .pool
+            .begin()
+            .await
+            .context("failed to begin transaction")?;
+
+        self.restore_roasters(&mut tx, &data.roasters).await?;
+        self.restore_gear(&mut tx, &data.gear).await?;
+        self.restore_roasts(&mut tx, &data.roasts).await?;
+        self.restore_bags(&mut tx, &data.bags).await?;
+        self.restore_brews(&mut tx, &data.brews).await?;
+        self.restore_timeline_events(&mut tx, &data.timeline_events)
+            .await?;
+
+        tx.commit().await.context("failed to commit transaction")?;
+
+        Ok(())
+    }
+
+    // --- Export methods ---
+
+    async fn export_roasters(&self) -> anyhow::Result<Vec<Roaster>> {
+        let records = sqlx::query_as::<_, RoasterRecord>(
+            "SELECT id, name, slug, country, city, homepage, notes, created_at FROM roasters ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export roasters")?;
+
+        Ok(records
+            .into_iter()
+            .map(RoasterRecord::into_domain)
+            .collect())
+    }
+
+    async fn export_gear(&self) -> anyhow::Result<Vec<Gear>> {
+        let records = sqlx::query_as::<_, GearRecord>(
+            "SELECT id, category, make, model, created_at, updated_at FROM gear ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export gear")?;
+
+        records
+            .into_iter()
+            .map(GearRecord::into_domain)
+            .collect::<anyhow::Result<Vec<_>>>()
+    }
+
+    async fn export_roasts(&self) -> anyhow::Result<Vec<Roast>> {
+        let records = sqlx::query_as::<_, RoastRecord>(
+            "SELECT id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at FROM roasts ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export roasts")?;
+
+        records
+            .into_iter()
+            .map(RoastRecord::into_domain)
+            .collect::<anyhow::Result<Vec<_>>>()
+    }
+
+    async fn export_bags(&self) -> anyhow::Result<Vec<Bag>> {
+        let records = sqlx::query_as::<_, BagRecord>(
+            "SELECT id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at FROM bags ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export bags")?;
+
+        Ok(records.into_iter().map(BagRecord::into_domain).collect())
+    }
+
+    async fn export_brews(&self) -> anyhow::Result<Vec<Brew>> {
+        let records = sqlx::query_as::<_, BrewRecord>(
+            "SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at FROM brews ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export brews")?;
+
+        Ok(records.into_iter().map(BrewRecord::into_domain).collect())
+    }
+
+    async fn export_timeline_events(&self) -> anyhow::Result<Vec<TimelineEvent>> {
+        let records = sqlx::query_as::<_, TimelineEventRecord>(
+            "SELECT id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json FROM timeline_events ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export timeline events")?;
+
+        records
+            .into_iter()
+            .map(TimelineEventRecord::into_domain)
+            .collect::<anyhow::Result<Vec<_>>>()
+    }
+
+    // --- Restore methods ---
+
+    async fn verify_empty_database(&self) -> anyhow::Result<()> {
+        let tables = [
+            "roasters",
+            "roasts",
+            "bags",
+            "gear",
+            "brews",
+            "timeline_events",
+        ];
+
+        for table in tables {
+            let query = format!("SELECT COUNT(*) as count FROM {table}");
+            let row: (i64,) = sqlx::query_as(&query)
+                .fetch_one(&self.pool)
+                .await
+                .with_context(|| format!("failed to check table {table}"))?;
+
+            if row.0 > 0 {
+                bail!(
+                    "Cannot restore: table '{table}' is not empty ({} rows). Restore requires an empty database.",
+                    row.0
+                );
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn restore_roasters(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        roasters: &[Roaster],
+    ) -> anyhow::Result<()> {
+        for roaster in roasters {
+            sqlx::query(
+                "INSERT INTO roasters (id, name, slug, country, city, homepage, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(roaster.id))
+            .bind(&roaster.name)
+            .bind(&roaster.slug)
+            .bind(&roaster.country)
+            .bind(roaster.city.as_deref())
+            .bind(roaster.homepage.as_deref())
+            .bind(roaster.notes.as_deref())
+            .bind(roaster.created_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore roaster")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_gear(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        gear: &[Gear],
+    ) -> anyhow::Result<()> {
+        for item in gear {
+            sqlx::query(
+                "INSERT INTO gear (id, category, make, model, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(item.id))
+            .bind(item.category.as_str())
+            .bind(&item.make)
+            .bind(&item.model)
+            .bind(item.created_at)
+            .bind(item.updated_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore gear")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_roasts(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        roasts: &[Roast],
+    ) -> anyhow::Result<()> {
+        for roast in roasts {
+            let tasting_notes_json = if roast.tasting_notes.is_empty() {
+                None
+            } else {
+                Some(
+                    to_string(&roast.tasting_notes)
+                        .context("failed to encode tasting notes for restore")?,
+                )
+            };
+
+            sqlx::query(
+                "INSERT INTO roasts (id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(roast.id))
+            .bind(i64::from(roast.roaster_id))
+            .bind(&roast.name)
+            .bind(&roast.slug)
+            .bind(roast.origin.as_deref())
+            .bind(roast.region.as_deref())
+            .bind(roast.producer.as_deref())
+            .bind(roast.process.as_deref())
+            .bind(tasting_notes_json.as_deref())
+            .bind(roast.created_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore roast")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_bags(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        bags: &[Bag],
+    ) -> anyhow::Result<()> {
+        for bag in bags {
+            sqlx::query(
+                "INSERT INTO bags (id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(bag.id))
+            .bind(i64::from(bag.roast_id))
+            .bind(bag.roast_date)
+            .bind(bag.amount)
+            .bind(bag.remaining)
+            .bind(bag.closed)
+            .bind(bag.finished_at)
+            .bind(bag.created_at)
+            .bind(bag.updated_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore bag")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_brews(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        brews: &[Brew],
+    ) -> anyhow::Result<()> {
+        for brew in brews {
+            sqlx::query(
+                "INSERT INTO brews (id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(brew.id))
+            .bind(i64::from(brew.bag_id))
+            .bind(brew.coffee_weight)
+            .bind(i64::from(brew.grinder_id))
+            .bind(brew.grind_setting)
+            .bind(i64::from(brew.brewer_id))
+            .bind(brew.filter_paper_id.map(i64::from))
+            .bind(brew.water_volume)
+            .bind(brew.water_temp)
+            .bind(brew.created_at)
+            .bind(brew.updated_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore brew")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_timeline_events(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        events: &[TimelineEvent],
+    ) -> anyhow::Result<()> {
+        for event in events {
+            let details_json = to_string(&event.details)
+                .context("failed to encode timeline event details for restore")?;
+
+            let tasting_notes_json = to_string(&event.tasting_notes)
+                .context("failed to encode timeline event tasting notes for restore")?;
+
+            let brew_data_json = event
+                .brew_data
+                .as_ref()
+                .map(to_string)
+                .transpose()
+                .context("failed to encode timeline brew data for restore")?;
+
+            sqlx::query(
+                "INSERT INTO timeline_events (id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(event.id))
+            .bind(&event.entity_type)
+            .bind(event.entity_id)
+            .bind(&event.action)
+            .bind(event.occurred_at)
+            .bind(&event.title)
+            .bind(&details_json)
+            .bind(&tasting_notes_json)
+            .bind(event.slug.as_deref())
+            .bind(event.roaster_slug.as_deref())
+            .bind(brew_data_json.as_deref())
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore timeline event")?;
+        }
+
+        Ok(())
+    }
+}
+
+// --- Record types for export queries ---
+
+#[derive(sqlx::FromRow)]
+struct RoasterRecord {
+    id: i64,
+    name: String,
+    slug: String,
+    country: String,
+    city: Option<String>,
+    homepage: Option<String>,
+    notes: Option<String>,
+    created_at: DateTime<Utc>,
+}
+
+impl RoasterRecord {
+    fn into_domain(self) -> Roaster {
+        Roaster {
+            id: RoasterId::from(self.id),
+            name: self.name,
+            slug: self.slug,
+            country: self.country,
+            city: self.city,
+            homepage: self.homepage,
+            notes: self.notes,
+            created_at: self.created_at,
+        }
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct GearRecord {
+    id: i64,
+    category: String,
+    make: String,
+    model: String,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+}
+
+impl GearRecord {
+    fn into_domain(self) -> anyhow::Result<Gear> {
+        let category = GearCategory::from_str(&self.category)
+            .map_err(|()| anyhow::anyhow!("invalid gear category: {}", self.category))?;
+
+        Ok(Gear {
+            id: GearId::new(self.id),
+            category,
+            make: self.make,
+            model: self.model,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        })
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct RoastRecord {
+    id: i64,
+    roaster_id: i64,
+    name: String,
+    slug: String,
+    origin: Option<String>,
+    region: Option<String>,
+    producer: Option<String>,
+    process: Option<String>,
+    tasting_notes: Option<String>,
+    created_at: DateTime<Utc>,
+}
+
+impl RoastRecord {
+    fn into_domain(self) -> anyhow::Result<Roast> {
+        let tasting_notes = match self.tasting_notes {
+            Some(raw) => from_str::<Vec<String>>(&raw)
+                .with_context(|| format!("failed to decode tasting notes: {raw}"))?,
+            None => Vec::new(),
+        };
+
+        Ok(Roast {
+            id: RoastId::from(self.id),
+            roaster_id: RoasterId::from(self.roaster_id),
+            name: self.name,
+            slug: self.slug,
+            origin: self.origin,
+            region: self.region,
+            producer: self.producer,
+            process: self.process,
+            tasting_notes,
+            created_at: self.created_at,
+        })
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct BagRecord {
+    id: i64,
+    roast_id: i64,
+    roast_date: Option<NaiveDate>,
+    amount: f64,
+    remaining: f64,
+    closed: bool,
+    finished_at: Option<NaiveDate>,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+}
+
+impl BagRecord {
+    fn into_domain(self) -> Bag {
+        Bag {
+            id: BagId::new(self.id),
+            roast_id: RoastId::new(self.roast_id),
+            roast_date: self.roast_date,
+            amount: self.amount,
+            remaining: self.remaining,
+            closed: self.closed,
+            finished_at: self.finished_at,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct BrewRecord {
+    id: i64,
+    bag_id: i64,
+    coffee_weight: f64,
+    grinder_id: i64,
+    grind_setting: f64,
+    brewer_id: i64,
+    filter_paper_id: Option<i64>,
+    water_volume: i32,
+    water_temp: f64,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+}
+
+impl BrewRecord {
+    fn into_domain(self) -> Brew {
+        Brew {
+            id: BrewId::new(self.id),
+            bag_id: BagId::new(self.bag_id),
+            coffee_weight: self.coffee_weight,
+            grinder_id: GearId::new(self.grinder_id),
+            grind_setting: self.grind_setting,
+            brewer_id: GearId::new(self.brewer_id),
+            filter_paper_id: self.filter_paper_id.map(GearId::new),
+            water_volume: self.water_volume,
+            water_temp: self.water_temp,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct TimelineEventRecord {
+    id: i64,
+    entity_type: String,
+    entity_id: i64,
+    action: String,
+    occurred_at: DateTime<Utc>,
+    title: String,
+    details_json: Option<String>,
+    tasting_notes_json: Option<String>,
+    slug: Option<String>,
+    roaster_slug: Option<String>,
+    brew_data_json: Option<String>,
+}
+
+impl TimelineEventRecord {
+    fn into_domain(self) -> anyhow::Result<TimelineEvent> {
+        let details = match self.details_json {
+            Some(raw) if !raw.is_empty() => from_str::<Vec<TimelineEventDetail>>(&raw)
+                .with_context(|| format!("failed to decode timeline event details: {raw}"))?,
+            _ => Vec::new(),
+        };
+
+        let tasting_notes = match self.tasting_notes_json {
+            Some(raw) if !raw.is_empty() => from_str::<Vec<String>>(&raw)
+                .with_context(|| format!("failed to decode timeline tasting notes: {raw}"))?,
+            _ => Vec::new(),
+        };
+
+        let brew_data = match self.brew_data_json {
+            Some(raw) if !raw.is_empty() => Some(
+                from_str::<TimelineBrewData>(&raw)
+                    .with_context(|| format!("failed to decode timeline brew data: {raw}"))?,
+            ),
+            _ => None,
+        };
+
+        Ok(TimelineEvent {
+            id: TimelineEventId::from(self.id),
+            entity_type: self.entity_type,
+            entity_id: self.entity_id,
+            action: self.action,
+            occurred_at: self.occurred_at,
+            title: self.title,
+            details,
+            tasting_notes,
+            slug: self.slug,
+            roaster_slug: self.roaster_slug,
+            brew_data,
+        })
+    }
+}
