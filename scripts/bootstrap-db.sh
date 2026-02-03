@@ -518,6 +518,139 @@ fi
   --notes "Tiny takeaway bar with a cult following for its espresso and flat whites."
 
 # ============================================================================
+# Cups - 1 to 3 cups per cafe, pairing roasts with cafes visited
+# ============================================================================
+
+# Monmouth Coffee (London) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
+  --notes "Rich and balanced; the house espresso blend is a crowd-pleaser." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kamwangi") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
+  --notes "Juicy Kenyan pour-over, bright blackcurrant notes." \
+  --rating 5
+
+# Prufrock Coffee (London) - 3 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
+  --notes "Delicate floral Ethiopian; exceptional barista technique." \
+  --rating 5
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Laja") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
+  --notes "Interesting Mexican natural, lots of chocolate." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
+  --notes "Guest roast from Tim Wendelboe; bergamot hit was incredible." \
+  --rating 5
+
+# Hola Coffee (Madrid) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Cerro Azul") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
+  --notes "Clean Colombian washed, plum and grapefruit forward." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
+  --notes "Peachy natural from April Coffee, worked well as espresso." \
+  --rating 3
+
+# Toma Café (Madrid) - 1 cup
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Toma Café") | .id')" \
+  --notes "Smooth Brazilian, hazelnut and chocolate. Nice afternoon flat white."
+
+# The Barn (Berlin) - 3 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
+  --notes "Their own roast; classic Kenyan brightness with tomato acidity." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Los Pirineos") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
+  --notes "Honey-processed El Salvador, maple sweetness." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
+  --notes "La Cabra guest roast, jasmine and lemon." \
+  --rating 5
+
+# Companion Coffee (Berlin) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
+  --notes "Wild anaerobic from Dak; passionfruit explosion." \
+  --rating 5
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Oreti SL28") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
+  --notes "Crisp Kenyan SL28, grapefruit and plum." \
+  --rating 4
+
+# Man Versus Machine (Munich) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
+  --notes "Clean Colombian, red apple and caramel. Beautiful V60." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Esmeralda Geisha") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
+  --notes "Incredible Geisha from Friedhats; jasmine and papaya. Worth every penny." \
+  --rating 5
+
+# Vits der Kaffee (Munich) - 1 cup
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="San Fermin") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Vits der Kaffee") | .id')" \
+  --notes "Origin Coffee guest roast; fruity Colombian, blood orange finish." \
+  --rating 3
+
+# Full Court Press (Bristol) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
+  --notes "Natural Ethiopian from Stow Coffee; blackberry and jasmine." \
+  --rating 5
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Death to Decaf") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
+  --notes "Surprisingly good decaf from Dark Arts. Cocoa and cherry." \
+  --rating 3
+
+# Small Street Espresso (Bristol) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Simbi") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
+  --notes "Rwandan washed from Bows; clean black tea and orange." \
+  --rating 4
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Chumeca") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
+  --notes "Costa Rican honey from Bows; sweet mandarin and honeycomb." \
+  --rating 4
+
+# ============================================================================
 # Bags - Various bags from different roasters with amounts ranging 100g-500g
 # ============================================================================
 
@@ -962,6 +1095,141 @@ UPDATE cafes SET
 WHERE name = 'Small Street Espresso';
 
 -- ============================================================================
+-- CUPS: Spread to match cafe visit dates
+-- Each cup is dated around the time the cafe was visited
+-- ============================================================================
+
+-- Monmouth Coffee (London, Aug 2025) - 2 cups
+UPDATE cups SET
+  created_at = datetime('2025-08-12 11:30:00'),
+  updated_at = datetime('2025-08-12 11:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso');
+
+UPDATE cups SET
+  created_at = datetime('2025-08-12 12:15:00'),
+  updated_at = datetime('2025-08-12 12:15:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Kamwangi');
+
+-- Prufrock Coffee (London, Aug 2025) - 3 cups
+UPDATE cups SET
+  created_at = datetime('2025-08-20 14:45:00'),
+  updated_at = datetime('2025-08-20 14:45:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Kochere');
+
+UPDATE cups SET
+  created_at = datetime('2025-08-20 15:30:00'),
+  updated_at = datetime('2025-08-20 15:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'La Laja');
+
+UPDATE cups SET
+  created_at = datetime('2025-08-25 10:00:00'),
+  updated_at = datetime('2025-08-25 10:00:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural');
+
+-- The Barn (Berlin, Sep 2025) - 3 cups
+UPDATE cups SET
+  created_at = datetime('2025-09-08 10:30:00'),
+  updated_at = datetime('2025-09-08 10:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya');
+
+UPDATE cups SET
+  created_at = datetime('2025-09-08 15:00:00'),
+  updated_at = datetime('2025-09-08 15:00:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Los Pirineos');
+
+UPDATE cups SET
+  created_at = datetime('2025-09-09 09:30:00'),
+  updated_at = datetime('2025-09-09 09:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti');
+
+-- Companion Coffee (Berlin, Sep 2025) - 2 cups
+UPDATE cups SET
+  created_at = datetime('2025-09-10 15:30:00'),
+  updated_at = datetime('2025-09-10 15:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic');
+
+UPDATE cups SET
+  created_at = datetime('2025-09-10 16:15:00'),
+  updated_at = datetime('2025-09-10 16:15:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Oreti SL28');
+
+-- Man Versus Machine (Munich, Oct 2025) - 2 cups
+UPDATE cups SET
+  created_at = datetime('2025-10-07 10:00:00'),
+  updated_at = datetime('2025-10-07 10:00:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed');
+
+UPDATE cups SET
+  created_at = datetime('2025-10-07 14:30:00'),
+  updated_at = datetime('2025-10-07 14:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'La Esmeralda Geisha');
+
+-- Vits der Kaffee (Munich, Oct 2025) - 1 cup
+UPDATE cups SET
+  created_at = datetime('2025-10-09 11:30:00'),
+  updated_at = datetime('2025-10-09 11:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Vits der Kaffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'San Fermin');
+
+-- Hola Coffee (Madrid, Nov 2025) - 2 cups
+UPDATE cups SET
+  created_at = datetime('2025-11-05 12:30:00'),
+  updated_at = datetime('2025-11-05 12:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Cerro Azul');
+
+UPDATE cups SET
+  created_at = datetime('2025-11-06 10:00:00'),
+  updated_at = datetime('2025-11-06 10:00:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland');
+
+-- Toma Café (Madrid, Nov 2025) - 1 cup
+UPDATE cups SET
+  created_at = datetime('2025-11-07 11:00:00'),
+  updated_at = datetime('2025-11-07 11:00:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Toma Café')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection');
+
+-- Full Court Press (Bristol, Jan 2026) - 2 cups
+UPDATE cups SET
+  created_at = datetime('2026-01-11 10:30:00'),
+  updated_at = datetime('2026-01-11 10:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto');
+
+UPDATE cups SET
+  created_at = datetime('2026-01-11 11:15:00'),
+  updated_at = datetime('2026-01-11 11:15:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Death to Decaf');
+
+-- Small Street Espresso (Bristol, Jan 2026) - 2 cups
+UPDATE cups SET
+  created_at = datetime('2026-01-11 14:30:00'),
+  updated_at = datetime('2026-01-11 14:30:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'Simbi');
+
+UPDATE cups SET
+  created_at = datetime('2026-01-11 15:00:00'),
+  updated_at = datetime('2026-01-11 15:00:00')
+WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
+  AND roast_id = (SELECT id FROM roasts WHERE name = 'La Chumeca');
+
+-- ============================================================================
 -- BAGS: Purchased after roasts exist, spread over months 2-6
 -- Roast dates should be slightly before created_at (bag bought after roasting)
 -- ============================================================================
@@ -1373,6 +1641,137 @@ WHERE entity_type = 'brew' AND entity_id = (
   JOIN bags ba ON b.bag_id = ba.id
   JOIN roasts r ON ba.roast_id = r.id
   WHERE r.name = 'Simbi' AND b.water_volume = 256
+);
+
+-- Cup timeline events (match cup created_at)
+-- Monmouth Coffee cups
+UPDATE timeline_events SET occurred_at = datetime('2025-08-12 11:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-12 12:15:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Kamwangi')
+);
+
+-- Prufrock Coffee cups
+UPDATE timeline_events SET occurred_at = datetime('2025-08-20 14:45:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Kochere')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-20 15:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'La Laja')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-08-25 10:00:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural')
+);
+
+-- The Barn cups
+UPDATE timeline_events SET occurred_at = datetime('2025-09-08 10:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-08 15:00:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Los Pirineos')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-09 09:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti')
+);
+
+-- Companion Coffee cups
+UPDATE timeline_events SET occurred_at = datetime('2025-09-10 15:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-09-10 16:15:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Oreti SL28')
+);
+
+-- Man Versus Machine cups
+UPDATE timeline_events SET occurred_at = datetime('2025-10-07 10:00:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-10-07 14:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'La Esmeralda Geisha')
+);
+
+-- Vits der Kaffee cup
+UPDATE timeline_events SET occurred_at = datetime('2025-10-09 11:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Vits der Kaffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'San Fermin')
+);
+
+-- Hola Coffee cups
+UPDATE timeline_events SET occurred_at = datetime('2025-11-05 12:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Cerro Azul')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2025-11-06 10:00:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland')
+);
+
+-- Toma Café cup
+UPDATE timeline_events SET occurred_at = datetime('2025-11-07 11:00:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Toma Café')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection')
+);
+
+-- Full Court Press cups
+UPDATE timeline_events SET occurred_at = datetime('2026-01-11 10:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-11 11:15:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Death to Decaf')
+);
+
+-- Small Street Espresso cups
+UPDATE timeline_events SET occurred_at = datetime('2026-01-11 14:30:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'Simbi')
+);
+
+UPDATE timeline_events SET occurred_at = datetime('2026-01-11 15:00:00')
+WHERE entity_type = 'cup' AND entity_id = (
+  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
+    AND roast_id = (SELECT id FROM roasts WHERE name = 'La Chumeca')
 );
 
 ENDSQL
