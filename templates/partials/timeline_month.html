@@ -89,7 +89,11 @@
       {% for detail in event.details %}
       <div class="flex justify-between gap-2">
         <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
+        {% if let Some(url) = detail.link %}
+        <dd class="text-right"><a href="{{ url }}" target="_blank" rel="noreferrer noopener" class="text-amber-700 hover:text-amber-500">{{ detail.value }}</a></dd>
+        {% else %}
         <dd class="text-right">{{ detail.value }}</dd>
+        {% endif %}
       </div>
       {% endfor %}
     </dl>

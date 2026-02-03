@@ -1266,6 +1266,13 @@ WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'F
 UPDATE timeline_events SET occurred_at = datetime('2026-01-11 14:00:00')
 WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso');
 
+-- Rebuild cafe timeline details_json to include Position field
+UPDATE timeline_events SET details_json = (
+  SELECT '[{"label":"City","value":"' || c.city || '"},{"label":"Country","value":"' || c.country || '"},{"label":"Website","value":"' || COALESCE(NULLIF(c.website, ''), '—') || '"},{"label":"Position","value":"https://www.google.com/maps?q=' || c.latitude || ',' || c.longitude || '"}]'
+  FROM cafes c WHERE c.id = timeline_events.entity_id
+)
+WHERE entity_type = 'cafe';
+
 -- Bag timeline events (match bag created_at)
 UPDATE timeline_events SET occurred_at = datetime('2025-09-28 10:00:00')
 WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya'));

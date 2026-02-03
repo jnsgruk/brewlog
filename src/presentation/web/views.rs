@@ -461,6 +461,7 @@ impl RoastView {
 pub struct TimelineEventDetailView {
     pub label: String,
     pub value: String,
+    pub link: Option<String>,
 }
 
 /// Raw brew data for repeating a brew from the timeline.
@@ -541,15 +542,30 @@ impl TimelineEventView {
         let mut mapped_details = Vec::new();
         let mut external_link = None;
         for detail in details {
-            if detail.label.eq_ignore_ascii_case("homepage") {
+            if detail.label.eq_ignore_ascii_case("homepage")
+                || detail.label.eq_ignore_ascii_case("website")
+            {
                 let trimmed = detail.value.trim();
                 if !trimmed.is_empty() && trimmed != "—" {
                     external_link = Some(trimmed.to_string());
+                }
+            } else if detail.label.eq_ignore_ascii_case("position") {
+                let trimmed = detail.value.trim();
+                if !trimmed.is_empty() {
+                    let display = trimmed
+                        .strip_prefix("https://www.google.com/maps?q=")
+                        .unwrap_or(trimmed);
+                    mapped_details.push(TimelineEventDetailView {
+                        label: detail.label,
+                        value: display.to_string(),
+                        link: Some(trimmed.to_string()),
+                    });
                 }
             } else {
                 mapped_details.push(TimelineEventDetailView {
                     label: detail.label,
                     value: detail.value,
+                    link: None,
                 });
             }
         }

@@ -86,6 +86,13 @@ impl SqlCafeRepository {
                 label: "Website".to_string(),
                 value: website_value,
             },
+            TimelineEventDetail {
+                label: "Position".to_string(),
+                value: format!(
+                    "https://www.google.com/maps?q={},{}",
+                    cafe.latitude, cafe.longitude
+                ),
+            },
         ];
 
         serde_json::to_string(&details).map_err(|err| {
