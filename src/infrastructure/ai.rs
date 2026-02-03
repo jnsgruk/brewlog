@@ -28,6 +28,28 @@ const ROAST_PROMPT: &str = r#"Extract coffee roast information from this input. 
 
 Return ONLY the JSON object, no other text."#;
 
+const SCAN_PROMPT: &str = r#"Extract both the coffee roaster and the roast information from this input. Use web search to look up any details you cannot determine from the input alone (e.g. the roaster's website, location, tasting notes, processing method). Return a JSON object with two top-level keys:
+
+{
+  "roaster": {
+    "name": "the roaster's name",
+    "country": "country the roaster is based in",
+    "city": "city the roaster is based in",
+    "homepage": "the roaster's website URL",
+    "notes": "a single sentence describing the roaster"
+  },
+  "roast": {
+    "name": "the name of this specific coffee/roast",
+    "origin": "the country of origin of the beans",
+    "region": "the region within the origin country",
+    "producer": "the farm, estate, or cooperative",
+    "process": "processing method (e.g. Washed, Natural, Honey, Anaerobic)",
+    "tasting_notes": ["Array", "Of", "Flavour Notes In Title Case"]
+  }
+}
+
+Only include fields you can identify with confidence. Each tasting note must be in Title Case. Return ONLY the JSON object, no other text."#;
+
 // --- Public types ---
 
 #[derive(Debug, Deserialize)]
@@ -54,6 +76,12 @@ pub struct ExtractedRoast {
     pub producer: Option<String>,
     pub process: Option<String>,
     pub tasting_notes: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtractedBagScan {
+    pub roaster: ExtractedRoaster,
+    pub roast: ExtractedRoast,
 }
 
 // --- Public functions ---
@@ -83,6 +111,20 @@ pub async fn extract_roast(
 
     serde_json::from_str(json).map_err(|e| {
         AppError::unexpected(format!("Failed to parse AI response as roast data: {e}"))
+    })
+}
+
+pub async fn extract_bag_scan(
+    client: &reqwest::Client,
+    api_key: &str,
+    model: &str,
+    input: &ExtractionInput,
+) -> Result<ExtractedBagScan, AppError> {
+    let content = call_openrouter(client, api_key, model, SCAN_PROMPT, input).await?;
+    let json = extract_json(&content);
+
+    serde_json::from_str(json).map_err(|e| {
+        AppError::unexpected(format!("Failed to parse AI response as bag scan data: {e}"))
     })
 }
 

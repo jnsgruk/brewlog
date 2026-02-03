@@ -7,6 +7,7 @@ pub mod gear;
 mod macros;
 pub mod roasters;
 pub mod roasts;
+pub mod scan;
 pub mod support;
 pub mod timeline;
 pub mod tokens;
@@ -77,6 +78,8 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/nearby-cafes", get(cafes::nearby_cafes))
         .route("/extract-roaster", post(roasters::extract_roaster))
         .route("/extract-roast", post(roasts::extract_roast_info))
+        .route("/extract-bag-scan", post(scan::extract_bag_scan))
+        .route("/scan", post(scan::submit_scan))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
         .route(
             "/cups/:id",
@@ -107,6 +110,7 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/cafes", get(cafes::cafes_page))
         .route("/cafes/:slug", get(cafes::cafe_page))
         .route("/cups", get(cups::cups_page))
+        .route("/scan", get(scan::scan_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
         .route("/favicon.ico", get(favicon))

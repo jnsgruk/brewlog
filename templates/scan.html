@@ -1,0 +1,266 @@
+{% extends "base.html" %} {% block title %}Brewlog · Scan Bag{% endblock %}
+
+{% block head %}
+<script>
+  var _extracting = false;
+  var _submitting = false;
+
+  function triggerScanPhoto() {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = function () {
+      if (input.files.length === 0) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        doScanExtract({ image: reader.result });
+      };
+      reader.readAsDataURL(input.files[0]);
+    };
+    input.click();
+  }
+
+  function scanFromText() {
+    var input = document.getElementById('scan-extract-text');
+    var prompt = input.value.trim();
+    if (prompt.length < 3) return;
+    doScanExtract({ prompt: prompt });
+  }
+
+  async function doScanExtract(body) {
+    if (_extracting) return;
+    _extracting = true;
+    var errorEl = document.getElementById('scan-extract-error');
+    var spinnerEl = document.getElementById('scan-extract-spinner');
+    errorEl.classList.add('hidden');
+    spinnerEl.classList.remove('hidden');
+
+    try {
+      var resp = await fetch('/api/v1/extract-bag-scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) {
+        var errData = await resp.json().catch(function () { return {}; });
+        throw new Error(errData.message || 'Server returned ' + resp.status);
+      }
+      var data = await resp.json();
+      fillScanForms(data);
+      document.getElementById('scan-input-section').style.display = 'none';
+      document.getElementById('scan-form-section').style.display = 'block';
+    } catch (e) {
+      errorEl.textContent = 'Extraction failed: ' + e.message;
+      errorEl.classList.remove('hidden');
+    } finally {
+      spinnerEl.classList.add('hidden');
+      _extracting = false;
+    }
+  }
+
+  function fillScanForms(data) {
+    var form = document.getElementById('scan-form');
+    if (!form) return;
+    if (data.roaster) {
+      if (data.roaster.name) form.querySelector('[name="roaster_name"]').value = data.roaster.name;
+      if (data.roaster.country) form.querySelector('[name="roaster_country"]').value = data.roaster.country;
+      if (data.roaster.city) form.querySelector('[name="roaster_city"]').value = data.roaster.city;
+      if (data.roaster.homepage) form.querySelector('[name="roaster_homepage"]').value = data.roaster.homepage;
+      if (data.roaster.notes) form.querySelector('[name="roaster_notes"]').value = data.roaster.notes;
+    }
+    if (data.roast) {
+      if (data.roast.name) form.querySelector('[name="roast_name"]').value = data.roast.name;
+      if (data.roast.origin) form.querySelector('[name="origin"]').value = data.roast.origin;
+      if (data.roast.region) form.querySelector('[name="region"]').value = data.roast.region;
+      if (data.roast.producer) form.querySelector('[name="producer"]').value = data.roast.producer;
+      if (data.roast.process) form.querySelector('[name="process"]').value = data.roast.process;
+      if (data.roast.tasting_notes && data.roast.tasting_notes.length > 0) {
+        form.querySelector('[name="tasting_notes"]').value = data.roast.tasting_notes.join(', ');
+      }
+    }
+  }
+
+  function resetScan() {
+    document.getElementById('scan-input-section').style.display = 'block';
+    document.getElementById('scan-form-section').style.display = 'none';
+    document.getElementById('scan-form').reset();
+    document.getElementById('scan-submit-error').classList.add('hidden');
+  }
+
+  async function submitScan(event) {
+    event.preventDefault();
+    if (_submitting) return;
+    _submitting = true;
+    var errorEl = document.getElementById('scan-submit-error');
+    errorEl.classList.add('hidden');
+
+    var form = document.getElementById('scan-form');
+    var formData = new FormData(form);
+    var body = {};
+    formData.forEach(function (value, key) { body[key] = value; });
+
+    try {
+      var resp = await fetch('/api/v1/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) {
+        var errData = await resp.json().catch(function () { return {}; });
+        throw new Error(errData.message || 'Server returned ' + resp.status);
+      }
+      var data = await resp.json();
+      window.location.href = data.redirect || '/roasts';
+    } catch (e) {
+      errorEl.textContent = 'Save failed: ' + e.message;
+      errorEl.classList.remove('hidden');
+    } finally {
+      _submitting = false;
+    }
+    return false;
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<section>
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Scan Bag</h1>
+    <p class="max-w-2xl text-sm text-stone-600">
+      Take a photo of a coffee bag or describe it, and Brewlog will extract the roaster and roast details for you.
+    </p>
+  </header>
+
+  <!-- Input section: photo or text -->
+  <div id="scan-input-section" class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <div class="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onclick="triggerScanPhoto()"
+        class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+        </svg>
+        Take Photo
+      </button>
+      <span class="text-xs text-stone-400">or</span>
+      <div class="flex flex-1 min-w-[200px] gap-2">
+        <input
+          type="text"
+          id="scan-extract-text"
+          class="input-field w-full text-sm"
+          placeholder="Describe the coffee bag&hellip;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();scanFromText()}"
+        />
+        <button
+          type="button"
+          onclick="scanFromText()"
+          class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+        >
+          Go
+        </button>
+      </div>
+      <svg id="scan-extract-spinner" class="hidden h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+    <p id="scan-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
+  </div>
+
+  <!-- Form section: pre-filled roaster + roast forms -->
+  <div id="scan-form-section" style="display: none">
+    <form
+      id="scan-form"
+      class="mt-6 flex flex-col gap-6"
+      onsubmit="return submitScan(event)"
+    >
+      <!-- Roaster section -->
+      <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+        <div>
+          <h2 class="text-lg font-semibold text-amber-700">Roaster</h2>
+          <p class="mt-1 text-sm text-stone-600">If this roaster already exists, it will be matched automatically.</p>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Name *</span>
+            <input type="text" name="roaster_name" required class="input-field" placeholder="Example Coffee Roasters" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Country *</span>
+            <input type="text" name="roaster_country" required class="input-field" placeholder="United States" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">City</span>
+            <input type="text" name="roaster_city" class="input-field" placeholder="Portland" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Homepage</span>
+            <input type="url" name="roaster_homepage" class="input-field" placeholder="https://example.coffee" />
+          </label>
+          <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Notes</span>
+            <textarea name="roaster_notes" rows="2" class="input-field" placeholder="Short description of the roaster"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <!-- Roast section -->
+      <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+        <div>
+          <h2 class="text-lg font-semibold text-amber-700">Roast</h2>
+          <p class="mt-1 text-sm text-stone-600">Details about this specific coffee.</p>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Roast Name *</span>
+            <input type="text" name="roast_name" required class="input-field" placeholder="Ethiopia Yirgacheffe" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Origin *</span>
+            <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Region *</span>
+            <input type="text" name="region" required class="input-field" placeholder="Guji" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Producer *</span>
+            <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Process *</span>
+            <input type="text" name="process" required class="input-field" placeholder="Washed" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Tasting Notes * (comma separated)</span>
+            <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <p id="scan-submit-error" class="hidden text-sm text-red-600"></p>
+
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onclick="resetScan()"
+          class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+        >
+          Start Over
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+        >
+          Save Roaster &amp; Roast
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

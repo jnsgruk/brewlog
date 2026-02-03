@@ -319,13 +319,13 @@ impl NewRoastSubmission {
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-enum TastingNotesInput {
+pub(crate) enum TastingNotesInput {
     List(Vec<String>),
     Text(String),
 }
 
 impl TastingNotesInput {
-    fn into_vec(self) -> Vec<String> {
+    pub(crate) fn into_vec(self) -> Vec<String> {
         match self {
             TastingNotesInput::List(values) => values
                 .into_iter()

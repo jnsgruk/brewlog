@@ -11,6 +11,13 @@
             <a class="border-b-2 pb-1 transition {% if nav_active == "cups" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/cups">Cups</a>
             <a class="border-b-2 pb-1 transition {% if nav_active == "gear" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/gear">Gear</a>
             <a class="border-b-2 pb-1 transition {% if nav_active == "timeline" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/timeline">Timeline</a>
+            {% if is_authenticated && has_ai_extract %}
+            <a class="border-b-2 pb-1 transition {% if nav_active == "scan" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/scan" aria-label="Scan bag">
+                <svg class="inline h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+            </a>
+            {% endif %}
             {% if is_authenticated %}
             <form method="post" action="/logout" class="inline">
                 <button type="submit" class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400">Logout</button>
@@ -39,6 +46,14 @@
         <a class="py-1 transition {% if nav_active == "cups" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/cups">Cups</a>
         <a class="py-1 transition {% if nav_active == "gear" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/gear">Gear</a>
         <a class="py-1 transition {% if nav_active == "timeline" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/timeline">Timeline</a>
+        {% if is_authenticated && has_ai_extract %}
+        <a class="py-1 transition inline-flex items-center gap-1 {% if nav_active == "scan" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/scan">
+            <svg class="inline h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+            Scan
+        </a>
+        {% endif %}
         {% if is_authenticated %}
         <form method="post" action="/logout" class="inline">
             <button type="submit" class="py-1 transition text-stone-500 hover:text-amber-600 text-left">Logout</button>
