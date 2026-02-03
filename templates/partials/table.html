@@ -14,7 +14,7 @@
 
 {% macro pagination_header(items, navigator, target_selector) %}
     <div
-      class="pagination-controls flex flex-wrap items-center justify-between gap-x-3 border-t border-amber-200/70 px-4 py-1.5 text-xs leading-none text-stone-600"
+      class="pagination-controls hidden md:flex flex-wrap items-center justify-between gap-x-3 border-t border-amber-200/70 px-4 py-1.5 text-xs leading-none text-stone-600"
     >
       <span>
         Showing {{ items.start_index() }}&ndash;{{ items.end_index() }} of {{ items.total }}

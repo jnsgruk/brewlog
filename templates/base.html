@@ -11,6 +11,82 @@
       src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"
     ></script>
     {% block head %}{% endblock %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var mobileQuery = window.matchMedia("(max-width: 767px)");
+        if (!mobileQuery.matches) return;
+
+        function setupInfiniteScroll() {
+          document.querySelectorAll("[data-infinite-scroll]").forEach(function (container) {
+            var sentinel = container.querySelector(".infinite-scroll-sentinel");
+            if (!sentinel || sentinel.dataset.observed) return;
+            sentinel.dataset.observed = "true";
+
+            var observer = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (entry) {
+                  if (!entry.isIntersecting) return;
+
+                  var nextUrl = container.getAttribute("data-next-url");
+                  var targetSelector = container.getAttribute("data-target");
+                  if (!nextUrl || !targetSelector) {
+                    observer.disconnect();
+                    return;
+                  }
+
+                  observer.disconnect();
+                  sentinel.remove();
+
+                  fetch(nextUrl, {
+                    headers: { "datastar-request": "true" },
+                  })
+                    .then(function (res) { return res.text(); })
+                    .then(function (html) {
+                      var doc = new DOMParser().parseFromString(html, "text/html");
+                      var newTarget = doc.querySelector(targetSelector);
+                      if (!newTarget) return;
+
+                      // Append new rows to existing tbody
+                      var existingTbody = container.querySelector("tbody");
+                      var newTbody = newTarget.querySelector("tbody");
+                      if (existingTbody && newTbody) {
+                        Array.from(newTbody.children).forEach(function (row) {
+                          existingTbody.appendChild(document.adoptNode(row));
+                        });
+                      }
+
+                      // Check if there are more pages
+                      var newContainer = newTarget.querySelector("[data-infinite-scroll]");
+                      var newNextUrl = newContainer && newContainer.getAttribute("data-next-url");
+                      if (newNextUrl) {
+                        container.setAttribute("data-next-url", newNextUrl);
+                        var newSentinel = document.createElement("div");
+                        newSentinel.className = "infinite-scroll-sentinel h-4";
+                        newSentinel.setAttribute("aria-hidden", "true");
+                        container.appendChild(newSentinel);
+                        setupInfiniteScroll();
+                      } else {
+                        container.removeAttribute("data-next-url");
+                        container.removeAttribute("data-infinite-scroll");
+                      }
+                    });
+                });
+              },
+              { rootMargin: "200px" }
+            );
+
+            observer.observe(sentinel);
+          });
+        }
+
+        setupInfiniteScroll();
+
+        var bodyObserver = new MutationObserver(function () {
+          setupInfiniteScroll();
+        });
+        bodyObserver.observe(document.body, { childList: true, subtree: true });
+      });
+    </script>
   </head>
   <body class="min-h-screen bg-amber-50 text-stone-900">
     <main class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">

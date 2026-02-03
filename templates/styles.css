@@ -147,6 +147,10 @@ a {
   .responsive-table td.mobile-hidden {
     display: none;
   }
+
+  .pagination-controls {
+    display: none;
+  }
 }
 
 /* Desktop: alternating cards with central line */
