@@ -47,10 +47,10 @@ Brewlog supports two authentication methods:
 First, create an API token:
 
 ```bash
-brewlog create-token --name "my-cli-token"
+brewlog token create --name "my-cli-token"
 # You will be prompted for username and password.
 # Alternatively, you can provide them via flags:
-# brewlog create-token --name "my-cli-token" --username admin --password secret
+# brewlog token create --name "my-cli-token" --username admin --password secret
 
 # Username: admin
 # Password: ********
@@ -74,13 +74,13 @@ export BREWLOG_TOKEN="dEadB3efDeadb33fdeadb33F..."
 export BREWLOG_URL=http://localhost:3000
 
 # Now all write operations work
-brewlog add-roaster \
+brewlog roaster add \
   --name "Radical Roasters" \
-  --country "UK" \
+  --country "United Kingdom" \
   --city "Bristol" \
   --homepage "https://radicalroasters.co.uk"
 
-brewlog add-roast \
+brewlog roast add \
   --roaster-id "deadbeef" \
   --name "Chelbesa Lot 2" \
   --origin "Ethiopia" \
@@ -94,10 +94,10 @@ brewlog add-roast \
 
 ```bash
 # List your active tokens
-brewlog list-tokens
+brewlog token list
 
 # Revoke a token
-brewlog revoke-token --id abc123
+brewlog token revoke --id abc123
 ```
 
 #### API Usage
@@ -107,10 +107,100 @@ For direct API access, include your token as a Bearer token:
 ```bash
 curl http://localhost:3000/api/v1/roasters \
   -H "Authorization: Bearer dEadB3efDeadb33fdeadb33F..." \
-  --json '{"name":"Radical Roasters","country":"UK"}'
+  --json '{"name":"Radical Roasters","country":"United Kingdom"}'
 ```
 
 **Note**: All read operations (GET requests) are public and don't require authentication. Only write operations (POST/PUT/DELETE) require authentication.
+
+## CLI Commands
+
+The CLI uses a subcommand structure. Each entity command supports `add`, `list`, `get`, `update`, and `delete` subcommands (except where noted):
+
+```
+brewlog serve              Run the HTTP server
+brewlog roaster <cmd>      Manage roasters
+brewlog roast <cmd>        Manage roasts
+brewlog bag <cmd>          Manage bags of coffee
+brewlog gear <cmd>         Manage brewing gear (grinders, brewers, filter papers)
+brewlog brew <cmd>         Manage brews (add, list, get, delete — no update)
+brewlog cafe <cmd>         Manage cafes
+brewlog cup <cmd>          Manage cups (tasting notes with ratings)
+brewlog token <cmd>        Manage API tokens (create, list, revoke)
+brewlog backup             Export all data to JSON on stdout
+brewlog restore --file F   Restore data from a JSON backup into an empty database
+```
+
+Use `brewlog <command> --help` for detailed options on any command.
+
+## Environment Variables
+
+All configuration is via environment variables or CLI flags. A `.env` file in the working directory is loaded automatically at startup (via [dotenvy](https://crates.io/crates/dotenvy)).
+
+### Server (`brewlog serve`)
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `BREWLOG_DATABASE_URL` | Database connection string | `sqlite://brewlog.db` |
+| `BREWLOG_BIND_ADDRESS` | Server bind address | `127.0.0.1:3000` |
+| `BREWLOG_ADMIN_USERNAME` | Initial admin username | — (required on first run) |
+| `BREWLOG_ADMIN_PASSWORD` | Initial admin password | — (required on first run) |
+| `BREWLOG_SECURE_COOKIES` | Set to `true` to enable the Secure cookie flag (for HTTPS) | `false` |
+| `RUST_LOG` | Log level filter | `info` |
+
+### CLI Client
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `BREWLOG_URL` | Server URL for CLI commands | `http://127.0.0.1:3000` |
+| `BREWLOG_TOKEN` | API token for authenticated CLI operations | — |
+
+### Optional Integrations
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `BREWLOG_OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/) API key — enables AI extraction | — |
+| `BREWLOG_OPENROUTER_MODEL` | LLM model for AI extraction | `openrouter/free` |
+| `BREWLOG_FOURSQUARE_API_KEY` | [Foursquare](https://foursquare.com/) Places API key — enables nearby cafe search | — |
+
+## Optional Features
+
+### AI Extraction
+
+When `BREWLOG_OPENROUTER_API_KEY` is configured, the web UI gains the ability to extract roaster and roast details from photos or text descriptions using an LLM. This powers:
+
+- Photo extraction buttons on the roaster and roast forms
+- Text-based extraction from typed descriptions
+- The **/scan** page, which extracts both roaster and roast data from a single coffee bag label photo
+
+### Nearby Cafe Search
+
+When `BREWLOG_FOURSQUARE_API_KEY` is configured, the cafes page can search for nearby coffee shops via the Foursquare Places API. Searches can be made by GPS coordinates or city name.
+
+## Database
+
+SQLite is the default database. PostgreSQL is supported via a compile-time feature flag:
+
+```bash
+# SQLite (default)
+cargo build --release
+
+# PostgreSQL
+cargo build --release --features postgres --no-default-features
+```
+
+Migrations run automatically on server startup.
+
+### Backup & Restore
+
+```bash
+# Export all data to JSON
+brewlog backup > backup.json
+
+# Restore into an empty database
+brewlog restore --file backup.json
+```
+
+Both commands accept `--database-url` (or `BREWLOG_DATABASE_URL`) to target a specific database.
 
 ## Installation
 
@@ -132,7 +222,7 @@ cargo run -- serve
 
 ## Testing
 
-The project includes a number of unit and integration tests, all of which can be executed with `cargo`:
+The project includes unit and integration tests:
 
 ```bash
 cargo test
