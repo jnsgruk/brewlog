@@ -14,6 +14,7 @@ use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
 use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
 use brewlog::infrastructure::repositories::cafes::SqlCafeRepository;
+use brewlog::infrastructure::repositories::cups::SqlCupRepository;
 use brewlog::infrastructure::repositories::gear::SqlGearRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
@@ -66,6 +67,7 @@ pub async fn spawn_app() -> TestApp {
     let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
     let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
     let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
+    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -82,6 +84,7 @@ pub async fn spawn_app() -> TestApp {
         gear_repo,
         brew_repo,
         cafe_repo,
+        cup_repo,
         timeline_repo,
         user_repo,
         token_repo,
@@ -101,6 +104,7 @@ async fn spawn_app_inner(
     gear_repo: Arc<SqlGearRepository>,
     brew_repo: Arc<SqlBrewRepository>,
     cafe_repo: Arc<SqlCafeRepository>,
+    cup_repo: Arc<SqlCupRepository>,
     timeline_repo: Arc<SqlTimelineEventRepository>,
     user_repo: Arc<dyn UserRepository>,
     token_repo: Arc<dyn TokenRepository>,
@@ -116,6 +120,7 @@ async fn spawn_app_inner(
         gear_repo.clone(),
         brew_repo.clone(),
         cafe_repo.clone(),
+        cup_repo.clone(),
         timeline_repo.clone(),
         user_repo.clone(),
         token_repo.clone(),
@@ -179,6 +184,7 @@ pub async fn spawn_app_with_nominatim_mock() -> TestApp {
     let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
     let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
     let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
+    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -195,6 +201,7 @@ pub async fn spawn_app_with_nominatim_mock() -> TestApp {
         gear_repo,
         brew_repo,
         cafe_repo,
+        cup_repo,
         timeline_repo,
         user_repo,
         token_repo,
