@@ -1,7 +1,7 @@
 {% import "partials/table.html" as table %}
 
 <div id="gear-list">
-  {% if gear.items.is_empty() %}
+  {% if gear.items.is_empty() && !navigator.has_search() %}
   <div class="rounded-lg border border-stone-200 bg-stone-50 p-8 text-center">
     <p class="text-stone-500">No gear found.</p>
     {% if is_authenticated %}
@@ -64,6 +64,9 @@
         </tbody>
       </table>
     </div>
+    {% if gear.items.is_empty() %}
+    <div class="p-8 text-center text-stone-500">No gear matches your search.</div>
+    {% endif %}
     {% call table::pagination_header(gear, navigator, "#gear-list") %}
     {% if gear.has_next() %}
     <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>

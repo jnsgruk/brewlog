@@ -1,7 +1,7 @@
 {% import "partials/table.html" as table %}
 
 <div id="roast-list" class="mt-6" data-star-scope="roasts">
-  {% if roasts.items.is_empty() %}
+  {% if roasts.items.is_empty() && !navigator.has_search() %}
   <div
     class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
   >
@@ -88,6 +88,9 @@
         </tbody>
       </table>
     </div>
+    {% if roasts.items.is_empty() %}
+    <div class="p-8 text-center text-stone-500">No roasts match your search.</div>
+    {% endif %}
     {% call table::pagination_header(roasts, navigator, "#roast-list") %}
     {% if roasts.has_next() %}
     <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
