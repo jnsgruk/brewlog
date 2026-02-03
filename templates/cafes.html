@@ -1,0 +1,133 @@
+{% extends "base.html" %} {% block title %}Brewlog · Cafes{% endblock %} {% block content %}
+<section data-signals:_show-form="false">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">Cafes</h1>
+      <p class="max-w-2xl text-sm text-stone-600">Discover and track your favourite cafes.</p>
+    </div>
+    {% if is_authenticated %}
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-full border border-amber-500 text-2xl font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600"
+      data-class:hidden="$_showForm"
+      data-on:click="$_showForm = true"
+      aria-label="Add new cafe"
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+    {% endif %}
+  </header>
+
+  {% if is_authenticated %}
+  <div
+    class="mt-6 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm"
+    data-show="$_showForm"
+    style="display: none"
+  >
+    <div>
+      <h2 class="text-lg font-semibold text-amber-700">New Cafe</h2>
+      <p class="mt-1 text-sm text-stone-600">
+        Add a cafe you have visited or want to remember.
+      </p>
+    </div>
+    <form
+      method="post"
+      action="/api/v1/cafes"
+      class="mt-4 flex flex-col gap-4"
+      data-on:submit="@post('/api/v1/cafes?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#cafe-list', mode: 'replace'}})"
+      data-ref="_form"
+      data-on:datastar-fetch="evt.detail.type === 'finished' && ($_showForm = false, $_form && $_form.reset())"
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Name *</span>
+          <input
+            type="text"
+            name="name"
+            required
+            class="input-field"
+            placeholder="Blue Bottle Coffee"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">City *</span>
+          <input
+            type="text"
+            name="city"
+            required
+            class="input-field"
+            placeholder="San Francisco"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Country *</span>
+          <input
+            type="text"
+            name="country"
+            required
+            class="input-field"
+            placeholder="United States"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Website</span>
+          <input
+            type="url"
+            name="website"
+            class="input-field"
+            placeholder="https://bluebottlecoffee.com"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Latitude *</span>
+          <input
+            type="number"
+            name="latitude"
+            step="any"
+            required
+            class="input-field"
+            placeholder="37.7749"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Longitude *</span>
+          <input
+            type="number"
+            name="longitude"
+            step="any"
+            required
+            class="input-field"
+            placeholder="-122.4194"
+          />
+        </label>
+        <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Notes</span>
+          <textarea
+            name="notes"
+            rows="3"
+            class="input-field"
+            placeholder="Atmosphere, speciality drinks, opening hours..."
+          ></textarea>
+        </label>
+      </div>
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+          data-on:click="($_showForm = false, $_form && $_form.reset())"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+        >
+          Save Cafe
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+</section>
+
+{% include "partials/cafe_list.html" %} {% endblock %}

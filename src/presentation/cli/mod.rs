@@ -1,6 +1,7 @@
 pub mod backup;
 pub mod bags;
 pub mod brews;
+pub mod cafes;
 pub mod gear;
 mod macros;
 pub mod roasters;
@@ -12,6 +13,7 @@ use std::net::SocketAddr;
 use backup::{BackupCommand, RestoreCommand};
 use bags::BagCommands;
 use brews::BrewCommands;
+use cafes::CafeCommands;
 use clap::{Args, Parser, Subcommand};
 use gear::GearCommands;
 use roasters::RoasterCommands;
@@ -66,6 +68,12 @@ pub enum Commands {
     Brew {
         #[command(subcommand)]
         command: BrewCommands,
+    },
+
+    /// Manage cafes
+    Cafe {
+        #[command(subcommand)]
+        command: CafeCommands,
     },
 
     /// Manage API tokens

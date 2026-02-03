@@ -1,0 +1,73 @@
+{% extends "base.html" %} {% block title %}Brewlog · Cafe · {{ cafe.name }}{% endblock %} {%
+block content %}
+<header class="flex flex-col gap-2">
+  <h1 class="text-3xl font-semibold">{{ cafe.name }}</h1>
+  <p class="max-w-2xl text-sm text-stone-600">Detailed view for {{ cafe.name }}.</p>
+</header>
+<section class="grid gap-4 rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+  <dl class="grid gap-2 text-sm text-stone-700">
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">City</dt>
+      <dd class="text-right">{{ cafe.city }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Country</dt>
+      <dd class="text-right">{{ cafe.country }}</dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Coordinates</dt>
+      <dd class="text-right">{{ cafe.latitude }}, {{ cafe.longitude }}</dd>
+    </div>
+    <div class="flex items-center justify-between gap-2">
+      <dt class="font-medium text-stone-500">Map</dt>
+      <dd class="flex justify-end">
+        <a
+          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-200/60 px-3 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-500 hover:bg-amber-200 hover:text-amber-900"
+          href="{{ cafe.map_url }}"
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Open {{ cafe.name }} in Google Maps"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" />
+          </svg>
+          <span>Open in Maps</span>
+        </a>
+      </dd>
+    </div>
+    <div class="flex items-center justify-between gap-2">
+      <dt class="font-medium text-stone-500">Website</dt>
+      <dd class="flex justify-end">
+        {% if cafe.has_website %}
+        <a
+          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-200/60 px-3 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-500 hover:bg-amber-200 hover:text-amber-900"
+          href="{{ cafe.website_url }}"
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Visit {{ cafe.name }} website"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+              clip-rule="evenodd"
+            />
+            <path
+              d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+            />
+          </svg>
+          <span>Visit</span>
+        </a>
+        {% else %}
+        <span>&mdash;</span>
+        {% endif %}
+      </dd>
+    </div>
+    <div class="flex justify-between gap-2">
+      <dt class="font-medium text-stone-500">Created</dt>
+      <dd class="text-right">{{ cafe.created_at }}</dd>
+    </div>
+  </dl>
+  <p class="text-sm text-stone-600">{{ cafe.notes }}</p>
+</section>
+{% endblock %}

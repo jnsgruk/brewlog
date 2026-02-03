@@ -1,5 +1,6 @@
 use crate::domain::bags::BagWithRoast;
 use crate::domain::brews::{Brew, BrewWithDetails};
+use crate::domain::cafes::Cafe;
 use crate::domain::gear::Gear;
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
@@ -519,6 +520,7 @@ impl TimelineEventView {
             ("bag", "finished") => "Bag Finished",
             ("gear", "added") => "Gear Added",
             ("brew", "brewed") => "Brewed",
+            ("cafe", "added") => "Cafe Added",
             _ => "Event",
         };
 
@@ -528,6 +530,7 @@ impl TimelineEventView {
             ("roast" | "bag" | "brew", Some(slug), Some(roaster_slug)) => {
                 format!("/roasters/{roaster_slug}/roasts/{slug}")
             }
+            ("cafe", Some(slug), _) => format!("/cafes/{slug}"),
             ("gear", _, _) => "/gear".to_string(),
             ("brew", _, _) => "/brews".to_string(),
             ("roaster", None, _) => format!("/roasters/{entity_id}"),
@@ -797,6 +800,66 @@ impl From<Brew> for BrewDefaultsView {
             grind_setting: brew.grind_setting,
             water_volume: brew.water_volume,
             water_temp: brew.water_temp,
+        }
+    }
+}
+
+pub struct CafeView {
+    pub id: String,
+    pub detail_path: String,
+    pub name: String,
+    pub city: String,
+    pub country: String,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub map_url: String,
+    pub has_website: bool,
+    pub website_url: String,
+    pub website_label: String,
+    pub notes: String,
+    pub created_at: String,
+    pub created_at_sort_key: i64,
+}
+
+impl From<Cafe> for CafeView {
+    fn from(cafe: Cafe) -> Self {
+        let Cafe {
+            id,
+            slug,
+            name,
+            city,
+            country,
+            latitude,
+            longitude,
+            website,
+            notes,
+            created_at,
+            updated_at: _,
+        } = cafe;
+
+        let website = website.unwrap_or_default();
+        let has_website = !website.is_empty();
+        let detail_path = format!("/cafes/{slug}");
+        let map_url = format!("https://www.google.com/maps?q={latitude},{longitude}");
+
+        let created_at_sort_key = created_at.timestamp();
+        let created_at_label = created_at.format("%Y-%m-%d").to_string();
+
+        Self {
+            detail_path,
+            id: id.to_string(),
+            name,
+            city,
+            country,
+            latitude,
+            longitude,
+            map_url,
+            has_website,
+            website_url: website.clone(),
+            website_label: website,
+            notes: notes.unwrap_or_else(|| "This cafe has no notes yet.".to_string()),
+            created_at: created_at_label,
+            created_at_sort_key,
         }
     }
 }

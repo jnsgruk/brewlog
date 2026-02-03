@@ -1,0 +1,139 @@
+{% import "partials/table.html" as table %}
+
+<div id="cafe-list" class="mt-6" data-star-scope="cafes">
+  {% if cafes.items.is_empty() && !navigator.has_search() %}
+  <div
+    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+  >
+    <p class="text-center">
+      No cafes recorded yet. Use the form above to add your first cafe.
+    </p>
+  </div>
+  {% else %}
+  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+    {% if cafes.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(cafes.next_page().unwrap())|safe }}" data-target="#cafe-list"{% endif %}
+  >
+    {% call table::search_header(navigator, "#cafe-list") %}
+    <div class="overflow-x-auto">
+      <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
+        <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
+          <tr>
+            {% call table::sortable_header("Added", "created-at", navigator, "#cafe-list") %}
+            {% call table::sortable_header("Name", "name", navigator, "#cafe-list") %}
+            {% call table::sortable_header("Location", "country", navigator, "#cafe-list") %}
+            <th scope="col" class="mobile-hidden px-4 py-3">Notes</th>
+            <th scope="col" class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-amber-200/70">
+          {% for cafe in cafes.items %}
+          <tr
+            data-star-key="{{ cafe.id }}"
+            data-sort-created-at="{{ cafe.created_at_sort_key }}"
+            data-sort-name="{{ cafe.name }}"
+            data-sort-country="{{ cafe.country }}"
+            data-sort-city="{{ cafe.city }}"
+            class="bg-amber-50/40 transition hover:bg-amber-50"
+          >
+            <td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+              {{ cafe.created_at }}
+            </td>
+            <td data-label="Name" class="px-4 py-3">
+              <a
+                href="{{ cafe.detail_path }}"
+                class="font-semibold text-amber-800 hover:text-amber-600"
+                >{{ cafe.name }}</a
+              >
+            </td>
+            <td data-label="Location" class="px-4 py-3 whitespace-nowrap">
+              {{ cafe.country }}
+              <div class="hidden md:block text-xs text-stone-500">{{ cafe.city }}</div>
+            </td>
+            <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cafe.city }}</td>
+            <td data-label="Notes" class="mobile-hidden px-4 py-3 text-sm text-stone-600">{{ cafe.notes }}</td>
+            <td data-label="" class="px-4 py-3 text-right">
+              <div class="inline-flex items-center gap-1">
+                <a
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+                  href="{{ cafe.map_url }}"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  title="Open in Google Maps"
+                >
+                  <span class="sr-only">Open {{ cafe.name }} in Google Maps</span>
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" />
+                  </svg>
+                </a>
+                {% if cafe.has_website %}
+                <a
+                  class="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+                  href="{{ cafe.website_url }}"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  title="Visit website"
+                >
+                  <span class="sr-only">Visit {{ cafe.name }} website</span>
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+                      clip-rule="evenodd"
+                    />
+                    <path
+                      d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+                    />
+                  </svg>
+                </a>
+                {% else %}
+                <span
+                  class="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-300 cursor-default"
+                  title="No website"
+                  aria-disabled="true"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+                      clip-rule="evenodd"
+                    />
+                    <path
+                      d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+                    />
+                  </svg>
+                </span>
+                {% endif %}
+                {% if is_authenticated %}
+                <button
+                  type="button"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                  title="Delete cafe"
+                  data-on:click="confirm('Delete this cafe?') && @delete('/api/v1/cafes/{{ cafe.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cafe-list', mode: 'replace'}})"
+                >
+                  <span class="sr-only">Delete</span>
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1H15a1 1 0 1 1 0 2h-.4l-.74 10.36A2 2 0 0 1 11.87 17H8.13a2 2 0 0 1-1.99-1.64L5.4 5H5a1 1 0 1 1 0-2h2.5Zm.9 4.5a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm3.4 0a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if cafes.items.is_empty() %}
+    <div class="p-8 text-center text-stone-500">No cafes match your search.</div>
+    {% endif %}
+    {% call table::pagination_header(cafes, navigator, "#cafe-list") %}
+    {% if cafes.has_next() %}
+    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>

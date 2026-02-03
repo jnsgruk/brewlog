@@ -4,7 +4,7 @@ use brewlog::infrastructure::backup::{BackupData, BackupService};
 use brewlog::infrastructure::client::BrewlogClient;
 use brewlog::infrastructure::database::Database;
 use brewlog::presentation::cli::{
-    Cli, Commands, ServeCommand, bags, brews, gear, roasters, roasts, tokens,
+    Cli, Commands, ServeCommand, bags, brews, cafes, gear, roasters, roasts, tokens,
 };
 use clap::Parser;
 
@@ -42,6 +42,10 @@ async fn main() -> Result<()> {
         Commands::Brew { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
             brews::run(&client, command).await
+        }
+        Commands::Cafe { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            cafes::run(&client, command).await
         }
         Commands::Token { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
