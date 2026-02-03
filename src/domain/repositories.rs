@@ -23,6 +23,7 @@ pub trait RoasterRepository: Send + Sync {
     async fn list(
         &self,
         request: &ListRequest<RoasterSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<Roaster>, RepositoryError>;
     async fn update(
         &self,
@@ -35,7 +36,7 @@ pub trait RoasterRepository: Send + Sync {
         let sort_key = <RoasterSortKey as SortKey>::default();
         let request =
             ListRequest::<RoasterSortKey>::show_all(sort_key, sort_key.default_direction());
-        let page = self.list(&request).await?;
+        let page = self.list(&request, None).await?;
         Ok(page.items)
     }
 
@@ -45,7 +46,7 @@ pub trait RoasterRepository: Send + Sync {
         direction: SortDirection,
     ) -> Result<Vec<Roaster>, RepositoryError> {
         let request = ListRequest::show_all(sort_key, direction);
-        let page = self.list(&request).await?;
+        let page = self.list(&request, None).await?;
         Ok(page.items)
     }
 }
@@ -63,6 +64,7 @@ pub trait RoastRepository: Send + Sync {
     async fn list(
         &self,
         request: &ListRequest<RoastSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<RoastWithRoaster>, RepositoryError>;
     async fn list_by_roaster(
         &self,
@@ -74,7 +76,7 @@ pub trait RoastRepository: Send + Sync {
     async fn list_all(&self) -> Result<Vec<RoastWithRoaster>, RepositoryError> {
         let sort_key = <RoastSortKey as SortKey>::default();
         let request = ListRequest::<RoastSortKey>::show_all(sort_key, sort_key.default_direction());
-        let page = self.list(&request).await?;
+        let page = self.list(&request, None).await?;
         Ok(page.items)
     }
 }
@@ -132,6 +134,7 @@ pub trait BagRepository: Send + Sync {
         &self,
         filter: BagFilter,
         request: &ListRequest<BagSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<BagWithRoast>, RepositoryError>;
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError>;
     async fn delete(&self, id: BagId) -> Result<(), RepositoryError>;
@@ -145,6 +148,7 @@ pub trait GearRepository: Send + Sync {
         &self,
         filter: GearFilter,
         request: &ListRequest<GearSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<Gear>, RepositoryError>;
     async fn update(&self, id: GearId, changes: UpdateGear) -> Result<Gear, RepositoryError>;
     async fn delete(&self, id: GearId) -> Result<(), RepositoryError>;
@@ -161,6 +165,7 @@ pub trait BrewRepository: Send + Sync {
         &self,
         filter: BrewFilter,
         request: &ListRequest<BrewSortKey>,
+        search: Option<&str>,
     ) -> Result<Page<BrewWithDetails>, RepositoryError>;
     async fn delete(&self, id: BrewId) -> Result<(), RepositoryError>;
 }
