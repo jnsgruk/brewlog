@@ -4,3 +4,4 @@ brewlog.db
 TODO.md
 SPEC.md
 backup.json
+.env

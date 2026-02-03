@@ -16,6 +16,9 @@ use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Load .env file if present (before clap parses env vars)
+    let _ = dotenvy::dotenv();
+
     let subscriber = get_subscriber("brewlog".into(), "info".into(), std::io::stdout);
     init_subscriber(subscriber);
 
@@ -81,6 +84,8 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         database_url: command.database_url,
         admin_password: command.admin_password,
         admin_username: command.admin_username,
+        openrouter_api_key: command.openrouter_api_key,
+        openrouter_model: command.openrouter_model,
     };
 
     serve(config).await
