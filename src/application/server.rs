@@ -45,6 +45,7 @@ pub struct AppState {
     pub user_repo: Arc<dyn UserRepository>,
     pub token_repo: Arc<dyn TokenRepository>,
     pub session_repo: Arc<dyn SessionRepository>,
+    pub http_client: reqwest::Client,
 }
 
 impl AppState {
@@ -60,6 +61,7 @@ impl AppState {
         user_repo: Arc<dyn UserRepository>,
         token_repo: Arc<dyn TokenRepository>,
         session_repo: Arc<dyn SessionRepository>,
+        http_client: reqwest::Client,
     ) -> Self {
         Self {
             roaster_repo,
@@ -72,6 +74,7 @@ impl AppState {
             user_repo,
             token_repo,
             session_repo,
+            http_client,
         }
     }
 }
@@ -110,6 +113,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         user_repo,
         token_repo,
         session_repo,
+        reqwest::Client::new(),
     );
 
     let listener = TcpListener::bind(config.bind_address)

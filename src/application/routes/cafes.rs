@@ -2,6 +2,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use serde::Deserialize;
 
 use super::macros::{define_delete_handler, define_get_handler};
 use crate::application::auth::AuthenticatedUser;
@@ -14,6 +15,7 @@ use crate::application::server::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, SortDirection};
+use crate::infrastructure::osm::{self, NearbyCafe};
 use crate::presentation::web::templates::{CafeDetailTemplate, CafeListTemplate, CafesTemplate};
 use crate::presentation::web::views::{CafeView, ListNavigator, Paginated};
 
@@ -190,4 +192,32 @@ async fn render_cafe_list_fragment(
     };
 
     crate::application::routes::support::render_fragment(template, "#cafe-list")
+}
+
+#[derive(Debug, Deserialize)]
+pub struct NearbyQuery {
+    lat: f64,
+    lng: f64,
+    q: String,
+}
+
+#[tracing::instrument(skip(state, _auth_user))]
+pub(crate) async fn nearby_cafes(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    Query(query): Query<NearbyQuery>,
+) -> Result<Json<Vec<NearbyCafe>>, ApiError> {
+    if !(-90.0..=90.0).contains(&query.lat) || !(-180.0..=180.0).contains(&query.lng) {
+        return Err(AppError::validation("lat must be -90..90, lng must be -180..180").into());
+    }
+
+    let q = query.q.trim();
+    if q.is_empty() || q.len() < 2 {
+        return Err(AppError::validation("q must be at least 2 characters").into());
+    }
+
+    let cafes = osm::search_nearby(&state.http_client, query.lat, query.lng, q)
+        .await
+        .map_err(ApiError::from)?;
+    Ok(Json(cafes))
 }

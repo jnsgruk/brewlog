@@ -73,6 +73,7 @@ pub fn app_router(state: AppState) -> axum::Router {
                 .put(cafes::update_cafe)
                 .delete(cafes::delete_cafe),
         )
+        .route("/nearby-cafes", get(cafes::nearby_cafes))
         .route(
             "/tokens",
             post(tokens::create_token).get(tokens::list_tokens),

@@ -84,6 +84,7 @@ pub async fn spawn_app() -> TestApp {
         user_repo.clone(),
         token_repo.clone(),
         session_repo,
+        reqwest::Client::new(),
     );
 
     // Create router
