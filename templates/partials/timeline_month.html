@@ -63,6 +63,9 @@
         <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
         <input type="hidden" name="grind_setting" value="{{ brew.grind_setting }}" />
         <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
+        {% if let Some(fp_id) = brew.filter_paper_id %}
+        <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
+        {% endif %}
         <input type="hidden" name="water_volume" value="{{ brew.water_volume }}" />
         <input type="hidden" name="water_temp" value="{{ brew.water_temp }}" />
         <button

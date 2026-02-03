@@ -49,6 +49,10 @@ pub struct AddBrewCommand {
     #[arg(long)]
     pub brewer_id: i64,
 
+    /// ID of the filter paper to use (optional)
+    #[arg(long)]
+    pub filter_paper_id: Option<i64>,
+
     /// Volume of water in ml
     #[arg(long, default_value = "250")]
     pub water_volume: i32,
@@ -67,6 +71,7 @@ pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result
             GearId::new(command.grinder_id),
             command.grind_setting,
             GearId::new(command.brewer_id),
+            command.filter_paper_id.map(GearId::new),
             command.water_volume,
             command.water_temp,
         )

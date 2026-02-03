@@ -43,7 +43,12 @@
               <div class="text-xs text-stone-500 font-mono">{{ brew.ratio }}</div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">{{ brew.water_temp }}</td>
-            <td class="px-4 py-3 whitespace-nowrap">{{ brew.brewer_name }}</td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div>{{ brew.brewer_name }}</div>
+              {% if let Some(fp_name) = brew.filter_paper_name %}
+              <div class="text-xs text-stone-500">{{ fp_name }}</div>
+              {% endif %}
+            </td>
             <td class="px-4 py-3 whitespace-nowrap text-stone-500">{{ brew.created_at }}</td>
             {% if is_authenticated %}
             <td class="px-4 py-3 text-right">
@@ -53,6 +58,9 @@
                 <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
                 <input type="hidden" name="grind_setting" value="{{ brew.grind_setting_raw }}" />
                 <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
+                {% if let Some(fp_id) = brew.filter_paper_id %}
+                <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
+                {% endif %}
                 <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
                 <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
                 <button

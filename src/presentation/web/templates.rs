@@ -135,6 +135,7 @@ pub struct BrewsTemplate {
     pub bag_options: Vec<BagOptionView>,
     pub grinder_options: Vec<GearOptionView>,
     pub brewer_options: Vec<GearOptionView>,
+    pub filter_paper_options: Vec<GearOptionView>,
     pub navigator: ListNavigator<BrewSortKey>,
 }
 

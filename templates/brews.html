@@ -87,6 +87,17 @@
           </select>
         </label>
 
+        <!-- Filter Paper selector (optional) -->
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Filter Paper</span>
+          <select name="filter_paper_id" class="input-field">
+            <option value="">None</option>
+            {% for fp in filter_paper_options %}
+            <option value="{{ fp.id }}">{{ fp.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
         <!-- Coffee Weight with +/- buttons -->
         <div class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Coffee (g) *</span>

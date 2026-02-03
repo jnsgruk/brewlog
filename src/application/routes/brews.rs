@@ -2,7 +2,7 @@ use axum::Json;
 use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
@@ -117,6 +117,22 @@ pub(crate) async fn brews_page(
         .map(GearOptionView::from)
         .collect();
 
+    // Load filter papers for dropdown (optional gear)
+    let filter_paper_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
+    let filter_papers = state
+        .gear_repo
+        .list(
+            GearFilter::for_category(GearCategory::FilterPaper),
+            &filter_paper_request,
+        )
+        .await
+        .map_err(|err| map_app_error(AppError::from(err)))?;
+    let filter_paper_options: Vec<GearOptionView> = filter_papers
+        .items
+        .into_iter()
+        .map(GearOptionView::from)
+        .collect();
+
     let BrewPageData { brews, navigator } = load_brew_page(&state, request)
         .await
         .map_err(map_app_error)?;
@@ -130,10 +146,32 @@ pub(crate) async fn brews_page(
         bag_options,
         grinder_options,
         brewer_options,
+        filter_paper_options,
         navigator,
     };
 
     render_html(template).map(IntoResponse::into_response)
+}
+
+/// Deserializes an optional `GearId`, treating empty strings (from HTML forms) as None.
+fn deserialize_optional_gear_id<'de, D>(deserializer: D) -> Result<Option<GearId>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    match value {
+        None | Some(serde_json::Value::Null) => Ok(None),
+        Some(serde_json::Value::String(s)) if s.is_empty() => Ok(None),
+        Some(serde_json::Value::Number(n)) => n
+            .as_i64()
+            .map(|id| Some(GearId::new(id)))
+            .ok_or_else(|| serde::de::Error::custom("invalid gear id")),
+        Some(serde_json::Value::String(s)) => s
+            .parse::<i64>()
+            .map(|id| Some(GearId::new(id)))
+            .map_err(serde::de::Error::custom),
+        Some(_) => Err(serde::de::Error::custom("invalid gear id")),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -143,6 +181,8 @@ pub(crate) struct NewBrewSubmission {
     grinder_id: GearId,
     grind_setting: f64,
     brewer_id: GearId,
+    #[serde(default, deserialize_with = "deserialize_optional_gear_id")]
+    filter_paper_id: Option<GearId>,
     water_volume: i32,
     water_temp: f64,
 }
@@ -170,6 +210,7 @@ impl NewBrewSubmission {
             grinder_id: self.grinder_id,
             grind_setting: self.grind_setting,
             brewer_id: self.brewer_id,
+            filter_paper_id: self.filter_paper_id,
             water_volume: self.water_volume,
             water_temp: self.water_temp,
         })
@@ -248,44 +289,54 @@ fn brew_timeline_event(enriched: &BrewWithDetails) -> NewTimelineEvent {
         "N/A".to_string()
     };
 
+    let mut details = vec![
+        TimelineEventDetail {
+            label: "Roaster".to_string(),
+            value: enriched.roaster_name.clone(),
+        },
+        TimelineEventDetail {
+            label: "Coffee".to_string(),
+            value: format!("{:.1}g", enriched.brew.coffee_weight),
+        },
+        TimelineEventDetail {
+            label: "Water".to_string(),
+            value: format!(
+                "{}ml @ {:.1}\u{00B0}C",
+                enriched.brew.water_volume, enriched.brew.water_temp
+            ),
+        },
+        TimelineEventDetail {
+            label: "Grinder".to_string(),
+            value: format!(
+                "{} @ {:.1}",
+                enriched.grinder_name, enriched.brew.grind_setting
+            ),
+        },
+        TimelineEventDetail {
+            label: "Brewer".to_string(),
+            value: enriched.brewer_name.clone(),
+        },
+    ];
+
+    if let Some(ref fp_name) = enriched.filter_paper_name {
+        details.push(TimelineEventDetail {
+            label: "Filter".to_string(),
+            value: fp_name.clone(),
+        });
+    }
+
+    details.push(TimelineEventDetail {
+        label: "Ratio".to_string(),
+        value: ratio,
+    });
+
     NewTimelineEvent {
         entity_type: "brew".to_string(),
         entity_id: enriched.brew.id.into_inner(),
         action: "brewed".to_string(),
         occurred_at: chrono::Utc::now(),
         title: enriched.roast_name.clone(),
-        details: vec![
-            TimelineEventDetail {
-                label: "Roaster".to_string(),
-                value: enriched.roaster_name.clone(),
-            },
-            TimelineEventDetail {
-                label: "Coffee".to_string(),
-                value: format!("{:.1}g", enriched.brew.coffee_weight),
-            },
-            TimelineEventDetail {
-                label: "Water".to_string(),
-                value: format!(
-                    "{}ml @ {:.1}\u{00B0}C",
-                    enriched.brew.water_volume, enriched.brew.water_temp
-                ),
-            },
-            TimelineEventDetail {
-                label: "Grinder".to_string(),
-                value: format!(
-                    "{} @ {:.1}",
-                    enriched.grinder_name, enriched.brew.grind_setting
-                ),
-            },
-            TimelineEventDetail {
-                label: "Brewer".to_string(),
-                value: enriched.brewer_name.clone(),
-            },
-            TimelineEventDetail {
-                label: "Ratio".to_string(),
-                value: ratio,
-            },
-        ],
+        details,
         tasting_notes: vec![],
         slug: Some(enriched.roast_slug.clone()),
         roaster_slug: Some(enriched.roaster_slug.clone()),
@@ -293,6 +344,10 @@ fn brew_timeline_event(enriched: &BrewWithDetails) -> NewTimelineEvent {
             bag_id: enriched.brew.bag_id.into_inner(),
             grinder_id: enriched.brew.grinder_id.into_inner(),
             brewer_id: enriched.brew.brewer_id.into_inner(),
+            filter_paper_id: enriched
+                .brew
+                .filter_paper_id
+                .map(crate::domain::ids::GearId::into_inner),
             coffee_weight: enriched.brew.coffee_weight,
             grind_setting: enriched.brew.grind_setting,
             water_volume: enriched.brew.water_volume,

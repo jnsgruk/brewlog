@@ -421,6 +421,7 @@ pub struct TimelineBrewDataView {
     pub bag_id: i64,
     pub grinder_id: i64,
     pub brewer_id: i64,
+    pub filter_paper_id: Option<i64>,
     pub coffee_weight: f64,
     pub grind_setting: f64,
     pub water_volume: i32,
@@ -522,6 +523,7 @@ impl TimelineEventView {
             bag_id: bd.bag_id,
             grinder_id: bd.grinder_id,
             brewer_id: bd.brewer_id,
+            filter_paper_id: bd.filter_paper_id,
             coffee_weight: bd.coffee_weight,
             grind_setting: bd.grind_setting,
             water_volume: bd.water_volume,
@@ -621,6 +623,8 @@ pub struct BrewView {
     pub grind_setting: String,
     pub brewer_id: i64,
     pub brewer_name: String,
+    pub filter_paper_id: Option<i64>,
+    pub filter_paper_name: Option<String>,
     pub water_volume: String,
     pub water_temp: String,
     pub ratio: String,
@@ -656,6 +660,11 @@ impl BrewView {
             grind_setting: format!("{:.1}", brew.brew.grind_setting),
             brewer_id: brew.brew.brewer_id.into_inner(),
             brewer_name: brew.brewer_name,
+            filter_paper_id: brew
+                .brew
+                .filter_paper_id
+                .map(crate::domain::ids::GearId::into_inner),
+            filter_paper_name: brew.filter_paper_name,
             water_volume: format!("{}ml", brew.brew.water_volume),
             water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
             ratio,
