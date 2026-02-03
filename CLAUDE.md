@@ -331,6 +331,62 @@ let (items, navigator) = build_page_view(page, request, RoasterView::from,
     ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, search);
 ```
 
+### Static Assets
+
+Static files live in `templates/` and are compiled into the binary via `include_str!()`/`include_bytes!()`. Each file needs an explicit route in `application/routes/mod.rs`:
+
+```rust
+.route("/styles.css", get(styles))
+.route("/extract.js", get(extract_js))
+.route("/favicon.ico", get(favicon))
+
+async fn extract_js() -> impl IntoResponse {
+    (
+        [("content-type", "application/javascript; charset=utf-8")],
+        include_str!("../../../templates/extract.js"),
+    )
+}
+```
+
+There is no `tower-http` static file serving — all assets are embedded at compile time.
+
+### AI Extraction Controls
+
+Pages with AI-powered form filling (roasters, roasts, scan) share a common JavaScript library at `templates/extract.js` served at `/extract.js`. It provides three functions:
+
+- `triggerPhotoExtract(formId, endpoint, onSuccess)` — opens camera/file picker, reads as data URL
+- `extractFromText(formId, endpoint, onSuccess)` — reads text from input field
+- `doExtract(formId, endpoint, body, onSuccess)` — POST to API, toggle waiting state, call callback on success
+
+Each page provides only its own `onSuccess` callback (e.g., `fillRoasterForm`, `fillRoastForm`, `fillScanForms`).
+
+#### Element ID Convention
+
+The shared library locates DOM elements using the `formId` prefix:
+
+| Element | ID pattern | Purpose |
+|---------|-----------|---------|
+| Controls wrapper | `{formId}-extract-controls` | Hidden during extraction |
+| Waiting message | `{formId}-extract-waiting` | Shown during extraction (spinner + text) |
+| Error paragraph | `{formId}-extract-error` | Shown on failure |
+| Text input | `{formId}-extract-text` | Text description input |
+
+Example `formId` values: `roaster-form`, `roast-form`, `scan`.
+
+#### Template Structure
+
+```html
+<div id="{formId}-extract-controls" class="flex flex-wrap items-center gap-3">
+  <!-- Photo button, text input, Go button -->
+</div>
+<div id="{formId}-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
+  <!-- Spinner SVG + "Waiting for response…" -->
+</div>
+<p id="{formId}-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
+```
+
+Buttons wire up via onclick with the callback: `onclick="triggerPhotoExtract('roast-form', '/api/v1/extract-roast', fillRoastForm)"`.
+
 ### Error Handling
 
 - Domain errors: `RepositoryError` in `domain/errors.rs`
@@ -461,6 +517,7 @@ newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
 6. **Commit authorship**: Never add "Co-Authored-By" trailers to commit messages
 7. **Commit signing**: Never use `--no-gpg-sign` when committing — always allow the default GPG signing
 8. **Committing**: Do not commit unless explicitly asked to — provide a draft commit message instead
+9. **JavaScript style**: Use ES6+ syntax — `const`/`let`, arrow functions, template literals
 
 ## Communication Style
 
