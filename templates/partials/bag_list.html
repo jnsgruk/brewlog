@@ -126,7 +126,7 @@
       </div>
       {% call table::pagination_header(bags, navigator, "#bag-list") %}
       {% if bags.has_next() %}
-      <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
+      <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
       {% endif %}
     </div>
   </section>

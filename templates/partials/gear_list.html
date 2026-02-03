@@ -69,7 +69,7 @@
     {% endif %}
     {% call table::pagination_header(gear, navigator, "#gear-list") %}
     {% if gear.has_next() %}
-    <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
+    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}
   </div>
   {% endif %}

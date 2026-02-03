@@ -61,7 +61,7 @@
                       if (newNextUrl) {
                         container.setAttribute("data-next-url", newNextUrl);
                         var newSentinel = document.createElement("div");
-                        newSentinel.className = "infinite-scroll-sentinel h-4";
+                        newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
                         newSentinel.setAttribute("aria-hidden", "true");
                         container.appendChild(newSentinel);
                         setupInfiniteScroll();

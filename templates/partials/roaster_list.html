@@ -107,7 +107,7 @@
     {% endif %}
     {% call table::pagination_header(roasters, navigator, "#roaster-list") %}
     {% if roasters.has_next() %}
-    <div class="infinite-scroll-sentinel h-4" aria-hidden="true"></div>
+    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}
   </section>
   {% endif %}
