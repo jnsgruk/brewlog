@@ -34,6 +34,7 @@ pub struct ServerConfig {
     pub admin_username: Option<String>,
     pub openrouter_api_key: Option<String>,
     pub openrouter_model: String,
+    pub foursquare_api_key: Option<String>,
 }
 
 #[derive(Clone)]
@@ -50,7 +51,8 @@ pub struct AppState {
     pub token_repo: Arc<dyn TokenRepository>,
     pub session_repo: Arc<dyn SessionRepository>,
     pub http_client: reqwest::Client,
-    pub nominatim_url: String,
+    pub foursquare_url: String,
+    pub foursquare_api_key: Option<String>,
     pub openrouter_api_key: Option<String>,
     pub openrouter_model: String,
 }
@@ -70,7 +72,8 @@ impl AppState {
         token_repo: Arc<dyn TokenRepository>,
         session_repo: Arc<dyn SessionRepository>,
         http_client: reqwest::Client,
-        nominatim_url: String,
+        foursquare_url: String,
+        foursquare_api_key: Option<String>,
         openrouter_api_key: Option<String>,
         openrouter_model: String,
     ) -> Self {
@@ -87,7 +90,8 @@ impl AppState {
             token_repo,
             session_repo,
             http_client,
-            nominatim_url,
+            foursquare_url,
+            foursquare_api_key,
             openrouter_api_key,
             openrouter_model,
         }
@@ -135,7 +139,8 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         token_repo,
         session_repo,
         reqwest::Client::new(),
-        crate::infrastructure::osm::NOMINATIM_SEARCH_URL.to_string(),
+        crate::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
+        config.foursquare_api_key,
         config.openrouter_api_key,
         config.openrouter_model,
     );

@@ -124,6 +124,9 @@ pub struct ServeCommand {
         default_value = "openrouter/free"
     )]
     pub openrouter_model: String,
+
+    #[arg(long, env = "BREWLOG_FOURSQUARE_API_KEY")]
+    pub foursquare_api_key: Option<String>,
 }
 
 pub(crate) fn print_json<T>(value: &T) -> anyhow::Result<()>

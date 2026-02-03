@@ -1,52 +1,48 @@
-use brewlog::infrastructure::osm::NearbyCafe;
-use wiremock::matchers::{method, path, query_param};
+use brewlog::infrastructure::foursquare::NearbyCafe;
+use wiremock::matchers::{header, method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
-use crate::helpers::spawn_app_with_nominatim_mock;
+use crate::helpers::spawn_app_with_foursquare_mock;
 
-/// Canned Nominatim JSON for two results near London (51.5, -0.1).
-fn nominatim_two_results() -> serde_json::Value {
-    serde_json::json!([
-        {
-            "place_id": 123,
-            "lat": "51.5246",
-            "lon": "-0.1098",
-            "display_name": "Prufrock Coffee, Leather Lane, London, England, United Kingdom",
-            "namedetails": { "name": "Prufrock Coffee" },
-            "address": {
-                "cafe": "Prufrock Coffee",
-                "road": "Leather Lane",
-                "city": "London",
-                "country": "United Kingdom"
+/// Canned Foursquare JSON for two results near London (51.5, -0.1).
+fn foursquare_two_results() -> serde_json::Value {
+    serde_json::json!({
+        "results": [
+            {
+                "name": "Prufrock Coffee",
+                "latitude": 51.5246,
+                "longitude": -0.1098,
+                "location": {
+                    "locality": "London",
+                    "country": "GB"
+                },
+                "website": "https://www.prufrockcoffee.com",
+                "distance": 2800
             },
-            "extratags": {
-                "website": "https://www.prufrockcoffee.com"
+            {
+                "name": "Department of Coffee",
+                "latitude": 51.5200,
+                "longitude": -0.1050,
+                "location": {
+                    "locality": "London",
+                    "country": "GB"
+                },
+                "distance": 2500
             }
-        },
-        {
-            "place_id": 456,
-            "lat": "51.5200",
-            "lon": "-0.1050",
-            "display_name": "Department of Coffee, Leather Lane, London, England, United Kingdom",
-            "namedetails": { "name": "Department of Coffee" },
-            "address": {
-                "city": "London",
-                "country": "United Kingdom"
-            }
-        }
-    ])
+        ]
+    })
 }
 
 #[tokio::test]
 async fn nearby_search_returns_results() {
-    let app = spawn_app_with_nominatim_mock().await;
+    let app = spawn_app_with_foursquare_mock().await;
     let mock_server = app.mock_server.as_ref().unwrap();
 
     Mock::given(method("GET"))
-        .and(path("/search"))
-        .and(query_param("q", "coffee"))
-        .and(query_param("format", "json"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(nominatim_two_results()))
+        .and(path("/places/search"))
+        .and(query_param("query", "coffee"))
+        .and(header("Authorization", "Bearer test-api-key"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(foursquare_two_results()))
         .expect(1)
         .mount(mock_server)
         .await;
@@ -72,20 +68,21 @@ async fn nearby_search_returns_results() {
         cafes[0].website.as_deref(),
         Some("https://www.prufrockcoffee.com")
     );
-    assert!(cafes[0].distance_meters > 0);
+    assert_eq!(cafes[0].distance_meters, 2800);
 
     assert_eq!(cafes[1].name, "Department of Coffee");
     assert!(cafes[1].website.is_none());
+    assert_eq!(cafes[1].distance_meters, 2500);
 }
 
 #[tokio::test]
 async fn nearby_search_returns_empty_for_no_matches() {
-    let app = spawn_app_with_nominatim_mock().await;
+    let app = spawn_app_with_foursquare_mock().await;
     let mock_server = app.mock_server.as_ref().unwrap();
 
     Mock::given(method("GET"))
-        .and(path("/search"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([])))
+        .and(path("/places/search"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"results": []})))
         .expect(1)
         .mount(mock_server)
         .await;
@@ -107,7 +104,7 @@ async fn nearby_search_returns_empty_for_no_matches() {
 
 #[tokio::test]
 async fn nearby_search_requires_authentication() {
-    let app = spawn_app_with_nominatim_mock().await;
+    let app = spawn_app_with_foursquare_mock().await;
 
     let client = reqwest::Client::new();
     let response = client
@@ -122,7 +119,7 @@ async fn nearby_search_requires_authentication() {
 
 #[tokio::test]
 async fn nearby_search_rejects_short_query() {
-    let app = spawn_app_with_nominatim_mock().await;
+    let app = spawn_app_with_foursquare_mock().await;
 
     let client = reqwest::Client::new();
     let response = client
@@ -138,7 +135,7 @@ async fn nearby_search_rejects_short_query() {
 
 #[tokio::test]
 async fn nearby_search_rejects_invalid_coordinates() {
-    let app = spawn_app_with_nominatim_mock().await;
+    let app = spawn_app_with_foursquare_mock().await;
 
     let client = reqwest::Client::new();
     let response = client
@@ -154,11 +151,11 @@ async fn nearby_search_rejects_invalid_coordinates() {
 
 #[tokio::test]
 async fn nearby_search_returns_500_on_upstream_failure() {
-    let app = spawn_app_with_nominatim_mock().await;
+    let app = spawn_app_with_foursquare_mock().await;
     let mock_server = app.mock_server.as_ref().unwrap();
 
     Mock::given(method("GET"))
-        .and(path("/search"))
+        .and(path("/places/search"))
         .respond_with(ResponseTemplate::new(503))
         .expect(1)
         .mount(mock_server)

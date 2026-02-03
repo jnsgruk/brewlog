@@ -3,14 +3,14 @@
 {% block head %}
 {% if is_authenticated %}
 <script>
-  var _userLat = null;
-  var _userLng = null;
-  var _searchTimeout = null;
-  var _nearbyCafes = [];
+  let _userLat = null;
+  let _userLng = null;
+  let _searchTimeout = null;
+  let _nearbyCafes = [];
 
   function locateUser(btn) {
-    var errorEl = document.getElementById('nearby-error');
-    var searchWrap = document.getElementById('nearby-search-wrap');
+    const errorEl = document.getElementById('nearby-error');
+    const searchWrap = document.getElementById('nearby-search-wrap');
     errorEl.classList.add('hidden');
     errorEl.textContent = '';
 
@@ -24,14 +24,14 @@
     btn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
-      function (pos) {
+      (pos) => {
         _userLat = pos.coords.latitude;
         _userLng = pos.coords.longitude;
         btn.classList.add('hidden');
         searchWrap.classList.remove('hidden');
         document.getElementById('nearby-search').focus();
       },
-      function (err) {
+      (err) => {
         btn.textContent = 'Find nearby';
         btn.disabled = false;
         if (err.code === 1) {
@@ -49,7 +49,7 @@
 
   function onSearchInput(input) {
     clearTimeout(_searchTimeout);
-    var resultsEl = document.getElementById('nearby-results');
+    const resultsEl = document.getElementById('nearby-results');
 
     if (input.value.trim().length < 2) {
       resultsEl.classList.add('hidden');
@@ -57,25 +57,25 @@
       return;
     }
 
-    _searchTimeout = setTimeout(function () {
+    _searchTimeout = setTimeout(() => {
       searchNearby(input.value.trim());
     }, 350);
   }
 
   async function searchNearby(query) {
-    var resultsEl = document.getElementById('nearby-results');
-    var errorEl = document.getElementById('nearby-error');
-    var spinnerEl = document.getElementById('nearby-spinner');
+    const resultsEl = document.getElementById('nearby-results');
+    const errorEl = document.getElementById('nearby-error');
+    const spinnerEl = document.getElementById('nearby-spinner');
     errorEl.classList.add('hidden');
     spinnerEl.classList.remove('hidden');
 
     try {
-      var url = '/api/v1/nearby-cafes?lat=' + _userLat + '&lng=' + _userLng + '&q=' + encodeURIComponent(query);
-      var resp = await fetch(url, { credentials: 'same-origin' });
+      const url = `/api/v1/nearby-cafes?lat=${_userLat}&lng=${_userLng}&q=${encodeURIComponent(query)}`;
+      const resp = await fetch(url, { credentials: 'same-origin' });
 
-      if (!resp.ok) throw new Error('Server returned ' + resp.status);
+      if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
 
-      var cafes = await resp.json();
+      const cafes = await resp.json();
       _nearbyCafes = cafes;
 
       if (cafes.length === 0) {
@@ -84,17 +84,17 @@
         return;
       }
 
-      var html = '';
-      for (var i = 0; i < cafes.length; i++) {
-        var dist = cafes[i].distance_meters;
-        var distLabel = dist < 1000
-          ? dist + ' m'
-          : (dist / 1000).toFixed(1) + ' km';
-        var location = [cafes[i].city, cafes[i].country].filter(Boolean).join(', ');
-        html += '<button type="button" class="w-full px-3 py-2 text-left text-sm hover:bg-amber-100 transition" onclick="selectPlace(' + i + ')">'
-          + '<span class="font-medium text-amber-900">' + escapeHtml(cafes[i].name) + '</span>'
-          + '<span class="ml-2 text-xs text-stone-500">' + escapeHtml(location) + ' &middot; ' + distLabel + '</span>'
-          + '</button>';
+      let html = '';
+      for (let i = 0; i < cafes.length; i++) {
+        const dist = cafes[i].distance_meters;
+        const distLabel = dist < 1000
+          ? `${dist} m`
+          : `${(dist / 1000).toFixed(1)} km`;
+        const location = [cafes[i].city, cafes[i].country].filter(Boolean).join(', ');
+        html += `<button type="button" class="w-full px-3 py-2 text-left text-sm hover:bg-amber-100 transition" onclick="selectPlace(${i})">`
+          + `<span class="font-medium text-amber-900">${escapeHtml(cafes[i].name)}</span>`
+          + `<span class="ml-2 text-xs text-stone-500">${escapeHtml(location)} &middot; ${distLabel}</span>`
+          + `</button>`;
       }
       resultsEl.innerHTML = html;
       resultsEl.classList.remove('hidden');
@@ -107,10 +107,10 @@
   }
 
   function selectPlace(index) {
-    var cafe = _nearbyCafes[index];
+    const cafe = _nearbyCafes[index];
     if (!cafe) return;
 
-    var form = document.getElementById('nearby-search').closest('form');
+    const form = document.getElementById('nearby-search').closest('form');
     form.querySelector('[name="name"]').value = cafe.name;
     form.querySelector('[name="city"]').value = cafe.city || '';
     form.querySelector('[name="country"]').value = cafe.country || '';
@@ -123,7 +123,7 @@
   }
 
   function escapeHtml(text) {
-    var el = document.createElement('span');
+    const el = document.createElement('span');
     el.textContent = text;
     return el.innerHTML;
   }

@@ -15,7 +15,7 @@ use crate::application::server::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::infrastructure::osm::{self, NearbyCafe};
+use crate::infrastructure::foursquare::{self, NearbyCafe};
 use crate::presentation::web::templates::{CafeDetailTemplate, CafeListTemplate, CafesTemplate};
 use crate::presentation::web::views::{CafeView, ListNavigator, Paginated};
 
@@ -209,9 +209,15 @@ pub(crate) async fn nearby_cafes(
         return Err(AppError::validation("q must be at least 2 characters").into());
     }
 
-    let cafes = osm::search_nearby(
+    let api_key = state
+        .foursquare_api_key
+        .as_deref()
+        .ok_or_else(|| AppError::unexpected("Foursquare API key not configured"))?;
+
+    let cafes = foursquare::search_nearby(
         &state.http_client,
-        &state.nominatim_url,
+        &state.foursquare_url,
+        api_key,
         query.lat,
         query.lng,
         q,

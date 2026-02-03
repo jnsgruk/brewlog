@@ -86,6 +86,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         admin_username: command.admin_username,
         openrouter_api_key: command.openrouter_api_key,
         openrouter_model: command.openrouter_model,
+        foursquare_api_key: command.foursquare_api_key,
     };
 
     serve(config).await

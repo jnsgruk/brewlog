@@ -89,7 +89,8 @@ pub async fn spawn_app() -> TestApp {
         user_repo,
         token_repo,
         session_repo,
-        brewlog::infrastructure::osm::NOMINATIM_SEARCH_URL.to_string(),
+        brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
+        None,
         None,
     )
     .await
@@ -109,7 +110,8 @@ async fn spawn_app_inner(
     user_repo: Arc<dyn UserRepository>,
     token_repo: Arc<dyn TokenRepository>,
     session_repo: Arc<dyn SessionRepository>,
-    nominatim_url: String,
+    foursquare_url: String,
+    foursquare_api_key: Option<String>,
     mock_server: Option<wiremock::MockServer>,
 ) -> TestApp {
     // Create application state
@@ -126,7 +128,8 @@ async fn spawn_app_inner(
         token_repo.clone(),
         session_repo,
         reqwest::Client::new(),
-        nominatim_url,
+        foursquare_url,
+        foursquare_api_key,
         None,
         "openrouter/free".to_string(),
     );
@@ -167,9 +170,9 @@ pub async fn spawn_app_with_auth() -> TestApp {
     add_auth_to_app(app).await
 }
 
-pub async fn spawn_app_with_nominatim_mock() -> TestApp {
+pub async fn spawn_app_with_foursquare_mock() -> TestApp {
     let mock_server = wiremock::MockServer::start().await;
-    let nominatim_url = format!("{}/search", mock_server.uri());
+    let foursquare_url = format!("{}/places/search", mock_server.uri());
 
     let database = Database::connect("sqlite::memory:")
         .await
@@ -208,7 +211,8 @@ pub async fn spawn_app_with_nominatim_mock() -> TestApp {
         user_repo,
         token_repo,
         session_repo,
-        nominatim_url,
+        foursquare_url,
+        Some("test-api-key".to_string()),
         Some(mock_server),
     )
     .await;
