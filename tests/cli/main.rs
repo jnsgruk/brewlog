@@ -1,5 +1,6 @@
 pub mod bags_cli;
 pub mod brews_cli;
+pub mod cafes_cli;
 pub mod gear_cli;
 pub mod helpers;
 pub mod roasters_cli;

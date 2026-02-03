@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use brewlog::application::routes::app_router;
 use brewlog::application::server::AppState;
+use brewlog::domain::cafes::{Cafe, NewCafe};
 use brewlog::domain::repositories::{
-    RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
+    CafeRepository, RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
     TokenRepository, UserRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster};
@@ -12,6 +13,7 @@ use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
 use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
+use brewlog::infrastructure::repositories::cafes::SqlCafeRepository;
 use brewlog::infrastructure::repositories::gear::SqlGearRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
@@ -26,6 +28,8 @@ pub struct TestApp {
     pub address: String,
     pub roaster_repo: Arc<dyn RoasterRepository>,
     pub roast_repo: Arc<dyn RoastRepository>,
+    #[allow(dead_code)]
+    pub cafe_repo: Arc<dyn CafeRepository>,
     #[allow(dead_code)]
     pub timeline_repo: Arc<dyn TimelineEventRepository>,
     #[allow(dead_code)]
@@ -59,6 +63,7 @@ pub async fn spawn_app() -> TestApp {
     let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
     let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
     let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
+    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
     let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
@@ -74,6 +79,7 @@ pub async fn spawn_app() -> TestApp {
         bag_repo.clone(),
         gear_repo.clone(),
         brew_repo.clone(),
+        cafe_repo.clone(),
         timeline_repo.clone(),
         user_repo.clone(),
         token_repo.clone(),
@@ -102,6 +108,7 @@ pub async fn spawn_app() -> TestApp {
         address,
         roaster_repo,
         roast_repo,
+        cafe_repo,
         timeline_repo,
         user_repo: Some(user_repo),
         token_repo: Some(token_repo),
@@ -324,4 +331,36 @@ pub async fn create_default_gear(
         .json()
         .await
         .expect("failed to deserialize gear from response")
+}
+
+pub async fn create_default_cafe(app: &TestApp) -> Cafe {
+    create_cafe_with_payload(
+        app,
+        NewCafe {
+            name: "Blue Bottle".to_string(),
+            city: "San Francisco".to_string(),
+            country: "US".to_string(),
+            latitude: 37.7749,
+            longitude: -122.4194,
+            website: Some("https://bluebottlecoffee.com".to_string()),
+            notes: Some("Great pour-over".to_string()),
+        },
+    )
+    .await
+}
+
+pub async fn create_cafe_with_payload(app: &TestApp, payload: NewCafe) -> Cafe {
+    let client = Client::new();
+    let mut request = client.post(app.api_url("/cafes")).json(&payload);
+
+    if let Some(token) = &app.auth_token {
+        request = request.bearer_auth(token);
+    }
+
+    let response = request.send().await.expect("failed to create cafe via API");
+
+    response
+        .json()
+        .await
+        .expect("failed to deserialize cafe from response")
 }

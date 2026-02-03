@@ -5,9 +5,10 @@
 
 use crate::helpers::{
     assert_datastar_headers, assert_full_page, assert_html_fragment, create_default_bag,
-    create_default_roast, create_default_roaster, spawn_app_with_auth,
+    create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_auth,
 };
 use brewlog::domain::bags::UpdateBag;
+use brewlog::domain::cafes::NewCafe;
 use brewlog::domain::roasters::NewRoaster;
 use brewlog::domain::roasts::NewRoast;
 use reqwest::Client;
@@ -749,6 +750,109 @@ async fn gear_delete_with_datastar_header_returns_fragment() {
 
     assert_eq!(response.status(), 200);
     assert_datastar_headers(&response, "#gear-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+}
+
+// ============================================================================
+// Cafes
+// ============================================================================
+
+#[tokio::test]
+async fn cafes_list_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    create_default_cafe(&app).await;
+    let client = Client::new();
+
+    let response = client
+        .get(format!("{}/cafes", app.address))
+        .header("datastar-request", "true")
+        .send()
+        .await
+        .expect("failed to fetch cafes");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#cafe-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+    assert!(
+        body.contains("id=\"cafe-list\""),
+        "Fragment should contain the selector element"
+    );
+}
+
+#[tokio::test]
+async fn cafes_list_without_datastar_header_returns_full_page() {
+    let app = spawn_app_with_auth().await;
+    create_default_cafe(&app).await;
+    let client = Client::new();
+
+    let response = client
+        .get(format!("{}/cafes", app.address))
+        .send()
+        .await
+        .expect("failed to fetch cafes");
+
+    assert_eq!(response.status(), 200);
+    assert!(response.headers().get("datastar-selector").is_none());
+
+    let body = response.text().await.expect("failed to read body");
+    assert_full_page(&body);
+}
+
+#[tokio::test]
+async fn cafes_create_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let new_cafe = NewCafe {
+        name: "Datastar Test Cafe".to_string(),
+        city: "London".to_string(),
+        country: "UK".to_string(),
+        latitude: 51.5074,
+        longitude: -0.1278,
+        website: None,
+        notes: None,
+    };
+
+    let response = client
+        .post(app.api_url("/cafes"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&new_cafe)
+        .send()
+        .await
+        .expect("failed to create cafe");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#cafe-list");
+
+    let body = response.text().await.expect("failed to read body");
+    assert_html_fragment(&body);
+    assert!(
+        body.contains("Datastar Test Cafe"),
+        "Fragment should include created cafe"
+    );
+}
+
+#[tokio::test]
+async fn cafes_delete_with_datastar_header_returns_fragment() {
+    let app = spawn_app_with_auth().await;
+    let cafe = create_default_cafe(&app).await;
+    let client = Client::new();
+
+    let response = client
+        .delete(app.api_url(&format!("/cafes/{}", cafe.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .send()
+        .await
+        .expect("failed to delete cafe");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers(&response, "#cafe-list");
 
     let body = response.text().await.expect("failed to read body");
     assert_html_fragment(&body);

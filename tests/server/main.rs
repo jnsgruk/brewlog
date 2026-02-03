@@ -2,6 +2,7 @@ pub mod auth_api;
 pub mod backup;
 pub mod bags_api;
 pub mod brews_api;
+pub mod cafes_api;
 pub mod datastar;
 pub mod gear_api;
 pub mod helpers;

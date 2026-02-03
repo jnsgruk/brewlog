@@ -224,3 +224,45 @@ pub fn create_roast(roaster_id: &str, name: &str, token: &str) -> String {
         .expect("roast id should be numeric")
         .to_string()
 }
+
+/// Helper to create a cafe and return its ID
+pub fn create_cafe(
+    name: &str,
+    city: &str,
+    country: &str,
+    latitude: &str,
+    longitude: &str,
+    token: &str,
+) -> String {
+    let output = run_brewlog(
+        &[
+            "cafe",
+            "add",
+            "--name",
+            name,
+            "--city",
+            city,
+            "--country",
+            country,
+            "--latitude",
+            latitude,
+            "--longitude",
+            longitude,
+        ],
+        &[("BREWLOG_TOKEN", token)],
+    );
+
+    if !output.status.success() {
+        panic!(
+            "Failed to create cafe: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let cafe: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
+    cafe["id"]
+        .as_i64()
+        .expect("cafe id should be numeric")
+        .to_string()
+}

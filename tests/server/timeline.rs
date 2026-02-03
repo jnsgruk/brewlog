@@ -1,4 +1,5 @@
-use crate::helpers::{create_roaster_with_payload, spawn_app_with_auth};
+use crate::helpers::{create_cafe_with_payload, create_roaster_with_payload, spawn_app_with_auth};
+use brewlog::domain::cafes::NewCafe;
 use brewlog::domain::ids::RoasterId;
 use brewlog::domain::roasters::NewRoaster;
 use brewlog::domain::roasts::NewRoast;
@@ -457,5 +458,50 @@ async fn creating_gear_surfaces_on_the_timeline() {
     assert!(
         body.contains("Grinder"),
         "Expected gear category to appear in timeline HTML, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn creating_a_cafe_surfaces_on_the_timeline() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let cafe_name = "Timeline Test Cafe";
+    let cafe = create_cafe_with_payload(
+        &app,
+        NewCafe {
+            name: cafe_name.to_string(),
+            city: "Bristol".to_string(),
+            country: "UK".to_string(),
+            latitude: 51.4545,
+            longitude: -2.5879,
+            website: Some("https://example.com".to_string()),
+            notes: None,
+        },
+    )
+    .await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("failed to read response body");
+    assert!(
+        body.contains("Cafe Added"),
+        "Expected 'Cafe Added' badge in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains(cafe_name),
+        "Expected cafe name to appear in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains(&format!("/cafes/{}", cafe.slug)),
+        "Expected cafe detail link in timeline HTML, got: {body}"
     );
 }

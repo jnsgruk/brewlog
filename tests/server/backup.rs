@@ -2,11 +2,12 @@ use std::sync::Arc;
 
 use brewlog::domain::bags::{Bag, BagFilter, BagSortKey, NewBag};
 use brewlog::domain::brews::{Brew, BrewFilter, BrewSortKey, NewBrew};
+use brewlog::domain::cafes::{Cafe, CafeSortKey, NewCafe};
 use brewlog::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear};
 use brewlog::domain::listing::{ListRequest, PageSize};
 use brewlog::domain::repositories::{
-    BagRepository, BrewRepository, GearRepository, RoastRepository, RoasterRepository,
-    TimelineEventRepository,
+    BagRepository, BrewRepository, CafeRepository, GearRepository, RoastRepository,
+    RoasterRepository, TimelineEventRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster, RoasterSortKey};
 use brewlog::domain::roasts::{NewRoast, Roast, RoastSortKey};
@@ -15,6 +16,7 @@ use brewlog::infrastructure::backup::{BackupData, BackupService};
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
 use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
+use brewlog::infrastructure::repositories::cafes::SqlCafeRepository;
 use brewlog::infrastructure::repositories::gear::SqlGearRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
@@ -26,6 +28,7 @@ struct TestDb {
     bag_repo: Arc<dyn BagRepository>,
     gear_repo: Arc<dyn GearRepository>,
     brew_repo: Arc<dyn BrewRepository>,
+    cafe_repo: Arc<dyn CafeRepository>,
     timeline_repo: Arc<dyn TimelineEventRepository>,
     backup_service: BackupService,
 }
@@ -43,6 +46,7 @@ async fn create_test_db() -> TestDb {
         bag_repo: Arc::new(SqlBagRepository::new(pool.clone())),
         gear_repo: Arc::new(SqlGearRepository::new(pool.clone())),
         brew_repo: Arc::new(SqlBrewRepository::new(pool.clone())),
+        cafe_repo: Arc::new(SqlCafeRepository::new(pool.clone())),
         timeline_repo: Arc::new(SqlTimelineEventRepository::new(pool.clone())),
         backup_service: BackupService::new(pool),
     }
@@ -87,6 +91,13 @@ async fn list_all_gear(repo: &dyn GearRepository) -> Vec<Gear> {
         .items
 }
 
+async fn list_all_cafes(repo: &dyn CafeRepository) -> Vec<Cafe> {
+    repo.list(&list_all_request::<CafeSortKey>(), None)
+        .await
+        .expect("failed to list cafes")
+        .items
+}
+
 async fn list_all_brews(repo: &dyn BrewRepository) -> Vec<Brew> {
     let page = repo
         .list(BrewFilter::all(), &list_all_request::<BrewSortKey>(), None)
@@ -102,7 +113,7 @@ async fn list_all_timeline_events(repo: &dyn TimelineEventRepository) -> Vec<Tim
 }
 
 /// Populate a database with representative test data and return the key entities.
-async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Gear, Brew) {
+async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Gear, Brew, Cafe) {
     // Create roaster
     let roaster = db
         .roaster_repo
@@ -205,14 +216,38 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
         "bag remaining should be 235 after brew"
     );
 
-    (roaster, roast, bag, grinder, brewer, filter_paper, brew)
+    // Create cafe
+    let cafe = db
+        .cafe_repo
+        .insert(NewCafe {
+            name: "Prufrock".to_string(),
+            city: "London".to_string(),
+            country: "UK".to_string(),
+            latitude: 51.5246,
+            longitude: -0.1098,
+            website: Some("https://prufrockcoffee.com".to_string()),
+            notes: Some("Award-winning espresso bar".to_string()),
+        })
+        .await
+        .expect("failed to create cafe");
+
+    (
+        roaster,
+        roast,
+        bag,
+        grinder,
+        brewer,
+        filter_paper,
+        brew,
+        cafe,
+    )
 }
 
 #[tokio::test]
 async fn backup_and_restore_round_trip() {
     // 1. Create source database and populate with test data
     let source = create_test_db().await;
-    let (roaster, roast, bag, grinder, brewer, filter_paper, brew) =
+    let (roaster, roast, bag, grinder, brewer, filter_paper, brew, cafe) =
         populate_test_data(&source).await;
 
     // Verify timeline events were created (roaster + roast inserts create them)
@@ -235,6 +270,7 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(backup_data.bags.len(), 1);
     assert_eq!(backup_data.gear.len(), 3);
     assert_eq!(backup_data.brews.len(), 1);
+    assert_eq!(backup_data.cafes.len(), 1);
     assert_eq!(backup_data.timeline_events.len(), source_timeline.len());
 
     // 3. Serialize to JSON and deserialize back (verify serde round-trip)
@@ -248,6 +284,7 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(restored_data.bags.len(), 1);
     assert_eq!(restored_data.gear.len(), 3);
     assert_eq!(restored_data.brews.len(), 1);
+    assert_eq!(restored_data.cafes.len(), 1);
 
     // 4. Restore to a fresh database
     let target = create_test_db().await;
@@ -329,6 +366,20 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(restored_brew.water_volume, 250);
     assert_eq!(restored_brew.water_temp, 93.5);
 
+    // Cafes
+    let target_cafes = list_all_cafes(target.cafe_repo.as_ref()).await;
+    assert_eq!(target_cafes.len(), 1);
+    let restored_cafe = &target_cafes[0];
+    assert_eq!(restored_cafe.id, cafe.id);
+    assert_eq!(restored_cafe.name, cafe.name);
+    assert_eq!(restored_cafe.slug, cafe.slug);
+    assert_eq!(restored_cafe.city, cafe.city);
+    assert_eq!(restored_cafe.country, cafe.country);
+    assert_eq!(restored_cafe.latitude, cafe.latitude);
+    assert_eq!(restored_cafe.longitude, cafe.longitude);
+    assert_eq!(restored_cafe.website, cafe.website);
+    assert_eq!(restored_cafe.notes, cafe.notes);
+
     // Timeline events
     let target_timeline = list_all_timeline_events(target.timeline_repo.as_ref()).await;
     assert_eq!(target_timeline.len(), source_timeline.len());
@@ -370,6 +421,7 @@ async fn restore_to_non_empty_database_fails() {
         roasts: vec![],
         bags: vec![],
         brews: vec![],
+        cafes: vec![],
         timeline_events: vec![],
     };
 
@@ -399,6 +451,7 @@ async fn backup_empty_database() {
     assert!(backup_data.bags.is_empty());
     assert!(backup_data.gear.is_empty());
     assert!(backup_data.brews.is_empty());
+    assert!(backup_data.cafes.is_empty());
     assert!(backup_data.timeline_events.is_empty());
 
     // Should serialize to valid JSON
