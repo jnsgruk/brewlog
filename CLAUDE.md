@@ -315,6 +315,9 @@ impl BagRecord {
 3. **SQL strings**: Use raw strings `r#"..."#` for multi-line queries
 4. **Tests**: Integration tests in `tests/cli/` and `tests/server/`
 5. **Commits**: Use Conventional Commit format (`feat:`, `fix:`, `refactor:`, etc.)
+6. **Commit authorship**: Never add "Co-Authored-By" trailers to commit messages
+7. **Commit signing**: Never use `--no-gpg-sign` when committing — always allow the default GPG signing
+8. **Committing**: Do not commit unless explicitly asked to — provide a draft commit message instead
 
 ## Communication Style
 
