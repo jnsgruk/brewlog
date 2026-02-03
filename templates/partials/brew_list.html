@@ -30,27 +30,37 @@
                   {{ brew.roast_name }}
                 </a>
               </div>
-              <div class="text-xs text-stone-500">
+              <div class="hidden md:block text-xs text-stone-500">
                 <a href="/roasters/{{ brew.roaster_slug }}" class="hover:text-amber-700 hover:underline">
                   {{ brew.roaster_name }}
                 </a>
               </div>
             </td>
+            <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">
+              <a href="/roasters/{{ brew.roaster_slug }}" class="hover:text-amber-700 hover:underline">
+                {{ brew.roaster_name }}
+              </a>
+            </td>
             <td data-label="Grind" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.grind_setting }}</div>
-              <div class="text-xs text-stone-500">{{ brew.grinder_name }}</div>
+              <div class="hidden md:block text-xs text-stone-500">{{ brew.grinder_name }}</div>
             </td>
+            <td data-label="Grinder" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.grinder_name }}</td>
             <td data-label="Recipe" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.coffee_weight }} / {{ brew.water_volume }}</div>
-              <div class="text-xs text-stone-500 font-mono">{{ brew.ratio }}</div>
+              <div class="hidden md:block text-xs text-stone-500 font-mono">{{ brew.ratio }}</div>
             </td>
+            <td data-label="Ratio" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.ratio }}</td>
             <td data-label="Temp" class="px-4 py-3 whitespace-nowrap">{{ brew.water_temp }}</td>
             <td data-label="Brewer" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.brewer_name }}</div>
               {% if let Some(fp_name) = brew.filter_paper_name %}
-              <div class="text-xs text-stone-500">{{ fp_name }}</div>
+              <div class="hidden md:block text-xs text-stone-500">{{ fp_name }}</div>
               {% endif %}
             </td>
+            {% if let Some(fp_name) = brew.filter_paper_name %}
+            <td data-label="Filter" class="px-4 py-3 whitespace-nowrap md:hidden">{{ fp_name }}</td>
+            {% endif %}
             <td data-label="Date" class="px-4 py-3 whitespace-nowrap text-stone-500">{{ brew.created_at }}</td>
             {% if is_authenticated %}
             <td data-label="" class="px-4 py-3 text-right">
