@@ -6,10 +6,13 @@ use axum::response::{Html, IntoResponse, Response};
 use serde::Deserialize;
 
 use crate::application::errors::{ApiError, AppError};
+use crate::application::server::AppState;
 use crate::domain::listing::{
     DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortDirection, SortKey,
 };
-use crate::presentation::web::views::{ListNavigator, Paginated};
+use crate::presentation::web::views::{
+    CafeOptionView, ListNavigator, Paginated, RoastOptionView, RoasterOptionView,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PayloadSource {
@@ -200,6 +203,33 @@ where
 
         Err(AppError::validation("unsupported content type").into())
     }
+}
+
+pub(super) async fn load_roaster_options(
+    state: &AppState,
+) -> Result<Vec<RoasterOptionView>, AppError> {
+    use crate::domain::roasters::RoasterSortKey;
+    let roasters = state
+        .roaster_repo
+        .list_all_sorted(RoasterSortKey::Name, SortDirection::Asc)
+        .await
+        .map_err(AppError::from)?;
+    Ok(roasters.into_iter().map(RoasterOptionView::from).collect())
+}
+
+pub(super) async fn load_roast_options(state: &AppState) -> Result<Vec<RoastOptionView>, AppError> {
+    let roasts = state.roast_repo.list_all().await.map_err(AppError::from)?;
+    Ok(roasts.into_iter().map(RoastOptionView::from).collect())
+}
+
+pub(super) async fn load_cafe_options(state: &AppState) -> Result<Vec<CafeOptionView>, AppError> {
+    use crate::domain::cafes::CafeSortKey;
+    let cafes = state
+        .cafe_repo
+        .list_all_sorted(CafeSortKey::Name, SortDirection::Asc)
+        .await
+        .map_err(AppError::from)?;
+    Ok(cafes.into_iter().map(CafeOptionView::from).collect())
 }
 
 pub fn is_datastar_request(headers: &HeaderMap) -> bool {

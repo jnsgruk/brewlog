@@ -9,16 +9,15 @@ use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, load_roaster_options,
 };
 use crate::application::server::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::domain::roasters::RoasterSortKey;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 use crate::presentation::web::templates::{BagListTemplate, BagsTemplate};
-use crate::presentation::web::views::{BagView, ListNavigator, Paginated, RoasterOptionView};
+use crate::presentation::web::views::{BagView, ListNavigator, Paginated};
 
 const BAG_PAGE_PATH: &str = "/bags";
 const BAG_FRAGMENT_PATH: &str = "/bags#bag-list";
@@ -85,13 +84,7 @@ pub(crate) async fn bags_page(
             .map_err(map_app_error);
     }
 
-    let roasters = state
-        .roaster_repo
-        .list_all_sorted(RoasterSortKey::Name, SortDirection::Asc)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let roaster_options = roasters.into_iter().map(RoasterOptionView::from).collect();
+    let roaster_options = load_roaster_options(&state).await.map_err(map_app_error)?;
 
     let BagPageData {
         open_bags,

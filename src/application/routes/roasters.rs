@@ -3,7 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 
-use super::macros::{define_delete_handler, define_get_handler};
+use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -183,19 +183,10 @@ define_delete_handler!(
     render_roaster_list_fragment
 );
 
-async fn render_roaster_list_fragment(
-    state: AppState,
-    request: ListRequest<RoasterSortKey>,
-    search: Option<String>,
-    is_authenticated: bool,
-) -> Result<Response, AppError> {
-    let (roasters, navigator) = load_roaster_page(&state, request, search.as_deref()).await?;
-
-    let template = RoasterListTemplate {
-        is_authenticated,
-        roasters,
-        navigator,
-    };
-
-    crate::application::routes::support::render_fragment(template, "#roaster-list")
-}
+define_list_fragment_renderer!(
+    render_roaster_list_fragment,
+    RoasterSortKey,
+    load_roaster_page,
+    RoasterListTemplate { roasters },
+    "#roaster-list"
+);

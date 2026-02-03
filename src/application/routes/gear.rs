@@ -6,7 +6,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
-use super::macros::{define_delete_handler, define_get_handler};
+use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
@@ -29,23 +29,21 @@ async fn load_gear_page(
     state: &AppState,
     request: ListRequest<GearSortKey>,
     search: Option<&str>,
-) -> Result<Paginated<GearView>, AppError> {
+) -> Result<(Paginated<GearView>, ListNavigator<GearSortKey>), AppError> {
     let page = state
         .gear_repo
         .list(GearFilter::all(), &request, search)
         .await
         .map_err(AppError::from)?;
 
-    let (gear, _navigator) = crate::application::routes::support::build_page_view(
+    Ok(crate::application::routes::support::build_page_view(
         page,
         request,
         GearView::from_domain,
         GEAR_PAGE_PATH,
         GEAR_FRAGMENT_PATH,
         search.map(String::from),
-    );
-
-    Ok(gear)
+    ))
 }
 
 #[tracing::instrument(skip(state, cookies, headers, query))]
@@ -64,12 +62,11 @@ pub(crate) async fn gear_page(
             .map_err(map_app_error);
     }
 
-    let gear = load_gear_page(&state, request, search.as_deref())
+    let (gear, navigator) = load_gear_page(&state, request, search.as_deref())
         .await
         .map_err(map_app_error)?;
 
     let is_authenticated = super::is_authenticated(&state, &cookies).await;
-    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request, search);
 
     let template = GearTemplate {
         nav_active: "gear",
@@ -231,20 +228,10 @@ impl NewGearSubmission {
     }
 }
 
-async fn render_gear_list_fragment(
-    state: AppState,
-    request: ListRequest<GearSortKey>,
-    search: Option<String>,
-    is_authenticated: bool,
-) -> Result<Response, AppError> {
-    let gear = load_gear_page(&state, request, search.as_deref()).await?;
-    let navigator = ListNavigator::new(GEAR_PAGE_PATH, GEAR_FRAGMENT_PATH, request, search);
-
-    let template = GearListTemplate {
-        is_authenticated,
-        gear,
-        navigator,
-    };
-
-    crate::application::routes::support::render_fragment(template, "#gear-list")
-}
+define_list_fragment_renderer!(
+    render_gear_list_fragment,
+    GearSortKey,
+    load_gear_page,
+    GearListTemplate { gear },
+    "#gear-list"
+);

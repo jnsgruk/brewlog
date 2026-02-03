@@ -3,22 +3,22 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 
-use super::macros::{define_delete_handler, define_enriched_get_handler};
+use super::macros::{
+    define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
+};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, load_cafe_options,
+    load_roast_options,
 };
 use crate::application::server::AppState;
-use crate::domain::cafes::CafeSortKey;
 use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
 use crate::domain::ids::CupId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::{CupListTemplate, CupsTemplate};
-use crate::presentation::web::views::{
-    CafeOptionView, CupView, ListNavigator, Paginated, RoastOptionView,
-};
+use crate::presentation::web::views::{CupView, ListNavigator, Paginated};
 
 const CUP_PAGE_PATH: &str = "/cups";
 const CUP_FRAGMENT_PATH: &str = "/cups#cup-list";
@@ -67,23 +67,9 @@ pub(crate) async fn cups_page(
 
     let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
-    let roast_options: Vec<RoastOptionView> = state
-        .roast_repo
-        .list_all()
-        .await
-        .map_err(|e| map_app_error(AppError::from(e)))?
-        .into_iter()
-        .map(RoastOptionView::from)
-        .collect();
+    let roast_options = load_roast_options(&state).await.map_err(map_app_error)?;
 
-    let cafe_options: Vec<CafeOptionView> = state
-        .cafe_repo
-        .list_all_sorted(CafeSortKey::Name, SortDirection::Asc)
-        .await
-        .map_err(|e| map_app_error(AppError::from(e)))?
-        .into_iter()
-        .map(CafeOptionView::from)
-        .collect();
+    let cafe_options = load_cafe_options(&state).await.map_err(map_app_error)?;
 
     let template = CupsTemplate {
         nav_active: "cups",
@@ -183,19 +169,10 @@ define_delete_handler!(
     render_cup_list_fragment
 );
 
-async fn render_cup_list_fragment(
-    state: AppState,
-    request: ListRequest<CupSortKey>,
-    search: Option<String>,
-    is_authenticated: bool,
-) -> Result<Response, AppError> {
-    let (cups, navigator) = load_cup_page(&state, request, search.as_deref()).await?;
-
-    let template = CupListTemplate {
-        is_authenticated,
-        cups,
-        navigator,
-    };
-
-    crate::application::routes::support::render_fragment(template, "#cup-list")
-}
+define_list_fragment_renderer!(
+    render_cup_list_fragment,
+    CupSortKey,
+    load_cup_page,
+    CupListTemplate { cups },
+    "#cup-list"
+);

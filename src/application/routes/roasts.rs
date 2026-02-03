@@ -4,23 +4,24 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
-use super::macros::{define_delete_handler, define_enriched_get_handler};
+use super::macros::{
+    define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
+};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError, map_app_error};
 use crate::application::routes::render_html;
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, load_roaster_options,
 };
 use crate::application::server::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::presentation::web::templates::{
     RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
 };
-use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, RoasterOptionView};
+use crate::presentation::web::views::{ListNavigator, Paginated, RoastView};
 
 const ROAST_PAGE_PATH: &str = "/roasts";
 const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";
@@ -63,13 +64,7 @@ pub(crate) async fn roasts_page(
             .map_err(map_app_error);
     }
 
-    let roasters = state
-        .roaster_repo
-        .list_all_sorted(RoasterSortKey::Name, SortDirection::Asc)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let roaster_options = roasters.into_iter().map(RoasterOptionView::from).collect();
+    let roaster_options = load_roaster_options(&state).await.map_err(map_app_error)?;
 
     let (roasts, navigator) = load_roast_page(&state, request, search.as_deref())
         .await
@@ -343,19 +338,10 @@ impl TastingNotesInput {
     }
 }
 
-async fn render_roast_list_fragment(
-    state: AppState,
-    request: ListRequest<RoastSortKey>,
-    search: Option<String>,
-    is_authenticated: bool,
-) -> Result<Response, AppError> {
-    let (roasts, navigator) = load_roast_page(&state, request, search.as_deref()).await?;
-
-    let template = RoastListTemplate {
-        is_authenticated,
-        roasts,
-        navigator,
-    };
-
-    crate::application::routes::support::render_fragment(template, "#roast-list")
-}
+define_list_fragment_renderer!(
+    render_roast_list_fragment,
+    RoastSortKey,
+    load_roast_page,
+    RoastListTemplate { roasts },
+    "#roast-list"
+);

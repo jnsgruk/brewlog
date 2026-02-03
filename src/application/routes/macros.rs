@@ -106,6 +106,48 @@ macro_rules! define_delete_handler {
     };
 }
 
+/// Generates a list-fragment renderer for Datastar partial updates.
+///
+/// Produces a function that loads a page via `$loader`, builds the given list
+/// template, and returns it as a Datastar fragment targeting `$selector`.
+///
+/// # Arguments
+/// * `$fn_name`  - Name of the generated function
+/// * `$sort_key` - Sort key type (e.g., `RoasterSortKey`)
+/// * `$loader`   - Page-loader function returning `(Paginated<V>, ListNavigator<K>)`
+/// * `$template { $field }` - List template type and its items field name
+/// * `$selector` - CSS selector for Datastar patching (e.g., `"#roaster-list"`)
+///
+/// # Example
+/// ```ignore
+/// define_list_fragment_renderer!(
+///     render_roaster_list_fragment,
+///     RoasterSortKey,
+///     load_roaster_page,
+///     RoasterListTemplate { roasters },
+///     "#roaster-list"
+/// );
+/// ```
+macro_rules! define_list_fragment_renderer {
+    ($fn_name:ident, $sort_key:ty, $loader:ident, $template:ident { $field:ident }, $selector:literal) => {
+        async fn $fn_name(
+            state: crate::application::server::AppState,
+            request: crate::domain::listing::ListRequest<$sort_key>,
+            search: Option<String>,
+            is_authenticated: bool,
+        ) -> Result<axum::response::Response, crate::application::errors::AppError> {
+            let (items, navigator) = $loader(&state, request, search.as_deref()).await?;
+            let template = $template {
+                is_authenticated,
+                $field: items,
+                navigator,
+            };
+            crate::application::routes::support::render_fragment(template, $selector)
+        }
+    };
+}
+
 pub(super) use define_delete_handler;
 pub(super) use define_enriched_get_handler;
 pub(super) use define_get_handler;
+pub(super) use define_list_fragment_renderer;
