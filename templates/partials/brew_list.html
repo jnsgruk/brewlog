@@ -10,12 +10,12 @@
       <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
         <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
           <tr>
+            {% call table::sortable_header("Added", "created-at", navigator, "#brew-list") %}
             <th scope="col" class="px-4 py-3">Coffee</th>
             <th scope="col" class="px-4 py-3">Grind</th>
             <th scope="col" class="px-4 py-3">Recipe</th>
             <th scope="col" class="px-4 py-3">Temp</th>
             <th scope="col" class="px-4 py-3">Brewer</th>
-            {% call table::sortable_header("Date", "created-at", navigator, "#brew-list") %}
             {% if is_authenticated %}
             <th scope="col" class="px-4 py-3 text-center">Actions</th>
             {% endif %}
@@ -24,6 +24,9 @@
         <tbody class="divide-y divide-amber-200/70">
           {% for brew in brews.items %}
           <tr class="bg-amber-50/40 transition hover:bg-amber-50">
+            <td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+              {{ brew.created_at }}
+            </td>
             <td data-label="Coffee" class="px-4 py-3 whitespace-nowrap">
               <div class="font-medium text-stone-800">
                 <a href="/roasters/{{ brew.roaster_slug }}/roasts/{{ brew.roast_slug }}" class="hover:text-amber-700 hover:underline">
@@ -61,7 +64,6 @@
             {% if let Some(fp_name) = brew.filter_paper_name %}
             <td data-label="Filter" class="px-4 py-3 whitespace-nowrap md:hidden">{{ fp_name }}</td>
             {% endif %}
-            <td data-label="Date" class="px-4 py-3 whitespace-nowrap text-stone-500">{{ brew.created_at }}</td>
             {% if is_authenticated %}
             <td data-label="" class="px-4 py-3 text-right">
               <form class="inline" data-on:submit="@post('/api/v1/brews?{{ navigator.query() }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})">

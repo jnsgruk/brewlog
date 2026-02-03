@@ -18,10 +18,10 @@
       <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
         <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
           <tr>
+            {% call table::sortable_header("Added", "created-at", navigator, "#gear-list") %}
             {% call table::sortable_header("Category", "category", navigator, "#gear-list") %}
             {% call table::sortable_header("Make", "make", navigator, "#gear-list") %}
             {% call table::sortable_header("Model", "model", navigator, "#gear-list") %}
-            {% call table::sortable_header("Added", "created-at", navigator, "#gear-list") %}
             {% if is_authenticated %}
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
             {% endif %}
@@ -30,6 +30,9 @@
         <tbody class="divide-y divide-amber-200/70">
           {% for item in gear.items %}
           <tr class="bg-amber-50/40 transition hover:bg-amber-50">
+            <td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+              {{ item.created_at }}
+            </td>
             <td data-label="Category" class="px-4 py-3 whitespace-nowrap">
               <span class="inline-flex rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
                 {{ item.category_label }}
@@ -40,9 +43,6 @@
             </td>
             <td data-label="Model" class="px-4 py-3 whitespace-nowrap">
               {{ item.model }}
-            </td>
-            <td data-label="Added" class="px-4 py-3 whitespace-nowrap">
-              {{ item.created_at }}
             </td>
             {% if is_authenticated %}
             <td data-label="" class="px-4 py-3 text-right">

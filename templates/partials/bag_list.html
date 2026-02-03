@@ -102,22 +102,24 @@
         <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
           <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
             <tr>
-              {% call table::sortable_header("Roaster", "roaster", navigator, "#bag-list") %} {%
-              call table::sortable_header("Roast", "roast", navigator, "#bag-list") %}
+              {% call table::sortable_header("Added", "created-at", navigator, "#bag-list") %}
+              {% call table::sortable_header("Roaster", "roaster", navigator, "#bag-list") %}
+              {% call table::sortable_header("Roast", "roast", navigator, "#bag-list") %}
               <th scope="col" class="px-4 py-3">Weight</th>
-              {% call table::sortable_header("Added", "created-at", navigator, "#bag-list") %} {%
-              call table::sortable_header("Finished", "finished-at", navigator, "#bag-list") %}
+              {% call table::sortable_header("Finished", "finished-at", navigator, "#bag-list") %}
             </tr>
           </thead>
           <tbody class="divide-y divide-amber-200/70">
             {% for bag in bags.items %}
             <tr class="bg-amber-50/40 transition hover:bg-amber-50">
+              <td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+                {{ bag.created_at }}
+              </td>
               <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap font-medium text-stone-600">
                 {{ bag.roaster_name }}
               </td>
               <td data-label="Roast" class="px-4 py-3 whitespace-nowrap">{{ bag.roast_name }}</td>
               <td data-label="Weight" class="px-4 py-3 whitespace-nowrap">{{ bag.amount }}g</td>
-              <td data-label="Added" class="px-4 py-3 whitespace-nowrap">{{ bag.created_at }}</td>
               <td data-label="Finished" class="px-4 py-3 whitespace-nowrap">{{ bag.finished_at }}</td>
             </tr>
             {% endfor %}

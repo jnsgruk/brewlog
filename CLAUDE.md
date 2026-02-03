@@ -354,6 +354,18 @@ Three macros are available:
 - **`pagination_header(items, navigator, target_selector)`** — prev/next buttons, page count, rows-per-page selector; hidden on mobile via `pagination-controls hidden md:flex`
 - **`sortable_header(label, key, navigator, target_selector)`** — clickable column header with sort direction arrows
 
+### "Added" Column
+
+Every table has a sortable "Added" column as its **first column**, sorted by `created-at`. It uses a distinct smaller style to visually separate it from content columns:
+
+```html
+<td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+  {{ item.created_at }}
+</td>
+```
+
+The `text-xs font-medium text-stone-600` classes give it a muted, compact appearance compared to the default `text-sm` body text.
+
 ### Responsive Table Pattern
 
 Tables use the `responsive-table` CSS class which converts rows to card-style layout on mobile (`max-width: 767px`). The CSS in `styles.css` hides `<thead>` and uses `data-label` attributes on `<td>` elements to show field labels.
