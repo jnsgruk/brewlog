@@ -11,6 +11,8 @@ a {
 }
 
 .input-field {
+  width: 100%;
+  min-width: 0;
   border-radius: 0.5rem;
   border: 1px solid rgba(120, 53, 15, 0.3);
   background-color: rgba(254, 243, 199, 0.85);

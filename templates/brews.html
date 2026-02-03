@@ -50,7 +50,7 @@
     <form
       method="post"
       action="/api/v1/brews"
-      class="mt-4 flex flex-col gap-4"
+      class="mt-4 flex flex-col gap-4 overflow-hidden"
       data-on:submit="$isSubmitting = true; @post('/api/v1/brews?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})"
       data-ref="form"
       data-on:datastar-fetch="evt.detail.type === 'finished' && $isSubmitting && ($showForm = false, $form && $form.reset(), $temp = 91.0, $grind = 6.0, $volume = 250, $weight = 15.0, $isSubmitting = false)"
