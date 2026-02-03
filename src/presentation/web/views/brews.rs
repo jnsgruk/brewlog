@@ -1,0 +1,113 @@
+use crate::domain::brews::{Brew, BrewWithDetails};
+
+#[derive(Clone)]
+pub struct BrewView {
+    pub id: String,
+    pub bag_id: i64,
+    pub roast_name: String,
+    pub roaster_name: String,
+    pub roast_slug: String,
+    pub roaster_slug: String,
+    pub coffee_weight: String,
+    pub grinder_id: i64,
+    pub grinder_name: String,
+    pub grind_setting: String,
+    pub brewer_id: i64,
+    pub brewer_name: String,
+    pub filter_paper_id: Option<i64>,
+    pub filter_paper_name: Option<String>,
+    pub water_volume: String,
+    pub water_temp: String,
+    pub ratio: String,
+    pub created_at: String,
+    // Raw values for "brew again" feature
+    pub coffee_weight_raw: f64,
+    pub grind_setting_raw: f64,
+    pub water_volume_raw: i32,
+    pub water_temp_raw: f64,
+}
+
+impl BrewView {
+    pub fn from_domain(brew: BrewWithDetails) -> Self {
+        let ratio = if brew.brew.coffee_weight > 0.0 {
+            format!(
+                "1:{:.1}",
+                f64::from(brew.brew.water_volume) / brew.brew.coffee_weight
+            )
+        } else {
+            "\u{2014}".to_string()
+        };
+
+        Self {
+            id: brew.brew.id.to_string(),
+            bag_id: brew.brew.bag_id.into_inner(),
+            roast_name: brew.roast_name,
+            roaster_name: brew.roaster_name,
+            roast_slug: brew.roast_slug,
+            roaster_slug: brew.roaster_slug,
+            coffee_weight: format!("{:.1}g", brew.brew.coffee_weight),
+            grinder_id: brew.brew.grinder_id.into_inner(),
+            grinder_name: brew.grinder_name,
+            grind_setting: format!("{:.1}", brew.brew.grind_setting),
+            brewer_id: brew.brew.brewer_id.into_inner(),
+            brewer_name: brew.brewer_name,
+            filter_paper_id: brew
+                .brew
+                .filter_paper_id
+                .map(crate::domain::ids::GearId::into_inner),
+            filter_paper_name: brew.filter_paper_name,
+            water_volume: format!("{}ml", brew.brew.water_volume),
+            water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
+            ratio,
+            created_at: brew.brew.created_at.format("%Y-%m-%d %H:%M").to_string(),
+            coffee_weight_raw: brew.brew.coffee_weight,
+            grind_setting_raw: brew.brew.grind_setting,
+            water_volume_raw: brew.brew.water_volume,
+            water_temp_raw: brew.brew.water_temp,
+        }
+    }
+}
+
+pub struct BrewDefaultsView {
+    pub bag_id: String,
+    pub grinder_id: String,
+    pub brewer_id: String,
+    pub filter_paper_id: String,
+    pub coffee_weight: f64,
+    pub grind_setting: f64,
+    pub water_volume: i32,
+    pub water_temp: f64,
+}
+
+impl Default for BrewDefaultsView {
+    fn default() -> Self {
+        Self {
+            bag_id: String::new(),
+            grinder_id: String::new(),
+            brewer_id: String::new(),
+            filter_paper_id: String::new(),
+            coffee_weight: 15.0,
+            grind_setting: 6.0,
+            water_volume: 250,
+            water_temp: 91.0,
+        }
+    }
+}
+
+impl From<Brew> for BrewDefaultsView {
+    fn from(brew: Brew) -> Self {
+        Self {
+            bag_id: brew.bag_id.to_string(),
+            grinder_id: brew.grinder_id.to_string(),
+            brewer_id: brew.brewer_id.to_string(),
+            filter_paper_id: brew
+                .filter_paper_id
+                .map(|id| id.to_string())
+                .unwrap_or_default(),
+            coffee_weight: brew.coffee_weight,
+            grind_setting: brew.grind_setting,
+            water_volume: brew.water_volume,
+            water_temp: brew.water_temp,
+        }
+    }
+}
