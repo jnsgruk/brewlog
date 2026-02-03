@@ -1,6 +1,7 @@
 use crate::domain::bags::BagWithRoast;
 use crate::domain::brews::{Brew, BrewWithDetails};
 use crate::domain::cafes::Cafe;
+use crate::domain::cups::CupWithDetails;
 use crate::domain::gear::Gear;
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 use crate::domain::roasters::Roaster;
@@ -522,16 +523,18 @@ impl TimelineEventView {
             ("gear", "added") => "Gear Added",
             ("brew", "brewed") => "Brewed",
             ("cafe", "added") => "Cafe Added",
+            ("cup", "added") => "Cup",
             _ => "Event",
         };
 
         let link = match (entity_type.as_str(), slug, roaster_slug) {
             ("roaster", Some(slug), _) => format!("/roasters/{slug}"),
-            // Roasts, bags, and brews link to the roast page when we have slug info
-            ("roast" | "bag" | "brew", Some(slug), Some(roaster_slug)) => {
+            // Roasts, bags, brews, and cups link to the roast page when we have slug info
+            ("roast" | "bag" | "brew" | "cup", Some(slug), Some(roaster_slug)) => {
                 format!("/roasters/{roaster_slug}/roasts/{slug}")
             }
             ("cafe", Some(slug), _) => format!("/cafes/{slug}"),
+            ("cup", _, _) => "/cups".to_string(),
             ("gear", _, _) => "/gear".to_string(),
             ("brew", _, _) => "/brews".to_string(),
             ("roaster", None, _) => format!("/roasters/{entity_id}"),
@@ -876,6 +879,77 @@ impl From<Cafe> for CafeView {
             notes: notes.unwrap_or_else(|| "This cafe has no notes yet.".to_string()),
             created_at: created_at_label,
             created_at_sort_key,
+        }
+    }
+}
+
+pub struct CafeOptionView {
+    pub id: String,
+    pub label: String,
+}
+
+impl From<Cafe> for CafeOptionView {
+    fn from(cafe: Cafe) -> Self {
+        Self {
+            id: cafe.id.to_string(),
+            label: format!("{} ({})", cafe.name, cafe.city),
+        }
+    }
+}
+
+pub struct RoastOptionView {
+    pub id: String,
+    pub label: String,
+}
+
+impl From<RoastWithRoaster> for RoastOptionView {
+    fn from(roast: RoastWithRoaster) -> Self {
+        Self {
+            id: roast.roast.id.to_string(),
+            label: format!("{} - {}", roast.roaster_name, roast.roast.name),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct CupView {
+    pub id: String,
+    pub roast_name: String,
+    pub roaster_name: String,
+    pub roast_slug: String,
+    pub roaster_slug: String,
+    pub cafe_name: String,
+    pub cafe_slug: String,
+    pub notes: String,
+    pub has_notes: bool,
+    pub rating: String,
+    pub has_rating: bool,
+    pub created_at: String,
+}
+
+impl CupView {
+    pub fn from_domain(cup: CupWithDetails) -> Self {
+        let notes = cup.cup.notes.clone().unwrap_or_default();
+        let has_notes = !notes.is_empty();
+        let rating = cup
+            .cup
+            .rating
+            .map_or_else(|| "—".to_string(), |r| format!("{r}/5"));
+        let has_rating = cup.cup.rating.is_some();
+
+        Self {
+            id: cup.cup.id.to_string(),
+            roast_name: cup.roast_name,
+            roaster_name: cup.roaster_name,
+            roast_slug: cup.roast_slug,
+            roaster_slug: cup.roaster_slug,
+            cafe_name: cup.cafe_name,
+            cafe_slug: cup.cafe_slug,
+            notes,
+            has_notes,
+            rating,
+            has_rating,
+            created_at: cup.cup.created_at.format("%Y-%m-%d %H:%M").to_string(),
         }
     }
 }

@@ -1,13 +1,14 @@
 use askama::Template;
 
 use super::views::{
-    BagOptionView, BagView, BrewDefaultsView, BrewView, CafeView, GearOptionView, GearView,
-    ListNavigator, Paginated, RoastView, RoasterOptionView, RoasterView, TimelineEventView,
-    TimelineMonthView,
+    BagOptionView, BagView, BrewDefaultsView, BrewView, CafeOptionView, CafeView, CupView,
+    GearOptionView, GearView, ListNavigator, Paginated, RoastOptionView, RoastView,
+    RoasterOptionView, RoasterView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
 use crate::domain::cafes::CafeSortKey;
+use crate::domain::cups::CupSortKey;
 use crate::domain::gear::GearSortKey;
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
@@ -173,6 +174,25 @@ pub struct CafeDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub cafe: CafeView,
+}
+
+#[derive(Template)]
+#[template(path = "cups.html")]
+pub struct CupsTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub cups: Paginated<CupView>,
+    pub roast_options: Vec<RoastOptionView>,
+    pub cafe_options: Vec<CafeOptionView>,
+    pub navigator: ListNavigator<CupSortKey>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/cup_list.html")]
+pub struct CupListTemplate {
+    pub is_authenticated: bool,
+    pub cups: Paginated<CupView>,
+    pub navigator: ListNavigator<CupSortKey>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {
