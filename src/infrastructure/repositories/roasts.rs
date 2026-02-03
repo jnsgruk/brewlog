@@ -10,7 +10,7 @@ use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoastRepository;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::domain::timeline::TimelineEventDetail;
-use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::database::{DatabasePool, DatabaseTransaction};
 
 #[derive(Clone)]
 pub struct SqlRoastRepository {
@@ -50,86 +50,15 @@ impl SqlRoastRepository {
             })
         }
     }
-}
 
-#[allow(clippy::too_many_lines)] // Repository impl has many methods
-#[async_trait]
-impl RoastRepository for SqlRoastRepository {
-    async fn insert(&self, new_roast: NewRoast) -> Result<Roast, RepositoryError> {
-        let mut tx = self
-            .pool
-            .begin()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        let slug = new_roast.slug();
-        let NewRoast {
-            roaster_id,
-            name,
-            origin,
-            region,
-            producer,
-            tasting_notes,
-            process,
-        } = new_roast;
-
-        let origin_value = if origin.trim().is_empty() {
-            None
-        } else {
-            Some(origin)
-        };
-        let region_value = if region.trim().is_empty() {
-            None
-        } else {
-            Some(region)
-        };
-        let producer_value = if producer.trim().is_empty() {
-            None
-        } else {
-            Some(producer)
-        };
-        let process_value = if process.trim().is_empty() {
-            None
-        } else {
-            Some(process)
-        };
-
-        let created_at = Utc::now();
-        let notes_json = Self::encode_notes(&tasting_notes)?;
-
-        let record = query_as::<_, RoastRecord>(
-                "INSERT INTO roasts (roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\
-                 RETURNING id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at",
-            )
-            .bind(i64::from(roaster_id))
-            .bind(&name)
-            .bind(&slug)
-            .bind(origin_value.as_deref())
-            .bind(region_value.as_deref())
-            .bind(producer_value.as_deref())
-            .bind(process_value.as_deref())
-            .bind(notes_json.as_deref())
-            .bind(created_at)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(|err| {
-                if let sqlx::Error::Database(db_err) = &err
-                    && db_err.is_unique_violation()
-                {
-                    return RepositoryError::conflict(
-                        "A roast with this name already exists for this roaster",
-                    );
-                }
-                map_insert_error(err, "unknown roaster reference")
-            })?;
-
-        let roast = record.into_roast()?;
-
-        // Fetch roaster info for timeline event
+    async fn insert_timeline_event(
+        tx: &mut DatabaseTransaction<'_>,
+        roast: &Roast,
+    ) -> Result<(), RepositoryError> {
         let roaster_info: Option<(String, String)> =
             query_as("SELECT name, slug FROM roasters WHERE id = ?")
                 .bind(i64::from(roast.roaster_id))
-                .fetch_optional(&mut *tx)
+                .fetch_optional(&mut **tx)
                 .await
                 .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
@@ -141,7 +70,7 @@ impl RoastRepository for SqlRoastRepository {
         let details = vec![
             TimelineEventDetail {
                 label: "Roaster".to_string(),
-                value: roaster_label.clone(),
+                value: roaster_label,
             },
             TimelineEventDetail {
                 label: "Origin".to_string(),
@@ -185,12 +114,78 @@ impl RoastRepository for SqlRoastRepository {
             .bind(&roast.name)
             .bind(details_json)
             .bind(tasting_notes_json.as_deref())
-            .bind(&roast.slug) // slug = roast's own slug
-            .bind(roaster_slug.as_deref()) // roaster_slug from the roaster
-            .bind::<Option<&str>>(None) // brew_data_json not applicable
-            .execute(&mut *tx)
+            .bind(&roast.slug)
+            .bind(roaster_slug.as_deref())
+            .bind::<Option<&str>>(None)
+            .execute(&mut **tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        Ok(())
+    }
+}
+
+fn empty_to_none(s: String) -> Option<String> {
+    if s.trim().is_empty() { None } else { Some(s) }
+}
+
+#[async_trait]
+impl RoastRepository for SqlRoastRepository {
+    async fn insert(&self, new_roast: NewRoast) -> Result<Roast, RepositoryError> {
+        let mut tx = self
+            .pool
+            .begin()
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        let slug = new_roast.slug();
+        let NewRoast {
+            roaster_id,
+            name,
+            origin,
+            region,
+            producer,
+            tasting_notes,
+            process,
+        } = new_roast;
+
+        let origin_value = empty_to_none(origin);
+        let region_value = empty_to_none(region);
+        let producer_value = empty_to_none(producer);
+        let process_value = empty_to_none(process);
+
+        let created_at = Utc::now();
+        let notes_json = Self::encode_notes(&tasting_notes)?;
+
+        let record = query_as::<_, RoastRecord>(
+                "INSERT INTO roasts (roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\
+                 RETURNING id, roaster_id, name, slug, origin, region, producer, process, tasting_notes, created_at",
+            )
+            .bind(i64::from(roaster_id))
+            .bind(&name)
+            .bind(&slug)
+            .bind(origin_value.as_deref())
+            .bind(region_value.as_deref())
+            .bind(producer_value.as_deref())
+            .bind(process_value.as_deref())
+            .bind(notes_json.as_deref())
+            .bind(created_at)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(|err| {
+                if let sqlx::Error::Database(db_err) = &err
+                    && db_err.is_unique_violation()
+                {
+                    return RepositoryError::conflict(
+                        "A roast with this name already exists for this roaster",
+                    );
+                }
+                map_insert_error(err, "unknown roaster reference")
+            })?;
+
+        let roast = record.into_roast()?;
+
+        Self::insert_timeline_event(&mut tx, &roast).await?;
 
         tx.commit()
             .await
