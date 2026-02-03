@@ -308,6 +308,93 @@ impl BagRecord {
 }
 ```
 
+## Table & List Patterns
+
+### Template Structure
+
+List partials live in `templates/partials/` (e.g., `roaster_list.html`, `brew_list.html`). Each follows the same structure:
+
+```
+{% import "partials/table.html" as table %}
+
+<div id="{entity}-list">
+  {% if items.is_empty() && !navigator.has_search() %}
+    <!-- Empty state (no data, no search active) -->
+  {% else %}
+  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+    {% if items.has_next() %}data-infinite-scroll data-next-url="..." data-target="#{entity}-list"{% endif %}
+  >
+    {% call table::search_header(navigator, "#{entity}-list") %}
+    <table class="responsive-table ...">
+      <thead>...</thead>
+      <tbody>...</tbody>
+    </table>
+    {% if items.is_empty() %}
+      <!-- "No results match your search" message -->
+    {% endif %}
+    {% call table::pagination_header(items, navigator, "#{entity}-list") %}
+    {% if items.has_next() %}
+    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+```
+
+Key points:
+- The outer `<div>` with `id="{entity}-list"` is the Datastar fragment target for replacements
+- Empty state only shows when there are no items **and** no active search query
+- When a search is active but returns no results, the table section renders with the search bar and a "no matches" message
+
+### Shared Table Macros (`templates/partials/table.html`)
+
+Three macros are available:
+
+- **`search_header(navigator, target_selector)`** — search input with debounced Datastar `@get`, pushes URL state via `history.pushState`
+- **`pagination_header(items, navigator, target_selector)`** — prev/next buttons, page count, rows-per-page selector; hidden on mobile via `pagination-controls hidden md:flex`
+- **`sortable_header(label, key, navigator, target_selector)`** — clickable column header with sort direction arrows
+
+### Responsive Table Pattern
+
+Tables use the `responsive-table` CSS class which converts rows to card-style layout on mobile (`max-width: 767px`). The CSS in `styles.css` hides `<thead>` and uses `data-label` attributes on `<td>` elements to show field labels.
+
+**Desktop**: combined columns with subtext via `hidden md:block`:
+
+```html
+<td data-label="Coffee" class="px-4 py-3 whitespace-nowrap">
+  <div class="font-medium">{{ brew.roast_name }}</div>
+  <div class="hidden md:block text-xs text-stone-500">{{ brew.roaster_name }}</div>
+</td>
+```
+
+**Mobile**: separate `<td>` elements with `md:hidden` for each sub-field:
+
+```html
+<td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">
+  {{ brew.roaster_name }}
+</td>
+```
+
+This keeps the desktop table compact while giving each value its own labelled row in the mobile card view. Conditional sub-fields (e.g., filter paper, city) use `{% if %}` guards around both the desktop subtext and the mobile-only `<td>`.
+
+### Search
+
+Server-side search uses a `q` query parameter. The `ListQuery` struct extracts it and passes it to repository `list()` methods via `SearchFilter`. Repositories apply `LIKE` filtering across entity-specific columns (e.g., name, country, origin).
+
+`ListNavigator` preserves the search term across pagination and sort URL generation via `search_query_base()`.
+
+### Pagination vs Infinite Scroll
+
+- **Desktop** (`md:` breakpoint and above): traditional pagination controls (prev/next, page size selector, result count) via the `pagination_header` macro
+- **Mobile** (below `md:`): pagination controls are hidden (`hidden md:flex`); infinite scroll loads the next page automatically
+
+The infinite scroll sentinel (`<div class="infinite-scroll-sentinel h-4 md:hidden">`) must always include `md:hidden` to avoid adding unwanted height to the desktop layout. The JavaScript in `base.html` uses `IntersectionObserver` and only activates on mobile via `matchMedia("(max-width: 767px)")`.
+
+When creating sentinels dynamically in JS, use:
+```js
+newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
+```
+
 ## Conventions
 
 1. **Method naming**: Use `order_clause()` for sort query builders (not `sort_clause`)
