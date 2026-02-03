@@ -35,7 +35,8 @@ Migration files are plain SQL in the `migrations/` directory, numbered sequentia
 1. Run `cargo clippy --allow-dirty --fix && cargo fmt` to lint and format
 2. Run `cargo build` to verify compilation
 3. Run `cargo test` if changes affect testable code
-4. Provide a **draft commit message** using Conventional Commits format
+4. Update `README.md` if the change adds/removes/renames CLI commands, environment variables, or user-facing features
+5. Provide a **draft commit message** using Conventional Commits format
 
 Example commit message:
 
