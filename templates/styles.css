@@ -96,6 +96,59 @@ a {
   display: block;
 }
 
+/* Responsive tables: convert rows to cards on mobile */
+@media (max-width: 767px) {
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table tbody {
+    display: block;
+  }
+
+  .responsive-table tr {
+    display: block;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(217, 169, 55, 0.35);
+  }
+
+  .responsive-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .responsive-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.25rem 0;
+    white-space: normal;
+    font-size: 0.875rem; /* normalize all values to text-sm */
+  }
+
+  .responsive-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    min-width: 5.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #78350f; /* amber-900 */
+    margin-right: 0.75rem;
+  }
+
+  .responsive-table td[data-label=""]::before {
+    display: none;
+  }
+
+  .responsive-table td[data-label=""] {
+    justify-content: flex-end;
+    padding-top: 0.25rem;
+  }
+
+  .responsive-table td.mobile-hidden {
+    display: none;
+  }
+}
+
 /* Desktop: alternating cards with central line */
 @media (min-width: 768px) {
   .timeline-heading {

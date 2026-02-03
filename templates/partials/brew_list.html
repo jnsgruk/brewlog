@@ -5,7 +5,7 @@
     {% call table::pagination_header(brews, navigator, "#brew-list") %}
 
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
+      <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
         <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
           <tr>
             <th scope="col" class="px-4 py-3">Coffee</th>
@@ -22,7 +22,7 @@
         <tbody class="divide-y divide-amber-200/70">
           {% for brew in brews.items %}
           <tr class="bg-amber-50/40 transition hover:bg-amber-50">
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td data-label="Coffee" class="px-4 py-3 whitespace-nowrap">
               <div class="font-medium text-stone-800">
                 <a href="/roasters/{{ brew.roaster_slug }}/roasts/{{ brew.roast_slug }}" class="hover:text-amber-700 hover:underline">
                   {{ brew.roast_name }}
@@ -34,24 +34,24 @@
                 </a>
               </div>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td data-label="Grind" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.grind_setting }}</div>
               <div class="text-xs text-stone-500">{{ brew.grinder_name }}</div>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td data-label="Recipe" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.coffee_weight }} / {{ brew.water_volume }}</div>
               <div class="text-xs text-stone-500 font-mono">{{ brew.ratio }}</div>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap">{{ brew.water_temp }}</td>
-            <td class="px-4 py-3 whitespace-nowrap">
+            <td data-label="Temp" class="px-4 py-3 whitespace-nowrap">{{ brew.water_temp }}</td>
+            <td data-label="Brewer" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.brewer_name }}</div>
               {% if let Some(fp_name) = brew.filter_paper_name %}
               <div class="text-xs text-stone-500">{{ fp_name }}</div>
               {% endif %}
             </td>
-            <td class="px-4 py-3 whitespace-nowrap text-stone-500">{{ brew.created_at }}</td>
+            <td data-label="Date" class="px-4 py-3 whitespace-nowrap text-stone-500">{{ brew.created_at }}</td>
             {% if is_authenticated %}
-            <td class="px-4 py-3 text-right">
+            <td data-label="" class="px-4 py-3 text-right">
               <form class="inline" data-on:submit="@post('/api/v1/brews?{{ navigator.query() }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
                 <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
                 <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight_raw }}" />
