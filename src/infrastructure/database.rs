@@ -15,6 +15,8 @@ type PoolOptions = sqlx::sqlite::SqlitePoolOptions;
 pub type DatabaseTransaction<'a> = sqlx::Transaction<'a, sqlx::Sqlite>;
 #[cfg(feature = "sqlite")]
 pub type DatabaseRow = sqlx::sqlite::SqliteRow;
+#[cfg(feature = "sqlite")]
+pub type DatabaseDriver = sqlx::Sqlite;
 
 #[cfg(feature = "postgres")]
 pub type DatabasePool = sqlx::PgPool;
@@ -24,6 +26,8 @@ type PoolOptions = sqlx::postgres::PgPoolOptions;
 pub type DatabaseTransaction<'a> = sqlx::Transaction<'a, sqlx::Postgres>;
 #[cfg(feature = "postgres")]
 pub type DatabaseRow = sqlx::postgres::PgRow;
+#[cfg(feature = "postgres")]
+pub type DatabaseDriver = sqlx::Postgres;
 
 pub struct Database {
     pool: DatabasePool,
