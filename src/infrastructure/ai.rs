@@ -24,7 +24,7 @@ const ROAST_PROMPT: &str = r#"Extract coffee roast information from this input. 
 - "region": the region within the origin country
 - "producer": the farm, estate, or cooperative that produced the beans
 - "process": the processing method (e.g. Washed, Natural, Honey, Anaerobic)
-- "tasting_notes": an array of flavour/tasting notes (e.g. ["Blueberry", "Jasmine", "Dark Chocolate"])
+- "tasting_notes": an array of flavour/tasting notes in Title Case (e.g. ["Blueberry", "Jasmine", "Dark Chocolate"])
 
 Return ONLY the JSON object, no other text."#;
 
