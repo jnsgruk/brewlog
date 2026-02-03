@@ -172,3 +172,35 @@ async fn nearby_search_returns_500_on_upstream_failure() {
 
     assert_eq!(response.status(), 500);
 }
+
+#[tokio::test]
+async fn nearby_search_with_near_param() {
+    let app = spawn_app_with_foursquare_mock().await;
+    let mock_server = app.mock_server.as_ref().unwrap();
+
+    Mock::given(method("GET"))
+        .and(path("/places/search"))
+        .and(query_param("query", "coffee"))
+        .and(query_param("near", "London"))
+        .and(header("Authorization", "Bearer test-api-key"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(foursquare_two_results()))
+        .expect(1)
+        .mount(mock_server)
+        .await;
+
+    let client = reqwest::Client::new();
+    let response = client
+        .get(app.api_url("/nearby-cafes"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .query(&[("near", "London"), ("q", "coffee")])
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 200);
+
+    let cafes: Vec<NearbyCafe> = response.json().await.expect("Failed to parse response");
+    assert_eq!(cafes.len(), 2);
+    assert_eq!(cafes[0].name, "Prufrock Coffee");
+    assert_eq!(cafes[0].city, "London");
+}

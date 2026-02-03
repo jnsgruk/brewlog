@@ -24,26 +24,43 @@ pub struct NearbyCafe {
     pub distance_meters: u32,
 }
 
-/// Searches for places matching `query` near the given coordinates via Foursquare.
+/// Location mode for Foursquare search.
+pub enum SearchLocation {
+    /// Search near GPS coordinates with a fixed radius.
+    Coordinates { lat: f64, lng: f64 },
+    /// Search near a named location (e.g. "London", "Tokyo, Japan").
+    Near(String),
+}
+
+/// Searches for places matching `query` near the given location via Foursquare.
 pub async fn search_nearby(
     client: &reqwest::Client,
     base_url: &str,
     api_key: &str,
-    lat: f64,
-    lng: f64,
+    location: &SearchLocation,
     query: &str,
 ) -> Result<Vec<NearbyCafe>, AppError> {
-    let ll = format!("{lat},{lng}");
-
-    let response = client
+    let mut request = client
         .get(base_url)
         .header("User-Agent", USER_AGENT)
         .header("Accept", "application/json")
         .header("Authorization", format!("Bearer {api_key}"))
         .header("X-Places-Api-Version", API_VERSION)
         .timeout(REQUEST_TIMEOUT)
-        .query(&[("query", query), ("limit", MAX_RESULTS), ("fields", FIELDS)])
-        .query(&[("ll", ll.as_str()), ("radius", RADIUS)])
+        .query(&[("query", query), ("limit", MAX_RESULTS), ("fields", FIELDS)]);
+
+    let ll;
+    match location {
+        SearchLocation::Coordinates { lat, lng } => {
+            ll = format!("{lat},{lng}");
+            request = request.query(&[("ll", ll.as_str()), ("radius", RADIUS)]);
+        }
+        SearchLocation::Near(place) => {
+            request = request.query(&[("near", place.as_str())]);
+        }
+    }
+
+    let response = request
         .send()
         .await
         .map_err(|e| AppError::unexpected(format!("Foursquare search failed: {e}")))?;
@@ -82,9 +99,13 @@ pub async fn search_nearby(
                 .map(country_name)
                 .unwrap_or_default();
 
-            let distance = place
-                .distance
-                .unwrap_or_else(|| haversine_distance(lat, lng, place_lat, place_lng) as u32);
+            let distance = place.distance.unwrap_or_else(|| {
+                if let SearchLocation::Coordinates { lat, lng } = location {
+                    haversine_distance(*lat, *lng, place_lat, place_lng) as u32
+                } else {
+                    0
+                }
+            });
 
             let website = place.website.filter(|w| !w.trim().is_empty());
 

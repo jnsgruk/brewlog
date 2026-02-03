@@ -62,6 +62,31 @@
     }, 350);
   }
 
+  function toggleCitySearch(checkbox) {
+    const locateBtn = document.getElementById('locate-btn');
+    const cityWrap = document.getElementById('city-search-wrap');
+    const searchWrap = document.getElementById('nearby-search-wrap');
+    const resultsEl = document.getElementById('nearby-results');
+
+    if (checkbox.checked) {
+      locateBtn.classList.add('hidden');
+      cityWrap.classList.remove('hidden');
+      searchWrap.classList.remove('hidden');
+      document.getElementById('city-input').focus();
+    } else {
+      cityWrap.classList.add('hidden');
+      document.getElementById('city-input').value = '';
+      if (_userLat === null) {
+        searchWrap.classList.add('hidden');
+        locateBtn.classList.remove('hidden');
+        locateBtn.textContent = 'Find nearby';
+        locateBtn.disabled = false;
+      }
+      resultsEl.classList.add('hidden');
+      resultsEl.innerHTML = '';
+    }
+  }
+
   async function searchNearby(query) {
     const resultsEl = document.getElementById('nearby-results');
     const errorEl = document.getElementById('nearby-error');
@@ -70,7 +95,14 @@
     spinnerEl.classList.remove('hidden');
 
     try {
-      const url = `/api/v1/nearby-cafes?lat=${_userLat}&lng=${_userLng}&q=${encodeURIComponent(query)}`;
+      const cityInput = document.getElementById('city-input');
+      const cityValue = cityInput ? cityInput.value.trim() : '';
+      let url;
+      if (cityValue.length >= 2) {
+        url = `/api/v1/nearby-cafes?near=${encodeURIComponent(cityValue)}&q=${encodeURIComponent(query)}`;
+      } else {
+        url = `/api/v1/nearby-cafes?lat=${_userLat}&lng=${_userLng}&q=${encodeURIComponent(query)}`;
+      }
       const resp = await fetch(url, { credentials: 'same-origin' });
 
       if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
@@ -184,6 +216,19 @@
             </svg>
             Find nearby
           </button>
+          <label class="inline-flex items-center gap-1.5 text-sm text-stone-600 cursor-pointer select-none">
+            <input type="checkbox" onchange="toggleCitySearch(this)" class="accent-amber-600" />
+            Search by city
+          </label>
+          <div id="city-search-wrap" class="hidden flex-1 min-w-[140px]">
+            <input
+              type="text"
+              id="city-input"
+              class="input-field w-full text-sm"
+              placeholder="e.g. Tokyo, London"
+              autocomplete="off"
+            />
+          </div>
           <div id="nearby-search-wrap" class="hidden relative flex-1 min-w-[200px]">
             <input
               type="text"

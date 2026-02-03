@@ -189,9 +189,10 @@ define_list_fragment_renderer!(
 
 #[derive(Debug, Deserialize)]
 pub struct NearbyQuery {
-    lat: f64,
-    lng: f64,
+    lat: Option<f64>,
+    lng: Option<f64>,
     q: String,
+    near: Option<String>,
 }
 
 #[tracing::instrument(skip(state, _auth_user))]
@@ -200,14 +201,29 @@ pub(crate) async fn nearby_cafes(
     _auth_user: AuthenticatedUser,
     Query(query): Query<NearbyQuery>,
 ) -> Result<Json<Vec<NearbyCafe>>, ApiError> {
-    if !(-90.0..=90.0).contains(&query.lat) || !(-180.0..=180.0).contains(&query.lng) {
-        return Err(AppError::validation("lat must be -90..90, lng must be -180..180").into());
-    }
-
     let q = query.q.trim();
     if q.is_empty() || q.len() < 2 {
         return Err(AppError::validation("q must be at least 2 characters").into());
     }
+
+    let location = if let Some(near) = &query.near {
+        let near = near.trim();
+        if near.len() < 2 {
+            return Err(AppError::validation("near must be at least 2 characters").into());
+        }
+        foursquare::SearchLocation::Near(near.to_string())
+    } else {
+        let lat = query
+            .lat
+            .ok_or_else(|| AppError::validation("lat is required when near is not provided"))?;
+        let lng = query
+            .lng
+            .ok_or_else(|| AppError::validation("lng is required when near is not provided"))?;
+        if !(-90.0..=90.0).contains(&lat) || !(-180.0..=180.0).contains(&lng) {
+            return Err(AppError::validation("lat must be -90..90, lng must be -180..180").into());
+        }
+        foursquare::SearchLocation::Coordinates { lat, lng }
+    };
 
     let api_key = state
         .foursquare_api_key
@@ -218,8 +234,7 @@ pub(crate) async fn nearby_cafes(
         &state.http_client,
         &state.foursquare_url,
         api_key,
-        query.lat,
-        query.lng,
+        &location,
         q,
     )
     .await
