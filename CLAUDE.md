@@ -61,9 +61,11 @@ src/
 │   ├── repositories.rs  # Repository traits
 │   └── {entity}.rs   # Entity definitions (roasters, roasts, bags, brews, gear, etc.)
 │
-├── infrastructure/   # External integrations (database, HTTP client)
+├── infrastructure/   # External integrations (database, HTTP clients, third-party APIs)
 │   ├── repositories/ # SQL implementations of repository traits
 │   ├── client/       # HTTP client for CLI
+│   ├── ai/           # OpenRouter LLM integration for AI extraction
+│   ├── foursquare.rs # Foursquare Places API for nearby cafe search
 │   └── database.rs   # Database pool abstraction
 │
 ├── application/      # HTTP server, routes, middleware
@@ -387,6 +389,31 @@ Example `formId` values: `roaster-form`, `roast-form`, `scan`.
 
 Buttons wire up via onclick with the callback: `onclick="triggerPhotoExtract('roast-form', '/api/v1/extract-roast', fillRoastForm)"`.
 
+### Foursquare Integration
+
+The cafes page uses the [Foursquare Places API](https://docs.foursquare.com/developer/reference/place-search) to search for nearby cafes. The integration lives in `infrastructure/foursquare.rs`.
+
+**Configuration**: Set `BREWLOG_FOURSQUARE_API_KEY` (a Foursquare service API key). The nearby search feature is only available when this key is configured.
+
+**Search modes** via the `SearchLocation` enum:
+
+```rust
+pub enum SearchLocation {
+    Coordinates { lat: f64, lng: f64 },  // GPS coords → sends ll + radius params
+    Near(String),                         // City name → sends near param
+}
+```
+
+The route handler in `application/routes/cafes.rs` accepts either `lat`/`lng` query params or a `near` param, builds the appropriate `SearchLocation`, and delegates to `foursquare::search_nearby()`.
+
+**API details**:
+- Endpoint: `https://places-api.foursquare.com/places/search`
+- Auth: `Authorization: Bearer <key>` header
+- Version: `X-Places-Api-Version: 2025-06-17`
+- Country codes from the API (ISO 3166-1 alpha-2) are converted to full names via the `isocountry` crate, with short-form overrides for verbose names (e.g. `GB` → "United Kingdom")
+
+**Testing**: Integration tests in `tests/server/nearby_api.rs` use `wiremock::MockServer` to mock the Foursquare API. The `spawn_app_with_foursquare_mock()` helper in `tests/server/helpers.rs` wires up the mock server URL and a test API key.
+
 ### Error Handling
 
 - Domain errors: `RepositoryError` in `domain/errors.rs`
@@ -512,7 +539,7 @@ newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
 1. **Method naming**: Use `order_clause()` for sort query builders (not `sort_clause`)
 2. **Imports**: Group by `super::`, then `crate::`, with macros imported explicitly
 3. **SQL strings**: Use raw strings `r#"..."#` for multi-line queries
-4. **Tests**: Integration tests in `tests/cli/` and `tests/server/`
+4. **Tests**: Integration tests in `tests/cli/` and `tests/server/`. External API calls are mocked with `wiremock` (see `spawn_app_with_foursquare_mock()` for the pattern)
 5. **Commits**: Use Conventional Commit format (`feat:`, `fix:`, `refactor:`, etc.)
 6. **Commit authorship**: Never add "Co-Authored-By" trailers to commit messages
 7. **Commit signing**: Never use `--no-gpg-sign` when committing — always allow the default GPG signing
