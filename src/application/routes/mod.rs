@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod bags;
 pub mod brews;
+pub mod cafes;
 pub mod gear;
 mod macros;
 pub mod roasters;
@@ -65,6 +66,13 @@ pub fn app_router(state: AppState) -> axum::Router {
             "/brews/:id",
             get(brews::get_brew).delete(brews::delete_brew),
         )
+        .route("/cafes", get(cafes::list_cafes).post(cafes::create_cafe))
+        .route(
+            "/cafes/:id",
+            get(cafes::get_cafe)
+                .put(cafes::update_cafe)
+                .delete(cafes::delete_cafe),
+        )
         .route(
             "/tokens",
             post(tokens::create_token).get(tokens::list_tokens),
@@ -85,6 +93,8 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/bags", get(bags::bags_page))
         .route("/brews", get(brews::brews_page))
         .route("/gear", get(gear::gear_page))
+        .route("/cafes", get(cafes::cafes_page))
+        .route("/cafes/:slug", get(cafes::cafe_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
         .route("/favicon.ico", get(favicon))
