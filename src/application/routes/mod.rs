@@ -113,6 +113,7 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/scan", get(scan::scan_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
+        .route("/extract.js", get(extract_js))
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
         .layer(ServiceBuilder::new().layer(CookieManagerLayer::new()))
@@ -127,6 +128,13 @@ async fn styles() -> impl IntoResponse {
     (
         [("content-type", "text/css; charset=utf-8")],
         include_str!("../../../templates/styles.css"),
+    )
+}
+
+async fn extract_js() -> impl IntoResponse {
+    (
+        [("content-type", "application/javascript; charset=utf-8")],
+        include_str!("../../../templates/extract.js"),
     )
 }
 

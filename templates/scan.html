@@ -1,67 +1,9 @@
 {% extends "base.html" %} {% block title %}Brewlog · Scan Bag{% endblock %}
 
 {% block head %}
+<script src="/extract.js"></script>
 <script>
-  var _extracting = false;
   var _submitting = false;
-
-  function triggerScanPhoto() {
-    var input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = function () {
-      if (input.files.length === 0) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        doScanExtract({ image: reader.result });
-      };
-      reader.readAsDataURL(input.files[0]);
-    };
-    input.click();
-  }
-
-  function scanFromText() {
-    var input = document.getElementById('scan-extract-text');
-    var prompt = input.value.trim();
-    if (prompt.length < 3) return;
-    doScanExtract({ prompt: prompt });
-  }
-
-  async function doScanExtract(body) {
-    if (_extracting) return;
-    _extracting = true;
-    var errorEl = document.getElementById('scan-extract-error');
-    var controlsEl = document.getElementById('scan-extract-controls');
-    var waitingEl = document.getElementById('scan-extract-waiting');
-    errorEl.classList.add('hidden');
-    controlsEl.classList.add('hidden');
-    waitingEl.classList.remove('hidden');
-
-    try {
-      var resp = await fetch('/api/v1/extract-bag-scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(body),
-      });
-      if (!resp.ok) {
-        var errData = await resp.json().catch(function () { return {}; });
-        throw new Error(errData.message || 'Server returned ' + resp.status);
-      }
-      var data = await resp.json();
-      fillScanForms(data);
-      document.getElementById('scan-input-section').style.display = 'none';
-      document.getElementById('scan-form-section').style.display = 'block';
-    } catch (e) {
-      errorEl.textContent = 'Extraction failed: ' + e.message;
-      errorEl.classList.remove('hidden');
-    } finally {
-      waitingEl.classList.add('hidden');
-      controlsEl.classList.remove('hidden');
-      _extracting = false;
-    }
-  }
 
   function fillScanForms(data) {
     var form = document.getElementById('scan-form');
@@ -83,6 +25,8 @@
         form.querySelector('[name="tasting_notes"]').value = data.roast.tasting_notes.join(', ');
       }
     }
+    document.getElementById('scan-input-section').style.display = 'none';
+    document.getElementById('scan-form-section').style.display = 'block';
   }
 
   function resetScan() {
@@ -142,7 +86,7 @@
     <div id="scan-extract-controls" class="flex flex-wrap items-center gap-3">
       <button
         type="button"
-        onclick="triggerScanPhoto()"
+        onclick="triggerPhotoExtract('scan', '/api/v1/extract-bag-scan', fillScanForms)"
         class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
       >
         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -157,11 +101,11 @@
           id="scan-extract-text"
           class="input-field w-full text-sm"
           placeholder="Describe the coffee bag&hellip;"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();scanFromText()}"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('scan','/api/v1/extract-bag-scan',fillScanForms)}"
         />
         <button
           type="button"
-          onclick="scanFromText()"
+          onclick="extractFromText('scan', '/api/v1/extract-bag-scan', fillScanForms)"
           class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
         >
           Go

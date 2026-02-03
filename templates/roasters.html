@@ -2,67 +2,10 @@
 
 {% block head %}
 {% if is_authenticated && has_ai_extract %}
+<script src="/extract.js"></script>
 <script>
-  var _extracting = false;
-
-  function triggerPhotoExtract(formId, endpoint) {
-    var input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = function () {
-      if (input.files.length === 0) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        doExtract(formId, endpoint, { image: reader.result });
-      };
-      reader.readAsDataURL(input.files[0]);
-    };
-    input.click();
-  }
-
-  function extractFromText(formId, endpoint) {
-    var input = document.getElementById(formId + '-extract-text');
-    var prompt = input.value.trim();
-    if (prompt.length < 3) return;
-    doExtract(formId, endpoint, { prompt: prompt });
-  }
-
-  async function doExtract(formId, endpoint, body) {
-    if (_extracting) return;
-    _extracting = true;
-    var errorEl = document.getElementById(formId + '-extract-error');
-    var controlsEl = document.getElementById(formId + '-extract-controls');
-    var waitingEl = document.getElementById(formId + '-extract-waiting');
-    errorEl.classList.add('hidden');
-    controlsEl.classList.add('hidden');
-    waitingEl.classList.remove('hidden');
-
-    try {
-      var resp = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(body),
-      });
-      if (!resp.ok) {
-        var errData = await resp.json().catch(function () { return {}; });
-        throw new Error(errData.message || 'Server returned ' + resp.status);
-      }
-      var data = await resp.json();
-      fillRoasterForm(formId, data);
-    } catch (e) {
-      errorEl.textContent = 'Extraction failed: ' + e.message;
-      errorEl.classList.remove('hidden');
-    } finally {
-      waitingEl.classList.add('hidden');
-      controlsEl.classList.remove('hidden');
-      _extracting = false;
-    }
-  }
-
-  function fillRoasterForm(formId, data) {
-    var form = document.getElementById(formId);
+  function fillRoasterForm(data) {
+    var form = document.getElementById('roaster-form');
     if (!form) return;
     if (data.name) form.querySelector('[name="name"]').value = data.name;
     if (data.country) form.querySelector('[name="country"]').value = data.country;
@@ -120,7 +63,7 @@
         <div id="roaster-form-extract-controls" class="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onclick="triggerPhotoExtract('roaster-form', '/api/v1/extract-roaster')"
+            onclick="triggerPhotoExtract('roaster-form', '/api/v1/extract-roaster', fillRoasterForm)"
             class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
           >
             <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -135,11 +78,11 @@
               id="roaster-form-extract-text"
               class="input-field w-full text-sm"
               placeholder="Describe the roaster&hellip;"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('roaster-form','/api/v1/extract-roaster')}"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('roaster-form','/api/v1/extract-roaster',fillRoasterForm)}"
             />
             <button
               type="button"
-              onclick="extractFromText('roaster-form', '/api/v1/extract-roaster')"
+              onclick="extractFromText('roaster-form', '/api/v1/extract-roaster', fillRoasterForm)"
               class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
             >
               Go
