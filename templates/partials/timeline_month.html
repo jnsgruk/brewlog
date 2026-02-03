@@ -7,109 +7,105 @@
       </svg>
     </button>
   </h2>
-  <ol class="timeline-list relative">
-    {# Central timeline line #}
-    <div class="timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200" aria-hidden="true"></div>
-    {% for event in month.events %}
-    <li class="timeline-item relative mb-8 last:mb-0" data-timeline-event>
-      {# Timeline node/bullet #}
-      <span
-        class="timeline-node absolute h-5 w-5 rounded-full border-4 border-amber-50 bg-amber-600"
-        aria-hidden="true"
-      ></span>
-      <div class="rounded-lg border border-amber-200 bg-amber-50/80 p-5 shadow-sm text-left">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <span
-            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800"
-            >{{ event.kind_label }}</span
-          >
-          <time
-            datetime="{{ event.iso_timestamp }}"
-            class="text-xs uppercase tracking-wide text-stone-500"
-          >
-            {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif
-            %}
-          </time>
-        </div>
-        <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-amber-800">
-          <a href="{{ event.link }}" class="hover:text-amber-600">{{ event.title }}</a>
-          {% if let Some(url) = event.external_link %}
-          <a
-            href="{{ url }}"
-            class="inline-flex h-7 w-7 items-center justify-center text-amber-700 transition hover:text-amber-500"
-            target="_blank"
-            rel="noreferrer noopener"
-            aria-label="Open external link"
-          >
-            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path
-                fill-rule="evenodd"
-                d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
-                clip-rule="evenodd"
-              />
-              <path
-                d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
-              />
-            </svg>
-            <span class="sr-only">Open external link</span>
-          </a>
-          {% endif %}
-          {% if is_authenticated %}
-          {% if let Some(brew) = event.brew_data %}
-          <form
-            class="inline ml-auto"
-            data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
-          >
-            <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
-            <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight }}" />
-            <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
-            <input type="hidden" name="grind_setting" value="{{ brew.grind_setting }}" />
-            <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
-            <input type="hidden" name="water_volume" value="{{ brew.water_volume }}" />
-            <input type="hidden" name="water_temp" value="{{ brew.water_temp }}" />
-            <button
-              type="submit"
-              class="inline-flex h-7 w-7 items-center justify-center rounded-md text-amber-700 transition hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
-              title="Brew again"
-            >
-              <span class="sr-only">Brew again</span>
-              <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path
-                  fill-rule="evenodd"
-                  d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0v2.43l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389 5.5 5.5 0 0 1 9.2-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.22Z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </button>
-          </form>
-          {% endif %}
-          {% endif %}
-        </h3>
-        {% if event.details.len() > 0 %}
-        <dl class="mt-4 flex flex-col gap-2 text-sm text-stone-600">
-          {% for detail in event.details %}
-          <div class="flex justify-between gap-2">
-            <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
-            <dd class="text-right">{{ detail.value }}</dd>
-          </div>
-          {% endfor %}
-        </dl>
-        {% endif %} {% if let Some(notes) = event.tasting_notes %} {% if notes.is_empty() %}
-        <p class="mt-4 text-sm text-stone-600">No tasting notes yet.</p>
-        {% else %}
-        <ul class="mt-4 flex flex-wrap gap-2">
-          {% for note in notes %}
-          <li>
-            <span
-              class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
-              >{{ note }}</span
-            >
-          </li>
-          {% endfor %}
-        </ul>
-        {% endif %} {% endif %}
-      </div>
-    </li>
-    {% endfor %}
-  </ol>
 </div>
+{% for event in month.events %}
+<div class="timeline-item relative mb-8" data-timeline-event>
+  {# Timeline node/bullet #}
+  <span
+    class="timeline-node absolute h-5 w-5 rounded-full border-4 border-amber-50 bg-amber-600"
+    aria-hidden="true"
+  ></span>
+  <div class="rounded-lg border border-amber-200 bg-amber-50/80 p-5 shadow-sm text-left">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <span
+        class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800"
+        >{{ event.kind_label }}</span
+      >
+      <time
+        datetime="{{ event.iso_timestamp }}"
+        class="text-xs uppercase tracking-wide text-stone-500"
+      >
+        {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif
+        %}
+      </time>
+    </div>
+    <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-amber-800">
+      <a href="{{ event.link }}" class="hover:text-amber-600">{{ event.title }}</a>
+      {% if let Some(url) = event.external_link %}
+      <a
+        href="{{ url }}"
+        class="inline-flex h-7 w-7 items-center justify-center text-amber-700 transition hover:text-amber-500"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Open external link"
+      >
+        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            fill-rule="evenodd"
+            d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
+            clip-rule="evenodd"
+          />
+          <path
+            d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
+          />
+        </svg>
+        <span class="sr-only">Open external link</span>
+      </a>
+      {% endif %}
+      {% if is_authenticated %}
+      {% if let Some(brew) = event.brew_data %}
+      <form
+        class="inline ml-auto"
+        data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
+      >
+        <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
+        <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight }}" />
+        <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
+        <input type="hidden" name="grind_setting" value="{{ brew.grind_setting }}" />
+        <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
+        <input type="hidden" name="water_volume" value="{{ brew.water_volume }}" />
+        <input type="hidden" name="water_temp" value="{{ brew.water_temp }}" />
+        <button
+          type="submit"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-md text-amber-700 transition hover:text-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+          title="Brew again"
+        >
+          <span class="sr-only">Brew again</span>
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0v2.43l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389 5.5 5.5 0 0 1 9.2-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.22Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </form>
+      {% endif %}
+      {% endif %}
+    </h3>
+    {% if event.details.len() > 0 %}
+    <dl class="mt-4 flex flex-col gap-2 text-sm text-stone-600">
+      {% for detail in event.details %}
+      <div class="flex justify-between gap-2">
+        <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
+        <dd class="text-right">{{ detail.value }}</dd>
+      </div>
+      {% endfor %}
+    </dl>
+    {% endif %} {% if let Some(notes) = event.tasting_notes %} {% if notes.is_empty() %}
+    <p class="mt-4 text-sm text-stone-600">No tasting notes yet.</p>
+    {% else %}
+    <ul class="mt-4 flex flex-wrap gap-2">
+      {% for note in notes %}
+      <li>
+        <span
+          class="inline-flex items-center rounded-full border border-amber-500/60 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700"
+          >{{ note }}</span
+        >
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endif %}
+  </div>
+</div>
+{% endfor %}

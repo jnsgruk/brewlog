@@ -8,9 +8,7 @@
 
 <div class="mt-8">
   <section
-    class="space-y-12"
     id="timeline-events"
-    data-role="timeline-months"
     data-empty="{{ months.is_empty() }}"
   >
     {% if months.is_empty() %}
@@ -20,7 +18,12 @@
     >
       No events yet.
     </p>
-    {% else %} {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
+    {% else %}
+    <div class="timeline-list relative" id="timeline-items">
+      {# Single central timeline line for all months #}
+      <div class="timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200" aria-hidden="true"></div>
+      {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
+    </div>
     {% endif %}
 
     <div
@@ -49,15 +52,16 @@
 
 <script type="module">
   const loader = document.getElementById("timeline-loader")
-  const monthsContainer = document.getElementById("timeline-events")
+  const itemsContainer = document.getElementById("timeline-items")
   const loadMoreButton = document.getElementById("timeline-load-more")
   const statusLine = document.getElementById("timeline-status")
   const endLine = document.getElementById("timeline-end")
   const errorLine = document.getElementById("timeline-error")
   const sentinel = document.getElementById("timeline-sentinel")
   const emptyState = document.querySelector('[data-role="timeline-empty-state"]')
+  const section = document.getElementById("timeline-events")
 
-  if (loader && monthsContainer && sentinel) {
+  if (loader && sentinel) {
     let nextUrl = loader.dataset.nextUrl || ""
     let hasMorePages = loader.dataset.hasMore === "true"
     let loading = false
@@ -84,29 +88,32 @@
       }
     }
 
+    const ensureItemsContainer = () => {
+      if (itemsContainer) return itemsContainer
+      // First load on a previously empty timeline: create the container
+      const container = document.createElement("div")
+      container.className = "timeline-list relative"
+      container.id = "timeline-items"
+      const line = document.createElement("div")
+      line.className = "timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200"
+      line.setAttribute("aria-hidden", "true")
+      container.appendChild(line)
+      section.insertBefore(container, loader)
+      return container
+    }
+
     const appendMonths = (chunk) => {
       const monthsFragment = chunk.querySelector("[data-chunk-months]")
-      if (!monthsFragment) {
-        return
-      }
-      for (const monthNode of Array.from(monthsFragment.children)) {
-        const anchor = monthNode.id
-        if (!anchor) {
+      if (!monthsFragment) return
+
+      const container = ensureItemsContainer()
+
+      for (const node of Array.from(monthsFragment.children)) {
+        // Skip duplicate month headings (same month spanning a page boundary)
+        if (node.hasAttribute("data-timeline-month") && document.getElementById(node.id)) {
           continue
         }
-        const existing = document.getElementById(anchor)
-        if (existing) {
-          // Merge new events into existing month
-          const existingList = existing.querySelector("ol")
-          const newList = monthNode.querySelector("ol")
-          if (existingList && newList) {
-            // CSS :nth-of-type handles alternating pattern automatically
-            const newItems = Array.from(newList.querySelectorAll(".timeline-item"))
-            existingList.append(...newItems)
-          }
-        } else {
-          monthsContainer.insertBefore(monthNode, loader)
-        }
+        container.appendChild(node)
       }
     }
 
@@ -188,22 +195,21 @@
   )
 
   // Use MutationObserver to watch for new month headings being added
-  const mutationObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          const heading = node.querySelector?.(".timeline-heading")
-          if (heading) {
-            stickyObserver.observe(heading)
+  const timelineItems = document.getElementById("timeline-items")
+  if (timelineItems) {
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const heading = node.querySelector?.(".timeline-heading")
+            if (heading) {
+              stickyObserver.observe(heading)
+            }
           }
-        }
+        })
       })
     })
-  })
-
-  const timelineContainer = document.getElementById("timeline-events")
-  if (timelineContainer) {
-    mutationObserver.observe(timelineContainer, { childList: true })
+    mutationObserver.observe(timelineItems, { childList: true })
   }
 
   // Observe existing headings

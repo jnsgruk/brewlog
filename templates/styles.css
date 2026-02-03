@@ -118,24 +118,24 @@ a {
     padding-right: 0;
   }
 
-  /* Left side items (odd) - uses nth-of-type to skip the timeline-line div */
-  .timeline-item:nth-of-type(odd) {
+  /* Left side items (odd) - counts only .timeline-item children, skipping month headings */
+  .timeline-item:nth-child(odd of .timeline-item) {
     align-self: flex-start;
     padding-right: 2rem;
   }
 
-  .timeline-item:nth-of-type(odd) .timeline-node {
+  .timeline-item:nth-child(odd of .timeline-item) .timeline-node {
     right: -10px;
     left: auto;
   }
 
   /* Right side items (even) */
-  .timeline-item:nth-of-type(even) {
+  .timeline-item:nth-child(even of .timeline-item) {
     align-self: flex-end;
     padding-left: 2rem;
   }
 
-  .timeline-item:nth-of-type(even) .timeline-node {
+  .timeline-item:nth-child(even of .timeline-item) .timeline-node {
     left: -10px;
   }
 
