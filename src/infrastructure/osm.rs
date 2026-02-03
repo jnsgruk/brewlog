@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::application::errors::AppError;
 
-const NOMINATIM_SEARCH_URL: &str = "https://nominatim.openstreetmap.org/search";
+pub const NOMINATIM_SEARCH_URL: &str = "https://nominatim.openstreetmap.org/search";
 const USER_AGENT: &str = "Brewlog/1.0";
 const MAX_RESULTS: &str = "8";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 /// Viewbox half-size in degrees (~11 km at equator, tighter at higher latitudes).
 const VIEWBOX_DELTA: f64 = 0.1;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NearbyCafe {
     pub name: String,
     pub latitude: f64,
@@ -26,6 +26,7 @@ pub struct NearbyCafe {
 /// Results are biased towards (but not restricted to) the user's location.
 pub async fn search_nearby(
     client: &reqwest::Client,
+    base_url: &str,
     lat: f64,
     lng: f64,
     query: &str,
@@ -39,7 +40,7 @@ pub async fn search_nearby(
     );
 
     let response = client
-        .get(NOMINATIM_SEARCH_URL)
+        .get(base_url)
         .header("User-Agent", USER_AGENT)
         .timeout(REQUEST_TIMEOUT)
         .query(&[

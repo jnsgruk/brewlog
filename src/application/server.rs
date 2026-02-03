@@ -46,6 +46,7 @@ pub struct AppState {
     pub token_repo: Arc<dyn TokenRepository>,
     pub session_repo: Arc<dyn SessionRepository>,
     pub http_client: reqwest::Client,
+    pub nominatim_url: String,
 }
 
 impl AppState {
@@ -62,6 +63,7 @@ impl AppState {
         token_repo: Arc<dyn TokenRepository>,
         session_repo: Arc<dyn SessionRepository>,
         http_client: reqwest::Client,
+        nominatim_url: String,
     ) -> Self {
         Self {
             roaster_repo,
@@ -75,6 +77,7 @@ impl AppState {
             token_repo,
             session_repo,
             http_client,
+            nominatim_url,
         }
     }
 }
@@ -114,6 +117,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         token_repo,
         session_repo,
         reqwest::Client::new(),
+        crate::infrastructure::osm::NOMINATIM_SEARCH_URL.to_string(),
     );
 
     let listener = TcpListener::bind(config.bind_address)

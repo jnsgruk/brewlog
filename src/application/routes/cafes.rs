@@ -216,8 +216,14 @@ pub(crate) async fn nearby_cafes(
         return Err(AppError::validation("q must be at least 2 characters").into());
     }
 
-    let cafes = osm::search_nearby(&state.http_client, query.lat, query.lng, q)
-        .await
-        .map_err(ApiError::from)?;
+    let cafes = osm::search_nearby(
+        &state.http_client,
+        &state.nominatim_url,
+        query.lat,
+        query.lng,
+        q,
+    )
+    .await
+    .map_err(ApiError::from)?;
     Ok(Json(cafes))
 }

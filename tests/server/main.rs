@@ -6,6 +6,7 @@ pub mod cafes_api;
 pub mod datastar;
 pub mod gear_api;
 pub mod helpers;
+pub mod nearby_api;
 pub mod roasters_api;
 pub mod roasts_api;
 pub mod timeline;

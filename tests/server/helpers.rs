@@ -37,6 +37,8 @@ pub struct TestApp {
     #[allow(dead_code)]
     pub token_repo: Option<Arc<dyn TokenRepository>>,
     pub auth_token: Option<String>,
+    #[allow(dead_code)]
+    pub mock_server: Option<wiremock::MockServer>,
 }
 
 impl TestApp {
@@ -72,6 +74,40 @@ pub async fn spawn_app() -> TestApp {
     let session_repo: Arc<dyn SessionRepository> =
         Arc::new(SqlSessionRepository::new(database.clone_pool()));
 
+    spawn_app_inner(
+        database,
+        roaster_repo,
+        roast_repo,
+        bag_repo,
+        gear_repo,
+        brew_repo,
+        cafe_repo,
+        timeline_repo,
+        user_repo,
+        token_repo,
+        session_repo,
+        brewlog::infrastructure::osm::NOMINATIM_SEARCH_URL.to_string(),
+        None,
+    )
+    .await
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn spawn_app_inner(
+    _database: Database,
+    roaster_repo: Arc<SqlRoasterRepository>,
+    roast_repo: Arc<SqlRoastRepository>,
+    bag_repo: Arc<SqlBagRepository>,
+    gear_repo: Arc<SqlGearRepository>,
+    brew_repo: Arc<SqlBrewRepository>,
+    cafe_repo: Arc<SqlCafeRepository>,
+    timeline_repo: Arc<SqlTimelineEventRepository>,
+    user_repo: Arc<dyn UserRepository>,
+    token_repo: Arc<dyn TokenRepository>,
+    session_repo: Arc<dyn SessionRepository>,
+    nominatim_url: String,
+    mock_server: Option<wiremock::MockServer>,
+) -> TestApp {
     // Create application state
     let state = AppState::new(
         roaster_repo.clone(),
@@ -85,6 +121,7 @@ pub async fn spawn_app() -> TestApp {
         token_repo.clone(),
         session_repo,
         reqwest::Client::new(),
+        nominatim_url,
     );
 
     // Create router
@@ -114,12 +151,63 @@ pub async fn spawn_app() -> TestApp {
         user_repo: Some(user_repo),
         token_repo: Some(token_repo),
         auth_token: None,
+        mock_server,
     }
 }
 
 pub async fn spawn_app_with_auth() -> TestApp {
-    let mut app = spawn_app().await;
+    let app = spawn_app().await;
+    add_auth_to_app(app).await
+}
 
+pub async fn spawn_app_with_nominatim_mock() -> TestApp {
+    let mock_server = wiremock::MockServer::start().await;
+    let nominatim_url = format!("{}/search", mock_server.uri());
+
+    let database = Database::connect("sqlite::memory:")
+        .await
+        .expect("Failed to connect to in-memory database");
+
+    database
+        .migrate()
+        .await
+        .expect("Failed to migrate database");
+
+    let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
+    let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
+    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
+    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
+    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
+    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
+    let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
+    let user_repo: Arc<dyn UserRepository> =
+        Arc::new(SqlUserRepository::new(database.clone_pool()));
+    let token_repo: Arc<dyn TokenRepository> =
+        Arc::new(SqlTokenRepository::new(database.clone_pool()));
+    let session_repo: Arc<dyn SessionRepository> =
+        Arc::new(SqlSessionRepository::new(database.clone_pool()));
+
+    let app = spawn_app_inner(
+        database,
+        roaster_repo,
+        roast_repo,
+        bag_repo,
+        gear_repo,
+        brew_repo,
+        cafe_repo,
+        timeline_repo,
+        user_repo,
+        token_repo,
+        session_repo,
+        nominatim_url,
+        Some(mock_server),
+    )
+    .await;
+
+    add_auth_to_app(app).await
+}
+
+async fn add_auth_to_app(mut app: TestApp) -> TestApp {
     // Create admin user with known password
     let password_hash = hash_password("test_password").expect("Failed to hash password");
     let admin_user = NewUser::new("admin".to_string(), password_hash);
