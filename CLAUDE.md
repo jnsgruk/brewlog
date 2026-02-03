@@ -56,9 +56,10 @@ The codebase follows **Clean Architecture / Domain-Driven Design** with four lay
 src/
 ├── domain/           # Pure business logic, no external dependencies
 │   ├── errors.rs     # RepositoryError enum
-│   ├── ids.rs        # Typed ID wrappers (RoasterId, RoastId, BagId)
+│   ├── ids.rs        # Typed ID wrappers (RoasterId, RoastId, BagId, BrewId, GearId, etc.)
+│   ├── listing.rs    # Pagination & sorting (SortKey, ListRequest, Page, PageSize)
 │   ├── repositories.rs  # Repository traits
-│   └── {entity}.rs   # Entity definitions (roasters, roasts, bags, etc.)
+│   └── {entity}.rs   # Entity definitions (roasters, roasts, bags, brews, gear, etc.)
 │
 ├── infrastructure/   # External integrations (database, HTTP client)
 │   ├── repositories/ # SQL implementations of repository traits
@@ -91,7 +92,13 @@ pub trait RoasterRepository {
 }
 ```
 
-SQL implementations live in `infrastructure/repositories/`.
+SQL implementations live in `infrastructure/repositories/`. Each uses a private `Record` struct (e.g., `BagRecord`) with a `to_domain()` method to convert from database row to domain entity:
+
+```rust
+impl BagRecord {
+    fn to_domain(self) -> Bag { ... }
+}
+```
 
 ### Typed IDs
 
@@ -180,11 +187,11 @@ When a Datastar request is detected, return a fragment instead of a full page:
 
 ```rust
 pub(crate) async fn roasters_page(...) -> Result<Response, StatusCode> {
-    let request = query.into_request::<RoasterSortKey>();
+    let (request, search) = query.into_request_and_search::<RoasterSortKey>();
 
     if is_datastar_request(&headers) {
         // Datastar request → return fragment only
-        return render_roaster_list_fragment(state, request, is_authenticated).await;
+        return render_roaster_list_fragment(state, request, search, is_authenticated).await;
     }
 
     // Traditional request → return full page with layout
@@ -254,11 +261,12 @@ navigator.sort_href(key)        // "/roasters?sort=name&dir=..."
 
 #### Flexible Payload Handling
 
-Handlers accept both JSON and form data via `FlexiblePayload<T>`:
+Handlers accept both JSON and form data via `FlexiblePayload<T>`. When form fields don't map directly to the domain `New*` struct (e.g., the form sends a roaster name that needs to be resolved to an ID), use a `*Submission` newtype that handles the conversion:
 
 ```rust
 pub(crate) async fn create_roaster(
-    payload: FlexiblePayload<NewRoaster>,
+    payload: FlexiblePayload<NewRoaster>,  // simple — form maps 1:1 to domain
+    // or: FlexiblePayload<NewBrewSubmission>  // submission type — needs conversion
 ) -> Result<Response, ApiError> {
     let (new_roaster, source) = payload.into_parts();
 
@@ -277,10 +285,13 @@ pub(crate) async fn create_roaster(
 For simple get/delete API handlers, use the macros in `application/routes/macros.rs`:
 
 ```rust
-use super::macros::{define_get_handler, define_delete_handler};
+use super::macros::{define_get_handler, define_enriched_get_handler, define_delete_handler};
 
 // GET /api/v1/roasters/:id → returns JSON
 define_get_handler!(get_roaster, RoasterId, Roaster, roaster_repo);
+
+// GET with enriched data (joins related entities) → returns JSON
+define_enriched_get_handler!(get_roast, RoastId, RoastWithRoaster, roast_repo, get_with_roaster);
 
 // DELETE /api/v1/roasters/:id → returns fragment for Datastar or 204 for API
 define_delete_handler!(
@@ -292,21 +303,39 @@ define_delete_handler!(
 );
 ```
 
+### Route Module Structure
+
+Each list-bearing route module (roasters, roasts, bags, gear, brews) follows the same internal structure:
+
+```rust
+// Path constants for full-page and fragment URLs
+const ROASTER_PAGE_PATH: &str = "/roasters";
+const ROASTER_FRAGMENT_PATH: &str = "/roasters#roaster-list";
+
+// Data loader — calls repo.list() and builds view models via build_page_view()
+async fn load_roaster_page(state, request, search)
+    -> Result<(Paginated<RoasterView>, ListNavigator<RoasterSortKey>), AppError>
+
+// Page handler — checks is_datastar_request(), returns full page or fragment
+pub(crate) async fn roasters_page(...) -> Result<Response, StatusCode>
+
+// Fragment renderer — returns just the list partial for Datastar replacement
+async fn render_roaster_list_fragment(state, request, search, is_authenticated)
+    -> Result<Response, AppError>
+```
+
+The `build_page_view()` helper in `application/routes/support.rs` standardises the conversion from a repo `Page<T>` to `(Paginated<V>, ListNavigator<K>)`:
+
+```rust
+let (items, navigator) = build_page_view(page, request, RoasterView::from,
+    ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, search);
+```
+
 ### Error Handling
 
 - Domain errors: `RepositoryError` in `domain/errors.rs`
 - HTTP errors: `AppError` in `application/errors.rs` with proper status code mapping
 - CLI errors: Use `anyhow::Result` for simplicity
-
-### Domain Conversion
-
-Records from the database should have an `into_domain()` method or equivalent:
-
-```rust
-impl BagRecord {
-    fn into_domain(self) -> Bag { ... }
-}
-```
 
 ## Table & List Patterns
 
