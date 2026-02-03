@@ -2,6 +2,7 @@ pub mod backup;
 pub mod bags;
 pub mod brews;
 pub mod cafes;
+pub mod cups;
 pub mod gear;
 mod macros;
 pub mod roasters;
@@ -15,6 +16,7 @@ use bags::BagCommands;
 use brews::BrewCommands;
 use cafes::CafeCommands;
 use clap::{Args, Parser, Subcommand};
+use cups::CupCommands;
 use gear::GearCommands;
 use roasters::RoasterCommands;
 use roasts::RoastCommands;
@@ -74,6 +76,12 @@ pub enum Commands {
     Cafe {
         #[command(subcommand)]
         command: CafeCommands,
+    },
+
+    /// Manage cups
+    Cup {
+        #[command(subcommand)]
+        command: CupCommands,
     },
 
     /// Manage API tokens
