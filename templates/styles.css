@@ -47,20 +47,21 @@ a {
 
 /* Timeline layout */
 
-/* Mobile: single column with line on left */
+/* Mobile: single column, centred line behind cards */
 .timeline-line {
-  left: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .timeline-item {
-  padding-left: 3rem;
+  padding-left: 0;
 }
 
 .timeline-node {
-  left: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
+  left: 50%;
+  top: -10px;
+  transform: translateX(-50%);
+  z-index: 2;
 }
 
 .timeline-heading {
@@ -166,15 +167,15 @@ a {
     flex-direction: column;
   }
 
-  .timeline-line {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
   .timeline-item {
     width: 50%;
-    padding-left: 0;
     padding-right: 0;
+  }
+
+  /* Reset node to side-of-card positioning on desktop */
+  .timeline-node {
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   /* Left side items (odd) - counts only .timeline-item children, skipping month headings */
@@ -186,6 +187,8 @@ a {
   .timeline-item:nth-child(odd of .timeline-item) .timeline-node {
     right: -10px;
     left: auto;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   /* Right side items (even) */
@@ -196,6 +199,8 @@ a {
 
   .timeline-item:nth-child(even of .timeline-item) .timeline-node {
     left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   /* Allow vertical overlap between alternating cards (skip first item) */
