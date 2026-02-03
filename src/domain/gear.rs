@@ -11,6 +11,8 @@ use super::listing::{SortDirection, SortKey};
 pub enum GearCategory {
     Grinder,
     Brewer,
+    #[serde(rename = "filter_paper")]
+    FilterPaper,
 }
 
 impl GearCategory {
@@ -18,6 +20,7 @@ impl GearCategory {
         match self {
             GearCategory::Grinder => "grinder",
             GearCategory::Brewer => "brewer",
+            GearCategory::FilterPaper => "filter_paper",
         }
     }
 
@@ -25,6 +28,7 @@ impl GearCategory {
         match self {
             GearCategory::Grinder => "Grinder",
             GearCategory::Brewer => "Brewer",
+            GearCategory::FilterPaper => "Filter Paper",
         }
     }
 }
@@ -36,6 +40,7 @@ impl FromStr for GearCategory {
         match s.to_lowercase().as_str() {
             "grinder" => Ok(GearCategory::Grinder),
             "brewer" => Ok(GearCategory::Brewer),
+            "filter_paper" => Ok(GearCategory::FilterPaper),
             _ => Err(()),
         }
     }

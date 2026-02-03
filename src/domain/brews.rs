@@ -12,6 +12,7 @@ pub struct Brew {
     pub grinder_id: GearId,
     pub grind_setting: f64,
     pub brewer_id: GearId,
+    pub filter_paper_id: Option<GearId>,
     pub water_volume: i32,
     pub water_temp: f64,
     pub created_at: DateTime<Utc>,
@@ -28,6 +29,7 @@ pub struct BrewWithDetails {
     pub roaster_slug: String,
     pub grinder_name: String,
     pub brewer_name: String,
+    pub filter_paper_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,6 +39,7 @@ pub struct NewBrew {
     pub grinder_id: GearId,
     pub grind_setting: f64,
     pub brewer_id: GearId,
+    pub filter_paper_id: Option<GearId>,
     pub water_volume: i32,
     pub water_temp: f64,
 }

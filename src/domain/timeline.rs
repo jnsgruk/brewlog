@@ -16,6 +16,7 @@ pub struct TimelineBrewData {
     pub bag_id: i64,
     pub grinder_id: i64,
     pub brewer_id: i64,
+    pub filter_paper_id: Option<i64>,
     pub coffee_weight: f64,
     pub grind_setting: f64,
     pub water_volume: i32,
