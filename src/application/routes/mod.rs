@@ -75,6 +75,8 @@ pub fn app_router(state: AppState) -> axum::Router {
                 .delete(cafes::delete_cafe),
         )
         .route("/nearby-cafes", get(cafes::nearby_cafes))
+        .route("/extract-roaster", post(roasters::extract_roaster))
+        .route("/extract-roast", post(roasts::extract_roast_info))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
         .route(
             "/cups/:id",

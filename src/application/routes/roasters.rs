@@ -14,6 +14,7 @@ use crate::application::server::AppState;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
+use crate::infrastructure::ai::{self, ExtractedRoaster, ExtractionInput};
 use crate::presentation::web::templates::{
     RoasterDetailTemplate, RoasterListTemplate, RoastersTemplate,
 };
@@ -69,6 +70,7 @@ pub(crate) async fn roasters_page(
     let template = RoastersTemplate {
         nav_active: "roasters",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         roasters,
         navigator,
     };
@@ -182,6 +184,24 @@ define_delete_handler!(
     roaster_repo,
     render_roaster_list_fragment
 );
+
+#[tracing::instrument(skip(state, _auth_user))]
+pub(crate) async fn extract_roaster(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    Json(input): Json<ExtractionInput>,
+) -> Result<Json<ExtractedRoaster>, ApiError> {
+    let api_key = state
+        .openrouter_api_key
+        .as_deref()
+        .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
+
+    let result = ai::extract_roaster(&state.http_client, api_key, &state.openrouter_model, &input)
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(result))
+}
 
 define_list_fragment_renderer!(
     render_roaster_list_fragment,

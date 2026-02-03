@@ -127,6 +127,8 @@ async fn spawn_app_inner(
         session_repo,
         reqwest::Client::new(),
         nominatim_url,
+        None,
+        "openrouter/free".to_string(),
     );
 
     // Create router

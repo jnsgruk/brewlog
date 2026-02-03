@@ -18,6 +18,7 @@ use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};
+use crate::infrastructure::ai::{self, ExtractedRoast, ExtractionInput};
 use crate::presentation::web::templates::{
     RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
 };
@@ -75,6 +76,7 @@ pub(crate) async fn roasts_page(
     let template = RoastsTemplate {
         nav_active: "roasts",
         is_authenticated,
+        has_ai_extract: state.has_ai_extract(),
         roasts,
         roaster_options,
         navigator,
@@ -336,6 +338,24 @@ impl TastingNotesInput {
                 .collect(),
         }
     }
+}
+
+#[tracing::instrument(skip(state, _auth_user))]
+pub(crate) async fn extract_roast_info(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    Json(input): Json<ExtractionInput>,
+) -> Result<Json<ExtractedRoast>, ApiError> {
+    let api_key = state
+        .openrouter_api_key
+        .as_deref()
+        .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
+
+    let result = ai::extract_roast(&state.http_client, api_key, &state.openrouter_model, &input)
+        .await
+        .map_err(ApiError::from)?;
+
+    Ok(Json(result))
 }
 
 define_list_fragment_renderer!(

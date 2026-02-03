@@ -114,6 +114,16 @@ pub struct ServeCommand {
 
     #[arg(long, env = "BREWLOG_ADMIN_USERNAME")]
     pub admin_username: Option<String>,
+
+    #[arg(long, env = "BREWLOG_OPENROUTER_API_KEY")]
+    pub openrouter_api_key: Option<String>,
+
+    #[arg(
+        long,
+        env = "BREWLOG_OPENROUTER_MODEL",
+        default_value = "openrouter/free"
+    )]
+    pub openrouter_model: String,
 }
 
 pub(crate) fn print_json<T>(value: &T) -> anyhow::Result<()>

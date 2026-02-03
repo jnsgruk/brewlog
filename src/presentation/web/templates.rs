@@ -19,6 +19,7 @@ use crate::domain::timeline::TimelineSortKey;
 pub struct RoastersTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub roasters: Paginated<RoasterView>,
     pub navigator: ListNavigator<RoasterSortKey>,
 }
@@ -45,6 +46,7 @@ pub struct RoasterDetailTemplate {
 pub struct RoastsTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub has_ai_extract: bool,
     pub roasts: Paginated<RoastView>,
     pub roaster_options: Vec<RoasterOptionView>,
     pub navigator: ListNavigator<RoastSortKey>,

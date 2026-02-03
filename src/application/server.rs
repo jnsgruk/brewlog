@@ -32,6 +32,8 @@ pub struct ServerConfig {
     pub database_url: String,
     pub admin_password: Option<String>,
     pub admin_username: Option<String>,
+    pub openrouter_api_key: Option<String>,
+    pub openrouter_model: String,
 }
 
 #[derive(Clone)]
@@ -49,6 +51,8 @@ pub struct AppState {
     pub session_repo: Arc<dyn SessionRepository>,
     pub http_client: reqwest::Client,
     pub nominatim_url: String,
+    pub openrouter_api_key: Option<String>,
+    pub openrouter_model: String,
 }
 
 impl AppState {
@@ -67,6 +71,8 @@ impl AppState {
         session_repo: Arc<dyn SessionRepository>,
         http_client: reqwest::Client,
         nominatim_url: String,
+        openrouter_api_key: Option<String>,
+        openrouter_model: String,
     ) -> Self {
         Self {
             roaster_repo,
@@ -82,7 +88,13 @@ impl AppState {
             session_repo,
             http_client,
             nominatim_url,
+            openrouter_api_key,
+            openrouter_model,
         }
+    }
+
+    pub fn has_ai_extract(&self) -> bool {
+        self.openrouter_api_key.is_some()
     }
 }
 
@@ -124,6 +136,8 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         session_repo,
         reqwest::Client::new(),
         crate::infrastructure::osm::NOMINATIM_SEARCH_URL.to_string(),
+        config.openrouter_api_key,
+        config.openrouter_model,
     );
 
     let listener = TcpListener::bind(config.bind_address)
