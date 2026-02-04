@@ -28,7 +28,48 @@ pub struct StatsView {
     pub gear: u64,
 }
 
+use chrono::{DateTime, Utc};
+
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
+
+fn relative_date(dt: DateTime<Utc>) -> String {
+    let now = Utc::now();
+    let delta = now.signed_duration_since(dt);
+    let secs = delta.num_seconds();
+
+    if secs < 60 {
+        return "Just now".to_string();
+    }
+
+    let mins = delta.num_minutes();
+    if mins < 60 {
+        return format!("{mins}m ago");
+    }
+
+    let hours = delta.num_hours();
+    if hours < 24 {
+        return format!("{hours}h ago");
+    }
+
+    let days = delta.num_days();
+    if days == 1 {
+        return "Yesterday".to_string();
+    }
+    if days < 7 {
+        return format!("{days}d ago");
+    }
+
+    let weeks = days / 7;
+    if days < 30 {
+        return format!("{weeks}w ago");
+    }
+
+    if dt.format("%Y").to_string() == now.format("%Y").to_string() {
+        dt.format("%b %d").to_string()
+    } else {
+        dt.format("%b %d, %Y").to_string()
+    }
+}
 
 pub struct Paginated<T> {
     pub items: Vec<T>,

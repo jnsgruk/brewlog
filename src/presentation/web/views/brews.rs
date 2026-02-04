@@ -1,5 +1,7 @@
 use crate::domain::brews::{Brew, BrewWithDetails};
 
+use super::relative_date;
+
 #[derive(Clone)]
 pub struct BrewView {
     pub id: String,
@@ -20,6 +22,7 @@ pub struct BrewView {
     pub water_temp: String,
     pub ratio: String,
     pub created_at: String,
+    pub relative_date_label: String,
     // Raw values for "brew again" feature
     pub coffee_weight_raw: f64,
     pub grind_setting_raw: f64,
@@ -60,6 +63,7 @@ impl BrewView {
             water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
             ratio,
             created_at: brew.brew.created_at.format("%Y-%m-%d %H:%M").to_string(),
+            relative_date_label: relative_date(brew.brew.created_at),
             coffee_weight_raw: brew.brew.coffee_weight,
             grind_setting_raw: brew.brew.grind_setting,
             water_volume_raw: brew.brew.water_volume,

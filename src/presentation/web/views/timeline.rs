@@ -1,5 +1,7 @@
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
+use super::relative_date;
+
 #[derive(Clone)]
 pub struct TimelineEventDetailView {
     pub label: String,
@@ -25,6 +27,7 @@ pub struct TimelineEventView {
     pub id: String,
     pub kind_label: &'static str,
     pub date_label: String,
+    pub relative_date_label: String,
     pub time_label: Option<String>,
     pub iso_timestamp: String,
     pub title: String,
@@ -116,6 +119,7 @@ impl TimelineEventView {
             id: id.to_string(),
             kind_label,
             date_label: occurred_at.format("%B %d, %Y").to_string(),
+            relative_date_label: relative_date(occurred_at),
             time_label: Some(occurred_at.format("%H:%M UTC").to_string()),
             iso_timestamp: occurred_at.to_rfc3339(),
             title,
