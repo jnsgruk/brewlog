@@ -1,9 +1,8 @@
+{% import "partials/icons.html" as icons %}
 <h2 id="{{ month.anchor }}" class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-amber-800" data-timeline-month>
   {{ month.heading }}
   <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
-    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path fill-rule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" />
-    </svg>
+    {% call icons::arrow_up("h-5 w-5") %}
   </button>
 </h2>
 {% for event in month.events %}
@@ -37,16 +36,7 @@
         rel="noreferrer noopener"
         aria-label="Open external link"
       >
-        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path
-            fill-rule="evenodd"
-            d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
-            clip-rule="evenodd"
-          />
-          <path
-            d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
-          />
-        </svg>
+        {% call icons::external_link("h-3.5 w-3.5") %}
         <span class="sr-only">Open external link</span>
       </a>
       {% endif %}
@@ -72,13 +62,7 @@
           title="Brew again"
         >
           <span class="sr-only">Brew again</span>
-          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path
-              fill-rule="evenodd"
-              d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0v2.43l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389 5.5 5.5 0 0 1 9.2-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.22Z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          {% call icons::refresh("h-4 w-4") %}
         </button>
       </form>
       {% endif %}

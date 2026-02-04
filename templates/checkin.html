@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Brewlog · Check In{% endblock %}
+{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Check In{% endblock %}
 
 {% block head %}
 <script>
@@ -76,9 +76,7 @@ function locateUser() {
     style="display: none"
   >
     <div class="flex items-center gap-2">
-      <svg class="h-4 w-4 text-amber-600 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5Z" clip-rule="evenodd" />
-      </svg>
+      {% call icons::location("h-4 w-4 text-amber-600 shrink-0") %}
       <span class="font-medium text-amber-800" data-text="$_cafeName"></span>
       <span class="text-xs text-stone-500" data-show="$_cafeCity" data-text="$_cafeCity" style="display: none"></span>
     </div>
@@ -96,9 +94,7 @@ function locateUser() {
     style="display: none"
   >
     <div class="flex items-center gap-2">
-      <svg class="h-4 w-4 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M2 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2h2a3 3 0 0 1 0 6h-1.1A5.002 5.002 0 0 1 14 16H6a5 5 0 0 1-5-5V6Zm16 4h2a1 1 0 1 0 0-2h-2v2ZM4 20a1 1 0 0 1 1-1h10a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd" />
-      </svg>
+      {% call icons::bag("h-4 w-4 text-amber-600 shrink-0") %}
       <span class="font-medium text-amber-800" data-text="$_roastName"></span>
       <span class="text-xs text-stone-500" data-show="$_roasterName" data-text="$_roasterName" style="display: none"></span>
     </div>
@@ -155,16 +151,11 @@ function locateUser() {
           class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-4 py-2.5 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
           data-attr:disabled="$_locating || $_locationFound"
         >
-          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5Z" clip-rule="evenodd" />
-          </svg>
+          {% call icons::location("h-4 w-4") %}
           <span data-text="$_locating ? 'Locating\u2026' : $_locationFound ? 'Location found' : 'Use My Location'">Use My Location</span>
         </button>
         <div data-show="!$_searchByCity && $_locating" style="display: none">
-          <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
+          {% call icons::spinner("h-5 w-5") %}
         </div>
         <input
           type="text"
@@ -281,9 +272,7 @@ function locateUser() {
               onclick="document.getElementById('checkin-photo').click()"
               class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-4 py-2.5 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
             >
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-              </svg>
+              {% call icons::camera("h-5 w-5") %}
               Scan Bag
             </button>
             <span class="text-xs text-stone-400">or</span>
@@ -312,10 +301,7 @@ function locateUser() {
         data-show="$_scanWaiting"
         style="display: none"
       >
-        <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
+        {% call icons::spinner("h-5 w-5") %}
         Scanning &amp; saving&hellip;
       </div>
 
@@ -356,9 +342,7 @@ function locateUser() {
           data-class:text-stone-300="$_rating < {{ i }}"
           aria-label="Rate {{ i }} stars"
         >
-          <svg class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
-          </svg>
+          {% call icons::star("h-8 w-8") %}
         </button>
         {% endfor %}
       </div>

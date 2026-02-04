@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Brewlog · Roaster · {{ roaster.name }}{% endblock %} {%
+{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Roaster · {{ roaster.name }}{% endblock %} {%
 block content %}
 <header class="flex flex-col gap-2">
   <h1 class="text-3xl font-semibold">{{ roaster.name }}</h1>
@@ -25,16 +25,7 @@ block content %}
           rel="noreferrer noopener"
           aria-label="Visit {{ roaster.name }} homepage"
         >
-          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path
-              fill-rule="evenodd"
-              d="M11.3 2a.7.7 0 0 0 0 1.4h3.3l-8.1 8.1a.7.7 0 1 0 1 1l8.1-8.1v3.3a.7.7 0 1 0 1.4 0V2.7A.7.7 0 0 0 16.3 2h-5Z"
-              clip-rule="evenodd"
-            />
-            <path
-              d="M4.7 5.2a1.5 1.5 0 0 1 1.5-1.5h2.1a.7.7 0 1 0 0-1.4H6.2a2.9 2.9 0 0 0-2.9 2.9v7.6a2.9 2.9 0 0 0 2.9 2.9h7.6a2.9 2.9 0 0 0 2.9-2.9v-2.1a.7.7 0 1 0-1.4 0v2.1a1.5 1.5 0 0 1-1.5 1.5H6.1a1.5 1.5 0 0 1-1.5-1.5V5.2Z"
-            />
-          </svg>
+          {% call icons::external_link("h-4 w-4") %}
           <span>Visit</span>
         </a>
         {% else %}

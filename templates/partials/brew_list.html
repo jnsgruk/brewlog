@@ -1,4 +1,5 @@
 {% import "partials/table.html" as table %}
+{% import "partials/icons.html" as icons %}
 
 <div id="brew-list" class="mt-6" data-star-scope="brews">
   {% if brews.items.is_empty() && !navigator.has_search() %}
@@ -92,13 +93,7 @@
                     title="Brew again"
                   >
                     <span class="sr-only">Brew again</span>
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path
-                        fill-rule="evenodd"
-                        d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0v2.43l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389 5.5 5.5 0 0 1 9.2-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.22Z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    {% call icons::refresh("h-4 w-4") %}
                   </button>
                 </form>
                 <button
@@ -108,13 +103,7 @@
                   data-on:click="confirm('Delete this brew?') && @delete('/api/v1/brews/{{ brew.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#brew-list', mode: 'replace'}})"
                 >
                   <span class="sr-only">Delete</span>
-                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path
-                      fill-rule="evenodd"
-                      d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1H15a1 1 0 1 1 0 2h-.4l-.74 10.36A2 2 0 0 1 11.87 17H8.13a2 2 0 0 1-1.99-1.64L5.4 5H5a1 1 0 1 1 0-2h2.5Zm.9 4.5a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm3.4 0a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
+                  {% call icons::delete("h-4 w-4") %}
                 </button>
               </div>
             </td>

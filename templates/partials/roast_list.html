@@ -1,4 +1,5 @@
 {% import "partials/table.html" as table %}
+{% import "partials/icons.html" as icons %}
 
 <div id="roast-list" class="mt-6" data-star-scope="roasts">
   {% if roasts.items.is_empty() && !navigator.has_search() %}
@@ -73,13 +74,7 @@
                 data-on:click="confirm('Delete this roast?') && @delete('/api/v1/roasts/{{ roast.full_id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
               >
                 <span class="sr-only">Delete</span>
-                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1H15a1 1 0 1 1 0 2h-.4l-.74 10.36A2 2 0 0 1 11.87 17H8.13a2 2 0 0 1-1.99-1.64L5.4 5H5a1 1 0 1 1 0-2h2.5Zm.9 4.5a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm3.4 0a.75.75 0 0 1 .75.75v6a.75.75 0 1 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                {% call icons::delete("h-4 w-4") %}
               </button>
             </td>
             {% endif %}
