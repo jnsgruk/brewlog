@@ -274,7 +274,7 @@
     {% for event in recent_events %}
     <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <span class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800">{{ event.kind_label }}</span>
+        <span class="inline-flex w-24 shrink-0 items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800">{{ event.kind_label }}</span>
         <a href="{{ event.link }}" class="truncate font-medium text-stone-700 hover:text-amber-600 text-sm">{{ event.title }}</a>
       </div>
       <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ event.date_label }}</time>
