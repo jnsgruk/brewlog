@@ -20,7 +20,6 @@ const SESSION_COOKIE_NAME: &str = "brewlog_session";
 struct LoginTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
-    has_ai_extract: bool,
     error: Option<String>,
 }
 
@@ -43,7 +42,7 @@ pub(crate) async fn login_page(
     let template = LoginTemplate {
         nav_active: "login",
         is_authenticated: false,
-        has_ai_extract: false,
+
         error: None,
     };
 
@@ -132,7 +131,7 @@ fn show_login_error(message: &str) -> Result<Response, StatusCode> {
     let template = LoginTemplate {
         nav_active: "login",
         is_authenticated: false,
-        has_ai_extract: false,
+
         error: Some(message.to_string()),
     };
 

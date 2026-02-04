@@ -38,7 +38,6 @@
   data-signals:_scan-submitting="false"
   data-signals:_scan-error="''"
 >
-  {% if has_ai_extract %}
   <button
     type="button"
     data-on:click="$_showScan = !$_showScan; !$_showScan && ($_scanExtracted = false, $_extracting = false, $_extractError = '', $_scanError = '')"
@@ -49,7 +48,6 @@
     </svg>
     Scan Bag
   </button>
-  {% endif %}
   <a
     href="/check-in"
     class="flex items-center justify-center gap-3 rounded-lg border-2 border-amber-500 px-6 py-5 text-lg font-semibold text-amber-700 shadow-sm transition hover:bg-amber-50"
@@ -63,7 +61,6 @@
 </section>
 
 <!-- Inline Scan Section (hidden by default) -->
-{% if has_ai_extract %}
 <section data-show="$_showScan" style="display: none"
   data-signals:_roaster-name="''"
   data-signals:_roaster-country="''"
@@ -210,7 +207,6 @@
     </form>
   </div>
 </section>
-{% endif %}
 {% endif %}
 
 <!-- Last Brew -->

@@ -76,7 +76,6 @@ pub(crate) async fn roasts_page(
     let template = RoastsTemplate {
         nav_active: "roasts",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
         roasts,
         roaster_options,
         navigator,
@@ -121,7 +120,6 @@ pub(crate) async fn roast_page(
     let template = RoastDetailTemplate {
         nav_active: "roasts",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
         roast: RoastView::from_domain(roast, &roaster.name, &roaster.slug),
         bags: bag_views,
     };
@@ -348,15 +346,15 @@ pub(crate) async fn extract_roast_info(
     headers: HeaderMap,
     payload: FlexiblePayload<ExtractionInput>,
 ) -> Result<Response, ApiError> {
-    let api_key = state
-        .openrouter_api_key
-        .as_deref()
-        .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
-
     let (input, _) = payload.into_parts();
-    let result = ai::extract_roast(&state.http_client, api_key, &state.openrouter_model, &input)
-        .await
-        .map_err(ApiError::from)?;
+    let result = ai::extract_roast(
+        &state.http_client,
+        &state.openrouter_api_key,
+        &state.openrouter_model,
+        &input,
+    )
+    .await
+    .map_err(ApiError::from)?;
 
     if is_datastar_request(&headers) {
         use serde_json::Value;

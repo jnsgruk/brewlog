@@ -74,7 +74,6 @@ pub(crate) async fn cups_page(
     let template = CupsTemplate {
         nav_active: "cups",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
         cups,
         roast_options,
         cafe_options,

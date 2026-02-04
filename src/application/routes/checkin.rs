@@ -32,8 +32,6 @@ pub(crate) async fn checkin_page(
     let template = CheckInTemplate {
         nav_active: "home",
         is_authenticated: true,
-        has_ai_extract: state.has_ai_extract(),
-        has_foursquare: state.has_foursquare(),
         roast_options,
         cafe_options,
     };

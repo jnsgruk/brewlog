@@ -21,15 +21,15 @@ pub(crate) async fn extract_bag_scan(
     headers: HeaderMap,
     payload: FlexiblePayload<ExtractionInput>,
 ) -> Result<Response, ApiError> {
-    let api_key = state
-        .openrouter_api_key
-        .as_deref()
-        .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
-
     let (input, _) = payload.into_parts();
-    let result = ai::extract_bag_scan(&state.http_client, api_key, &state.openrouter_model, &input)
-        .await
-        .map_err(ApiError::from)?;
+    let result = ai::extract_bag_scan(
+        &state.http_client,
+        &state.openrouter_api_key,
+        &state.openrouter_model,
+        &input,
+    )
+    .await
+    .map_err(ApiError::from)?;
 
     if is_datastar_request(&headers) {
         use serde_json::Value;
@@ -128,18 +128,18 @@ async fn extract_into_submission(
     state: &AppState,
     submission: &mut BagScanSubmission,
 ) -> Result<(), ApiError> {
-    let api_key = state
-        .openrouter_api_key
-        .as_deref()
-        .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
-
     let input = ExtractionInput {
         image: submission.image.take(),
         prompt: submission.prompt.take(),
     };
-    let result = ai::extract_bag_scan(&state.http_client, api_key, &state.openrouter_model, &input)
-        .await
-        .map_err(ApiError::from)?;
+    let result = ai::extract_bag_scan(
+        &state.http_client,
+        &state.openrouter_api_key,
+        &state.openrouter_model,
+        &input,
+    )
+    .await
+    .map_err(ApiError::from)?;
 
     if let Some(name) = result.roaster.name {
         submission.roaster_name = name;

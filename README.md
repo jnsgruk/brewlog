@@ -20,13 +20,17 @@ B{rew}log ships as one executable. You decide whether it acts as a server or a c
 
 ### First-time setup
 
-On first start, you must set an admin username and password via the `BREWLOG_ADMIN_USERNAME` and `BREWLOG_ADMIN_PASSWORD` environment variables:
+The server requires `BREWLOG_OPENROUTER_API_KEY` and `BREWLOG_FOURSQUARE_API_KEY` to be set. On first start, you must also set an admin username and password:
 
 ```bash
-BREWLOG_ADMIN_USERNAME="admin" BREWLOG_ADMIN_PASSWORD="your-secure-password" brewlog serve
+BREWLOG_ADMIN_USERNAME="admin" \
+BREWLOG_ADMIN_PASSWORD="your-secure-password" \
+BREWLOG_OPENROUTER_API_KEY="sk-or-..." \
+BREWLOG_FOURSQUARE_API_KEY="fsq3..." \
+brewlog serve
 ```
 
-This creates the admin user in the database. On subsequent starts, the environment variables are not required.
+This creates the admin user in the database. On subsequent starts, the admin environment variables are not required.
 
 ### Authentication
 
@@ -154,27 +158,28 @@ All configuration is via environment variables or CLI flags. A `.env` file in th
 | `BREWLOG_URL` | Server URL for CLI commands | `http://127.0.0.1:3000` |
 | `BREWLOG_TOKEN` | API token for authenticated CLI operations | — |
 
-### Optional Integrations
+### Integrations
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `BREWLOG_OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/) API key — enables AI extraction | — |
+| `BREWLOG_OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/) API key for AI extraction | — (required) |
 | `BREWLOG_OPENROUTER_MODEL` | LLM model for AI extraction | `openrouter/free` |
-| `BREWLOG_FOURSQUARE_API_KEY` | [Foursquare](https://foursquare.com/) Places API key — enables nearby cafe search | — |
+| `BREWLOG_FOURSQUARE_API_KEY` | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search | — (required) |
 
-## Optional Features
+## Integrations
 
 ### AI Extraction
 
-When `BREWLOG_OPENROUTER_API_KEY` is configured, the web UI gains the ability to extract roaster and roast details from photos or text descriptions using an LLM. This powers:
+The web UI uses an LLM via [OpenRouter](https://openrouter.ai/) to extract roaster and roast details from photos or text descriptions. `BREWLOG_OPENROUTER_API_KEY` is required. It powers:
 
 - Photo extraction buttons on the roaster and roast forms
 - Text-based extraction from typed descriptions
-- The **/scan** page, which extracts both roaster and roast data from a single coffee bag label photo
+- The **Scan Bag** feature on the home page, which extracts both roaster and roast data from a single coffee bag label photo
+- The **Scan Bag** feature on the check-in page, which identifies a roast from a bag photo
 
 ### Nearby Cafe Search
 
-When `BREWLOG_FOURSQUARE_API_KEY` is configured, the cafes page can search for nearby coffee shops via the Foursquare Places API. Searches can be made by GPS coordinates or city name.
+The check-in and cafes pages search for nearby coffee shops via the [Foursquare Places API](https://docs.foursquare.com/developer/reference/place-search). `BREWLOG_FOURSQUARE_API_KEY` is required. Searches can be made by GPS coordinates or city name.
 
 ## Database
 

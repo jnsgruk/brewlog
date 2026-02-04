@@ -79,14 +79,28 @@ async fn main() -> Result<()> {
 }
 
 async fn run_server(command: ServeCommand) -> Result<()> {
+    let openrouter_api_key = command.openrouter_api_key.ok_or_else(|| {
+        anyhow::anyhow!(
+            "BREWLOG_OPENROUTER_API_KEY is required. Set this environment variable \
+             to your OpenRouter API key for AI-powered extraction features."
+        )
+    })?;
+
+    let foursquare_api_key = command.foursquare_api_key.ok_or_else(|| {
+        anyhow::anyhow!(
+            "BREWLOG_FOURSQUARE_API_KEY is required. Set this environment variable \
+             to your Foursquare API key for nearby cafe search."
+        )
+    })?;
+
     let config = ServerConfig {
         bind_address: command.bind_address,
         database_url: command.database_url,
         admin_password: command.admin_password,
         admin_username: command.admin_username,
-        openrouter_api_key: command.openrouter_api_key,
+        openrouter_api_key,
         openrouter_model: command.openrouter_model,
-        foursquare_api_key: command.foursquare_api_key,
+        foursquare_api_key,
     };
 
     serve(config).await

@@ -33,7 +33,6 @@
       </p>
     </div>
 
-    {% if has_ai_extract %}
     <!-- Hidden file input — minimal JS for FileReader API -->
     <input type="file" id="roaster-photo" accept="image/*" capture="environment" class="hidden"
       onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('roaster-image').value=r.result;document.getElementById('roaster-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
@@ -80,7 +79,6 @@
       </div>
       <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
     </form>
-    {% endif %}
 
     <form
       id="roaster-form"

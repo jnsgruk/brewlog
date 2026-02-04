@@ -32,9 +32,9 @@ pub struct ServerConfig {
     pub database_url: String,
     pub admin_password: Option<String>,
     pub admin_username: Option<String>,
-    pub openrouter_api_key: Option<String>,
+    pub openrouter_api_key: String,
     pub openrouter_model: String,
-    pub foursquare_api_key: Option<String>,
+    pub foursquare_api_key: String,
 }
 
 #[derive(Clone)]
@@ -52,8 +52,8 @@ pub struct AppState {
     pub session_repo: Arc<dyn SessionRepository>,
     pub http_client: reqwest::Client,
     pub foursquare_url: String,
-    pub foursquare_api_key: Option<String>,
-    pub openrouter_api_key: Option<String>,
+    pub foursquare_api_key: String,
+    pub openrouter_api_key: String,
     pub openrouter_model: String,
 }
 
@@ -73,8 +73,8 @@ impl AppState {
         session_repo: Arc<dyn SessionRepository>,
         http_client: reqwest::Client,
         foursquare_url: String,
-        foursquare_api_key: Option<String>,
-        openrouter_api_key: Option<String>,
+        foursquare_api_key: String,
+        openrouter_api_key: String,
         openrouter_model: String,
     ) -> Self {
         Self {
@@ -95,14 +95,6 @@ impl AppState {
             openrouter_api_key,
             openrouter_model,
         }
-    }
-
-    pub fn has_ai_extract(&self) -> bool {
-        self.openrouter_api_key.is_some()
-    }
-
-    pub fn has_foursquare(&self) -> bool {
-        self.foursquare_api_key.is_some()
     }
 }
 

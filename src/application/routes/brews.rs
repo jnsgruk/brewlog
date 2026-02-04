@@ -186,7 +186,6 @@ pub(crate) async fn brews_page(
     let template = BrewsTemplate {
         nav_active: "brews",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
         brews,
         bag_options,
         grinder_options,

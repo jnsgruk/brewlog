@@ -31,8 +31,6 @@ pub(crate) async fn home_page(
     let template = HomeTemplate {
         nav_active: "home",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
-        has_foursquare: state.has_foursquare(),
         last_brew: content.last_brew,
         open_bags: content.open_bags,
         recent_events: content.recent_events,

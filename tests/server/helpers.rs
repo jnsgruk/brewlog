@@ -90,7 +90,7 @@ pub async fn spawn_app() -> TestApp {
         token_repo,
         session_repo,
         brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
-        None,
+        String::new(),
         None,
     )
     .await
@@ -111,7 +111,7 @@ async fn spawn_app_inner(
     token_repo: Arc<dyn TokenRepository>,
     session_repo: Arc<dyn SessionRepository>,
     foursquare_url: String,
-    foursquare_api_key: Option<String>,
+    foursquare_api_key: String,
     mock_server: Option<wiremock::MockServer>,
 ) -> TestApp {
     // Create application state
@@ -130,7 +130,7 @@ async fn spawn_app_inner(
         reqwest::Client::new(),
         foursquare_url,
         foursquare_api_key,
-        None,
+        String::new(),
         "openrouter/free".to_string(),
     );
 
@@ -212,7 +212,7 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
         token_repo,
         session_repo,
         foursquare_url,
-        Some("test-api-key".to_string()),
+        "test-api-key".to_string(),
         Some(mock_server),
     )
     .await;

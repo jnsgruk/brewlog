@@ -429,7 +429,6 @@ Each extraction-enabled page uses this structure:
 
 ```html
 <section data-signals:_extracting="false" data-signals:_extract-error="''" data-signals:_submitting="false">
-  {% if has_ai_extract %}
   <!-- Hidden file input — only JS needed (FileReader API) -->
   <input type="file" id="{id}-photo" accept="image/*" capture="environment" class="hidden"
     onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{
@@ -452,7 +451,6 @@ Each extraction-enabled page uses this structure:
     <div data-show="$_extracting" style="display:none"><!-- spinner --></div>
     <p data-show="$_extractError" data-text="$_extractError" style="display:none"></p>
   </form>
-  {% endif %}
 
   <!-- Main form with data-bind fields -->
   <form data-on:submit="$_submitting = true; @post(...)">
@@ -468,7 +466,7 @@ The only inline JS is the `onchange` handler for FileReader (reading photos as d
 
 The cafes page uses the [Foursquare Places API](https://docs.foursquare.com/developer/reference/place-search) to search for nearby cafes. The integration lives in `infrastructure/foursquare.rs`.
 
-**Configuration**: Set `BREWLOG_FOURSQUARE_API_KEY` (a Foursquare service API key). The nearby search feature is only available when this key is configured.
+**Configuration**: Set `BREWLOG_FOURSQUARE_API_KEY` (a Foursquare service API key).
 
 **Search modes** via the `SearchLocation` enum:
 

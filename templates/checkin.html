@@ -1,7 +1,6 @@
 {% extends "base.html" %} {% block title %}Brewlog · Check In{% endblock %}
 
 {% block head %}
-{% if has_foursquare %}
 <script>
 function locateUser() {
   const root = document.getElementById('checkin-root');
@@ -30,7 +29,6 @@ function locateUser() {
   );
 }
 </script>
-{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -60,11 +58,9 @@ function locateUser() {
   data-signals:_reviewing-cafe="false"
   data-signals:_scan-waiting="false"
   data-signals:_scan-success="''"
-  {% if has_foursquare %}
   data-on:location-found="$_locating = false; $_locationFound = true; $_userLat = evt.detail.lat; $_userLng = evt.detail.lng; @get('/api/v1/nearby-cafes?lat=' + evt.detail.lat + '&lng=' + evt.detail.lng + '&q=coffee', {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
   data-on:location-error="$_locating = false; $_error = evt.detail.message"
   data-on:location-start="$_locating = true"
-  {% endif %}
 >
   <header class="flex flex-col gap-2">
     <h1 class="text-3xl font-semibold">Check In</h1>
@@ -151,7 +147,6 @@ function locateUser() {
   <!-- Step 1: Cafe selection -->
   <div class="mt-4" data-show="$_step === 1" style="display: none">
     <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
-      {% if has_foursquare %}
       <div class="flex flex-wrap items-center gap-3 mb-4" data-show="!$_reviewingCafe">
         <button
           type="button"
@@ -185,7 +180,6 @@ function locateUser() {
           Search by city
         </label>
       </div>
-      {% endif %}
 
       <input
         type="text"
@@ -193,13 +187,10 @@ function locateUser() {
         data-show="!$_reviewingCafe"
         class="input-field w-full text-sm"
         placeholder="Search for a cafe&hellip;"
-        {% if has_foursquare %}
         data-on:input__debounce.350ms="if ($_searchByCity) { $_cityName.length >= 2 && $_cafeSearch.length >= 2 && @get('/api/v1/nearby-cafes?near=' + encodeURIComponent($_cityName) + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}}) } else { $_locationFound && @get('/api/v1/nearby-cafes?lat=' + $_userLat + '&lng=' + $_userLng + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}}) }"
-        {% endif %}
       />
 
-      {% if has_foursquare %}
-      <!-- Foursquare results (replaced by server fragment) -->
+      <!-- Nearby results (replaced by server fragment) -->
       <div data-show="!$_reviewingCafe" id="nearby-results" class="hidden mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white"></div>
 
       <!-- Review form for new cafe from Foursquare -->
@@ -245,7 +236,6 @@ function locateUser() {
           </button>
         </div>
       </div>
-      {% endif %}
 
       <!-- Saved cafes -->
       {% if !cafe_options.is_empty() %}
@@ -270,7 +260,6 @@ function locateUser() {
     <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
       <h3 class="text-base font-semibold text-amber-700 mb-3">What are you drinking?</h3>
 
-      {% if has_ai_extract %}
       <div data-show="!$_scanWaiting && !$_scanSuccess" style="display: none" class="mb-4">
         <p class="text-sm text-stone-600 mb-3">Scan a bag to identify the coffee, or select from your existing roasts below.</p>
 
@@ -340,9 +329,6 @@ function locateUser() {
 
       <div class="border-t border-amber-200 pt-3">
         <p class="text-xs text-stone-500 mb-2">Or select an existing roast:</p>
-      {% else %}
-      <div>
-      {% endif %}
         <select
           class="input-field w-full text-sm"
           data-on:change="$_roastId = el.value; $_roastName = el.options[el.selectedIndex].dataset.name || ''; $_roasterName = el.options[el.selectedIndex].dataset.roaster || ''; el.value && ($_step = 3)"

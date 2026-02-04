@@ -71,7 +71,6 @@ pub(crate) async fn cafes_page(
     let template = CafesTemplate {
         nav_active: "cafes",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
         cafes,
         navigator,
     };
@@ -97,7 +96,6 @@ pub(crate) async fn cafe_page(
     let template = CafeDetailTemplate {
         nav_active: "cafes",
         is_authenticated,
-        has_ai_extract: state.has_ai_extract(),
         cafe: cafe_view,
     };
 
@@ -227,15 +225,10 @@ pub(crate) async fn nearby_cafes(
         foursquare::SearchLocation::Coordinates { lat, lng }
     };
 
-    let api_key = state
-        .foursquare_api_key
-        .as_deref()
-        .ok_or_else(|| AppError::unexpected("Foursquare API key not configured"))?;
-
     let cafes = foursquare::search_nearby(
         &state.http_client,
         &state.foursquare_url,
-        api_key,
+        &state.foursquare_api_key,
         &location,
         q,
     )
