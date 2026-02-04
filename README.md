@@ -130,8 +130,8 @@ brewlog brew <cmd>         Manage brews (add, list, get, delete — no update)
 brewlog cafe <cmd>         Manage cafes
 brewlog cup <cmd>          Manage cups (cafe visits with ratings)
 brewlog token <cmd>        Manage API tokens (create, list, revoke)
-brewlog backup             Export all data to JSON on stdout
-brewlog restore --file F   Restore data from a JSON backup into an empty database
+brewlog backup             Export all data to JSON on stdout (requires BREWLOG_TOKEN)
+brewlog restore --file F   Restore data from a JSON backup into an empty database (requires BREWLOG_TOKEN)
 ```
 
 Use `brewlog <command> --help` for detailed options on any command.
@@ -197,6 +197,8 @@ Migrations run automatically on server startup.
 
 ### Backup & Restore
 
+Backup and restore go through the API and require authentication (`BREWLOG_TOKEN`).
+
 ```bash
 # Export all data to JSON
 brewlog backup > backup.json
@@ -205,7 +207,10 @@ brewlog backup > backup.json
 brewlog restore --file backup.json
 ```
 
-Both commands accept `--database-url` (or `BREWLOG_DATABASE_URL`) to target a specific database.
+The API endpoints are also available directly:
+
+- `GET /api/v1/backup` — export all data as JSON (requires auth)
+- `POST /api/v1/backup/restore` — restore from a JSON backup (requires auth, database must be empty)
 
 ## Installation
 

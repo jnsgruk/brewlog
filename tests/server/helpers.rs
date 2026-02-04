@@ -10,6 +10,7 @@ use brewlog::domain::repositories::{
 use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::NewUser;
 use brewlog::infrastructure::auth::hash_password;
+use brewlog::infrastructure::backup::BackupService;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
 use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
@@ -122,6 +123,8 @@ async fn spawn_app_inner(
     foursquare_api_key: String,
     mock_server: Option<wiremock::MockServer>,
 ) -> TestApp {
+    let backup_service = Arc::new(BackupService::new(_database.clone_pool()));
+
     // Create application state
     let state = AppState::new(
         roaster_repo.clone(),
@@ -140,6 +143,7 @@ async fn spawn_app_inner(
         foursquare_api_key,
         String::new(),
         "openrouter/free".to_string(),
+        backup_service,
     );
 
     // Create router

@@ -14,6 +14,7 @@ use crate::domain::repositories::{
 };
 use crate::domain::users::NewUser;
 use crate::infrastructure::auth::hash_password;
+use crate::infrastructure::backup::BackupService;
 use crate::infrastructure::database::Database;
 use crate::infrastructure::repositories::bags::SqlBagRepository;
 use crate::infrastructure::repositories::brews::SqlBrewRepository;
@@ -55,6 +56,7 @@ pub struct AppState {
     pub foursquare_api_key: String,
     pub openrouter_api_key: String,
     pub openrouter_model: String,
+    pub backup_service: Arc<BackupService>,
 }
 
 impl AppState {
@@ -76,6 +78,7 @@ impl AppState {
         foursquare_api_key: String,
         openrouter_api_key: String,
         openrouter_model: String,
+        backup_service: Arc<BackupService>,
     ) -> Self {
         Self {
             roaster_repo,
@@ -94,6 +97,7 @@ impl AppState {
             foursquare_api_key,
             openrouter_api_key,
             openrouter_model,
+            backup_service,
         }
     }
 }
@@ -119,6 +123,8 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     let session_repo: Arc<dyn SessionRepository> =
         Arc::new(SqlSessionRepository::new(database.clone_pool()));
 
+    let backup_service = Arc::new(BackupService::new(database.clone_pool()));
+
     // Bootstrap admin user if no users exist
     bootstrap_admin_user(&user_repo, config.admin_username, config.admin_password).await?;
 
@@ -139,6 +145,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         config.foursquare_api_key,
         config.openrouter_api_key,
         config.openrouter_model,
+        backup_service,
     );
 
     let listener = TcpListener::bind(config.bind_address)

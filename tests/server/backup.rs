@@ -22,6 +22,8 @@ use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
 use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 
+use super::helpers::{create_default_roaster, spawn_app, spawn_app_with_auth};
+
 struct TestDb {
     roaster_repo: Arc<dyn RoasterRepository>,
     roast_repo: Arc<dyn RoastRepository>,
@@ -453,4 +455,146 @@ async fn backup_empty_database() {
     let json = serde_json::to_string_pretty(&backup_data).expect("failed to serialize");
     let parsed: BackupData = serde_json::from_str(&json).expect("failed to deserialize");
     assert_eq!(parsed.version, 1);
+}
+
+// --- API-level tests ---
+
+#[tokio::test]
+async fn backup_export_requires_auth() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(app.api_url("/backup"))
+        .send()
+        .await
+        .expect("failed to send request");
+
+    assert_eq!(response.status(), reqwest::StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn backup_export_returns_data() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    // Create some data first
+    create_default_roaster(&app).await;
+
+    let response = client
+        .get(app.api_url("/backup"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("failed to send request");
+
+    assert_eq!(response.status(), reqwest::StatusCode::OK);
+
+    let data: BackupData = response.json().await.expect("failed to parse backup data");
+    assert_eq!(data.version, 1);
+    assert_eq!(data.roasters.len(), 1);
+    assert_eq!(data.roasters[0].name, "Test Roasters");
+}
+
+#[tokio::test]
+async fn backup_restore_requires_auth() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let backup_data = BackupData {
+        version: 1,
+        created_at: chrono::Utc::now(),
+        roasters: vec![],
+        gear: vec![],
+        roasts: vec![],
+        bags: vec![],
+        brews: vec![],
+        cafes: vec![],
+        timeline_events: vec![],
+    };
+
+    let response = client
+        .post(app.api_url("/backup/restore"))
+        .json(&backup_data)
+        .send()
+        .await
+        .expect("failed to send request");
+
+    assert_eq!(response.status(), reqwest::StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn backup_restore_non_empty_db_returns_conflict() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    // Create data to make the database non-empty
+    create_default_roaster(&app).await;
+
+    let backup_data = BackupData {
+        version: 1,
+        created_at: chrono::Utc::now(),
+        roasters: vec![],
+        gear: vec![],
+        roasts: vec![],
+        bags: vec![],
+        brews: vec![],
+        cafes: vec![],
+        timeline_events: vec![],
+    };
+
+    let response = client
+        .post(app.api_url("/backup/restore"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&backup_data)
+        .send()
+        .await
+        .expect("failed to send request");
+
+    assert_eq!(response.status(), reqwest::StatusCode::CONFLICT);
+}
+
+#[tokio::test]
+async fn backup_round_trip_via_api() {
+    // 1. Create source app with data
+    let source = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    create_default_roaster(&source).await;
+
+    // 2. Export via API
+    let response = client
+        .get(source.api_url("/backup"))
+        .bearer_auth(source.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("failed to export backup");
+
+    assert_eq!(response.status(), reqwest::StatusCode::OK);
+    let backup_data: BackupData = response.json().await.expect("failed to parse backup");
+    assert_eq!(backup_data.roasters.len(), 1);
+
+    // 3. Restore into a fresh app
+    let target = spawn_app_with_auth().await;
+
+    let response = client
+        .post(target.api_url("/backup/restore"))
+        .bearer_auth(target.auth_token.as_ref().unwrap())
+        .json(&backup_data)
+        .send()
+        .await
+        .expect("failed to restore backup");
+
+    assert_eq!(response.status(), reqwest::StatusCode::NO_CONTENT);
+
+    // 4. Verify data was restored by listing roasters
+    let response = client
+        .get(target.api_url("/roasters"))
+        .send()
+        .await
+        .expect("failed to list roasters");
+
+    let roasters: Vec<Roaster> = response.json().await.expect("failed to parse roasters");
+    assert_eq!(roasters.len(), 1);
+    assert_eq!(roasters[0].name, "Test Roasters");
 }

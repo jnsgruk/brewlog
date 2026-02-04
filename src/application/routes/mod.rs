@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod backup;
 pub mod bags;
 pub mod brews;
 pub mod cafes;
@@ -17,6 +18,7 @@ pub mod tokens;
 pub(crate) use auth::is_authenticated;
 
 use askama::Template;
+use axum::extract::DefaultBodyLimit;
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};
 use axum::routing::{get, post};
@@ -94,7 +96,12 @@ pub fn app_router(state: AppState) -> axum::Router {
             "/tokens",
             post(tokens::create_token).get(tokens::list_tokens),
         )
-        .route("/tokens/:id/revoke", post(tokens::revoke_token));
+        .route("/tokens/:id/revoke", post(tokens::revoke_token))
+        .route("/backup", get(backup::export_backup))
+        .route(
+            "/backup/restore",
+            post(backup::restore_backup).layer(DefaultBodyLimit::max(50 * 1024 * 1024)),
+        );
 
     axum::Router::new()
         .route("/", get(home::home_page))

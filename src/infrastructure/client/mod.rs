@@ -1,3 +1,4 @@
+pub mod backup;
 pub mod bags;
 pub mod brews;
 pub mod cafes;
@@ -42,6 +43,10 @@ impl BrewlogClient {
     pub fn from_base_url(base_url: &str) -> Result<Self> {
         let url = Url::parse(base_url).with_context(|| format!("invalid API url: {base_url}"))?;
         Self::new(url)
+    }
+
+    pub fn backup(&self) -> backup::BackupClient<'_> {
+        backup::BackupClient::new(self)
     }
 
     pub fn roasters(&self) -> roasters::RoastersClient<'_> {

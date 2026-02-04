@@ -1,3 +1,4 @@
+pub mod backup_cli;
 pub mod bags_cli;
 pub mod brews_cli;
 pub mod cafes_cli;
