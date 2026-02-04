@@ -53,6 +53,9 @@ function locateUser() {
   data-signals:_location-found="false"
   data-signals:_user-lat="0"
   data-signals:_user-lng="0"
+  data-signals:_search-by-city="false"
+  data-signals:_city-name="''"
+  data-signals:_reviewing-cafe="false"
   data-signals:_scan-waiting="false"
   data-signals:_scan-success="''"
   {% if has_foursquare %}
@@ -71,7 +74,7 @@ function locateUser() {
   <!-- Selected cafe summary (shown after selection) -->
   <div
     class="mt-4 rounded-lg border border-amber-300 bg-amber-100/80 px-4 py-3 shadow-sm flex items-center justify-between"
-    data-show="$_cafeName"
+    data-show="$_cafeName && !$_reviewingCafe"
     style="display: none"
   >
     <div class="flex items-center gap-2">
@@ -126,10 +129,11 @@ function locateUser() {
   <div class="mt-4" data-show="$_step === 1" style="display: none">
     <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
       {% if has_foursquare %}
-      <div class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="flex flex-wrap items-center gap-3 mb-4" data-show="!$_reviewingCafe">
         <button
           type="button"
           data-on:click="locateUser()"
+          data-show="!$_searchByCity"
           class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
           data-attr:disabled="$_locating || $_locationFound"
         >
@@ -138,52 +142,108 @@ function locateUser() {
           </svg>
           <span data-text="$_locating ? 'Locating\u2026' : $_locationFound ? 'Location found' : 'Use My Location'">Use My Location</span>
         </button>
-        <div data-show="$_locating" style="display: none">
+        <div data-show="!$_searchByCity && $_locating" style="display: none">
           <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
           </svg>
         </div>
+        <input
+          type="text"
+          data-bind:_city-name
+          data-show="$_searchByCity"
+          style="display: none"
+          class="input-field flex-1 min-w-[200px] text-sm"
+          placeholder="City name&hellip;"
+          data-on:input__debounce.350ms="$_cityName.length >= 2 && $_cafeSearch.length >= 2 && @get('/api/v1/nearby-cafes?near=' + encodeURIComponent($_cityName) + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
+        />
+        <label class="flex items-center gap-1.5 text-xs text-stone-500 cursor-pointer select-none">
+          <input type="checkbox" data-bind:_search-by-city class="accent-amber-600" />
+          Search by city
+        </label>
       </div>
       {% endif %}
 
       <input
         type="text"
         data-bind:_cafe-search
+        data-show="!$_reviewingCafe"
         class="input-field w-full text-sm"
         placeholder="Search for a cafe&hellip;"
         {% if has_foursquare %}
-        data-on:input__debounce.350ms="$_locationFound && @get('/api/v1/nearby-cafes?lat=' + $_userLat + '&lng=' + $_userLng + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
+        data-on:input__debounce.350ms="if ($_searchByCity) { $_cityName.length >= 2 && $_cafeSearch.length >= 2 && @get('/api/v1/nearby-cafes?near=' + encodeURIComponent($_cityName) + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}}) } else { $_locationFound && @get('/api/v1/nearby-cafes?lat=' + $_userLat + '&lng=' + $_userLng + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}}) }"
         {% endif %}
       />
 
       {% if has_foursquare %}
       <!-- Foursquare results (replaced by server fragment) -->
-      <div id="nearby-results" class="hidden mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white"></div>
+      <div data-show="!$_reviewingCafe" id="nearby-results" class="hidden mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white"></div>
+
+      <!-- Review form for new cafe from Foursquare -->
+      <div
+        class="mt-3 border-t border-amber-200 pt-4"
+        data-show="$_reviewingCafe"
+        style="display: none"
+      >
+        <h3 class="text-base font-semibold text-amber-700 mb-1">Confirm cafe details</h3>
+        <p class="text-sm text-stone-600 mb-3">Review and edit the details before saving.</p>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Name *</span>
+            <input type="text" data-bind:_cafe-name required class="input-field" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">City</span>
+            <input type="text" data-bind:_cafe-city class="input-field" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Country</span>
+            <input type="text" data-bind:_cafe-country class="input-field" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Website</span>
+            <input type="url" data-bind:_cafe-website class="input-field" placeholder="https://&hellip;" />
+          </label>
+        </div>
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+            data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+            data-on:click="$_reviewingCafe = false; $_step = 2"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
       {% endif %}
 
-      <!-- Existing cafes -->
+      <!-- Saved cafes -->
       {% if !cafe_options.is_empty() %}
-      <div class="mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white">
-        <h3 class="px-3 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wide">Saved Cafes</h3>
-        {% for cafe in cafe_options %}
-        <button
-          type="button"
-          data-cafe-name="{{ cafe.label }}"
-          class="w-full px-3 py-2 text-left text-sm hover:bg-amber-100 transition"
-          data-show="!$_cafeSearch || el.dataset.cafeName.toLowerCase().includes($_cafeSearch.toLowerCase())"
-          data-on:click="$_cafeId = '{{ cafe.id }}'; $_cafeName = el.dataset.cafeName; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2"
+      <div class="mt-3 border-t border-amber-200 pt-3" data-show="!$_reviewingCafe">
+        <p class="mb-2 text-xs text-stone-500">Or choose a saved cafe:</p>
+        <select
+          class="input-field w-full text-sm"
+          data-on:change="if (el.value) { $_cafeId = el.value; $_cafeName = el.options[el.selectedIndex].text; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2 }"
         >
-          {{ cafe.label }}
-        </button>
-        {% endfor %}
+          <option value="">Select a cafe&hellip;</option>
+          {% for cafe in cafe_options %}
+          <option value="{{ cafe.id }}">{{ cafe.label }}</option>
+          {% endfor %}
+        </select>
       </div>
       {% endif %}
     </div>
   </div>
 
   <!-- Step 2: Roast identification -->
-  <div data-show="$_step === 2" style="display: none">
+  <div class="mt-4" data-show="$_step === 2" style="display: none">
     <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
       <h3 class="text-base font-semibold text-amber-700 mb-3">What are you drinking?</h3>
 
@@ -198,7 +258,7 @@ function locateUser() {
 
         <form id="checkin-scan-form"
           data-on:submit="$_scanWaiting = true; $_error = ''; @post('/api/v1/scan', {contentType: 'form'})"
-          data-on:datastar-fetch="if (evt.detail.type === 'finished') { $_scanWaiting = false; $_step = 3 } else if (evt.detail.type === 'error') { $_scanWaiting = false; $_error = 'Scan failed. Please try again.' }"
+          data-on:datastar-fetch="if (!$_scanWaiting) return; if (evt.detail.type === 'finished') { $_scanWaiting = false; $_step = 3 } else if (evt.detail.type === 'error') { $_scanWaiting = false; $_error = 'Scan failed. Please try again.' }"
         >
           <input type="hidden" name="image" id="checkin-image" />
           <input type="hidden" name="prompt" id="checkin-prompt-hidden" />
@@ -274,7 +334,7 @@ function locateUser() {
   </div>
 
   <!-- Step 3: Rating + submit -->
-  <div data-show="$_step === 3" style="display: none">
+  <div class="mt-4" data-show="$_step === 3" style="display: none">
     <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
       <h3 class="text-base font-semibold text-amber-700 mb-3">How was it? (optional)</h3>
       <div class="flex gap-1 mb-6">
@@ -296,7 +356,7 @@ function locateUser() {
 
       <form
         data-on:submit="$_submitting = true; $_error = ''; @post('/api/v1/check-in', {contentType: 'form'})"
-        data-on:datastar-fetch="if (evt.detail.type === 'finished') { window.location.href = '/' } else if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
+        data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'finished') { window.location.href = '/' } else if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
       >
         <input type="hidden" name="cafe_id" data-attr:value="$_cafeId" />
         <input type="hidden" name="cafe_name" data-attr:value="$_cafeName" />

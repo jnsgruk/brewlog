@@ -13,7 +13,7 @@
     data-cafe-lat="{{ cafe.latitude }}"
     data-cafe-lng="{{ cafe.longitude }}"
     data-cafe-website="{{ cafe.website }}"
-    data-on:click="$_cafeId = ''; $_cafeName = el.dataset.cafeName; $_cafeCity = el.dataset.cafeCity; $_cafeCountry = el.dataset.cafeCountry; $_cafeLat = parseFloat(el.dataset.cafeLat); $_cafeLng = parseFloat(el.dataset.cafeLng); $_cafeWebsite = el.dataset.cafeWebsite; $_step = 2"
+    data-on:click="$_cafeId = ''; $_cafeName = el.dataset.cafeName; $_cafeCity = el.dataset.cafeCity; $_cafeCountry = el.dataset.cafeCountry; $_cafeLat = parseFloat(el.dataset.cafeLat); $_cafeLng = parseFloat(el.dataset.cafeLng); $_cafeWebsite = el.dataset.cafeWebsite; $_reviewingCafe = true"
   >
     <span class="font-medium text-amber-900">{{ cafe.name }}</span>
     <span class="ml-2 text-xs text-stone-500">{{ cafe.location }} &middot; {{ cafe.distance }}</span>
