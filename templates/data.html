@@ -16,24 +16,93 @@
   {% endif %}
 </header>
 
-<nav class="flex flex-wrap gap-1 rounded-lg border border-amber-300 bg-amber-100/80 p-1.5 shadow-sm"
-  data-signals:_active-tab="'{{ active_type }}'">
-  {% for tab in tabs %}
-  <a
-    href="/data?type={{ tab.key }}"
-    data-class:bg-amber-600="$_activeTab === '{{ tab.key }}'"
-    data-class:text-white="$_activeTab === '{{ tab.key }}'"
-    data-class:shadow-sm="$_activeTab === '{{ tab.key }}'"
-    data-class:text-stone-600="$_activeTab !== '{{ tab.key }}'"
-    class="rounded-md px-3 py-1.5 text-sm font-medium transition"
-    data-on:click__prevent="$_activeTab = '{{ tab.key }}'; history.pushState(null, '', '/data?type={{ tab.key }}'); @get('/data?type={{ tab.key }}', {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
-  >{{ tab.label }}</a>
-  {% endfor %}
-</nav>
+<div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+  data-signals:_active-tab="'{{ active_type }}'" data-signals:_tabs-open="false">
+  <!-- Desktop tabs -->
+  <nav class="hidden md:flex flex-wrap gap-1 p-1.5">
+    {% for tab in tabs %}
+    <a
+      href="/data?type={{ tab.key }}"
+      data-class:bg-amber-600="$_activeTab === '{{ tab.key }}'"
+      data-class:text-white="$_activeTab === '{{ tab.key }}'"
+      data-class:shadow-sm="$_activeTab === '{{ tab.key }}'"
+      data-class:text-stone-600="$_activeTab !== '{{ tab.key }}'"
+      class="rounded-md px-3 py-1.5 text-sm font-medium transition"
+      data-on:click__prevent="$_activeTab = '{{ tab.key }}'; history.pushState(null, '', '/data?type={{ tab.key }}'); @get('/data?type={{ tab.key }}', {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
+    >{{ tab.label }}</a>
+    {% endfor %}
+  </nav>
+  <!-- Mobile tab selector -->
+  <div class="md:hidden">
+    <button
+      type="button"
+      class="flex w-full items-center justify-between p-3 text-sm font-medium text-amber-800"
+      data-on:click="$_tabsOpen = !$_tabsOpen"
+    >
+      <span>
+        {% for tab in tabs %}
+        <span data-show="$_activeTab === '{{ tab.key }}'">{{ tab.label }}</span>
+        {% endfor %}
+      </span>
+      <span data-show="!$_tabsOpen">{% call icons::chevron_down("h-5 w-5") %}</span>
+      <span data-show="$_tabsOpen" style="display:none">{% call icons::chevron_up("h-5 w-5") %}</span>
+    </button>
+    <div class="flex flex-col border-t border-amber-200" data-show="$_tabsOpen" style="display:none">
+      {% for tab in tabs %}
+      <a
+        href="/data?type={{ tab.key }}"
+        data-class:bg-amber-100="$_activeTab === '{{ tab.key }}'"
+        data-class:text-amber-800="$_activeTab === '{{ tab.key }}'"
+        data-class:font-semibold="$_activeTab === '{{ tab.key }}'"
+        data-class:text-stone-600="$_activeTab !== '{{ tab.key }}'"
+        class="px-3 py-2 text-sm transition hover:bg-amber-200/30"
+        data-on:click__prevent="$_activeTab = '{{ tab.key }}'; $_tabsOpen = false; history.pushState(null, '', '/data?type={{ tab.key }}'); @get('/data?type={{ tab.key }}', {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
+      >{{ tab.label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <!-- Search -->
+  <div class="border-t border-amber-200 px-3 py-2">
+    <input
+      type="search"
+      id="data-search"
+      placeholder="Search..."
+      value="{{ search_value }}"
+      class="input-field w-full text-sm"
+      {% if !search_value.is_empty() %}data-init="el.focus(); el.selectionStart = el.value.length"{% endif %}
+    />
+  </div>
+</div>
 
-<div id="data-content">
+<div id="data-content" class="data-page-content">
   {{ content|safe }}
 </div>
 
 <div id="detail-panel"></div>
+
+<script>
+(function() {
+  var searchInput = document.getElementById('data-search');
+  if (!searchInput) return;
+
+  var debounceTimer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() {
+      var params = new URLSearchParams(window.location.search);
+      var activeTab = params.get('type') || 'brews';
+      var query = searchInput.value;
+      var url = '/data?type=' + activeTab + '&q=' + encodeURIComponent(query);
+
+      history.pushState(null, '', url);
+
+      fetch(url, { headers: { 'datastar-request': 'true' } })
+        .then(function(res) { return res.text(); })
+        .then(function(html) {
+          document.getElementById('data-content').innerHTML = html;
+        });
+    }, 300);
+  });
+})();
+</script>
 {% endblock %}

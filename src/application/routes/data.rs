@@ -63,6 +63,7 @@ pub(crate) async fn data_page(
 ) -> Result<Response, StatusCode> {
     let entity_type = data_type.entity_type;
     let is_authenticated = super::is_authenticated(&state, &cookies).await;
+    let search_value = list_query.search_value();
 
     let content = render_entity_content(&state, &entity_type, list_query, is_authenticated)
         .await
@@ -97,6 +98,7 @@ pub(crate) async fn data_page(
         active_type: entity_type,
         tabs,
         content,
+        search_value,
     };
 
     render_html(template).map(IntoResponse::into_response)

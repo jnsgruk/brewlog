@@ -132,6 +132,7 @@ pub struct DataTemplate {
     pub active_type: String,
     pub tabs: Vec<DataTab>,
     pub content: String,
+    pub search_value: String,
 }
 
 pub struct DataTab {

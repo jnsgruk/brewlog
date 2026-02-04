@@ -53,6 +53,10 @@ enum PageSizeParam {
 }
 
 impl ListQuery {
+    pub fn search_value(&self) -> String {
+        self.q.clone().unwrap_or_default()
+    }
+
     pub fn into_request_and_search<K: SortKey>(self) -> (ListRequest<K>, Option<String>) {
         self.into_request_and_search_with_default::<K>(DEFAULT_PAGE_SIZE)
     }

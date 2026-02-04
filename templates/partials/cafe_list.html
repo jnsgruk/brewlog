@@ -35,10 +35,10 @@
             data-sort-city="{{ cafe.city }}"
             class="bg-amber-50/40 transition hover:bg-amber-50"
           >
-            <td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
               {{ cafe.created_at }}
             </td>
-            <td data-label="Name" class="px-4 py-3 font-semibold text-amber-800">
+            <td data-label="Name" class="card-title px-4 py-3 font-semibold text-amber-800">
               {{ cafe.name }}
             </td>
             <td data-label="Location" class="px-4 py-3 whitespace-nowrap">
@@ -46,8 +46,8 @@
               <div class="hidden md:block text-xs text-stone-500">{{ cafe.city }}</div>
             </td>
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cafe.city }}</td>
-            <td data-label="" class="px-4 py-3 text-right">
-              <div class="inline-flex items-center gap-1">
+            <td data-label="" class="card-actions px-4 py-3 text-right">
+              <div class="hidden md:inline-flex items-center gap-1">
                 <a
                   class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
                   href="{{ cafe.map_url }}"
@@ -60,7 +60,7 @@
                 </a>
                 {% if cafe.has_website %}
                 <a
-                  class="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
                   href="{{ cafe.website_url }}"
                   target="_blank"
                   rel="noreferrer noopener"
@@ -71,7 +71,7 @@
                 </a>
                 {% else %}
                 <span
-                  class="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-300 cursor-default"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-300 cursor-default"
                   title="No website"
                   aria-disabled="true"
                 >
@@ -90,6 +90,25 @@
                 </button>
                 {% endif %}
               </div>
+              <details class="card-menu md:hidden">
+                <summary>{% call icons::ellipsis_vertical("h-5 w-5") %}</summary>
+                <div class="card-menu-items">
+                  <a href="{{ cafe.map_url }}" target="_blank" rel="noreferrer noopener">
+                    {% call icons::location("h-4 w-4") %} View on map
+                  </a>
+                  {% if cafe.has_website %}
+                  <a href="{{ cafe.website_url }}" target="_blank" rel="noreferrer noopener">
+                    {% call icons::external_link("h-4 w-4") %} Visit website
+                  </a>
+                  {% endif %}
+                  {% if is_authenticated %}
+                  <button type="button" class="menu-item-danger"
+                    data-on:click="this.closest('details').open = false; confirm('Delete this cafe?') && @delete('/api/v1/cafes/{{ cafe.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cafe-list', mode: 'replace'}})">
+                    {% call icons::delete("h-4 w-4") %} Delete
+                  </button>
+                  {% endif %}
+                </div>
+              </details>
             </td>
           </tr>
           {% endfor %}
