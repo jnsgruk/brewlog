@@ -44,28 +44,27 @@ const TABS: &[DataTab] = &[
 ];
 
 #[derive(Debug, Deserialize)]
-pub struct DataQuery {
+pub(crate) struct DataType {
     #[serde(rename = "type", default = "default_type")]
     entity_type: String,
-    #[serde(flatten)]
-    list: ListQuery,
 }
 
 fn default_type() -> String {
     "brews".to_string()
 }
 
-#[tracing::instrument(skip(state, cookies, headers, query))]
+#[tracing::instrument(skip(state, cookies, headers, data_type, list_query))]
 pub(crate) async fn data_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
     headers: HeaderMap,
-    Query(query): Query<DataQuery>,
+    Query(data_type): Query<DataType>,
+    Query(list_query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
-    let entity_type = query.entity_type.clone();
+    let entity_type = data_type.entity_type;
     let is_authenticated = super::is_authenticated(&state, &cookies).await;
 
-    let content = render_entity_content(&state, &entity_type, query.list, is_authenticated)
+    let content = render_entity_content(&state, &entity_type, list_query, is_authenticated)
         .await
         .map_err(map_app_error)?;
 
