@@ -9,9 +9,11 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::roasts::TastingNotesInput;
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
 use crate::application::server::AppState;
+use crate::domain::bags::NewBag;
 use crate::domain::errors::RepositoryError;
 use crate::domain::roasters::NewRoaster;
 use crate::domain::roasts::NewRoast;
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 use crate::infrastructure::ai::{self, ExtractionInput};
 
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
@@ -115,6 +117,10 @@ pub(crate) struct BagScanSubmission {
     process: String,
     #[serde(default = "default_tasting_notes")]
     tasting_notes: TastingNotesInput,
+    #[serde(default)]
+    open_bag: Option<String>,
+    #[serde(default)]
+    bag_amount: Option<f64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -175,6 +181,7 @@ async fn extract_into_submission(
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn submit_scan(
     State(state): State<AppState>,
@@ -261,6 +268,48 @@ pub(crate) async fn submit_scan(
         .insert(new_roast)
         .await
         .map_err(AppError::from)?;
+
+    // Optionally create a bag
+    let wants_bag = submission
+        .open_bag
+        .as_deref()
+        .is_some_and(|v| v == "true" || v == "on");
+    if wants_bag {
+        let amount = submission.bag_amount.unwrap_or(250.0);
+        let new_bag = NewBag {
+            roast_id: roast.id,
+            roast_date: None,
+            amount,
+        };
+        let bag = state
+            .bag_repo
+            .insert(new_bag)
+            .await
+            .map_err(AppError::from)?;
+
+        let event = NewTimelineEvent {
+            entity_type: "bag".to_string(),
+            entity_id: bag.id.into_inner(),
+            action: "added".to_string(),
+            occurred_at: chrono::Utc::now(),
+            title: roast.name.clone(),
+            details: vec![
+                TimelineEventDetail {
+                    label: "Roaster".to_string(),
+                    value: roaster.name.clone(),
+                },
+                TimelineEventDetail {
+                    label: "Amount".to_string(),
+                    value: format!("{}g", bag.amount),
+                },
+            ],
+            tasting_notes: vec![],
+            slug: Some(roast.slug.clone()),
+            roaster_slug: Some(roaster.slug.clone()),
+            brew_data: None,
+        };
+        let _ = state.timeline_repo.insert(event).await;
+    }
 
     let redirect = format!("/roasters/{}/roasts/{}", roaster.slug, roast.slug);
     let roast_id = roast.id.into_inner();
