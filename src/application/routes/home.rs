@@ -31,7 +31,7 @@ pub(crate) async fn home_page(
     let template = HomeTemplate {
         nav_active: "home",
         is_authenticated,
-        last_brew: content.last_brew,
+        recent_brews: content.recent_brews,
         open_bags: content.open_bags,
         recent_events: content.recent_events,
         stats,
@@ -41,7 +41,7 @@ pub(crate) async fn home_page(
 }
 
 struct HomeContent {
-    last_brew: Option<BrewView>,
+    recent_brews: Vec<BrewView>,
     open_bags: Vec<BagView>,
     recent_events: Vec<TimelineEventView>,
 }
@@ -54,9 +54,9 @@ fn count_request<K: SortKey>() -> ListRequest<K> {
 }
 
 async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
-    let last_brew_req = ListRequest::new(
+    let recent_brews_req = ListRequest::new(
         1,
-        PageSize::limited(1),
+        PageSize::limited(3),
         BrewSortKey::CreatedAt,
         SortDirection::Desc,
     );
@@ -68,11 +68,11 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
         TimelineSortKey::default().default_direction(),
     );
 
-    let (last_brew_page, open_bags_page, recent_events_page) = tokio::try_join!(
+    let (recent_brews_page, open_bags_page, recent_events_page) = tokio::try_join!(
         async {
             state
                 .brew_repo
-                .list(BrewFilter::all(), &last_brew_req, None)
+                .list(BrewFilter::all(), &recent_brews_req, None)
                 .await
                 .map_err(AppError::from)
         },
@@ -92,11 +92,11 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
         },
     )?;
 
-    let last_brew = last_brew_page
+    let recent_brews: Vec<BrewView> = recent_brews_page
         .items
         .into_iter()
-        .next()
-        .map(BrewView::from_domain);
+        .map(BrewView::from_domain)
+        .collect();
 
     let open_bags = open_bags_page
         .items
@@ -111,7 +111,7 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
         .collect();
 
     Ok(HomeContent {
-        last_brew,
+        recent_brews,
         open_bags,
         recent_events,
     })

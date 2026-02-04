@@ -212,7 +212,7 @@ pub struct HomeTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
 
-    pub last_brew: Option<BrewView>,
+    pub recent_brews: Vec<BrewView>,
     pub open_bags: Vec<BagView>,
     pub recent_events: Vec<TimelineEventView>,
     pub stats: StatsView,
