@@ -56,8 +56,8 @@
   <!-- Input: photo or text (shown when not yet extracted) -->
   <div data-show="!$_scanExtracted" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
     <form id="scan-extract-form"
-      data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
-      data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
+      data-on:submit="$_extracting = true; $_extractError = ''; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
       <input type="hidden" name="image" id="scan-image" />
       <div data-show="!$_extracting" class="flex items-center gap-2">
