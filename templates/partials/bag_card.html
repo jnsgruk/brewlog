@@ -1,9 +1,9 @@
 {% import "partials/icons.html" as icons %}
 {% macro card(bag, is_authenticated) %}
 <div id="bag-card-{{ bag.id }}" class="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm">
-  <div>
-    <a href="/roasters/{{ bag.roaster_slug }}/roasts/{{ bag.roast_slug }}" class="font-semibold text-amber-800 hover:text-amber-600">{{ bag.roast_name }}</a>
-    <p class="text-sm text-stone-500">{{ bag.roaster_name }}</p>
+  <div class="min-w-0">
+    <a href="/roasters/{{ bag.roaster_slug }}/roasts/{{ bag.roast_slug }}" class="block truncate font-semibold text-amber-800 hover:text-amber-600">{{ bag.roast_name }}</a>
+    <p class="truncate text-sm text-stone-500">{{ bag.roaster_name }}</p>
   </div>
   <p class="mt-2 text-sm text-stone-600">
     <span class="font-medium">{{ bag.remaining }}g</span>
