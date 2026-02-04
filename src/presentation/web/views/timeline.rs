@@ -34,6 +34,7 @@ pub struct TimelineEventView {
     pub link: String,
     pub external_link: Option<String>,
     pub details: Vec<TimelineEventDetailView>,
+    pub subtitle: Option<String>,
     pub tasting_notes: Option<Vec<String>>,
     pub brew_data: Option<TimelineBrewDataView>,
 }
@@ -104,6 +105,8 @@ impl TimelineEventView {
             None
         };
 
+        let subtitle = Self::build_subtitle(entity_type.as_str(), &mapped_details);
+
         let brew_data_view = brew_data.map(|bd| TimelineBrewDataView {
             bag_id: bd.bag_id,
             grinder_id: bd.grinder_id,
@@ -126,8 +129,44 @@ impl TimelineEventView {
             link,
             external_link,
             details: mapped_details,
+            subtitle,
             tasting_notes,
             brew_data: brew_data_view,
+        }
+    }
+
+    fn build_subtitle(entity_type: &str, details: &[TimelineEventDetailView]) -> Option<String> {
+        let find_value = |label: &str| {
+            details
+                .iter()
+                .find(|d| d.label.eq_ignore_ascii_case(label))
+                .map(|d| d.value.trim())
+                .filter(|v| !v.is_empty() && *v != "\u{2014}")
+        };
+
+        let picks: &[&str] = match entity_type {
+            "brew" => &["Roaster", "Brewer"],
+            "roast" => &["Roaster", "Origin"],
+            "cafe" => &["City", "Country"],
+            "cup" => &["Roaster", "Cafe"],
+            _ => &[],
+        };
+
+        let parts: Vec<&str> = if picks.is_empty() {
+            details
+                .iter()
+                .take(3)
+                .map(|d| d.value.trim())
+                .filter(|v| !v.is_empty() && *v != "\u{2014}")
+                .collect()
+        } else {
+            picks.iter().filter_map(|l| find_value(l)).collect()
+        };
+
+        if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join(" \u{00b7} "))
         }
     }
 
