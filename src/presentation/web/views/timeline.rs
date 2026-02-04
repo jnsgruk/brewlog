@@ -63,9 +63,9 @@ impl TimelineEventView {
             ("bag", "added") => "Bag Added",
             ("bag", "finished") => "Bag Finished",
             ("gear", "added") => "Gear Added",
-            ("brew", "brewed") => "Brewed",
+            ("brew", "brewed") => "Brew Added",
             ("cafe", "added") => "Cafe Added",
-            ("cup", "added") => "Cup",
+            ("cup", "added") => "Cup Added",
             _ => "Event",
         };
 

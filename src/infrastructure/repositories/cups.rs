@@ -162,10 +162,7 @@ impl CupRepository for SqlCupRepository {
         let cup_with_details = Self::to_domain_with_details(details_record);
         let details_json = Self::details_for_cup(&cup_with_details)?;
 
-        let title = format!(
-            "{} at {}",
-            cup_with_details.roast_name, cup_with_details.cafe_name
-        );
+        let title = cup_with_details.roast_name.clone();
 
         query(
             "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
