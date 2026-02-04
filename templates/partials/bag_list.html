@@ -1,91 +1,13 @@
 {% import "partials/table.html" as table %}
+{% import "partials/bag_card.html" as bag_card %}
 
 <div id="bag-list" class="mt-6 space-y-8" data-star-scope="bags">
   {% if !open_bags.is_empty() %}
   <section>
-    <h2 class="text-2xl font-bold mb-4 text-stone-800">Open Bags</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <h2 class="text-lg font-semibold text-amber-700 mb-3">Open Bags</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {% for bag in open_bags %}
-      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-stone-200">
-        <div class="p-6">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <h3 class="text-xl font-semibold text-stone-900">
-                <a
-                  href="/roasters/{{ bag.roaster_slug }}"
-                  class="hover:text-amber-700 hover:underline"
-                >
-                  {{ bag.roaster_name }}
-                </a>
-              </h3>
-              <p class="text-stone-600">
-                <a
-                  href="/roasters/{{ bag.roaster_slug }}/roasts/{{ bag.roast_slug }}"
-                  class="hover:text-amber-700 hover:underline"
-                >
-                  {{ bag.roast_name }}
-                </a>
-              </p>
-            </div>
-            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-              Open
-            </span>
-          </div>
-
-          <div class="space-y-2 text-sm text-stone-500 mb-4">
-            <div class="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
-                />
-              </svg>
-              <span>{{ bag.remaining }} / {{ bag.amount }}g</span>
-            </div>
-
-            <div class="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              {% if let Some(roast_date) = bag.roast_date %}
-              <span>Roasted {{ roast_date }}</span>
-              {% else %}
-              <span>Added {{ bag.created_at }}</span>
-              {% endif %}
-            </div>
-          </div>
-
-          {% if is_authenticated %}
-          <div class="pt-4 border-t border-stone-100 flex justify-end">
-            <button
-              class="text-sm text-stone-600 hover:text-stone-900 font-medium"
-              data-on:click="@put('/api/v1/bags/{{ bag.id }}?{{ navigator.query() }}&closed=true&remaining=0.0&finished_at=' + new Date().toISOString().split('T')[0], {responseOverrides: {selector: '#bag-list', mode: 'replace'}})"
-            >
-              Finish Bag
-            </button>
-          </div>
-          {% endif %}
-        </div>
-      </div>
+      {% call bag_card::card(bag, is_authenticated) %}
       {% endfor %}
     </div>
   </section>
