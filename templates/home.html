@@ -270,36 +270,45 @@
 {% endif %}
 
 <!-- Stats -->
-<section class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
-  <h2 class="text-lg font-semibold text-amber-700 mb-4">Your Coffee Journey</h2>
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-    <a href="/brews" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.brews }}</div>
-      <div class="text-xs text-stone-500">Brews</div>
+<section>
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-lg font-semibold text-amber-700">Stats</h2>
+  </div>
+  <div class="grid grid-cols-2 gap-3 md:flex md:flex-wrap md:justify-center">
+    <a href="/brews" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::beaker("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.brews }}</span>
+      <span class="text-xs text-stone-500">Brews</span>
     </a>
-    <a href="/roasts" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasts }}</div>
-      <div class="text-xs text-stone-500">Roasts</div>
+    <a href="/roasts" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::fire("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasts }}</span>
+      <span class="text-xs text-stone-500">Roasts</span>
     </a>
-    <a href="/roasters" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasters }}</div>
-      <div class="text-xs text-stone-500">Roasters</div>
+    <a href="/roasters" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::building("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasters }}</span>
+      <span class="text-xs text-stone-500">Roasters</span>
     </a>
-    <a href="/bags" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.bags }}</div>
-      <div class="text-xs text-stone-500">Bags</div>
+    <a href="/bags" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::bag("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.bags }}</span>
+      <span class="text-xs text-stone-500">Bags</span>
     </a>
-    <a href="/cups" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cups }}</div>
-      <div class="text-xs text-stone-500">Cups</div>
+    <a href="/cups" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::cup("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cups }}</span>
+      <span class="text-xs text-stone-500">Cups</span>
     </a>
-    <a href="/cafes" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cafes }}</div>
-      <div class="text-xs text-stone-500">Cafes</div>
+    <a href="/cafes" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::location("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cafes }}</span>
+      <span class="text-xs text-stone-500">Cafes</span>
     </a>
-    <a href="/gear" class="group">
-      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.gear }}</div>
-      <div class="text-xs text-stone-500">Gear</div>
+    <a href="/gear" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+      {% call icons::wrench("h-4 w-4 text-amber-600") %}
+      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.gear }}</span>
+      <span class="text-xs text-stone-500">Gear</span>
     </a>
   </div>
 </section>
