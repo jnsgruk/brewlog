@@ -7,24 +7,22 @@ use super::macros::{
     define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
 };
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, load_cafe_options,
-    load_roast_options,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
 use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
 use crate::domain::ids::CupId;
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::presentation::web::templates::{CupListTemplate, CupsTemplate};
+use crate::presentation::web::templates::CupListTemplate;
 use crate::presentation::web::views::{CupView, ListNavigator, Paginated};
 
-const CUP_PAGE_PATH: &str = "/cups";
-const CUP_FRAGMENT_PATH: &str = "/cups#cup-list";
+const CUP_PAGE_PATH: &str = "/data?type=cups";
+const CUP_FRAGMENT_PATH: &str = "/data?type=cups#cup-list";
 
 #[tracing::instrument(skip(state))]
-async fn load_cup_page(
+pub(super) async fn load_cup_page(
     state: &AppState,
     request: ListRequest<CupSortKey>,
     search: Option<&str>,
@@ -43,44 +41,6 @@ async fn load_cup_page(
         CUP_FRAGMENT_PATH,
         search.map(String::from),
     ))
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn cups_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<CupSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_cup_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let (cups, navigator) = load_cup_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let roast_options = load_roast_options(&state).await.map_err(map_app_error)?;
-
-    let cafe_options = load_cafe_options(&state).await.map_err(map_app_error)?;
-
-    let template = CupsTemplate {
-        nav_active: "cups",
-        is_authenticated,
-        cups,
-        roast_options,
-        cafe_options,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]

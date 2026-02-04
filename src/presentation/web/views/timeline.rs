@@ -55,14 +55,14 @@ impl TimelineEventView {
         let TimelineEvent {
             id,
             entity_type,
-            entity_id,
+            entity_id: _,
             action,
             occurred_at,
             title,
             details,
             tasting_notes,
-            slug,
-            roaster_slug,
+            slug: _,
+            roaster_slug: _,
             brew_data,
         } = event;
 
@@ -78,18 +78,12 @@ impl TimelineEventView {
             _ => "Event",
         };
 
-        let link = match (entity_type.as_str(), slug, roaster_slug) {
-            ("roaster", Some(slug), _) => format!("/roasters/{slug}"),
-            // Roasts, bags, brews, and cups link to the roast page when we have slug info
-            ("roast" | "bag" | "brew" | "cup", Some(slug), Some(roaster_slug)) => {
-                format!("/roasters/{roaster_slug}/roasts/{slug}")
-            }
-            ("cafe", Some(slug), _) => format!("/cafes/{slug}"),
-            ("cup", _, _) => "/cups".to_string(),
-            ("gear", _, _) => "/gear".to_string(),
-            ("brew", _, _) => "/brews".to_string(),
-            ("roaster", None, _) => format!("/roasters/{entity_id}"),
-            ("roast", None, _) => format!("/roasts/{entity_id}"),
+        let link = match entity_type.as_str() {
+            "roaster" => "/data?type=roasters".to_string(),
+            "roast" | "bag" | "brew" => format!("/data?type={entity_type}s"),
+            "cafe" => "/data?type=cafes".to_string(),
+            "cup" => "/data?type=cups".to_string(),
+            "gear" => "/data?type=gear".to_string(),
             _ => String::from("#"),
         };
 

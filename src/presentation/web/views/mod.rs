@@ -175,22 +175,22 @@ impl<T> Paginated<T> {
 
 #[derive(Clone, Debug)]
 pub struct ListNavigator<K: SortKey> {
-    base_path: &'static str,
-    fragment_path: &'static str,
+    base_path: String,
+    fragment_path: String,
     request: ListRequest<K>,
     search: Option<String>,
 }
 
 impl<K: SortKey> ListNavigator<K> {
     pub fn new(
-        base_path: &'static str,
-        fragment_path: &'static str,
+        base_path: impl Into<String>,
+        fragment_path: impl Into<String>,
         request: ListRequest<K>,
         search: Option<String>,
     ) -> Self {
         Self {
-            base_path,
-            fragment_path,
+            base_path: base_path.into(),
+            fragment_path: fragment_path.into(),
             request,
             search,
         }
@@ -221,31 +221,31 @@ impl<K: SortKey> ListNavigator<K> {
     }
 
     pub fn page_href(&self, page: u32) -> String {
-        self.build_href(self.base_path, self.request.with_page(page))
+        self.build_href(&self.base_path, self.request.with_page(page))
     }
 
     pub fn fragment_page_href(&self, page: u32) -> String {
-        self.build_href(self.fragment_path, self.request.with_page(page))
+        self.build_href(&self.fragment_path, self.request.with_page(page))
     }
 
     pub fn rows_href(&self, value: &str) -> String {
-        self.build_href(self.base_path, Self::request_for_rows(self.request, value))
+        self.build_href(&self.base_path, Self::request_for_rows(self.request, value))
     }
 
     pub fn fragment_rows_href(&self, value: &str) -> String {
         self.build_href(
-            self.fragment_path,
+            &self.fragment_path,
             Self::request_for_rows(self.request, value),
         )
     }
 
     pub fn sort_href(&self, key: &str) -> String {
-        self.build_href(self.base_path, Self::request_for_sort(self.request, key))
+        self.build_href(&self.base_path, Self::request_for_sort(self.request, key))
     }
 
     pub fn fragment_sort_href(&self, key: &str) -> String {
         self.build_href(
-            self.fragment_path,
+            &self.fragment_path,
             Self::request_for_sort(self.request, key),
         )
     }
@@ -290,7 +290,7 @@ impl<K: SortKey> ListNavigator<K> {
 
     /// Returns the base path (e.g., "/roasters") without query or fragment.
     pub fn path(&self) -> &str {
-        self.base_path
+        &self.base_path
     }
 
     /// Returns query params for search actions (page reset to 1, preserves `sort/page_size`).
@@ -304,11 +304,25 @@ impl<K: SortKey> ListNavigator<K> {
         )
     }
 
-    fn build_href(&self, path: &str, request: ListRequest<K>) -> String {
-        if let Some((base, fragment)) = path.split_once('#') {
-            format!("{}?{}#{}", base, self.build_query_string(request), fragment)
+    /// Returns the full URL prefix for search: `{path}?{query_base}&q=` or `{path}&{query_base}&q=`
+    /// depending on whether the base path already contains query parameters.
+    pub fn search_href_prefix(&self) -> String {
+        let sep = if self.base_path.contains('?') {
+            '&'
         } else {
-            format!("{}?{}", path, self.build_query_string(request))
+            '?'
+        };
+        format!("{}{sep}{}&q=", self.base_path, self.search_query_base())
+    }
+
+    fn build_href(&self, path: &str, request: ListRequest<K>) -> String {
+        let qs = self.build_query_string(request);
+        if let Some((base, fragment)) = path.split_once('#') {
+            let sep = if base.contains('?') { '&' } else { '?' };
+            format!("{base}{sep}{qs}#{fragment}")
+        } else {
+            let sep = if path.contains('?') { '&' } else { '?' };
+            format!("{path}{sep}{qs}")
         }
     }
 

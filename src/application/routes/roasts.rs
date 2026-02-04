@@ -1,34 +1,30 @@
 use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
-use axum::response::{Html, IntoResponse, Redirect, Response};
+use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
 use super::macros::{
     define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
 };
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, load_roaster_options,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
-use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::infrastructure::ai::{self, ExtractionInput};
-use crate::presentation::web::templates::{
-    RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
-};
+use crate::presentation::web::templates::{RoastListTemplate, RoastOptionsTemplate};
 use crate::presentation::web::views::{ListNavigator, Paginated, RoastView};
 
-const ROAST_PAGE_PATH: &str = "/roasts";
-const ROAST_FRAGMENT_PATH: &str = "/roasts#roast-list";
+const ROAST_PAGE_PATH: &str = "/data?type=roasts";
+const ROAST_FRAGMENT_PATH: &str = "/data?type=roasts#roast-list";
 
 #[tracing::instrument(skip(state))]
-async fn load_roast_page(
+pub(super) async fn load_roast_page(
     state: &AppState,
     request: ListRequest<RoastSortKey>,
     search: Option<&str>,
@@ -47,84 +43,6 @@ async fn load_roast_page(
         ROAST_FRAGMENT_PATH,
         search.map(String::from),
     ))
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn roasts_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<RoastSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_roast_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let roaster_options = load_roaster_options(&state).await.map_err(map_app_error)?;
-
-    let (roasts, navigator) = load_roast_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = RoastsTemplate {
-        nav_active: "roasts",
-        is_authenticated,
-        roasts,
-        roaster_options,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
-}
-
-#[tracing::instrument(skip(state, cookies))]
-pub(crate) async fn roast_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    Path((roaster_slug, roast_slug)): Path<(String, String)>,
-) -> Result<Html<String>, StatusCode> {
-    let roaster = state
-        .roaster_repo
-        .get_by_slug(&roaster_slug)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let roast = state
-        .roast_repo
-        .get_by_slug(roaster.id, &roast_slug)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let bag_request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
-    let bags_page = state
-        .bag_repo
-        .list(BagFilter::for_roast(roast.id), &bag_request, None)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let bag_views = bags_page
-        .items
-        .into_iter()
-        .map(crate::presentation::web::views::BagView::from_domain)
-        .collect();
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = RoastDetailTemplate {
-        nav_active: "roasts",
-        is_authenticated,
-        roast: RoastView::from_domain(roast, &roaster.name, &roaster.slug),
-        bags: bag_views,
-    };
-
-    render_html(template)
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]

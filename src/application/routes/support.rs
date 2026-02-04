@@ -114,8 +114,8 @@ pub fn build_page_view<K, T, V>(
     page: Page<T>,
     request: ListRequest<K>,
     view_mapper: impl FnMut(T) -> V,
-    base_path: &'static str,
-    fragment_path: &'static str,
+    base_path: impl Into<String>,
+    fragment_path: impl Into<String>,
     search: Option<String>,
 ) -> (Paginated<V>, ListNavigator<K>)
 where

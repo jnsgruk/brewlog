@@ -1,0 +1,797 @@
+{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Add{% endblock %}
+
+{% block head %}
+<script>
+  let _userLat = null;
+  let _userLng = null;
+  let _searchTimeout = null;
+  let _nearbyCafes = [];
+
+  function locateUser(btn) {
+    const errorEl = document.getElementById('nearby-error');
+    const searchWrap = document.getElementById('nearby-search-wrap');
+    errorEl.classList.add('hidden');
+    errorEl.textContent = '';
+
+    if (!navigator.geolocation) {
+      errorEl.textContent = 'Geolocation is not supported by your browser.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    btn.textContent = 'Locating\u2026';
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        _userLat = pos.coords.latitude;
+        _userLng = pos.coords.longitude;
+        btn.classList.add('hidden');
+        searchWrap.classList.remove('hidden');
+        document.getElementById('nearby-search').focus();
+      },
+      (err) => {
+        btn.textContent = 'Find nearby';
+        btn.disabled = false;
+        if (err.code === 1) {
+          errorEl.textContent = 'Location access denied. Please allow location access and try again.';
+        } else if (err.code === 3) {
+          errorEl.textContent = 'Location request timed out. Please try again.';
+        } else {
+          errorEl.textContent = 'Could not determine your location. Please try again.';
+        }
+        errorEl.classList.remove('hidden');
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  }
+
+  function onSearchInput(input) {
+    clearTimeout(_searchTimeout);
+    const resultsEl = document.getElementById('nearby-results');
+
+    if (input.value.trim().length < 2) {
+      resultsEl.classList.add('hidden');
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    _searchTimeout = setTimeout(() => {
+      searchNearby(input.value.trim());
+    }, 350);
+  }
+
+  function toggleCitySearch(checkbox) {
+    const locateBtn = document.getElementById('locate-btn');
+    const cityWrap = document.getElementById('city-search-wrap');
+    const searchWrap = document.getElementById('nearby-search-wrap');
+    const resultsEl = document.getElementById('nearby-results');
+
+    if (checkbox.checked) {
+      locateBtn.classList.add('hidden');
+      cityWrap.classList.remove('hidden');
+      searchWrap.classList.remove('hidden');
+      document.getElementById('city-input').focus();
+    } else {
+      cityWrap.classList.add('hidden');
+      document.getElementById('city-input').value = '';
+      if (_userLat === null) {
+        searchWrap.classList.add('hidden');
+        locateBtn.classList.remove('hidden');
+        locateBtn.textContent = 'Find nearby';
+        locateBtn.disabled = false;
+      }
+      resultsEl.classList.add('hidden');
+      resultsEl.innerHTML = '';
+    }
+  }
+
+  async function searchNearby(query) {
+    const resultsEl = document.getElementById('nearby-results');
+    const errorEl = document.getElementById('nearby-error');
+    const spinnerEl = document.getElementById('nearby-spinner');
+    errorEl.classList.add('hidden');
+    spinnerEl.classList.remove('hidden');
+
+    try {
+      const cityInput = document.getElementById('city-input');
+      const cityValue = cityInput ? cityInput.value.trim() : '';
+      let url;
+      if (cityValue.length >= 2) {
+        url = `/api/v1/nearby-cafes?near=${encodeURIComponent(cityValue)}&q=${encodeURIComponent(query)}`;
+      } else {
+        url = `/api/v1/nearby-cafes?lat=${_userLat}&lng=${_userLng}&q=${encodeURIComponent(query)}`;
+      }
+      const resp = await fetch(url, { credentials: 'same-origin' });
+
+      if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+
+      const cafes = await resp.json();
+      _nearbyCafes = cafes;
+
+      if (cafes.length === 0) {
+        resultsEl.innerHTML = '<div class="px-3 py-2 text-sm text-stone-500">No results found.</div>';
+        resultsEl.classList.remove('hidden');
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < cafes.length; i++) {
+        const dist = cafes[i].distance_meters;
+        const distLabel = dist < 1000
+          ? `${dist} m`
+          : `${(dist / 1000).toFixed(1)} km`;
+        const location = [cafes[i].city, cafes[i].country].filter(Boolean).join(', ');
+        html += `<button type="button" class="w-full px-3 py-2 text-left text-sm hover:bg-amber-100 transition" onclick="selectPlace(${i})">`
+          + `<span class="font-medium text-amber-900">${escapeHtml(cafes[i].name)}</span>`
+          + `<span class="ml-2 text-xs text-stone-500">${escapeHtml(location)} &middot; ${distLabel}</span>`
+          + `</button>`;
+      }
+      resultsEl.innerHTML = html;
+      resultsEl.classList.remove('hidden');
+    } catch (e) {
+      errorEl.textContent = 'Search failed. Please try again.';
+      errorEl.classList.remove('hidden');
+    } finally {
+      spinnerEl.classList.add('hidden');
+    }
+  }
+
+  function selectPlace(index) {
+    const cafe = _nearbyCafes[index];
+    if (!cafe) return;
+
+    const form = document.getElementById('cafe-form');
+    form.querySelector('[name="name"]').value = cafe.name;
+    form.querySelector('[name="city"]').value = cafe.city || '';
+    form.querySelector('[name="country"]').value = cafe.country || '';
+    form.querySelector('[name="latitude"]').value = cafe.latitude;
+    form.querySelector('[name="longitude"]').value = cafe.longitude;
+    form.querySelector('[name="website"]').value = cafe.website || '';
+
+    document.getElementById('nearby-results').classList.add('hidden');
+    document.getElementById('nearby-search').value = '';
+  }
+
+  function escapeHtml(text) {
+    const el = document.createElement('span');
+    el.textContent = text;
+    return el.innerHTML;
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Scan Bag (Quick Add) -->
+<section
+  data-signals:_extracting="false"
+  data-signals:_extract-error="''"
+  data-signals:_scan-extracted="false"
+  data-signals:_scan-submitting="false"
+  data-signals:_scan-error="''"
+  data-signals:_roaster-name="''"
+  data-signals:_roaster-country="''"
+  data-signals:_roaster-city="''"
+  data-signals:_roaster-homepage="''"
+  data-signals:_roast-name="''"
+  data-signals:_origin="''"
+  data-signals:_region="''"
+  data-signals:_producer="''"
+  data-signals:_process="''"
+  data-signals:_tasting-notes="''"
+  data-signals:_open-bag="true"
+  data-signals:_bag-amount="250"
+>
+  <h2 class="text-lg font-semibold text-amber-700 mb-3">Quick Add &mdash; Scan Bag</h2>
+
+  <!-- Hidden file input -->
+  <input type="file" id="scan-photo" accept="image/*" capture="environment" class="hidden"
+    onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('scan-image').value=r.result;document.getElementById('scan-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
+
+  <!-- Input: photo or text -->
+  <div data-show="!$_scanExtracted" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <form id="scan-extract-form"
+      data-on:submit="$_extracting = true; $_extractError = ''; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
+    >
+      <input type="hidden" name="image" id="scan-image" />
+      <div data-show="!$_extracting" class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick="document.getElementById('scan-photo').click()"
+          class="shrink-0 inline-flex items-center justify-center rounded-md border border-amber-500 p-2.5 text-amber-700 transition hover:bg-amber-50"
+          aria-label="Take Photo"
+        >
+          {% call icons::camera("h-5 w-5") %}
+        </button>
+        <input
+          type="text"
+          name="prompt"
+          class="input-field w-full text-sm"
+          placeholder="Describe the coffee bag&hellip;"
+        />
+      </div>
+      <div data-show="$_extracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+        {% call icons::spinner("h-5 w-5") %}
+        Waiting for response&hellip;
+      </div>
+      <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
+    </form>
+  </div>
+
+  <!-- Scan result form -->
+  <div data-show="$_scanExtracted" style="display: none">
+    <form
+      class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm flex flex-col gap-6"
+      data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { $_scanSubmitting = false; window.location.href = '/data?type=bags' } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
+    >
+      <div>
+        <h3 class="text-base font-semibold text-amber-700">Roaster</h3>
+        <p class="mt-1 text-sm text-stone-600">If this roaster already exists, it will be matched automatically.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Name *</span>
+            <input type="text" name="roaster_name" required class="input-field" placeholder="Example Coffee Roasters" data-bind:_roaster-name />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Country *</span>
+            <input type="text" name="roaster_country" required class="input-field" placeholder="United States" data-bind:_roaster-country />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">City</span>
+            <input type="text" name="roaster_city" class="input-field" placeholder="Portland" data-bind:_roaster-city />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Homepage</span>
+            <input type="url" name="roaster_homepage" class="input-field" placeholder="https://example.coffee" data-bind:_roaster-homepage />
+          </label>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-base font-semibold text-amber-700">Roast</h3>
+        <p class="mt-1 text-sm text-stone-600">Details about this specific coffee.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Roast Name *</span>
+            <input type="text" name="roast_name" required class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_roast-name />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Origin *</span>
+            <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_origin />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Region *</span>
+            <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_region />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Producer *</span>
+            <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" data-bind:_producer />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Process *</span>
+            <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_process />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Tasting Notes * (comma separated)</span>
+            <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine" data-bind:_tasting-notes></textarea>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" name="open_bag" value="true" class="accent-amber-600" data-bind:_open-bag />
+          <span class="font-semibold text-amber-700">Open a bag of this coffee</span>
+        </label>
+        <div data-show="$_openBag" class="mt-3 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Amount (grams)</span>
+            <input type="number" name="bag_amount" min="1" step="any" class="input-field" placeholder="250" data-bind:_bag-amount />
+          </label>
+        </div>
+      </div>
+      <p data-show="$_scanError" data-text="$_scanError" style="display:none" class="text-sm text-red-600"></p>
+      <div data-show="$_scanSubmitting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+        {% call icons::spinner("h-5 w-5") %}
+        Saving&hellip;
+      </div>
+      <div data-show="!$_scanSubmitting" class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          data-on:click="$_scanExtracted = false"
+          class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+        >
+          Save Roaster &amp; Roast
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Manual Add -->
+<section
+  data-signals:_add-type="'{{ active_type }}'"
+  data-signals:_add-extracting="false"
+  data-signals:_add-extract-error="''"
+  data-signals:_add-submitting="false"
+  data-signals:_add-roaster-name="''"
+  data-signals:_add-roaster-country="''"
+  data-signals:_add-roaster-city="''"
+  data-signals:_add-roaster-homepage="''"
+  data-signals:_add-roast-name="''"
+  data-signals:_add-origin="''"
+  data-signals:_add-region="''"
+  data-signals:_add-producer="''"
+  data-signals:_add-process="''"
+  data-signals:_add-tasting-notes="''"
+  data-signals:_add-roaster-id="''"
+  data-signals:_brew-temp="{{ defaults.water_temp }}"
+  data-signals:_brew-grind="{{ defaults.grind_setting }}"
+  data-signals:_brew-volume="{{ defaults.water_volume }}"
+  data-signals:_brew-weight="{{ defaults.coffee_weight }}"
+>
+  <h2 class="text-lg font-semibold text-amber-700 mb-3">Manual Add</h2>
+
+  <!-- Entity type selector pills -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    {% for (key, label) in [("roaster", "Roaster"), ("roast", "Roast"), ("bag", "Bag"), ("brew", "Brew"), ("gear", "Gear"), ("cafe", "Cafe"), ("cup", "Cup")] %}
+    <button
+      type="button"
+      data-on:click="$_addType = '{{ key }}'"
+      class="rounded-full px-3 py-1.5 text-sm font-medium transition border"
+      data-class:bg-amber-600="$_addType === '{{ key }}'"
+      data-class:text-amber-50="$_addType === '{{ key }}'"
+      data-class:border-amber-600="$_addType === '{{ key }}'"
+      data-class:bg-transparent="$_addType !== '{{ key }}'"
+      data-class:text-stone-600="$_addType !== '{{ key }}'"
+      data-class:border-amber-300="$_addType !== '{{ key }}'"
+      data-class:hover--bg-amber-50="$_addType !== '{{ key }}'"
+    >
+      {{ label }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- ========== ROASTER FORM ========== -->
+  <div data-show="$_addType === 'roaster'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Roaster</h3>
+      <p class="mt-1 text-sm text-stone-600">Provide the core details and Brewlog will keep track of everything for you.</p>
+    </div>
+
+    <input type="file" id="add-roaster-photo" accept="image/*" capture="environment" class="hidden"
+      onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('add-roaster-image').value=r.result;document.getElementById('add-roaster-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
+
+    <form id="add-roaster-extract-form" class="mt-4 border-b border-amber-200 pb-4"
+      data-on:submit="$_addExtracting = true; $_addExtractError = ''; @post('/api/v1/extract-roaster', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_addExtracting) return; if (evt.detail.type === 'finished') { $_addExtracting = false } else if (evt.detail.type === 'error') { $_addExtracting = false; $_addExtractError = 'Extraction failed. Please try again.' }"
+    >
+      <input type="hidden" name="image" id="add-roaster-image" />
+      <div data-show="!$_addExtracting" class="flex flex-wrap items-center gap-3">
+        <button type="button" onclick="document.getElementById('add-roaster-photo').click()"
+          class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50">
+          {% call icons::camera("h-4 w-4") %}
+          Extract from photo
+        </button>
+        <span class="text-xs text-stone-400">or</span>
+        <div class="flex flex-1 min-w-[200px] gap-2">
+          <input type="text" name="prompt" class="input-field w-full text-sm" placeholder="Describe the roaster&hellip;" />
+          <button type="submit" class="rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50">Go</button>
+        </div>
+      </div>
+      <div data-show="$_addExtracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+        {% call icons::spinner("h-4 w-4") %}
+        Waiting for response&hellip;
+      </div>
+      <p data-show="$_addExtractError" data-text="$_addExtractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
+    </form>
+
+    <form method="post" action="/api/v1/roasters" class="mt-4 flex flex-col gap-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Name *</span>
+          <input type="text" name="name" required class="input-field" placeholder="Example Coffee Roasters" data-bind:_add-roaster-name />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Country *</span>
+          <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_add-roaster-country />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">City</span>
+          <input type="text" name="city" class="input-field" placeholder="Portland" data-bind:_add-roaster-city />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Homepage</span>
+          <input type="url" name="homepage" class="input-field" placeholder="https://example.coffee" data-bind:_add-roaster-homepage />
+        </label>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Save Roaster
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ========== ROAST FORM ========== -->
+  <div data-show="$_addType === 'roast'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    {% if roaster_options.is_empty() %}
+    <div class="text-sm text-stone-600">
+      <h3 class="text-lg font-semibold text-amber-700">Add a roaster first</h3>
+      <p class="mt-2">Roasts need a roaster. Add a roaster above to enable this form.</p>
+    </div>
+    {% else %}
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Roast</h3>
+      <p class="mt-1 text-sm text-stone-600">Select a roaster, describe the roast, and Brewlog will take care of the rest.</p>
+    </div>
+
+    <input type="file" id="add-roast-photo" accept="image/*" capture="environment" class="hidden"
+      onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('add-roast-image').value=r.result;document.getElementById('add-roast-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
+
+    <form id="add-roast-extract-form" class="mt-4 border-b border-amber-200 pb-4"
+      data-on:submit="$_addExtracting = true; $_addExtractError = ''; @post('/api/v1/extract-roast', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_addExtracting) return; if (evt.detail.type === 'finished') { $_addExtracting = false } else if (evt.detail.type === 'error') { $_addExtracting = false; $_addExtractError = 'Extraction failed. Please try again.' }"
+    >
+      <input type="hidden" name="image" id="add-roast-image" />
+      <div data-show="!$_addExtracting" class="flex flex-wrap items-center gap-3">
+        <button type="button" onclick="document.getElementById('add-roast-photo').click()"
+          class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50">
+          {% call icons::camera("h-4 w-4") %}
+          Extract from photo
+        </button>
+        <span class="text-xs text-stone-400">or</span>
+        <div class="flex flex-1 min-w-[200px] gap-2">
+          <input type="text" name="prompt" class="input-field w-full text-sm" placeholder="Describe the coffee&hellip;" />
+          <button type="submit" class="rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50">Go</button>
+        </div>
+      </div>
+      <div data-show="$_addExtracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+        {% call icons::spinner("h-4 w-4") %}
+        Waiting for response&hellip;
+      </div>
+      <p data-show="$_addExtractError" data-text="$_addExtractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
+    </form>
+
+    <form method="post" action="/api/v1/roasts" class="mt-4 flex flex-col gap-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roaster *</span>
+          <select name="roaster_id" required class="input-field" data-bind:_add-roaster-id>
+            <option value="">Select a roaster</option>
+            {% for roaster in roaster_options %}
+            <option value="{{ roaster.id }}">{{ roaster.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roast Name *</span>
+          <input type="text" name="name" required class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_add-roast-name />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Origin *</span>
+          <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_add-origin />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Region *</span>
+          <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_add-region />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Producer *</span>
+          <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" data-bind:_add-producer />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Process *</span>
+          <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_add-process />
+        </label>
+        <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Tasting Notes * (comma or newline separated)</span>
+          <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine" data-bind:_add-tasting-notes></textarea>
+        </label>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Save Roast
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- ========== BAG FORM ========== -->
+  <div data-show="$_addType === 'bag'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    {% if roaster_options.is_empty() %}
+    <div class="text-sm text-stone-600">
+      <h3 class="text-lg font-semibold text-amber-700">Add a roaster first</h3>
+      <p class="mt-2">Bags need a roaster and a roast. Add a roaster to enable this form.</p>
+    </div>
+    {% else %}
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Bag</h3>
+      <p class="mt-1 text-sm text-stone-600">Select a roaster, then a roast, and enter the details.</p>
+    </div>
+    <form method="post" action="/api/v1/bags" class="mt-4 flex flex-col gap-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roaster *</span>
+          <select name="roaster_id" required class="input-field"
+            data-on:change="@get('/api/v1/roasts?roaster_id=' + evt.target.value, {responseOverrides: {selector: '#add-roast-select-options', mode: 'replace'}})">
+            <option value="">Select a roaster</option>
+            {% for roaster in roaster_options %}
+            <option value="{{ roaster.id }}">{{ roaster.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roast *</span>
+          <select name="roast_id" required class="input-field" id="add-roast-select">
+            <option value="">Select a roast</option>
+            <optgroup id="add-roast-select-options"></optgroup>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Roast Date</span>
+          <input type="date" name="roast_date" class="input-field" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Amount (g) *</span>
+          <input type="number" name="amount" step="0.1" required class="input-field" placeholder="250" />
+        </label>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Save Bag
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- ========== BREW FORM ========== -->
+  <div data-show="$_addType === 'brew'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    {% if bag_options.is_empty() %}
+    <div class="text-sm text-stone-600">
+      <h3 class="text-lg font-semibold text-amber-700">Open a bag first</h3>
+      <p class="mt-2">Brews need an open bag of coffee. Add a bag to enable this form.</p>
+    </div>
+    {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
+    <div class="text-sm text-stone-600">
+      <h3 class="text-lg font-semibold text-amber-700">Add your gear first</h3>
+      <p class="mt-2">Brews need a grinder and brewer. Add your gear to enable this form.</p>
+    </div>
+    {% else %}
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Brew</h3>
+      <p class="mt-1 text-sm text-stone-600">Log a cup of coffee.</p>
+    </div>
+    <form method="post" action="/api/v1/brews" class="mt-4 flex flex-col gap-4 overflow-hidden">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Bag *</span>
+          <select name="bag_id" required class="input-field">
+            <option value="">Select a bag</option>
+            {% for bag in bag_options %}
+            <option value="{{ bag.id }}"{% if bag.id == defaults.bag_id %} selected{% endif %}>{{ bag.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Grinder *</span>
+          <select name="grinder_id" required class="input-field">
+            {% for grinder in grinder_options %}
+            <option value="{{ grinder.id }}"{% if grinder.id == defaults.grinder_id %} selected{% endif %}>{{ grinder.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Brewer *</span>
+          <select name="brewer_id" required class="input-field">
+            {% for brewer in brewer_options %}
+            <option value="{{ brewer.id }}"{% if brewer.id == defaults.brewer_id %} selected{% endif %}>{{ brewer.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Filter Paper</span>
+          <select name="filter_paper_id" class="input-field">
+            <option value="">None</option>
+            {% for fp in filter_paper_options %}
+            <option value="{{ fp.id }}"{% if fp.id == defaults.filter_paper_id %} selected{% endif %}>{{ fp.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Coffee (g) *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Math.max(1, $_brewWeight - 0.5)">-</button>
+            <input type="number" name="coffee_weight" step="any" min="1" required class="input-field flex-1 text-center" data-attr:value="$_brewWeight" data-on:input="$_brewWeight = this.valueAsNumber" />
+            <button type="button" class="btn-adjust" data-on:click="$_brewWeight = $_brewWeight + 0.5">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Grind Setting *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Math.max(0, $_brewGrind - 0.5)">-</button>
+            <input type="number" name="grind_setting" step="any" min="0" required class="input-field flex-1 text-center" data-attr:value="$_brewGrind" data-on:input="$_brewGrind = this.valueAsNumber" />
+            <button type="button" class="btn-adjust" data-on:click="$_brewGrind = $_brewGrind + 0.5">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Water (ml) *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Math.max(10, $_brewVolume - 10)">-</button>
+            <input type="number" name="water_volume" step="any" min="10" required class="input-field flex-1 text-center" data-attr:value="$_brewVolume" data-on:input="$_brewVolume = this.valueAsNumber" />
+            <button type="button" class="btn-adjust" data-on:click="$_brewVolume = $_brewVolume + 10">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Temp (C) *</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.max(0, $_brewTemp - 0.5)">-</button>
+            <input type="number" name="water_temp" step="any" min="0" max="100" required class="input-field flex-1 text-center" data-attr:value="$_brewTemp" data-on:input="$_brewTemp = this.valueAsNumber" />
+            <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.min(100, $_brewTemp + 0.5)">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Log Brew
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- ========== GEAR FORM ========== -->
+  <div data-show="$_addType === 'gear'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Gear</h3>
+      <p class="mt-1 text-sm text-stone-600">Add brewing equipment to your collection.</p>
+    </div>
+    <form method="post" action="/api/v1/gear" class="mt-4 flex flex-col gap-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Category *</span>
+          <select name="category" required class="input-field">
+            <option value="">Select a category</option>
+            <option value="grinder">Grinder</option>
+            <option value="brewer">Brewer</option>
+            <option value="filter_paper">Filter Paper</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Make *</span>
+          <input type="text" name="make" required class="input-field" placeholder="Baratza" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Model *</span>
+          <input type="text" name="model" required class="input-field" placeholder="Encore" />
+        </label>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Save Gear
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ========== CAFE FORM ========== -->
+  <div data-show="$_addType === 'cafe'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Cafe</h3>
+      <p class="mt-1 text-sm text-stone-600">Add a cafe you have visited or want to remember.</p>
+    </div>
+    <form id="cafe-form" method="post" action="/api/v1/cafes" class="mt-4 flex flex-col gap-4">
+      <div class="relative border-b border-amber-200 pb-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="button" id="locate-btn" onclick="locateUser(this)"
+            class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50">
+            {% call icons::location("h-4 w-4") %}
+            Find nearby
+          </button>
+          <label class="inline-flex items-center gap-1.5 text-sm text-stone-600 cursor-pointer select-none">
+            <input type="checkbox" onchange="toggleCitySearch(this)" class="accent-amber-600" />
+            Search by city
+          </label>
+          <div id="city-search-wrap" class="hidden flex-1 min-w-[140px]">
+            <input type="text" id="city-input" class="input-field w-full text-sm" placeholder="e.g. Tokyo, London" autocomplete="off" />
+          </div>
+          <div id="nearby-search-wrap" class="hidden relative flex-1 min-w-[200px]">
+            <input type="text" id="nearby-search" oninput="onSearchInput(this)" class="input-field w-full text-sm pr-8" placeholder="Search for a cafe&hellip;" autocomplete="off" />
+            <span id="nearby-spinner" class="hidden absolute right-2 top-1/2 -translate-y-1/2">
+              {% call icons::spinner("h-4 w-4") %}
+            </span>
+          </div>
+        </div>
+        <p id="nearby-error" class="hidden mt-2 text-sm text-red-600"></p>
+        <div id="nearby-results"
+          class="hidden absolute left-0 right-0 z-10 mt-1 max-h-60 overflow-y-auto rounded-md border border-amber-300 bg-white shadow-lg divide-y divide-amber-100"></div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Name *</span>
+          <input type="text" name="name" required class="input-field" placeholder="Blue Bottle Coffee" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">City *</span>
+          <input type="text" name="city" required class="input-field" placeholder="San Francisco" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Country *</span>
+          <input type="text" name="country" required class="input-field" placeholder="United States" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Website</span>
+          <input type="url" name="website" class="input-field" placeholder="https://bluebottlecoffee.com" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Latitude *</span>
+          <input type="number" name="latitude" step="any" required class="input-field" placeholder="37.7749" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Longitude *</span>
+          <input type="number" name="longitude" step="any" required class="input-field" placeholder="-122.4194" />
+        </label>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Save Cafe
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ========== CUP FORM ========== -->
+  <div data-show="$_addType === 'cup'" style="display:none" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <div>
+      <h3 class="text-lg font-semibold text-amber-700">New Cup</h3>
+      <p class="mt-1 text-sm text-stone-600">Record a coffee you had at a cafe.</p>
+    </div>
+    <form method="post" action="/api/v1/cups" class="mt-4 flex flex-col gap-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Coffee *</span>
+          <select name="roast_id" required class="input-field">
+            <option value="">Select a roast...</option>
+            {% for roast in roast_options %}
+            <option value="{{ roast.id }}">{{ roast.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Cafe *</span>
+          <select name="cafe_id" required class="input-field">
+            <option value="">Select a cafe...</option>
+            {% for cafe in cafe_options %}
+            <option value="{{ cafe.id }}">{{ cafe.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-stone-700">Rating</span>
+          <select name="rating" class="input-field">
+            <option value="">No rating</option>
+            <option value="5">5 - Exceptional</option>
+            <option value="4">4 - Great</option>
+            <option value="3">3 - Good</option>
+            <option value="2">2 - Fair</option>
+            <option value="1">1 - Poor</option>
+          </select>
+        </label>
+      </div>
+      <div class="flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500">
+          Save Cup
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

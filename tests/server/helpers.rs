@@ -371,6 +371,14 @@ pub async fn create_default_bag(
 
 /// Asserts that the response has valid Datastar fragment headers
 pub fn assert_datastar_headers(response: &reqwest::Response, expected_selector: &str) {
+    assert_datastar_headers_with_mode(response, expected_selector, "replace");
+}
+
+pub fn assert_datastar_headers_with_mode(
+    response: &reqwest::Response,
+    expected_selector: &str,
+    expected_mode: &str,
+) {
     let selector = response
         .headers()
         .get("datastar-selector")
@@ -389,8 +397,9 @@ pub fn assert_datastar_headers(response: &reqwest::Response, expected_selector: 
         .and_then(|v| v.to_str().ok());
     assert_eq!(
         mode,
-        Some("replace"),
-        "Expected datastar-mode header to be 'replace', got {:?}",
+        Some(expected_mode),
+        "Expected datastar-mode header to be '{}', got {:?}",
+        expected_mode,
         mode
     );
 }

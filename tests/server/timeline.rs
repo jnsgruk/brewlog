@@ -86,7 +86,7 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
     let client = Client::new();
 
     let roaster_name = "Timeline Roasters";
-    let roaster = create_roaster_with_payload(
+    create_roaster_with_payload(
         &app,
         NewRoaster {
             name: roaster_name.to_string(),
@@ -117,8 +117,8 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
         "Expected roaster name to appear in timeline HTML, got: {body}"
     );
     assert!(
-        body.contains(&format!("/roasters/{}", roaster.slug)),
-        "Expected roaster detail link in timeline HTML, got: {body}"
+        body.contains("/data?type=roasters"),
+        "Expected roaster link in timeline HTML, got: {body}"
     );
 }
 
@@ -462,7 +462,7 @@ async fn creating_a_cafe_surfaces_on_the_timeline() {
     let client = Client::new();
 
     let cafe_name = "Timeline Test Cafe";
-    let cafe = create_cafe_with_payload(
+    create_cafe_with_payload(
         &app,
         NewCafe {
             name: cafe_name.to_string(),
@@ -495,7 +495,7 @@ async fn creating_a_cafe_surfaces_on_the_timeline() {
         "Expected cafe name to appear in timeline HTML, got: {body}"
     );
     assert!(
-        body.contains(&format!("/cafes/{}", cafe.slug)),
-        "Expected cafe detail link in timeline HTML, got: {body}"
+        body.contains("/data?type=cafes"),
+        "Expected cafe link in timeline HTML, got: {body}"
     );
 }

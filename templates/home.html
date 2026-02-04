@@ -187,14 +187,14 @@
 <section>
   <div class="flex items-center justify-between mb-3">
     <h2 class="text-lg font-semibold text-amber-700">Recent Brews</h2>
-    <a href="/brews" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all brews &rarr;</a>
+    <a href="/data?type=brews" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all brews &rarr;</a>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start gap-4">
     {% for brew in recent_brews %}
     <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 pt-4 pb-3 shadow-sm min-w-0">
       <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
-          <a href="/roasters/{{ brew.roaster_slug }}/roasts/{{ brew.roast_slug }}" class="block truncate font-semibold text-amber-800 hover:text-amber-600">{{ brew.roast_name }}</a>
+          <span class="block truncate font-semibold text-amber-800">{{ brew.roast_name }}</span>
           <p class="truncate text-sm text-stone-500">{{ brew.roaster_name }}</p>
         </div>
         <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ brew.relative_date_label }}</time>
@@ -241,7 +241,7 @@
 <section id="open-bags-section">
   <div class="flex items-center justify-between mb-3">
     <h2 class="text-lg font-semibold text-amber-700">Open Bags</h2>
-    <a href="/bags" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all bags &rarr;</a>
+    <a href="/data?type=bags" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all bags &rarr;</a>
   </div>
   <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for bag in open_bags %}
@@ -278,37 +278,37 @@
     <h2 class="text-lg font-semibold text-amber-700">Stats</h2>
   </div>
   <div class="grid grid-cols-2 gap-3 md:flex md:flex-wrap md:justify-center">
-    <a href="/brews" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=brews" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::beaker("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.brews }}</span>
       <span class="text-xs text-stone-500">Brews</span>
     </a>
-    <a href="/roasts" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=roasts" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::fire("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasts }}</span>
       <span class="text-xs text-stone-500">Roasts</span>
     </a>
-    <a href="/roasters" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=roasters" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::building("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasters }}</span>
       <span class="text-xs text-stone-500">Roasters</span>
     </a>
-    <a href="/bags" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=bags" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::bag("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.bags }}</span>
       <span class="text-xs text-stone-500">Bags</span>
     </a>
-    <a href="/cups" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=cups" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::cup("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cups }}</span>
       <span class="text-xs text-stone-500">Cups</span>
     </a>
-    <a href="/cafes" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=cafes" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::location("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cafes }}</span>
       <span class="text-xs text-stone-500">Cafes</span>
     </a>
-    <a href="/gear" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
+    <a href="/data?type=gear" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
       {% call icons::wrench("h-4 w-4 text-amber-600") %}
       <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.gear }}</span>
       <span class="text-xs text-stone-500">Gear</span>

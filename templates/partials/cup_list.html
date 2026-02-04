@@ -36,20 +36,12 @@
               {{ cup.created_at }}
             </td>
             <td data-label="Coffee" class="px-4 py-3 whitespace-nowrap">
-              <a
-                href="/roasters/{{ cup.roaster_slug }}/roasts/{{ cup.roast_slug }}"
-                class="font-semibold text-amber-800 hover:text-amber-600"
-                >{{ cup.roast_name }}</a
-              >
+              <span class="font-semibold text-amber-800">{{ cup.roast_name }}</span>
               <div class="hidden md:block text-xs text-stone-500">{{ cup.roaster_name }}</div>
             </td>
             <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cup.roaster_name }}</td>
             <td data-label="Cafe" class="px-4 py-3 whitespace-nowrap">
-              <a
-                href="/cafes/{{ cup.cafe_slug }}"
-                class="text-amber-800 hover:text-amber-600"
-                >{{ cup.cafe_name }}</a
-              >
+              <span class="text-amber-800">{{ cup.cafe_name }}</span>
             </td>
             <td data-label="Rating" class="px-4 py-3 whitespace-nowrap">{{ cup.rating }}</td>
             <td data-label="" class="px-4 py-3 text-right">

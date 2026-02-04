@@ -6,8 +6,7 @@ use serde::Deserialize;
 
 use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
@@ -16,16 +15,14 @@ use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::infrastructure::foursquare;
-use crate::presentation::web::templates::{
-    CafeDetailTemplate, CafeListTemplate, CafesTemplate, NearbyCafesFragment,
-};
+use crate::presentation::web::templates::{CafeListTemplate, NearbyCafesFragment};
 use crate::presentation::web::views::{CafeView, ListNavigator, NearbyCafeView, Paginated};
 
-const CAFE_PAGE_PATH: &str = "/cafes";
-const CAFE_FRAGMENT_PATH: &str = "/cafes#cafe-list";
+const CAFE_PAGE_PATH: &str = "/data?type=cafes";
+const CAFE_FRAGMENT_PATH: &str = "/data?type=cafes#cafe-list";
 
 #[tracing::instrument(skip(state))]
-async fn load_cafe_page(
+pub(super) async fn load_cafe_page(
     state: &AppState,
     request: ListRequest<CafeSortKey>,
     search: Option<&str>,
@@ -44,62 +41,6 @@ async fn load_cafe_page(
         CAFE_FRAGMENT_PATH,
         search.map(String::from),
     ))
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn cafes_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<CafeSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_cafe_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let (cafes, navigator) = load_cafe_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = CafesTemplate {
-        nav_active: "cafes",
-        is_authenticated,
-        cafes,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
-}
-
-#[tracing::instrument(skip(state, cookies))]
-pub(crate) async fn cafe_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    Path(slug): Path<String>,
-) -> Result<Response, StatusCode> {
-    let cafe = state
-        .cafe_repo
-        .get_by_slug(&slug)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let cafe_view = CafeView::from(cafe);
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = CafeDetailTemplate {
-        nav_active: "cafes",
-        is_authenticated,
-        cafe: cafe_view,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
 }
 
 #[tracing::instrument(skip(state))]

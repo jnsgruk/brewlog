@@ -1,12 +1,11 @@
 use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
-use axum::response::{Html, IntoResponse, Redirect, Response};
+use axum::response::{IntoResponse, Redirect, Response};
 
 use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
@@ -15,16 +14,14 @@ use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
 use crate::infrastructure::ai::{self, ExtractionInput};
-use crate::presentation::web::templates::{
-    RoasterDetailTemplate, RoasterListTemplate, RoastersTemplate,
-};
-use crate::presentation::web::views::{ListNavigator, Paginated, RoastView, RoasterView};
+use crate::presentation::web::templates::RoasterListTemplate;
+use crate::presentation::web::views::{ListNavigator, Paginated, RoasterView};
 
-const ROASTER_PAGE_PATH: &str = "/roasters";
-const ROASTER_FRAGMENT_PATH: &str = "/roasters#roaster-list";
+const ROASTER_PAGE_PATH: &str = "/data?type=roasters";
+const ROASTER_FRAGMENT_PATH: &str = "/data?type=roasters#roaster-list";
 
 #[tracing::instrument(skip(state))]
-async fn load_roaster_page(
+pub(super) async fn load_roaster_page(
     state: &AppState,
     request: ListRequest<RoasterSortKey>,
     search: Option<&str>,
@@ -43,68 +40,6 @@ async fn load_roaster_page(
         ROASTER_FRAGMENT_PATH,
         search.map(String::from),
     ))
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn roasters_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<RoasterSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_roaster_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let (roasters, navigator) = load_roaster_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = RoastersTemplate {
-        nav_active: "roasters",
-        is_authenticated,
-        roasters,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
-}
-
-#[tracing::instrument(skip(state, cookies))]
-pub(crate) async fn roaster_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    Path(slug): Path<String>,
-) -> Result<Html<String>, StatusCode> {
-    let roaster = state
-        .roaster_repo
-        .get_by_slug(&slug)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-    let roasts = state
-        .roast_repo
-        .list_by_roaster(roaster.id)
-        .await
-        .map_err(|err| map_app_error(AppError::from(err)))?;
-
-    let roaster_view = RoasterView::from(roaster);
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = RoasterDetailTemplate {
-        nav_active: "roasters",
-        is_authenticated,
-        roaster: roaster_view,
-        roasts: roasts.into_iter().map(RoastView::from_list_item).collect(),
-    };
-
-    render_html(template)
 }
 
 #[tracing::instrument(skip(state))]

@@ -8,8 +8,7 @@ use serde::Deserialize;
 
 use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
@@ -18,14 +17,14 @@ use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, 
 use crate::domain::ids::GearId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
-use crate::presentation::web::templates::{GearListTemplate, GearTemplate};
+use crate::presentation::web::templates::GearListTemplate;
 use crate::presentation::web::views::{GearView, ListNavigator, Paginated};
 
-const GEAR_PAGE_PATH: &str = "/gear";
-const GEAR_FRAGMENT_PATH: &str = "/gear#gear-list";
+const GEAR_PAGE_PATH: &str = "/data?type=gear";
+const GEAR_FRAGMENT_PATH: &str = "/data?type=gear#gear-list";
 
 #[tracing::instrument(skip(state))]
-async fn load_gear_page(
+pub(super) async fn load_gear_page(
     state: &AppState,
     request: ListRequest<GearSortKey>,
     search: Option<&str>,
@@ -44,38 +43,6 @@ async fn load_gear_page(
         GEAR_FRAGMENT_PATH,
         search.map(String::from),
     ))
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn gear_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<GearSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_gear_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let (gear, navigator) = load_gear_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = GearTemplate {
-        nav_active: "gear",
-        is_authenticated,
-        gear,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]

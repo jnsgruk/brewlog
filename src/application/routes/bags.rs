@@ -6,30 +6,29 @@ use serde::Deserialize;
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, load_roaster_options,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
-use crate::presentation::web::templates::{BagListTemplate, BagsTemplate};
+use crate::presentation::web::templates::BagListTemplate;
 use crate::presentation::web::views::{BagView, ListNavigator, Paginated};
 
-const BAG_PAGE_PATH: &str = "/bags";
-const BAG_FRAGMENT_PATH: &str = "/bags#bag-list";
+const BAG_PAGE_PATH: &str = "/data?type=bags";
+const BAG_FRAGMENT_PATH: &str = "/data?type=bags#bag-list";
 
-struct BagPageData {
-    open_bags: Vec<BagView>,
-    bags: Paginated<BagView>,
-    navigator: ListNavigator<BagSortKey>,
+pub(super) struct BagPageData {
+    pub(super) open_bags: Vec<BagView>,
+    pub(super) bags: Paginated<BagView>,
+    pub(super) navigator: ListNavigator<BagSortKey>,
 }
 
 #[tracing::instrument(skip(state))]
-async fn load_bag_page(
+pub(super) async fn load_bag_page(
     state: &AppState,
     request: ListRequest<BagSortKey>,
     search: Option<&str>,
@@ -66,46 +65,6 @@ async fn load_bag_page(
         bags,
         navigator,
     })
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn bags_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<BagSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_bag_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let roaster_options = load_roaster_options(&state).await.map_err(map_app_error)?;
-
-    let BagPageData {
-        open_bags,
-        bags,
-        navigator,
-    } = load_bag_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = BagsTemplate {
-        nav_active: "bags",
-        is_authenticated,
-        open_bags,
-        bags,
-        roaster_options,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]

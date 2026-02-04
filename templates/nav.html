@@ -4,17 +4,9 @@
         <div class="font-semibold uppercase tracking-[0.25em] text-amber-700"><a href="/">B{rew}log</a></div>
         <!-- Desktop links -->
         <div class="hidden md:flex items-center gap-3">
-            <a class="border-b-2 pb-1 transition {% if nav_active == "roasters" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/roasters">Roasters</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "roasts" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/roasts">Roasts</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "bags" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/bags">Bags</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "brews" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/brews">Brews</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "cafes" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/cafes">Cafes</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "cups" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/cups">Cups</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "gear" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/gear">Gear</a>
+            <a class="border-b-2 pb-1 transition {% if nav_active == "home" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/">Home</a>
+            <a class="border-b-2 pb-1 transition {% if nav_active == "data" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/data">Data</a>
             <a class="border-b-2 pb-1 transition {% if nav_active == "timeline" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/timeline">Timeline</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "home" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/" aria-label="Home">
-                {% call icons::home("inline h-4 w-4") %}
-            </a>
             {% if is_authenticated %}
             <a class="border-b-2 pb-1 transition {% if nav_active == "checkin" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/check-in" aria-label="Check In">
                 {% call icons::checkin("inline h-4 w-4") %}
@@ -38,18 +30,9 @@
     </div>
     <!-- Mobile menu -->
     <div class="md:hidden flex flex-col gap-2 pt-3 mt-3 border-t border-amber-300" data-show="$_navOpen" style="display:none">
-        <a class="py-1 transition {% if nav_active == "roasters" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/roasters">Roasters</a>
-        <a class="py-1 transition {% if nav_active == "roasts" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/roasts">Roasts</a>
-        <a class="py-1 transition {% if nav_active == "bags" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/bags">Bags</a>
-        <a class="py-1 transition {% if nav_active == "brews" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/brews">Brews</a>
-        <a class="py-1 transition {% if nav_active == "cafes" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/cafes">Cafes</a>
-        <a class="py-1 transition {% if nav_active == "cups" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/cups">Cups</a>
-        <a class="py-1 transition {% if nav_active == "gear" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/gear">Gear</a>
+        <a class="py-1 transition {% if nav_active == "home" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/">Home</a>
+        <a class="py-1 transition {% if nav_active == "data" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/data">Data</a>
         <a class="py-1 transition {% if nav_active == "timeline" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/timeline">Timeline</a>
-        <a class="py-1 transition inline-flex items-center gap-1 {% if nav_active == "home" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/">
-            {% call icons::home("inline h-4 w-4") %}
-            Home
-        </a>
         {% if is_authenticated %}
         <a class="py-1 transition inline-flex items-center gap-1 {% if nav_active == "checkin" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/check-in">
             {% call icons::checkin("inline h-4 w-4") %}

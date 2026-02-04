@@ -5,7 +5,7 @@
         placeholder="Search..."
         value="{{ navigator.search_value() }}"
         class="input-field w-full text-sm"
-        data-search-url="{{ navigator.path()|safe }}?{{ navigator.search_query_base()|safe }}&q="
+        data-search-url="{{ navigator.search_href_prefix()|safe }}"
         data-on:input__debounce.300ms="history.pushState(null, '', el.dataset.searchUrl + el.value); @get(el.dataset.searchUrl + el.value, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
         {% if navigator.has_search() %}data-init="el.focus(); el.selectionStart = el.value.length"{% endif %}
       />

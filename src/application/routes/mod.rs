@@ -1,3 +1,4 @@
+pub mod add;
 pub mod auth;
 pub mod backup;
 pub mod bags;
@@ -5,6 +6,7 @@ pub mod brews;
 pub mod cafes;
 pub mod checkin;
 pub mod cups;
+pub mod data;
 pub mod gear;
 pub mod home;
 mod macros;
@@ -107,19 +109,8 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/", get(home::home_page))
         .route("/login", get(auth::login_page).post(auth::login_submit))
         .route("/logout", post(auth::logout))
-        .route("/roasters", get(roasters::roasters_page))
-        .route("/roasters/:slug", get(roasters::roaster_page))
-        .route("/roasts", get(roasts::roasts_page))
-        .route(
-            "/roasters/:roaster_slug/roasts/:roast_slug",
-            get(roasts::roast_page),
-        )
-        .route("/bags", get(bags::bags_page))
-        .route("/brews", get(brews::brews_page))
-        .route("/gear", get(gear::gear_page))
-        .route("/cafes", get(cafes::cafes_page))
-        .route("/cafes/:slug", get(cafes::cafe_page))
-        .route("/cups", get(cups::cups_page))
+        .route("/data", get(data::data_page))
+        .route("/add", get(add::add_page))
         .route("/scan", get(scan_redirect))
         .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))

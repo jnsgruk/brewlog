@@ -6,8 +6,7 @@ use serde::{Deserialize, Deserializer};
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
-use crate::application::errors::{ApiError, AppError, map_app_error};
-use crate::application::routes::render_html;
+use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
@@ -18,28 +17,28 @@ use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, PageSize, SortDirection};
 use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
-use crate::presentation::web::templates::{BrewListTemplate, BrewsTemplate};
+use crate::presentation::web::templates::BrewListTemplate;
 use crate::presentation::web::views::{
     BagOptionView, BrewDefaultsView, BrewView, GearOptionView, ListNavigator, Paginated,
 };
 
-const BREW_PAGE_PATH: &str = "/brews";
-const BREW_FRAGMENT_PATH: &str = "/brews#brew-list";
+const BREW_PAGE_PATH: &str = "/data?type=brews";
+const BREW_FRAGMENT_PATH: &str = "/data?type=brews#brew-list";
 
-struct BrewPageData {
-    brews: Paginated<BrewView>,
-    navigator: ListNavigator<BrewSortKey>,
+pub(super) struct BrewPageData {
+    pub(super) brews: Paginated<BrewView>,
+    pub(super) navigator: ListNavigator<BrewSortKey>,
 }
 
-struct BrewFormData {
-    bag_options: Vec<BagOptionView>,
-    grinder_options: Vec<GearOptionView>,
-    brewer_options: Vec<GearOptionView>,
-    filter_paper_options: Vec<GearOptionView>,
-    defaults: BrewDefaultsView,
+pub(super) struct BrewFormData {
+    pub(super) bag_options: Vec<BagOptionView>,
+    pub(super) grinder_options: Vec<GearOptionView>,
+    pub(super) brewer_options: Vec<GearOptionView>,
+    pub(super) filter_paper_options: Vec<GearOptionView>,
+    pub(super) defaults: BrewDefaultsView,
 }
 
-async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError> {
+pub(super) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError> {
     let open_bags_request = ListRequest::show_all(
         crate::domain::bags::BagSortKey::RoastDate,
         SortDirection::Desc,
@@ -89,7 +88,7 @@ async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError>
     })
 }
 
-async fn load_gear_options(
+pub(super) async fn load_gear_options(
     state: &AppState,
     category: GearCategory,
     request: &ListRequest<GearSortKey>,
@@ -103,7 +102,7 @@ async fn load_gear_options(
 }
 
 #[tracing::instrument(skip(state))]
-async fn load_brew_page(
+pub(super) async fn load_brew_page(
     state: &AppState,
     request: ListRequest<BrewSortKey>,
     search: Option<&str>,
@@ -124,51 +123,6 @@ async fn load_brew_page(
     );
 
     Ok(BrewPageData { brews, navigator })
-}
-
-#[tracing::instrument(skip(state, cookies, headers, query))]
-pub(crate) async fn brews_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-    headers: HeaderMap,
-    Query(query): Query<ListQuery>,
-) -> Result<Response, StatusCode> {
-    let (request, search) = query.into_request_and_search::<BrewSortKey>();
-
-    if is_datastar_request(&headers) {
-        let is_authenticated = super::is_authenticated(&state, &cookies).await;
-        return render_brew_list_fragment(state, request, search, is_authenticated)
-            .await
-            .map_err(map_app_error);
-    }
-
-    let BrewFormData {
-        bag_options,
-        grinder_options,
-        brewer_options,
-        filter_paper_options,
-        defaults,
-    } = load_brew_form_data(&state).await.map_err(map_app_error)?;
-
-    let BrewPageData { brews, navigator } = load_brew_page(&state, request, search.as_deref())
-        .await
-        .map_err(map_app_error)?;
-
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-
-    let template = BrewsTemplate {
-        nav_active: "brews",
-        is_authenticated,
-        brews,
-        bag_options,
-        grinder_options,
-        brewer_options,
-        filter_paper_options,
-        defaults,
-        navigator,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
 }
 
 /// Deserializes an optional `GearId`, treating empty strings (from HTML forms) as None.

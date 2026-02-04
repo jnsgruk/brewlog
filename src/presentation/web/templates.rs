@@ -15,52 +15,11 @@ use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
 use crate::domain::timeline::TimelineSortKey;
 
 #[derive(Template)]
-#[template(path = "roasters.html")]
-pub struct RoastersTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub roasters: Paginated<RoasterView>,
-    pub navigator: ListNavigator<RoasterSortKey>,
-}
-
-#[derive(Template)]
 #[template(path = "partials/roaster_list.html")]
 pub struct RoasterListTemplate {
     pub is_authenticated: bool,
     pub roasters: Paginated<RoasterView>,
     pub navigator: ListNavigator<RoasterSortKey>,
-}
-
-#[derive(Template)]
-#[template(path = "roaster_detail.html")]
-pub struct RoasterDetailTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub roaster: RoasterView,
-    pub roasts: Vec<RoastView>,
-}
-
-#[derive(Template)]
-#[template(path = "roasts.html")]
-pub struct RoastsTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub roasts: Paginated<RoastView>,
-    pub roaster_options: Vec<RoasterOptionView>,
-    pub navigator: ListNavigator<RoastSortKey>,
-}
-
-#[derive(Template)]
-#[template(path = "roast_detail.html")]
-pub struct RoastDetailTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub roast: RoastView,
-    pub bags: Vec<BagView>,
 }
 
 #[derive(Template)]
@@ -92,34 +51,12 @@ pub struct TimelineChunkTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "bags.html")]
-pub struct BagsTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub open_bags: Vec<BagView>,
-    pub bags: Paginated<BagView>,
-    pub roaster_options: Vec<RoasterOptionView>,
-    pub navigator: ListNavigator<BagSortKey>,
-}
-
-#[derive(Template)]
 #[template(path = "partials/bag_list.html")]
 pub struct BagListTemplate {
     pub is_authenticated: bool,
     pub open_bags: Vec<BagView>,
     pub bags: Paginated<BagView>,
     pub navigator: ListNavigator<BagSortKey>,
-}
-
-#[derive(Template)]
-#[template(path = "gear.html")]
-pub struct GearTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub gear: Paginated<GearView>,
-    pub navigator: ListNavigator<GearSortKey>,
 }
 
 #[derive(Template)]
@@ -137,21 +74,6 @@ pub struct RoastOptionsTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "brews.html")]
-pub struct BrewsTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub brews: Paginated<BrewView>,
-    pub bag_options: Vec<BagOptionView>,
-    pub grinder_options: Vec<GearOptionView>,
-    pub brewer_options: Vec<GearOptionView>,
-    pub filter_paper_options: Vec<GearOptionView>,
-    pub defaults: BrewDefaultsView,
-    pub navigator: ListNavigator<BrewSortKey>,
-}
-
-#[derive(Template)]
 #[template(path = "partials/brew_list.html")]
 pub struct BrewListTemplate {
     pub is_authenticated: bool,
@@ -160,42 +82,11 @@ pub struct BrewListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "cafes.html")]
-pub struct CafesTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub cafes: Paginated<CafeView>,
-    pub navigator: ListNavigator<CafeSortKey>,
-}
-
-#[derive(Template)]
 #[template(path = "partials/cafe_list.html")]
 pub struct CafeListTemplate {
     pub is_authenticated: bool,
     pub cafes: Paginated<CafeView>,
     pub navigator: ListNavigator<CafeSortKey>,
-}
-
-#[derive(Template)]
-#[template(path = "cafe_detail.html")]
-pub struct CafeDetailTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub cafe: CafeView,
-}
-
-#[derive(Template)]
-#[template(path = "cups.html")]
-pub struct CupsTemplate {
-    pub nav_active: &'static str,
-    pub is_authenticated: bool,
-
-    pub cups: Paginated<CupView>,
-    pub roast_options: Vec<RoastOptionView>,
-    pub cafe_options: Vec<CafeOptionView>,
-    pub navigator: ListNavigator<CupSortKey>,
 }
 
 #[derive(Template)]
@@ -232,6 +123,37 @@ pub struct CheckInTemplate {
 #[template(path = "partials/nearby_cafes.html")]
 pub struct NearbyCafesFragment {
     pub cafes: Vec<NearbyCafeView>,
+}
+
+#[derive(Template)]
+#[template(path = "data.html")]
+pub struct DataTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub active_type: String,
+    pub tabs: Vec<DataTab>,
+    pub content: String,
+}
+
+pub struct DataTab {
+    pub key: &'static str,
+    pub label: &'static str,
+}
+
+#[derive(Template)]
+#[template(path = "add.html")]
+pub struct AddTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub active_type: String,
+    pub roaster_options: Vec<RoasterOptionView>,
+    pub roast_options: Vec<RoastOptionView>,
+    pub bag_options: Vec<BagOptionView>,
+    pub grinder_options: Vec<GearOptionView>,
+    pub brewer_options: Vec<GearOptionView>,
+    pub filter_paper_options: Vec<GearOptionView>,
+    pub cafe_options: Vec<CafeOptionView>,
+    pub defaults: BrewDefaultsView,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

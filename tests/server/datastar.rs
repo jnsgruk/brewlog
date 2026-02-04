@@ -4,8 +4,9 @@
 //! Datastar headers when the `datastar-request: true` header is present.
 
 use crate::helpers::{
-    assert_datastar_headers, assert_full_page, assert_html_fragment, create_default_bag,
-    create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_auth,
+    assert_datastar_headers, assert_datastar_headers_with_mode, assert_full_page,
+    assert_html_fragment, create_default_bag, create_default_cafe, create_default_roast,
+    create_default_roaster, spawn_app_with_auth,
 };
 use brewlog::domain::bags::UpdateBag;
 use brewlog::domain::cafes::NewCafe;
@@ -24,14 +25,14 @@ async fn roasters_list_with_datastar_header_returns_fragment() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/roasters", app.address))
+        .get(format!("{}/data?type=roasters", app.address))
         .header("datastar-request", "true")
         .send()
         .await
         .expect("failed to fetch roasters");
 
     assert_eq!(response.status(), 200);
-    assert_datastar_headers(&response, "#roaster-list");
+    assert_datastar_headers_with_mode(&response, "#data-content", "inner");
 
     let body = response.text().await.expect("failed to read body");
     assert_html_fragment(&body);
@@ -48,7 +49,7 @@ async fn roasters_list_without_datastar_header_returns_full_page() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/roasters", app.address))
+        .get(format!("{}/data?type=roasters", app.address))
         .send()
         .await
         .expect("failed to fetch roasters");
@@ -170,14 +171,14 @@ async fn roasts_list_with_datastar_header_returns_fragment() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/roasts", app.address))
+        .get(format!("{}/data?type=roasts", app.address))
         .header("datastar-request", "true")
         .send()
         .await
         .expect("failed to fetch roasts");
 
     assert_eq!(response.status(), 200);
-    assert_datastar_headers(&response, "#roast-list");
+    assert_datastar_headers_with_mode(&response, "#data-content", "inner");
 
     let body = response.text().await.expect("failed to read body");
     assert_html_fragment(&body);
@@ -195,7 +196,7 @@ async fn roasts_list_without_datastar_header_returns_full_page() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/roasts", app.address))
+        .get(format!("{}/data?type=roasts", app.address))
         .send()
         .await
         .expect("failed to fetch roasts");
@@ -320,14 +321,14 @@ async fn bags_list_with_datastar_header_returns_fragment() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/bags", app.address))
+        .get(format!("{}/data?type=bags", app.address))
         .header("datastar-request", "true")
         .send()
         .await
         .expect("failed to fetch bags");
 
     assert_eq!(response.status(), 200);
-    assert_datastar_headers(&response, "#bag-list");
+    assert_datastar_headers_with_mode(&response, "#data-content", "inner");
 
     let body = response.text().await.expect("failed to read body");
     assert_html_fragment(&body);
@@ -346,7 +347,7 @@ async fn bags_list_without_datastar_header_returns_full_page() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/bags", app.address))
+        .get(format!("{}/data?type=bags", app.address))
         .send()
         .await
         .expect("failed to fetch bags");
@@ -536,14 +537,14 @@ async fn gear_list_with_datastar_header_returns_fragment() {
         .expect("failed to create gear");
 
     let response = client
-        .get(format!("{}/gear", app.address))
+        .get(format!("{}/data?type=gear", app.address))
         .header("datastar-request", "true")
         .send()
         .await
         .expect("failed to fetch gear");
 
     assert_eq!(response.status(), 200);
-    assert_datastar_headers(&response, "#gear-list");
+    assert_datastar_headers_with_mode(&response, "#data-content", "inner");
 
     let body = response.text().await.expect("failed to read body");
     assert_html_fragment(&body);
@@ -559,7 +560,7 @@ async fn gear_list_without_datastar_header_returns_full_page() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/gear", app.address))
+        .get(format!("{}/data?type=gear", app.address))
         .send()
         .await
         .expect("failed to fetch gear");
@@ -764,14 +765,14 @@ async fn cafes_list_with_datastar_header_returns_fragment() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/cafes", app.address))
+        .get(format!("{}/data?type=cafes", app.address))
         .header("datastar-request", "true")
         .send()
         .await
         .expect("failed to fetch cafes");
 
     assert_eq!(response.status(), 200);
-    assert_datastar_headers(&response, "#cafe-list");
+    assert_datastar_headers_with_mode(&response, "#data-content", "inner");
 
     let body = response.text().await.expect("failed to read body");
     assert_html_fragment(&body);
@@ -788,7 +789,7 @@ async fn cafes_list_without_datastar_header_returns_full_page() {
     let client = Client::new();
 
     let response = client
-        .get(format!("{}/cafes", app.address))
+        .get(format!("{}/data?type=cafes", app.address))
         .send()
         .await
         .expect("failed to fetch cafes");
