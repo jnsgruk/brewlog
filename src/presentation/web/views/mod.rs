@@ -9,7 +9,7 @@ mod timeline;
 
 pub use bags::{BagOptionView, BagView};
 pub use brews::{BrewDefaultsView, BrewView};
-pub use cafes::{CafeOptionView, CafeView};
+pub use cafes::{CafeOptionView, CafeView, NearbyCafeView};
 pub use cups::CupView;
 pub use gear::{GearOptionView, GearView};
 pub use roasters::{RoasterOptionView, RoasterView};

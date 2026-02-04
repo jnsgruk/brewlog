@@ -2,7 +2,7 @@ use askama::Template;
 
 use super::views::{
     BagOptionView, BagView, BrewDefaultsView, BrewView, CafeOptionView, CafeView, CupView,
-    GearOptionView, GearView, ListNavigator, Paginated, RoastOptionView, RoastView,
+    GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, RoastOptionView, RoastView,
     RoasterOptionView, RoasterView, StatsView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
@@ -228,6 +228,12 @@ pub struct CheckInTemplate {
     pub has_foursquare: bool,
     pub roast_options: Vec<RoastOptionView>,
     pub cafe_options: Vec<CafeOptionView>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/nearby_cafes.html")]
+pub struct NearbyCafesFragment {
+    pub cafes: Vec<NearbyCafeView>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

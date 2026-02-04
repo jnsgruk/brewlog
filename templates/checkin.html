@@ -1,9 +1,35 @@
 {% extends "base.html" %} {% block title %}Brewlog · Check In{% endblock %}
 
 {% block head %}
-<script src="/checkin.js"></script>
-{% if has_ai_extract %}
-<script src="/extract.js"></script>
+{% if has_foursquare %}
+<script>
+function locateUser() {
+  const root = document.getElementById('checkin-root');
+  const emit = (name, detail) =>
+    root.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
+
+  if (!navigator.geolocation) {
+    emit('location-error', { message: 'Geolocation not supported by your browser.' });
+    return;
+  }
+
+  emit('location-start');
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      emit('location-found', { lat: pos.coords.latitude, lng: pos.coords.longitude });
+    },
+    (err) => {
+      if (err.code === 1) {
+        emit('location-error', { message: 'Location access denied. Search by name instead.' });
+      } else {
+        emit('location-error', { message: 'Could not determine location. Search by name instead.' });
+      }
+    },
+    { enableHighAccuracy: true, timeout: 15000 },
+  );
+}
+</script>
 {% endif %}
 {% endblock %}
 
@@ -18,6 +44,7 @@
   data-signals:_cafe-lat="0"
   data-signals:_cafe-lng="0"
   data-signals:_cafe-website="''"
+  data-signals:_cafe-search="''"
   data-signals:_roast-id="''"
   data-signals:_rating="0"
   data-signals:_error="''"
@@ -28,16 +55,11 @@
   data-signals:_user-lng="0"
   data-signals:_scan-waiting="false"
   data-signals:_scan-success="''"
-  data-on:cafe-selected="$_cafeId = String(evt.detail.id); $_cafeName = evt.detail.name; $_cafeCity = evt.detail.city || ''; $_cafeCountry = evt.detail.country || ''; $_cafeLat = evt.detail.lat || 0; $_cafeLng = evt.detail.lng || 0; $_cafeWebsite = evt.detail.website || ''; $_step = 2"
-  data-on:location-found="$_locating = false; $_locationFound = true; $_userLat = evt.detail.lat; $_userLng = evt.detail.lng; searchNearbyCafes('coffee', evt.detail.lat, evt.detail.lng)"
+  {% if has_foursquare %}
+  data-on:location-found="$_locating = false; $_locationFound = true; $_userLat = evt.detail.lat; $_userLng = evt.detail.lng; @get('/api/v1/nearby-cafes?lat=' + evt.detail.lat + '&lng=' + evt.detail.lng + '&q=coffee', {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
   data-on:location-error="$_locating = false; $_error = evt.detail.message"
-  data-on:scan-complete="$_scanWaiting = false; $_roastId = evt.detail.roastId; $_scanSuccess = evt.detail.name; $_step = 3"
-  data-on:scan-error="$_scanWaiting = false; $_error = evt.detail.message"
-  data-on:checkin-error="$_error = evt.detail.message"
   data-on:location-start="$_locating = true"
-  data-on:scan-start="$_scanWaiting = true"
-  data-on:submit-start="$_submitting = true"
-  data-on:submit-error="$_submitting = false"
+  {% endif %}
 >
   <header class="flex flex-col gap-2">
     <h1 class="text-3xl font-semibold">Check In</h1>
@@ -107,7 +129,7 @@
       <div class="flex flex-wrap items-center gap-3 mb-4">
         <button
           type="button"
-          onclick="locateUser()"
+          data-on:click="locateUser()"
           class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
           data-attr:disabled="$_locating || $_locationFound"
         >
@@ -127,31 +149,34 @@
 
       <input
         type="text"
-        id="cafe-search"
+        data-bind:_cafe-search
         class="input-field w-full text-sm"
         placeholder="Search for a cafe&hellip;"
-        data-on:input="filterExistingCafes(el.value)"
-        data-on:input__debounce.350ms="$_locationFound && searchNearbyCafes(el.value, $_userLat, $_userLng)"
+        {% if has_foursquare %}
+        data-on:input__debounce.350ms="$_locationFound && @get('/api/v1/nearby-cafes?lat=' + $_userLat + '&lng=' + $_userLng + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
+        {% endif %}
       />
 
-      <!-- Foursquare results -->
+      {% if has_foursquare %}
+      <!-- Foursquare results (replaced by server fragment) -->
       <div id="nearby-results" class="hidden mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white"></div>
+      {% endif %}
 
       <!-- Existing cafes -->
       {% if !cafe_options.is_empty() %}
-      <div id="existing-cafes" class="mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white">
+      <div class="mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white">
         <h3 class="px-3 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wide">Saved Cafes</h3>
         {% for cafe in cafe_options %}
         <button
           type="button"
           data-cafe-name="{{ cafe.label }}"
           class="w-full px-3 py-2 text-left text-sm hover:bg-amber-100 transition"
-          onclick="emit('cafe-selected', { id: '{{ cafe.id }}', name: this.dataset.cafeName, city: '', country: '', lat: 0, lng: 0, website: '' })"
+          data-show="!$_cafeSearch || el.dataset.cafeName.toLowerCase().includes($_cafeSearch.toLowerCase())"
+          data-on:click="$_cafeId = '{{ cafe.id }}'; $_cafeName = el.dataset.cafeName; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2"
         >
           {{ cafe.label }}
         </button>
         {% endfor %}
-        <p data-no-match class="px-3 py-2 text-sm text-stone-500" style="display: none">No matching cafes.</p>
       </div>
       {% endif %}
     </div>
@@ -165,44 +190,51 @@
       {% if has_ai_extract %}
       <div data-show="!$_scanWaiting && !$_scanSuccess" style="display: none" class="mb-4">
         <p class="text-sm text-stone-600 mb-3">Scan a bag to identify the coffee, or select from your existing roasts below.</p>
-        <div id="checkin-extract-controls" class="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onclick="triggerPhotoExtract('checkin', '/api/v1/extract-bag-scan', onScanExtracted)"
-            class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
-          >
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-            </svg>
-            Scan Bag
-          </button>
-          <span class="text-xs text-stone-400">or</span>
-          <div class="flex flex-1 min-w-[200px] gap-2">
-            <input
-              type="text"
-              id="checkin-extract-text"
-              class="input-field w-full text-sm"
-              placeholder="Describe the coffee&hellip;"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('checkin','/api/v1/extract-bag-scan',onScanExtracted)}"
-            />
+
+        <input type="file" id="checkin-photo" accept="image/*" capture="environment" class="hidden"
+          onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('checkin-image').value=r.result;document.getElementById('checkin-scan-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
+
+        <div id="scan-submit-result"></div>
+
+        <form id="checkin-scan-form"
+          data-on:submit="$_scanWaiting = true; $_error = ''; @post('/api/v1/scan', {contentType: 'form'})"
+          data-on:datastar-fetch="if (evt.detail.type === 'finished') { $_scanWaiting = false; $_step = 3 } else if (evt.detail.type === 'error') { $_scanWaiting = false; $_error = 'Scan failed. Please try again.' }"
+        >
+          <input type="hidden" name="image" id="checkin-image" />
+          <input type="hidden" name="prompt" id="checkin-prompt-hidden" />
+
+          <div class="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onclick="extractFromText('checkin', '/api/v1/extract-bag-scan', onScanExtracted)"
-              class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+              onclick="document.getElementById('checkin-photo').click()"
+              class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
             >
-              Go
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+              </svg>
+              Scan Bag
             </button>
+            <span class="text-xs text-stone-400">or</span>
+            <div class="flex flex-1 min-w-[200px] gap-2">
+              <input
+                type="text"
+                id="checkin-prompt-text"
+                class="input-field w-full text-sm"
+                placeholder="Describe the coffee&hellip;"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('checkin-prompt-hidden').value=this.value;document.getElementById('checkin-scan-form').requestSubmit()}"
+              />
+              <button
+                type="button"
+                onclick="document.getElementById('checkin-prompt-hidden').value=document.getElementById('checkin-prompt-text').value;document.getElementById('checkin-scan-form').requestSubmit()"
+                class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+              >
+                Go
+              </button>
+            </div>
           </div>
-        </div>
-        <div id="checkin-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700 mt-2">
-          <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
-          Waiting for response&hellip;
-        </div>
-        <p id="checkin-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
+        </form>
       </div>
+
       <div
         class="flex items-center gap-3 text-sm text-amber-700 mb-4"
         data-show="$_scanWaiting"
@@ -212,8 +244,9 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
-        Saving roaster &amp; roast&hellip;
+        Scanning &amp; saving&hellip;
       </div>
+
       <div
         class="mb-4 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800"
         data-show="$_scanSuccess"
@@ -221,6 +254,7 @@
       >
         Scanned: <span class="font-medium" data-text="$_scanSuccess"></span>
       </div>
+
       <div class="border-t border-amber-200 pt-3">
         <p class="text-xs text-stone-500 mb-2">Or select an existing roast:</p>
       {% else %}
@@ -259,14 +293,28 @@
         </button>
         {% endfor %}
       </div>
-      <button
-        type="button"
-        onclick="submitCheckIn()"
-        class="w-full rounded-md bg-amber-600 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-500 disabled:opacity-50"
-        data-attr:disabled="$_submitting"
+
+      <form
+        data-on:submit="$_submitting = true; $_error = ''; @post('/api/v1/check-in', {contentType: 'form'})"
+        data-on:datastar-fetch="if (evt.detail.type === 'finished') { window.location.href = '/' } else if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
       >
-        Check In
-      </button>
+        <input type="hidden" name="cafe_id" data-attr:value="$_cafeId" />
+        <input type="hidden" name="cafe_name" data-attr:value="$_cafeName" />
+        <input type="hidden" name="cafe_city" data-attr:value="$_cafeCity" />
+        <input type="hidden" name="cafe_country" data-attr:value="$_cafeCountry" />
+        <input type="hidden" name="cafe_lat" data-attr:value="$_cafeLat" />
+        <input type="hidden" name="cafe_lng" data-attr:value="$_cafeLng" />
+        <input type="hidden" name="cafe_website" data-attr:value="$_cafeWebsite" />
+        <input type="hidden" name="roast_id" data-attr:value="$_roastId" />
+        <input type="hidden" name="rating" data-attr:value="$_rating" />
+        <button
+          type="submit"
+          class="w-full rounded-md bg-amber-600 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-500 disabled:opacity-50"
+          data-attr:disabled="$_submitting"
+        >
+          Check In
+        </button>
+      </form>
     </div>
   </div>
 </section>

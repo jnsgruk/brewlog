@@ -1,4 +1,5 @@
 use crate::domain::cafes::Cafe;
+use crate::infrastructure::foursquare::NearbyCafe;
 
 pub struct CafeView {
     pub id: String,
@@ -67,6 +68,44 @@ impl From<Cafe> for CafeOptionView {
         Self {
             id: cafe.id.to_string(),
             label: format!("{} ({})", cafe.name, cafe.city),
+        }
+    }
+}
+
+pub struct NearbyCafeView {
+    pub name: String,
+    pub city: String,
+    pub country: String,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub website: String,
+    pub distance: String,
+    pub location: String,
+}
+
+impl From<NearbyCafe> for NearbyCafeView {
+    fn from(cafe: NearbyCafe) -> Self {
+        let distance = if cafe.distance_meters < 1000 {
+            format!("{} m", cafe.distance_meters)
+        } else {
+            format!("{:.1} km", f64::from(cafe.distance_meters) / 1000.0)
+        };
+        let location = [&cafe.city, &cafe.country]
+            .iter()
+            .filter(|s| !s.is_empty())
+            .copied()
+            .cloned()
+            .collect::<Vec<_>>()
+            .join(", ");
+        Self {
+            name: cafe.name,
+            city: cafe.city,
+            country: cafe.country,
+            latitude: cafe.latitude,
+            longitude: cafe.longitude,
+            website: cafe.website.unwrap_or_default(),
+            distance,
+            location,
         }
     }
 }

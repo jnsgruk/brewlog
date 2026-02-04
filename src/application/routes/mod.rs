@@ -82,6 +82,7 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/extract-roast", post(roasts::extract_roast_info))
         .route("/extract-bag-scan", post(scan::extract_bag_scan))
         .route("/scan", post(scan::submit_scan))
+        .route("/check-in", post(checkin::submit_checkin))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
         .route(
             "/cups/:id",
@@ -116,8 +117,6 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
-        .route("/extract.js", get(extract_js))
-        .route("/checkin.js", get(checkin_js))
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
         .layer(ServiceBuilder::new().layer(CookieManagerLayer::new()))
@@ -132,20 +131,6 @@ async fn styles() -> impl IntoResponse {
     (
         [("content-type", "text/css; charset=utf-8")],
         include_str!("../../../templates/styles.css"),
-    )
-}
-
-async fn extract_js() -> impl IntoResponse {
-    (
-        [("content-type", "application/javascript; charset=utf-8")],
-        include_str!("../../../templates/extract.js"),
-    )
-}
-
-async fn checkin_js() -> impl IntoResponse {
-    (
-        [("content-type", "application/javascript; charset=utf-8")],
-        include_str!("../../../templates/checkin.js"),
     )
 }
 

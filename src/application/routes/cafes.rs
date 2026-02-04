@@ -15,9 +15,11 @@ use crate::application::server::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::infrastructure::foursquare::{self, NearbyCafe};
-use crate::presentation::web::templates::{CafeDetailTemplate, CafeListTemplate, CafesTemplate};
-use crate::presentation::web::views::{CafeView, ListNavigator, Paginated};
+use crate::infrastructure::foursquare;
+use crate::presentation::web::templates::{
+    CafeDetailTemplate, CafeListTemplate, CafesTemplate, NearbyCafesFragment,
+};
+use crate::presentation::web::views::{CafeView, ListNavigator, NearbyCafeView, Paginated};
 
 const CAFE_PAGE_PATH: &str = "/cafes";
 const CAFE_FRAGMENT_PATH: &str = "/cafes#cafe-list";
@@ -194,12 +196,13 @@ pub struct NearbyQuery {
     near: Option<String>,
 }
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn nearby_cafes(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
     Query(query): Query<NearbyQuery>,
-) -> Result<Json<Vec<NearbyCafe>>, ApiError> {
+) -> Result<Response, ApiError> {
     let q = query.q.trim();
     if q.is_empty() || q.len() < 2 {
         return Err(AppError::validation("q must be at least 2 characters").into());
@@ -238,5 +241,13 @@ pub(crate) async fn nearby_cafes(
     )
     .await
     .map_err(ApiError::from)?;
-    Ok(Json(cafes))
+
+    if is_datastar_request(&headers) {
+        let views: Vec<NearbyCafeView> = cafes.into_iter().map(NearbyCafeView::from).collect();
+        let template = NearbyCafesFragment { cafes: views };
+        crate::application::routes::support::render_fragment(template, "#nearby-results")
+            .map_err(ApiError::from)
+    } else {
+        Ok(Json(cafes).into_response())
+    }
 }
