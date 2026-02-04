@@ -73,6 +73,7 @@ a {
   padding-bottom: 1rem;
   border-bottom: 2px solid transparent;
   transition: border-color 0.15s ease;
+  text-align: center;
 }
 
 .timeline-heading.is-stuck {
@@ -158,10 +159,6 @@ a {
 
 /* Desktop: alternating cards with central line */
 @media (min-width: 768px) {
-  .timeline-heading {
-    text-align: center;
-  }
-
   .timeline-list {
     display: flex;
     flex-direction: column;
