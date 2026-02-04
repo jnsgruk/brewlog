@@ -580,7 +580,7 @@ newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
 6. **Commit authorship**: Never add "Co-Authored-By" trailers to commit messages
 7. **Commit signing**: Never use `--no-gpg-sign` when committing — always allow the default GPG signing
 8. **Committing**: Do not commit unless explicitly asked to — provide a draft commit message instead
-9. **JavaScript style**: Use ES6+ syntax — `const`/`let`, arrow functions, template literals
+9. **JavaScript style**: Use ES6+ syntax — `const`/`let`, arrow functions, template literals. Prefer `if`/`else` and `switch` over ternary operators; use ternaries only sparingly for simple, single-level expressions — never nest them
 
 ## Communication Style
 
