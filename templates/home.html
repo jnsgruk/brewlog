@@ -87,11 +87,11 @@
   <!-- Form: pre-filled roaster + roast (shown after extraction) -->
   <div data-show="$_scanExtracted" style="display: none">
     <form
-      class="flex flex-col gap-4"
+      class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm flex flex-col gap-6"
       data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
-      data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { $_scanSubmitting = false; window.location.href = '/roasts' } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
+      data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { $_scanSubmitting = false; $_scanExtracted = false; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
     >
-      <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+      <div>
         <h3 class="text-base font-semibold text-amber-700">Roaster</h3>
         <p class="mt-1 text-sm text-stone-600">If this roaster already exists, it will be matched automatically.</p>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -113,7 +113,7 @@
           </label>
         </div>
       </div>
-      <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+      <div>
         <h3 class="text-base font-semibold text-amber-700">Roast</h3>
         <p class="mt-1 text-sm text-stone-600">Details about this specific coffee.</p>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
