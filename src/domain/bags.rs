@@ -83,6 +83,7 @@ impl BagFilter {
 pub enum BagSortKey {
     RoastDate,
     CreatedAt,
+    UpdatedAt,
     Roaster,
     Roast,
     FinishedAt,
@@ -97,6 +98,7 @@ impl SortKey for BagSortKey {
         match value {
             "roast-date" => Some(BagSortKey::RoastDate),
             "created-at" => Some(BagSortKey::CreatedAt),
+            "updated-at" => Some(BagSortKey::UpdatedAt),
             "roaster" => Some(BagSortKey::Roaster),
             "roast" => Some(BagSortKey::Roast),
             "finished-at" => Some(BagSortKey::FinishedAt),
@@ -108,6 +110,7 @@ impl SortKey for BagSortKey {
         match self {
             BagSortKey::RoastDate => "roast-date",
             BagSortKey::CreatedAt => "created-at",
+            BagSortKey::UpdatedAt => "updated-at",
             BagSortKey::Roaster => "roaster",
             BagSortKey::Roast => "roast",
             BagSortKey::FinishedAt => "finished-at",

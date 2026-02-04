@@ -60,7 +60,12 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
         BrewSortKey::CreatedAt,
         SortDirection::Desc,
     );
-    let open_bags_req = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
+    let open_bags_req = ListRequest::new(
+        1,
+        PageSize::limited(3),
+        BagSortKey::UpdatedAt,
+        SortDirection::Desc,
+    );
     let recent_events_req = ListRequest::new(
         1,
         PageSize::limited(5),
