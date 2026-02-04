@@ -41,11 +41,7 @@
               {{ roast.created_at }}
             </td>
             <td data-label="Roast" class="px-4 py-3">
-              <a
-                href="{{ roast.detail_path }}"
-                class="font-semibold text-amber-800 hover:text-amber-600"
-                >{{ roast.name }}</a
-              >
+              <span class="font-semibold text-amber-800">{{ roast.name }}</span>
               <div class="hidden md:block text-xs text-stone-500">{{ roast.roaster_label }}</div>
             </td>
             <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roast.roaster_label }}</td>

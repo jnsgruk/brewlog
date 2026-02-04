@@ -38,12 +38,8 @@
             <td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
               {{ roaster.created_at }}
             </td>
-            <td data-label="Name" class="px-4 py-3">
-              <a
-                href="{{ roaster.detail_path }}"
-                class="font-semibold text-amber-800 hover:text-amber-600"
-                >{{ roaster.name }}</a
-              >
+            <td data-label="Name" class="px-4 py-3 font-semibold text-amber-800">
+              {{ roaster.name }}
             </td>
             <td data-label="Location" class="px-4 py-3 whitespace-nowrap">
               {{ roaster.country }}
