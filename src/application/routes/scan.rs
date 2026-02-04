@@ -1,38 +1,17 @@
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Redirect, Response};
+use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
-use crate::application::routes::render_html;
 use crate::application::routes::roasts::TastingNotesInput;
 use crate::application::server::AppState;
 use crate::domain::errors::RepositoryError;
 use crate::domain::roasters::NewRoaster;
 use crate::domain::roasts::NewRoast;
 use crate::infrastructure::ai::{self, ExtractedBagScan, ExtractionInput};
-use crate::presentation::web::templates::ScanTemplate;
-
-#[tracing::instrument(skip(state, cookies))]
-pub(crate) async fn scan_page(
-    State(state): State<AppState>,
-    cookies: tower_cookies::Cookies,
-) -> Result<Response, StatusCode> {
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
-    if !is_authenticated || !state.has_ai_extract() {
-        return Ok(Redirect::to("/timeline").into_response());
-    }
-
-    let template = ScanTemplate {
-        nav_active: "scan",
-        is_authenticated: true,
-        has_ai_extract: true,
-    };
-
-    render_html(template).map(IntoResponse::into_response)
-}
 
 #[tracing::instrument(skip(state, _auth_user))]
 pub(crate) async fn extract_bag_scan(
@@ -69,6 +48,7 @@ pub(crate) struct BagScanSubmission {
 #[derive(Debug, Serialize)]
 struct ScanResult {
     redirect: String,
+    roast_id: i64,
 }
 
 #[tracing::instrument(skip(state, _auth_user))]
@@ -131,5 +111,6 @@ pub(crate) async fn submit_scan(
         .map_err(AppError::from)?;
 
     let redirect = format!("/roasters/{}/roasts/{}", roaster.slug, roast.slug);
-    Ok((StatusCode::CREATED, Json(ScanResult { redirect })).into_response())
+    let roast_id = roast.id.into_inner();
+    Ok((StatusCode::CREATED, Json(ScanResult { redirect, roast_id })).into_response())
 }

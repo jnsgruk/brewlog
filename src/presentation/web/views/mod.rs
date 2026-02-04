@@ -18,6 +18,16 @@ pub use timeline::{
     TimelineBrewDataView, TimelineEventDetailView, TimelineEventView, TimelineMonthView,
 };
 
+pub struct StatsView {
+    pub brews: u64,
+    pub roasts: u64,
+    pub roasters: u64,
+    pub cups: u64,
+    pub cafes: u64,
+    pub bags: u64,
+    pub gear: u64,
+}
+
 use crate::domain::listing::{DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortKey};
 
 pub struct Paginated<T> {

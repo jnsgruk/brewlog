@@ -1,0 +1,409 @@
+{% extends "base.html" %} {% block title %}Brewlog{% endblock %}
+
+{% block head %}
+{% if is_authenticated && has_ai_extract %}
+<script src="/extract.js"></script>
+<script>
+  let _submitting = false;
+
+  const fillScanForms = (data) => {
+    const form = document.getElementById('scan-form');
+    if (!form) return;
+    if (data.roaster) {
+      if (data.roaster.name) form.querySelector('[name="roaster_name"]').value = data.roaster.name;
+      if (data.roaster.country) form.querySelector('[name="roaster_country"]').value = data.roaster.country;
+      if (data.roaster.city) form.querySelector('[name="roaster_city"]').value = data.roaster.city;
+      if (data.roaster.homepage) form.querySelector('[name="roaster_homepage"]').value = data.roaster.homepage;
+    }
+    if (data.roast) {
+      if (data.roast.name) form.querySelector('[name="roast_name"]').value = data.roast.name;
+      if (data.roast.origin) form.querySelector('[name="origin"]').value = data.roast.origin;
+      if (data.roast.region) form.querySelector('[name="region"]').value = data.roast.region;
+      if (data.roast.producer) form.querySelector('[name="producer"]').value = data.roast.producer;
+      if (data.roast.process) form.querySelector('[name="process"]').value = data.roast.process;
+      if (data.roast.tasting_notes && data.roast.tasting_notes.length > 0) {
+        form.querySelector('[name="tasting_notes"]').value = data.roast.tasting_notes.join(', ');
+      }
+    }
+    document.getElementById('scan-input-section').style.display = 'none';
+    document.getElementById('scan-form-section').style.display = 'block';
+  };
+
+  const resetScan = () => {
+    document.getElementById('scan-section').style.display = 'none';
+    document.getElementById('scan-input-section').style.display = 'block';
+    document.getElementById('scan-form-section').style.display = 'none';
+    document.getElementById('scan-form').reset();
+    document.getElementById('scan-submit-error').classList.add('hidden');
+  };
+
+  const toggleScan = () => {
+    const el = document.getElementById('scan-section');
+    if (el.style.display === 'none') {
+      el.style.display = 'block';
+    } else {
+      resetScan();
+    }
+  };
+
+  const submitScan = async (event) => {
+    event.preventDefault();
+    if (_submitting) return;
+    _submitting = true;
+    const errorEl = document.getElementById('scan-submit-error');
+    errorEl.classList.add('hidden');
+
+    const form = document.getElementById('scan-form');
+    const formData = new FormData(form);
+    const body = {};
+    formData.forEach((value, key) => { body[key] = value; });
+
+    try {
+      const resp = await fetch('/api/v1/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.message || `Server returned ${resp.status}`);
+      }
+      const data = await resp.json();
+      window.location.href = data.redirect || '/roasts';
+    } catch (e) {
+      errorEl.textContent = `Save failed: ${e.message}`;
+      errorEl.classList.remove('hidden');
+    } finally {
+      _submitting = false;
+    }
+    return false;
+  };
+
+  const closeBag = async (bagId, cardEl) => {
+    if (!confirm('Close this bag? This will mark it as finished.')) return;
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const resp = await fetch(`/api/v1/bags/${bagId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ closed: true, remaining: 0.0, finished_at: today }),
+      });
+      if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+      cardEl.remove();
+      const grid = document.getElementById('open-bags-grid');
+      if (grid && grid.children.length === 0) {
+        document.getElementById('open-bags-section')?.remove();
+      }
+    } catch (e) {
+      alert(`Failed to close bag: ${e.message}`);
+    }
+  };
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Quick Actions -->
+{% if is_authenticated %}
+<section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {% if has_ai_extract %}
+  <button
+    type="button"
+    onclick="toggleScan()"
+    class="flex items-center justify-center gap-3 rounded-lg border-2 border-amber-400 bg-amber-50 px-6 py-5 text-lg font-semibold text-amber-800 shadow-sm transition hover:bg-amber-100 hover:border-amber-500"
+  >
+    <svg class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+    </svg>
+    Scan Bag
+  </button>
+  {% endif %}
+  <a
+    href="/check-in"
+    class="flex items-center justify-center gap-3 rounded-lg border-2 border-amber-400 bg-amber-50 px-6 py-5 text-lg font-semibold text-amber-800 shadow-sm transition hover:bg-amber-100 hover:border-amber-500"
+  >
+    <svg class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path d="M15.993 1.385a1.87 1.87 0 0 1 2.623 2.622l-4.03 5.27a12.75 12.75 0 0 1-4.223 3.358 7.724 7.724 0 0 1-2.71.832 2.14 2.14 0 0 1-.588-.085 1.07 1.07 0 0 1-.725-.723 2.14 2.14 0 0 1-.083-.588 7.724 7.724 0 0 1 .832-2.71 12.75 12.75 0 0 1 3.358-4.223l5.27-4.03.176.177-.176-.177Z" />
+      <path d="M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v3.75a2.25 2.25 0 0 1-2.25 2.25h-.878a15.262 15.262 0 0 0 .878 3h.75a3.75 3.75 0 0 0 3.75-3.75V6a3.75 3.75 0 0 0-3.75-3.75h-7.5A3.75 3.75 0 0 0 5.25 6v.75a15.262 15.262 0 0 0 .75.128Z" />
+    </svg>
+    Check In
+  </a>
+</section>
+
+<!-- Inline Scan Section (hidden by default) -->
+{% if has_ai_extract %}
+<section id="scan-section" style="display: none">
+  <!-- Input: photo or text -->
+  <div id="scan-input-section" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+    <div id="scan-extract-controls" class="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onclick="triggerPhotoExtract('scan', '/api/v1/extract-bag-scan', fillScanForms)"
+        class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+        </svg>
+        Take Photo
+      </button>
+      <span class="text-xs text-stone-400">or</span>
+      <div class="flex flex-1 min-w-[200px] gap-2">
+        <input
+          type="text"
+          id="scan-extract-text"
+          class="input-field w-full text-sm"
+          placeholder="Describe the coffee bag&hellip;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('scan','/api/v1/extract-bag-scan',fillScanForms)}"
+        />
+        <button
+          type="button"
+          onclick="extractFromText('scan', '/api/v1/extract-bag-scan', fillScanForms)"
+          class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+        >
+          Go
+        </button>
+      </div>
+    </div>
+    <div id="scan-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
+      <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      Waiting for response&hellip;
+    </div>
+    <p id="scan-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
+  </div>
+
+  <!-- Form: pre-filled roaster + roast -->
+  <div id="scan-form-section" style="display: none">
+    <form id="scan-form" class="mt-4 flex flex-col gap-4" onsubmit="return submitScan(event)">
+      <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-amber-700">Roaster</h2>
+        <p class="mt-1 text-sm text-stone-600">If this roaster already exists, it will be matched automatically.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Name *</span>
+            <input type="text" name="roaster_name" required class="input-field" placeholder="Example Coffee Roasters" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Country *</span>
+            <input type="text" name="roaster_country" required class="input-field" placeholder="United States" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">City</span>
+            <input type="text" name="roaster_city" class="input-field" placeholder="Portland" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Homepage</span>
+            <input type="url" name="roaster_homepage" class="input-field" placeholder="https://example.coffee" />
+          </label>
+        </div>
+      </div>
+      <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-amber-700">Roast</h2>
+        <p class="mt-1 text-sm text-stone-600">Details about this specific coffee.</p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Roast Name *</span>
+            <input type="text" name="roast_name" required class="input-field" placeholder="Ethiopia Yirgacheffe" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Origin *</span>
+            <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Region *</span>
+            <input type="text" name="region" required class="input-field" placeholder="Guji" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Producer *</span>
+            <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Process *</span>
+            <input type="text" name="process" required class="input-field" placeholder="Washed" />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-stone-700">Tasting Notes * (comma separated)</span>
+            <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine"></textarea>
+          </label>
+        </div>
+      </div>
+      <p id="scan-submit-error" class="hidden text-sm text-red-600"></p>
+      <div class="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onclick="resetScan()"
+          class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+        >
+          Save Roaster &amp; Roast
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endif %}
+{% endif %}
+
+<!-- Last Brew -->
+{% if let Some(brew) = last_brew %}
+<section class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-amber-700">Last Brew</h2>
+    <span class="text-xs text-stone-500">{{ brew.created_at }}</span>
+  </div>
+  <div class="mt-3">
+    <div class="flex flex-wrap items-baseline gap-2">
+      <a href="/roasters/{{ brew.roaster_slug }}/roasts/{{ brew.roast_slug }}" class="font-semibold text-amber-800 hover:text-amber-600">{{ brew.roast_name }}</a>
+      <span class="text-sm text-stone-500">{{ brew.roaster_name }}</span>
+    </div>
+    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
+      <span>{{ brew.coffee_weight }}</span>
+      <span>{{ brew.water_volume }} @ {{ brew.water_temp }}</span>
+      <span>{{ brew.ratio }}</span>
+      <span>{{ brew.grinder_name }} @ {{ brew.grind_setting }}</span>
+      <span>{{ brew.brewer_name }}</span>
+      {% if let Some(fp) = brew.filter_paper_name %}
+      <span>{{ fp }}</span>
+      {% endif %}
+    </div>
+    {% if is_authenticated %}
+    <div class="mt-3 pt-3 border-t border-amber-200">
+      <form
+        class="inline"
+        data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
+      >
+        <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
+        <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight_raw }}" />
+        <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
+        <input type="hidden" name="grind_setting" value="{{ brew.grind_setting_raw }}" />
+        <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
+        {% if let Some(fp_id) = brew.filter_paper_id %}
+        <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
+        {% endif %}
+        <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
+        <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0v2.43l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389 5.5 5.5 0 0 1 9.2-2.466l.312.311h-2.433a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.22Z" clip-rule="evenodd" />
+          </svg>
+          Brew Again
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Open Bags -->
+{% if !open_bags.is_empty() %}
+<section id="open-bags-section">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-lg font-semibold text-amber-700">Open Bags</h2>
+    <a href="/bags" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all bags &rarr;</a>
+  </div>
+  <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for bag in open_bags %}
+    <div id="bag-card-{{ bag.id }}" class="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm">
+      <div>
+        <a href="/roasters/{{ bag.roaster_slug }}/roasts/{{ bag.roast_slug }}" class="font-semibold text-amber-800 hover:text-amber-600">{{ bag.roast_name }}</a>
+        <p class="text-sm text-stone-500">{{ bag.roaster_name }}</p>
+      </div>
+      <p class="mt-2 text-sm text-stone-600">
+        <span class="font-medium">{{ bag.remaining }}g</span>
+        <span class="text-stone-400">of {{ bag.amount }}g remaining</span>
+      </p>
+      {% if is_authenticated %}
+      <div class="mt-3 pt-3 border-t border-amber-100 flex gap-3">
+        <a href="/brews?bag_id={{ bag.id }}" class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-500">
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clip-rule="evenodd" />
+          </svg>
+          Brew
+        </a>
+        <button
+          type="button"
+          onclick="closeBag('{{ bag.id }}', document.getElementById('bag-card-{{ bag.id }}'))"
+          class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-stone-700"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+          </svg>
+          Close
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Recent Activity -->
+{% if !recent_events.is_empty() %}
+<section>
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-lg font-semibold text-amber-700">Recent Activity</h2>
+    <a href="/timeline" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View full timeline &rarr;</a>
+  </div>
+  <div class="space-y-2">
+    {% for event in recent_events %}
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800">{{ event.kind_label }}</span>
+        <a href="{{ event.link }}" class="truncate font-medium text-stone-700 hover:text-amber-600 text-sm">{{ event.title }}</a>
+      </div>
+      <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ event.date_label }}</time>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Stats -->
+<section class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+  <h2 class="text-lg font-semibold text-amber-700 mb-4">Your Coffee Journey</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+    <a href="/brews" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.brews }}</div>
+      <div class="text-xs text-stone-500">Brews</div>
+    </a>
+    <a href="/roasts" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasts }}</div>
+      <div class="text-xs text-stone-500">Roasts</div>
+    </a>
+    <a href="/roasters" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasters }}</div>
+      <div class="text-xs text-stone-500">Roasters</div>
+    </a>
+    <a href="/bags" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.bags }}</div>
+      <div class="text-xs text-stone-500">Bags</div>
+    </a>
+    <a href="/cups" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cups }}</div>
+      <div class="text-xs text-stone-500">Cups</div>
+    </a>
+    <a href="/cafes" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cafes }}</div>
+      <div class="text-xs text-stone-500">Cafes</div>
+    </a>
+    <a href="/gear" class="group">
+      <div class="text-2xl font-bold text-amber-800 group-hover:text-amber-600">{{ stats.gear }}</div>
+      <div class="text-xs text-stone-500">Gear</div>
+    </a>
+  </div>
+</section>
+{% endblock %}

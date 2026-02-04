@@ -100,6 +100,10 @@ impl AppState {
     pub fn has_ai_extract(&self) -> bool {
         self.openrouter_api_key.is_some()
     }
+
+    pub fn has_foursquare(&self) -> bool {
+        self.foursquare_api_key.is_some()
+    }
 }
 
 pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {

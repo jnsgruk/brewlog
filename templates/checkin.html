@@ -1,0 +1,273 @@
+{% extends "base.html" %} {% block title %}Brewlog · Check In{% endblock %}
+
+{% block head %}
+<script src="/checkin.js"></script>
+{% if has_ai_extract %}
+<script src="/extract.js"></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section
+  id="checkin-root"
+  data-signals:_step="1"
+  data-signals:_cafe-id="''"
+  data-signals:_cafe-name="''"
+  data-signals:_cafe-city="''"
+  data-signals:_cafe-country="''"
+  data-signals:_cafe-lat="0"
+  data-signals:_cafe-lng="0"
+  data-signals:_cafe-website="''"
+  data-signals:_roast-id="''"
+  data-signals:_rating="0"
+  data-signals:_error="''"
+  data-signals:_submitting="false"
+  data-signals:_locating="false"
+  data-signals:_location-found="false"
+  data-signals:_user-lat="0"
+  data-signals:_user-lng="0"
+  data-signals:_scan-waiting="false"
+  data-signals:_scan-success="''"
+  data-on:cafe-selected="$_cafeId = String(evt.detail.id); $_cafeName = evt.detail.name; $_cafeCity = evt.detail.city || ''; $_cafeCountry = evt.detail.country || ''; $_cafeLat = evt.detail.lat || 0; $_cafeLng = evt.detail.lng || 0; $_cafeWebsite = evt.detail.website || ''; $_step = 2"
+  data-on:location-found="$_locating = false; $_locationFound = true; $_userLat = evt.detail.lat; $_userLng = evt.detail.lng; searchNearbyCafes('coffee', evt.detail.lat, evt.detail.lng)"
+  data-on:location-error="$_locating = false; $_error = evt.detail.message"
+  data-on:scan-complete="$_scanWaiting = false; $_roastId = evt.detail.roastId; $_scanSuccess = evt.detail.name; $_step = 3"
+  data-on:scan-error="$_scanWaiting = false; $_error = evt.detail.message"
+  data-on:checkin-error="$_error = evt.detail.message"
+  data-on:location-start="$_locating = true"
+  data-on:scan-start="$_scanWaiting = true"
+  data-on:submit-start="$_submitting = true"
+  data-on:submit-error="$_submitting = false"
+>
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Check In</h1>
+    <p class="max-w-2xl text-sm text-stone-600">
+      Record a cup of coffee at a cafe.
+    </p>
+  </header>
+
+  <!-- Selected cafe summary (shown after selection) -->
+  <div
+    class="mt-4 rounded-lg border border-amber-300 bg-amber-100/80 px-4 py-3 shadow-sm flex items-center justify-between"
+    data-show="$_cafeName"
+    style="display: none"
+  >
+    <div class="flex items-center gap-2">
+      <svg class="h-4 w-4 text-amber-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5Z" clip-rule="evenodd" />
+      </svg>
+      <span class="font-medium text-amber-800" data-text="$_cafeName"></span>
+    </div>
+    <button
+      type="button"
+      data-on:click="$_cafeId = ''; $_cafeName = ''; $_step = 1"
+      class="text-xs text-stone-500 hover:text-stone-700"
+    >Change</button>
+  </div>
+
+  <!-- Step indicators -->
+  <div class="mt-4 flex gap-2 text-sm">
+    <span
+      class="rounded-full px-3 py-1 font-medium"
+      data-class:bg-amber-600="$_step === 1"
+      data-class:text-white="$_step === 1"
+      data-class:bg-amber-200="$_step > 1"
+      data-class:text-amber-800="$_step > 1"
+    >1. Cafe</span>
+    <span
+      class="rounded-full px-3 py-1 font-medium"
+      data-class:bg-amber-600="$_step === 2"
+      data-class:text-white="$_step === 2"
+      data-class:bg-amber-200="$_step > 2"
+      data-class:text-amber-800="$_step > 2"
+      data-class:bg-stone-200="$_step < 2"
+      data-class:text-stone-500="$_step < 2"
+    >2. Coffee</span>
+    <span
+      class="rounded-full px-3 py-1 font-medium"
+      data-class:bg-amber-600="$_step === 3"
+      data-class:text-white="$_step === 3"
+      data-class:bg-stone-200="$_step < 3"
+      data-class:text-stone-500="$_step < 3"
+    >3. Rate</span>
+  </div>
+
+  <!-- Error display -->
+  <p
+    class="mt-3 text-sm text-red-600"
+    data-show="$_error"
+    style="display: none"
+    data-text="$_error"
+  ></p>
+
+  <!-- Step 1: Cafe selection -->
+  <div class="mt-4" data-show="$_step === 1" style="display: none">
+    <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+      {% if has_foursquare %}
+      <div class="flex flex-wrap items-center gap-3 mb-4">
+        <button
+          type="button"
+          onclick="locateUser()"
+          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+          data-attr:disabled="$_locating || $_locationFound"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5Z" clip-rule="evenodd" />
+          </svg>
+          <span data-text="$_locating ? 'Locating\u2026' : $_locationFound ? 'Location found' : 'Use My Location'">Use My Location</span>
+        </button>
+        <div data-show="$_locating" style="display: none">
+          <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </div>
+      </div>
+      {% endif %}
+
+      <input
+        type="text"
+        id="cafe-search"
+        class="input-field w-full text-sm"
+        placeholder="Search for a cafe&hellip;"
+        data-on:input="filterExistingCafes(el.value)"
+        data-on:input__debounce.350ms="$_locationFound && searchNearbyCafes(el.value, $_userLat, $_userLng)"
+      />
+
+      <!-- Foursquare results -->
+      <div id="nearby-results" class="hidden mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white"></div>
+
+      <!-- Existing cafes -->
+      {% if !cafe_options.is_empty() %}
+      <div id="existing-cafes" class="mt-3 max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-white">
+        <h3 class="px-3 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wide">Saved Cafes</h3>
+        {% for cafe in cafe_options %}
+        <button
+          type="button"
+          data-cafe-name="{{ cafe.label }}"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-amber-100 transition"
+          onclick="emit('cafe-selected', { id: '{{ cafe.id }}', name: this.dataset.cafeName, city: '', country: '', lat: 0, lng: 0, website: '' })"
+        >
+          {{ cafe.label }}
+        </button>
+        {% endfor %}
+        <p data-no-match class="px-3 py-2 text-sm text-stone-500" style="display: none">No matching cafes.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Step 2: Roast identification -->
+  <div data-show="$_step === 2" style="display: none">
+    <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+      <h3 class="text-base font-semibold text-amber-700 mb-3">What are you drinking?</h3>
+
+      {% if has_ai_extract %}
+      <div data-show="!$_scanWaiting && !$_scanSuccess" style="display: none" class="mb-4">
+        <p class="text-sm text-stone-600 mb-3">Scan a bag to identify the coffee, or select from your existing roasts below.</p>
+        <div id="checkin-extract-controls" class="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onclick="triggerPhotoExtract('checkin', '/api/v1/extract-bag-scan', onScanExtracted)"
+            class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+          >
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+            Scan Bag
+          </button>
+          <span class="text-xs text-stone-400">or</span>
+          <div class="flex flex-1 min-w-[200px] gap-2">
+            <input
+              type="text"
+              id="checkin-extract-text"
+              class="input-field w-full text-sm"
+              placeholder="Describe the coffee&hellip;"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('checkin','/api/v1/extract-bag-scan',onScanExtracted)}"
+            />
+            <button
+              type="button"
+              onclick="extractFromText('checkin', '/api/v1/extract-bag-scan', onScanExtracted)"
+              class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+            >
+              Go
+            </button>
+          </div>
+        </div>
+        <div id="checkin-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700 mt-2">
+          <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Waiting for response&hellip;
+        </div>
+        <p id="checkin-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
+      </div>
+      <div
+        class="flex items-center gap-3 text-sm text-amber-700 mb-4"
+        data-show="$_scanWaiting"
+        style="display: none"
+      >
+        <svg class="h-5 w-5 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Saving roaster &amp; roast&hellip;
+      </div>
+      <div
+        class="mb-4 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800"
+        data-show="$_scanSuccess"
+        style="display: none"
+      >
+        Scanned: <span class="font-medium" data-text="$_scanSuccess"></span>
+      </div>
+      <div class="border-t border-amber-200 pt-3">
+        <p class="text-xs text-stone-500 mb-2">Or select an existing roast:</p>
+      {% else %}
+      <div>
+      {% endif %}
+        <select
+          class="input-field w-full text-sm"
+          data-on:change="$_roastId = el.value; el.value && ($_step = 3)"
+        >
+          <option value="">Select a roast&hellip;</option>
+          {% for roast in roast_options %}
+          <option value="{{ roast.id }}">{{ roast.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Rating + submit -->
+  <div data-show="$_step === 3" style="display: none">
+    <div class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+      <h3 class="text-base font-semibold text-amber-700 mb-3">How was it? (optional)</h3>
+      <div class="flex gap-1 mb-6">
+        {% for i in 1..=5 %}
+        <button
+          type="button"
+          class="transition hover:text-amber-400"
+          data-on:click="$_rating = {{ i }}"
+          data-class:text-amber-500="$_rating >= {{ i }}"
+          data-class:text-stone-300="$_rating < {{ i }}"
+          aria-label="Rate {{ i }} stars"
+        >
+          <svg class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        {% endfor %}
+      </div>
+      <button
+        type="button"
+        onclick="submitCheckIn()"
+        class="w-full rounded-md bg-amber-600 px-4 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-500 disabled:opacity-50"
+        data-attr:disabled="$_submitting"
+      >
+        Check In
+      </button>
+    </div>
+  </div>
+</section>
+{% endblock %}

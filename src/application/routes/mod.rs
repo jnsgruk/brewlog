@@ -2,8 +2,10 @@ pub mod auth;
 pub mod bags;
 pub mod brews;
 pub mod cafes;
+pub mod checkin;
 pub mod cups;
 pub mod gear;
+pub mod home;
 mod macros;
 pub mod roasters;
 pub mod roasts;
@@ -94,7 +96,7 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/tokens/:id/revoke", post(tokens::revoke_token));
 
     axum::Router::new()
-        .route("/", get(root_redirect))
+        .route("/", get(home::home_page))
         .route("/login", get(auth::login_page).post(auth::login_submit))
         .route("/logout", post(auth::logout))
         .route("/roasters", get(roasters::roasters_page))
@@ -110,18 +112,20 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/cafes", get(cafes::cafes_page))
         .route("/cafes/:slug", get(cafes::cafe_page))
         .route("/cups", get(cups::cups_page))
-        .route("/scan", get(scan::scan_page))
+        .route("/scan", get(scan_redirect))
+        .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
         .route("/extract.js", get(extract_js))
+        .route("/checkin.js", get(checkin_js))
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
         .layer(ServiceBuilder::new().layer(CookieManagerLayer::new()))
         .with_state(state)
 }
 
-async fn root_redirect() -> Redirect {
-    Redirect::temporary("/timeline")
+async fn scan_redirect() -> Redirect {
+    Redirect::permanent("/")
 }
 
 async fn styles() -> impl IntoResponse {
@@ -135,6 +139,13 @@ async fn extract_js() -> impl IntoResponse {
     (
         [("content-type", "application/javascript; charset=utf-8")],
         include_str!("../../../templates/extract.js"),
+    )
+}
+
+async fn checkin_js() -> impl IntoResponse {
+    (
+        [("content-type", "application/javascript; charset=utf-8")],
+        include_str!("../../../templates/checkin.js"),
     )
 }
 

@@ -3,7 +3,7 @@ use askama::Template;
 use super::views::{
     BagOptionView, BagView, BrewDefaultsView, BrewView, CafeOptionView, CafeView, CupView,
     GearOptionView, GearView, ListNavigator, Paginated, RoastOptionView, RoastView,
-    RoasterOptionView, RoasterView, TimelineEventView, TimelineMonthView,
+    RoasterOptionView, RoasterView, StatsView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -207,11 +207,27 @@ pub struct CupListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "scan.html")]
-pub struct ScanTemplate {
+#[template(path = "home.html")]
+pub struct HomeTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub has_ai_extract: bool,
+    pub has_foursquare: bool,
+    pub last_brew: Option<BrewView>,
+    pub open_bags: Vec<BagView>,
+    pub recent_events: Vec<TimelineEventView>,
+    pub stats: StatsView,
+}
+
+#[derive(Template)]
+#[template(path = "checkin.html")]
+pub struct CheckInTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub has_ai_extract: bool,
+    pub has_foursquare: bool,
+    pub roast_options: Vec<RoastOptionView>,
+    pub cafe_options: Vec<CafeOptionView>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {
