@@ -46,6 +46,8 @@ function locateUser() {
   data-signals:_cafe-website="''"
   data-signals:_cafe-search="''"
   data-signals:_roast-id="''"
+  data-signals:_roast-name="''"
+  data-signals:_roaster-name="''"
   data-signals:_rating="0"
   data-signals:_error="''"
   data-signals:_submitting="false"
@@ -78,14 +80,35 @@ function locateUser() {
     style="display: none"
   >
     <div class="flex items-center gap-2">
-      <svg class="h-4 w-4 text-amber-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <svg class="h-4 w-4 text-amber-600 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5Z" clip-rule="evenodd" />
       </svg>
       <span class="font-medium text-amber-800" data-text="$_cafeName"></span>
+      <span class="text-xs text-stone-500" data-show="$_cafeCity" data-text="$_cafeCity" style="display: none"></span>
     </div>
     <button
       type="button"
       data-on:click="$_cafeId = ''; $_cafeName = ''; $_step = 1"
+      class="text-xs text-stone-500 hover:text-stone-700"
+    >Change</button>
+  </div>
+
+  <!-- Selected roast summary (shown after selection) -->
+  <div
+    class="mt-2 rounded-lg border border-amber-300 bg-amber-100/80 px-4 py-3 shadow-sm flex items-center justify-between"
+    data-show="$_roastName && $_step > 2"
+    style="display: none"
+  >
+    <div class="flex items-center gap-2">
+      <svg class="h-4 w-4 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M2 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2h2a3 3 0 0 1 0 6h-1.1A5.002 5.002 0 0 1 14 16H6a5 5 0 0 1-5-5V6Zm16 4h2a1 1 0 1 0 0-2h-2v2ZM4 20a1 1 0 0 1 1-1h10a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd" />
+      </svg>
+      <span class="font-medium text-amber-800" data-text="$_roastName"></span>
+      <span class="text-xs text-stone-500" data-show="$_roasterName" data-text="$_roasterName" style="display: none"></span>
+    </div>
+    <button
+      type="button"
+      data-on:click="$_roastId = ''; $_roastName = ''; $_roasterName = ''; $_scanSuccess = ''; $_step = 2"
       class="text-xs text-stone-500 hover:text-stone-700"
     >Change</button>
   </div>
@@ -134,7 +157,7 @@ function locateUser() {
           type="button"
           data-on:click="locateUser()"
           data-show="!$_searchByCity"
-          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+          class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-4 py-2.5 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
           data-attr:disabled="$_locating || $_locationFound"
         >
           <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -230,11 +253,11 @@ function locateUser() {
         <p class="mb-2 text-xs text-stone-500">Or choose a saved cafe:</p>
         <select
           class="input-field w-full text-sm"
-          data-on:change="if (el.value) { $_cafeId = el.value; $_cafeName = el.options[el.selectedIndex].text; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2 }"
+          data-on:change="if (el.value) { const opt = el.options[el.selectedIndex]; $_cafeId = el.value; $_cafeName = opt.dataset.name || ''; $_cafeCity = opt.dataset.city || ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2 }"
         >
           <option value="">Select a cafe&hellip;</option>
           {% for cafe in cafe_options %}
-          <option value="{{ cafe.id }}">{{ cafe.label }}</option>
+          <option value="{{ cafe.id }}" data-name="{{ cafe.name }}" data-city="{{ cafe.city }}">{{ cafe.label }}</option>
           {% endfor %}
         </select>
       </div>
@@ -258,7 +281,7 @@ function locateUser() {
 
         <form id="checkin-scan-form"
           data-on:submit="$_scanWaiting = true; $_error = ''; @post('/api/v1/scan', {contentType: 'form'})"
-          data-on:datastar-fetch="if (!$_scanWaiting) return; if (evt.detail.type === 'finished') { $_scanWaiting = false; $_step = 3 } else if (evt.detail.type === 'error') { $_scanWaiting = false; $_error = 'Scan failed. Please try again.' }"
+          data-on:datastar-fetch="if (!$_scanWaiting) return; if (evt.detail.type === 'finished') { $_scanWaiting = false; $_roastName = $_scanSuccess; $_step = 3 } else if (evt.detail.type === 'error') { $_scanWaiting = false; $_error = 'Scan failed. Please try again.' }"
         >
           <input type="hidden" name="image" id="checkin-image" />
           <input type="hidden" name="prompt" id="checkin-prompt-hidden" />
@@ -267,7 +290,7 @@ function locateUser() {
             <button
               type="button"
               onclick="document.getElementById('checkin-photo').click()"
-              class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+              class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-4 py-2.5 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
             >
               <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
@@ -286,7 +309,7 @@ function locateUser() {
               <button
                 type="button"
                 onclick="document.getElementById('checkin-prompt-hidden').value=document.getElementById('checkin-prompt-text').value;document.getElementById('checkin-scan-form').requestSubmit()"
-                class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+                class="rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
               >
                 Go
               </button>
@@ -322,11 +345,11 @@ function locateUser() {
       {% endif %}
         <select
           class="input-field w-full text-sm"
-          data-on:change="$_roastId = el.value; el.value && ($_step = 3)"
+          data-on:change="$_roastId = el.value; $_roastName = el.options[el.selectedIndex].dataset.name || ''; $_roasterName = el.options[el.selectedIndex].dataset.roaster || ''; el.value && ($_step = 3)"
         >
           <option value="">Select a roast&hellip;</option>
           {% for roast in roast_options %}
-          <option value="{{ roast.id }}">{{ roast.label }}</option>
+          <option value="{{ roast.id }}" data-name="{{ roast.name }}" data-roaster="{{ roast.roaster_name }}">{{ roast.label }}</option>
           {% endfor %}
         </select>
       </div>

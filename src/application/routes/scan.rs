@@ -270,6 +270,7 @@ pub(crate) async fn submit_scan(
         let signals = vec![
             ("_roast-id", Value::String(roast_id.to_string())),
             ("_scan-success", Value::String(roast.name.clone())),
+            ("_roaster-name", Value::String(roaster.name.clone())),
         ];
         crate::application::routes::support::render_signals_json(&signals).map_err(ApiError::from)
     } else {

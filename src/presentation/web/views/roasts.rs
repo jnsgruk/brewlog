@@ -87,6 +87,8 @@ impl RoastView {
 pub struct RoastOptionView {
     pub id: String,
     pub label: String,
+    pub name: String,
+    pub roaster_name: String,
 }
 
 impl From<RoastWithRoaster> for RoastOptionView {
@@ -94,6 +96,8 @@ impl From<RoastWithRoaster> for RoastOptionView {
         Self {
             id: roast.roast.id.to_string(),
             label: format!("{} - {}", roast.roaster_name, roast.roast.name),
+            name: roast.roast.name,
+            roaster_name: roast.roaster_name,
         }
     }
 }

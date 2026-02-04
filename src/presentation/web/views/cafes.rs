@@ -61,6 +61,8 @@ impl From<Cafe> for CafeView {
 pub struct CafeOptionView {
     pub id: String,
     pub label: String,
+    pub name: String,
+    pub city: String,
 }
 
 impl From<Cafe> for CafeOptionView {
@@ -68,6 +70,8 @@ impl From<Cafe> for CafeOptionView {
         Self {
             id: cafe.id.to_string(),
             label: format!("{} ({})", cafe.name, cafe.city),
+            name: cafe.name,
+            city: cafe.city,
         }
     }
 }
