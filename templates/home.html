@@ -197,9 +197,9 @@
         <p class="truncate text-sm text-stone-500">{{ brew.roaster_name }}</p>
       </div>
       <div class="mt-2 space-y-0.5 text-sm">
-        <p><span class="font-medium text-stone-800">{{ brew.coffee_weight }} / {{ brew.water_volume }}</span> <span class="text-stone-500">· {{ brew.ratio }} · {{ brew.water_temp }}</span></p>
-        <p><span class="font-medium text-stone-800">{{ brew.grind_setting }}</span> <span class="text-stone-500">· {{ brew.grinder_name }}</span></p>
-        <p><span class="font-medium text-stone-800">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-stone-500">· {{ fp }}</span>{% endif %}</p>
+        <p class="truncate"><span class="font-medium text-stone-800">{{ brew.coffee_weight }} / {{ brew.water_volume }}</span> <span class="text-stone-500">· {{ brew.ratio }} · {{ brew.water_temp }}</span></p>
+        <p class="truncate"><span class="font-medium text-stone-800">{{ brew.grind_setting }}</span> <span class="text-stone-500">· {{ brew.grinder_name }}</span></p>
+        <p class="truncate"><span class="font-medium text-stone-800">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-stone-500">· {{ fp }}</span>{% endif %}</p>
       </div>
       {% if is_authenticated %}
       <div class="mt-3 pt-3 border-t border-amber-100 flex gap-3">
