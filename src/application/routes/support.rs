@@ -244,6 +244,75 @@ pub fn set_datastar_patch_headers(headers: &mut HeaderMap, selector: &'static st
     let _ = headers.insert("datastar-mode", HeaderValue::from_static("replace"));
 }
 
+/// Render a `<div>` fragment with `data-signals` attributes for Datastar signal merging.
+///
+/// The selector must be a `#id` selector. Signal values are JSON-encoded and HTML-escaped
+/// so they are safe to embed in HTML attributes and evaluate as JavaScript expressions.
+pub fn render_signals_fragment(
+    selector: &'static str,
+    signals: &[(&str, serde_json::Value)],
+) -> Result<Response, AppError> {
+    use std::fmt::Write;
+
+    let id = selector.strip_prefix('#').unwrap_or(selector);
+
+    let mut html = format!(r#"<div id="{id}""#);
+    for (name, value) in signals {
+        let js_expr = value.to_string();
+        let escaped = escape_html_attr(&js_expr);
+        // write! to String is infallible
+        let _ = write!(&mut html, r#" data-signals:{name}="{escaped}""#);
+    }
+    html.push_str("></div>");
+
+    let mut response = Html(html).into_response();
+    response
+        .headers_mut()
+        .insert(CONTENT_TYPE, HeaderValue::from_static("text/html"));
+    set_datastar_patch_headers(response.headers_mut(), selector);
+    Ok(response)
+}
+
+/// Return a JSON response that Datastar interprets as a signal patch.
+///
+/// Signal names may use kebab-case (`_roaster-name`); they are automatically
+/// converted to camelCase (`_roasterName`) to match Datastar's internal store.
+pub fn render_signals_json(signals: &[(&str, serde_json::Value)]) -> Result<Response, AppError> {
+    let mut map = serde_json::Map::new();
+    for (name, value) in signals {
+        map.insert(kebab_to_camel(name), value.clone());
+    }
+    let body = serde_json::Value::Object(map).to_string();
+    let mut response = body.into_response();
+    response
+        .headers_mut()
+        .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    Ok(response)
+}
+
+fn kebab_to_camel(s: &str) -> String {
+    let mut result = String::with_capacity(s.len());
+    let mut cap_next = false;
+    for c in s.chars() {
+        if c == '-' {
+            cap_next = true;
+        } else if cap_next {
+            result.push(c.to_ascii_uppercase());
+            cap_next = false;
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
+fn escape_html_attr(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('"', "&quot;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
