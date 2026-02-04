@@ -60,30 +60,21 @@
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
       <input type="hidden" name="image" id="scan-image" />
-      <div data-show="!$_extracting" class="flex flex-wrap items-center gap-3">
+      <div data-show="!$_extracting" class="flex items-center gap-2">
         <button
           type="button"
           onclick="document.getElementById('scan-photo').click()"
-          class="inline-flex items-center gap-2 rounded-md border border-amber-500 px-4 py-3 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
+          class="shrink-0 inline-flex items-center justify-center rounded-md border border-amber-500 p-2.5 text-amber-700 transition hover:bg-amber-50"
+          aria-label="Take Photo"
         >
           {% call icons::camera("h-5 w-5") %}
-          Take Photo
         </button>
-        <span class="text-xs text-stone-400">or</span>
-        <div class="flex flex-1 min-w-[200px] gap-2">
-          <input
-            type="text"
-            name="prompt"
-            class="input-field w-full text-sm"
-            placeholder="Describe the coffee bag&hellip;"
-          />
-          <button
-            type="submit"
-            class="rounded-md border border-amber-500 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
-          >
-            Go
-          </button>
-        </div>
+        <input
+          type="text"
+          name="prompt"
+          class="input-field w-full text-sm"
+          placeholder="Describe the coffee bag&hellip;"
+        />
       </div>
       <div data-show="$_extracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
         {% call icons::spinner("h-5 w-5") %}
