@@ -24,6 +24,7 @@ use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
 use brewlog::infrastructure::repositories::users::SqlUserRepository;
 use reqwest::Client;
 use tokio::net::TcpListener;
+use tokio::task::AbortHandle;
 
 pub struct TestApp {
     pub address: String,
@@ -40,11 +41,18 @@ pub struct TestApp {
     pub auth_token: Option<String>,
     #[allow(dead_code)]
     pub mock_server: Option<wiremock::MockServer>,
+    server_handle: AbortHandle,
 }
 
 impl TestApp {
     pub fn api_url(&self, path: &str) -> String {
         format!("{}/api/v1{}", self.address, path)
+    }
+}
+
+impl Drop for TestApp {
+    fn drop(&mut self) {
+        self.server_handle.abort();
     }
 }
 
@@ -146,11 +154,12 @@ async fn spawn_app_inner(
     let address = format!("http://{}", local_addr);
 
     // Spawn the server in a background task
-    tokio::spawn(async move {
+    let server_handle = tokio::spawn(async move {
         axum::serve(listener, app)
             .await
             .expect("Server failed to start");
-    });
+    })
+    .abort_handle();
 
     TestApp {
         address,
@@ -162,6 +171,7 @@ async fn spawn_app_inner(
         token_repo: Some(token_repo),
         auth_token: None,
         mock_server,
+        server_handle,
     }
 }
 
