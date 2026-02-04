@@ -20,10 +20,14 @@
                 {% call icons::checkin("inline h-4 w-4") %}
             </a>
             <form method="post" action="/logout" class="inline">
-                <button type="submit" class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400">Logout</button>
+                <button type="submit" class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" aria-label="Logout">
+                    {% call icons::logout("inline h-4 w-4") %}
+                </button>
             </form>
             {% else %}
-            <a class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" href="/login">Login</a>
+            <a class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" href="/login" aria-label="Login">
+                {% call icons::login("inline h-4 w-4") %}
+            </a>
             {% endif %}
         </div>
         <!-- Hamburger button (mobile only) -->
@@ -52,10 +56,16 @@
             Check In
         </a>
         <form method="post" action="/logout" class="inline">
-            <button type="submit" class="py-1 transition text-stone-500 hover:text-amber-600 text-left">Logout</button>
+            <button type="submit" class="py-1 transition inline-flex items-center gap-1 text-stone-500 hover:text-amber-600 text-left">
+                {% call icons::logout("inline h-4 w-4") %}
+                Logout
+            </button>
         </form>
         {% else %}
-        <a class="py-1 transition text-stone-500 hover:text-amber-600" href="/login">Login</a>
+        <a class="py-1 transition inline-flex items-center gap-1 text-stone-500 hover:text-amber-600" href="/login">
+            {% call icons::login("inline h-4 w-4") %}
+            Login
+        </a>
         {% endif %}
     </div>
 </nav>
