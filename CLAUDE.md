@@ -223,34 +223,52 @@ Templates use Datastar attributes for interactivity:
 
 ```html
 <!-- Local signals (underscore prefix = not sent to server) -->
-<section data-signals:_show-form="false" data-signals:_is-submitting="false">
+<section data-signals:_show-form="false" data-signals:_submitting="false">
 
   <!-- Visibility binding -->
   <div data-show="$_showForm" style="display: none">
-    <!-- Form content -->
+    <!-- Two-way binding: signal ↔ input value -->
+    <input name="name" data-bind:_roaster-name class="input-field" />
   </div>
 
   <!-- Event handlers with HTTP actions -->
-  <form data-on:submit="@post('/api/v1/roasters', {
-    contentType: 'form',
-    responseOverrides: {selector: '#roaster-list', mode: 'replace'}
-  })">
+  <form
+    data-on:submit="$_submitting = true; @post('/api/v1/roasters', {
+      contentType: 'form',
+      responseOverrides: {selector: '#roaster-list', mode: 'replace'}
+    })"
+    data-ref="_form"
+    data-on:datastar-fetch="if (!$_submitting) return;
+      if (evt.detail.type === 'finished') { $_submitting = false; $_showForm = false; $_form && $_form.reset() }
+      else if (evt.detail.type === 'error') { $_submitting = false }"
+  >
     <!-- Form fields -->
   </form>
-
-  <!-- Reset form on completion -->
-  <form data-ref="_form"
-        data-on:datastar-fetch="evt.detail.type === 'finished' && ($_showForm = false, $_form.reset())">
 </section>
 ```
 
 Key attributes:
 
-- `data-signals:_name="value"` - Local signals (underscore prefix excludes from backend requests)
-- `data-show="$_signal"` - Conditional visibility
-- `data-on:event="expression"` - Event handlers
-- `data-ref="_name"` - DOM element references (underscore prefix for local refs)
-- `@get/@post/@put/@delete(url, options)` - HTTP actions with automatic Datastar headers
+- `data-signals:_name="value"` — Local signals (underscore prefix excludes from backend requests)
+- `data-show="$_signal"` — Conditional visibility
+- `data-bind:_signal-name` — Two-way binding between signal and input value
+- `data-on:event="expression"` — Event handlers
+- `data-ref="_name"` — DOM element references (underscore prefix for local refs)
+- `data-text="$_signal"` — Set element text content from signal
+- `data-attr:value="$_signal"` — Set element attribute from signal (used for hidden inputs)
+- `@get/@post/@put/@delete(url, options)` — HTTP actions with automatic Datastar headers
+
+#### Signal Naming
+
+Signal names use kebab-case in HTML attributes and auto-convert to camelCase in JS expressions:
+
+- HTML attribute: `data-signals:_roaster-name="''"` or `data-bind:_roaster-name`
+- JS expression: `$_roasterName`
+- JSON response key: `_roasterName` (camelCase)
+
+#### Two-Way Binding
+
+Use `data-bind:_signal-name` for two-way binding between signals and form inputs. **Do not use `data-model`** — it does not exist in Datastar v1 and is silently ignored.
 
 #### URL Generation
 
@@ -341,55 +359,110 @@ Static files live in `templates/` and are compiled into the binary via `include_
 
 ```rust
 .route("/styles.css", get(styles))
-.route("/extract.js", get(extract_js))
 .route("/favicon.ico", get(favicon))
 
-async fn extract_js() -> impl IntoResponse {
+async fn styles() -> impl IntoResponse {
     (
-        [("content-type", "application/javascript; charset=utf-8")],
-        include_str!("../../../templates/extract.js"),
+        [("content-type", "text/css; charset=utf-8")],
+        include_str!("../../../templates/styles.css"),
     )
 }
 ```
 
-There is no `tower-http` static file serving — all assets are embedded at compile time.
+There is no `tower-http` static file serving — all assets are embedded at compile time. There are no separate JavaScript files; all interactivity is handled via Datastar attributes and minimal inline JS.
 
-### AI Extraction Controls
+### AI Extraction (Datastar-native)
 
-Pages with AI-powered form filling (roasters, roasts, scan) share a common JavaScript library at `templates/extract.js` served at `/extract.js`. It provides three functions:
+Pages with AI-powered form filling (roasters, roasts, home page scan) use a fully Datastar-native pattern with **no external JavaScript files**. Extraction endpoints return JSON signal patches that Datastar merges into the signal store, and `data-bind` pushes updated values into form fields automatically.
 
-- `triggerPhotoExtract(formId, endpoint, onSuccess)` — opens camera/file picker, reads as data URL
-- `extractFromText(formId, endpoint, onSuccess)` — reads text from input field
-- `doExtract(formId, endpoint, body, onSuccess)` — POST to API, toggle waiting state, call callback on success
+#### Server Response Format
 
-Each page provides only its own `onSuccess` callback (e.g., `fillRoasterForm`, `fillRoastForm`, `fillScanForms`).
+Extraction endpoints detect Datastar requests and return `application/json` signal patches using `render_signals_json()`:
 
-#### Element ID Convention
+```rust
+// application/routes/support.rs
+pub fn render_signals_json(
+    signals: &[(&str, serde_json::Value)],
+) -> Result<Response, AppError> { ... }
 
-The shared library locates DOM elements using the `formId` prefix:
-
-| Element | ID pattern | Purpose |
-|---------|-----------|---------|
-| Controls wrapper | `{formId}-extract-controls` | Hidden during extraction |
-| Waiting message | `{formId}-extract-waiting` | Shown during extraction (spinner + text) |
-| Error paragraph | `{formId}-extract-error` | Shown on failure |
-| Text input | `{formId}-extract-text` | Text description input |
-
-Example `formId` values: `roaster-form`, `roast-form`, `scan`.
-
-#### Template Structure
-
-```html
-<div id="{formId}-extract-controls" class="flex flex-wrap items-center gap-3">
-  <!-- Photo button, text input, Go button -->
-</div>
-<div id="{formId}-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
-  <!-- Spinner SVG + "Waiting for response…" -->
-</div>
-<p id="{formId}-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
+// Usage in a handler:
+let signals = vec![
+    ("_roaster-name", Value::String(result.name)),
+    ("_roaster-country", Value::String(result.country)),
+];
+render_signals_json(&signals)
 ```
 
-Buttons wire up via onclick with the callback: `onclick="triggerPhotoExtract('roast-form', '/api/v1/extract-roast', fillRoastForm)"`.
+Signal keys use kebab-case (e.g., `_roaster-name`); the function converts them to camelCase (`_roasterName`) for the JSON response. Datastar processes `application/json` responses as signal patches automatically.
+
+**Important**: Do not return `text/html` fragments with `data-signals` attributes for signal patching — Datastar only processes signal updates from `application/json` responses, not from DOM-patched HTML elements.
+
+#### `datastar-fetch` Event Bubbling
+
+The `datastar-fetch` custom event **bubbles through the DOM**. When a page has multiple forms with `data-on:datastar-fetch` handlers (e.g., an extraction form and a create/save form), each handler will fire for events from *any* `@post`/`@get` in the same DOM tree.
+
+**Every `data-on:datastar-fetch` handler must guard with its own "in progress" signal** to ignore events from other forms:
+
+```html
+<!-- Extraction form -->
+<form
+  data-on:submit="$_extracting = true; @post('/api/v1/extract-roaster', {contentType: 'form'})"
+  data-on:datastar-fetch="if (!$_extracting) return;
+    if (evt.detail.type === 'finished') { $_extracting = false }
+    else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed.' }"
+>
+
+<!-- Create form (same parent section) -->
+<form
+  data-on:submit="$_submitting = true; @post('/api/v1/roasters', {contentType: 'form', ...})"
+  data-on:datastar-fetch="if (!$_submitting) return;
+    if (evt.detail.type === 'finished') { $_submitting = false; $_showForm = false; $_form && $_form.reset() }
+    else if (evt.detail.type === 'error') { $_submitting = false }"
+>
+```
+
+Without these guards, the create form's handler will react to the extraction form's `finished` event and vice versa. Note that `evt.detail.type` fires for `started`, `finished`, and `error` — only reset state on `finished` or `error`, never unconditionally.
+
+#### Extraction Template Pattern
+
+Each extraction-enabled page uses this structure:
+
+```html
+<section data-signals:_extracting="false" data-signals:_extract-error="''" data-signals:_submitting="false">
+  {% if has_ai_extract %}
+  <!-- Hidden file input — only JS needed (FileReader API) -->
+  <input type="file" id="{id}-photo" accept="image/*" capture="environment" class="hidden"
+    onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{
+      document.getElementById('{id}-image').value=r.result;
+      document.getElementById('{id}-extract-form').requestSubmit()};
+      r.readAsDataURL(this.files[0]);this.value=''}" />
+
+  <form id="{id}-extract-form"
+    data-on:submit="$_extracting = true; $_extractError = ''; @post('{endpoint}', {contentType: 'form'})"
+    data-on:datastar-fetch="if (!$_extracting) return;
+      if (evt.detail.type === 'finished') { $_extracting = false }
+      else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed.' }"
+  >
+    <input type="hidden" name="image" id="{id}-image" />
+    <div data-show="!$_extracting">
+      <button type="button" onclick="document.getElementById('{id}-photo').click()">Take Photo</button>
+      <input name="prompt" type="text" placeholder="Or describe..." />
+      <button type="submit">Go</button>
+    </div>
+    <div data-show="$_extracting" style="display:none"><!-- spinner --></div>
+    <p data-show="$_extractError" data-text="$_extractError" style="display:none"></p>
+  </form>
+  {% endif %}
+
+  <!-- Main form with data-bind fields -->
+  <form data-on:submit="$_submitting = true; @post(...)">
+    <input name="name" data-bind:_roaster-name class="input-field" />
+    <!-- ... more fields ... -->
+  </form>
+</section>
+```
+
+The only inline JS is the `onchange` handler for FileReader (reading photos as data URLs) and `onclick` to trigger the hidden file input. Everything else is pure Datastar.
 
 ### Foursquare Integration
 
