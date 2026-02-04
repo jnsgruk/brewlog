@@ -14,7 +14,7 @@ use crate::application::server::AppState;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
-use crate::infrastructure::ai::{self, ExtractedRoaster, ExtractionInput};
+use crate::infrastructure::ai::{self, ExtractionInput};
 use crate::presentation::web::templates::{
     RoasterDetailTemplate, RoasterListTemplate, RoastersTemplate,
 };
@@ -185,22 +185,48 @@ define_delete_handler!(
     render_roaster_list_fragment
 );
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn extract_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
-    Json(input): Json<ExtractionInput>,
-) -> Result<Json<ExtractedRoaster>, ApiError> {
+    headers: HeaderMap,
+    payload: FlexiblePayload<ExtractionInput>,
+) -> Result<Response, ApiError> {
     let api_key = state
         .openrouter_api_key
         .as_deref()
         .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
 
+    let (input, _) = payload.into_parts();
     let result = ai::extract_roaster(&state.http_client, api_key, &state.openrouter_model, &input)
         .await
         .map_err(ApiError::from)?;
 
-    Ok(Json(result))
+    if is_datastar_request(&headers) {
+        use serde_json::Value;
+        let signals = vec![
+            (
+                "_roaster-name",
+                Value::String(result.name.unwrap_or_default()),
+            ),
+            (
+                "_roaster-country",
+                Value::String(result.country.unwrap_or_default()),
+            ),
+            (
+                "_roaster-city",
+                Value::String(result.city.unwrap_or_default()),
+            ),
+            (
+                "_roaster-homepage",
+                Value::String(result.homepage.unwrap_or_default()),
+            ),
+            ("_extracted", Value::Bool(true)),
+        ];
+        crate::application::routes::support::render_signals_json(&signals).map_err(ApiError::from)
+    } else {
+        Ok(Json(result).into_response())
+    }
 }
 
 define_list_fragment_renderer!(

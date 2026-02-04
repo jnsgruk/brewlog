@@ -18,7 +18,7 @@ use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};
-use crate::infrastructure::ai::{self, ExtractedRoast, ExtractionInput};
+use crate::infrastructure::ai::{self, ExtractionInput};
 use crate::presentation::web::templates::{
     RoastDetailTemplate, RoastListTemplate, RoastOptionsTemplate, RoastsTemplate,
 };
@@ -341,22 +341,92 @@ impl TastingNotesInput {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn extract_roast_info(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
-    Json(input): Json<ExtractionInput>,
-) -> Result<Json<ExtractedRoast>, ApiError> {
+    headers: HeaderMap,
+    payload: FlexiblePayload<ExtractionInput>,
+) -> Result<Response, ApiError> {
     let api_key = state
         .openrouter_api_key
         .as_deref()
         .ok_or_else(|| AppError::validation("AI extraction is not configured"))?;
 
+    let (input, _) = payload.into_parts();
     let result = ai::extract_roast(&state.http_client, api_key, &state.openrouter_model, &input)
         .await
         .map_err(ApiError::from)?;
 
-    Ok(Json(result))
+    if is_datastar_request(&headers) {
+        use serde_json::Value;
+
+        // Try to match extracted roaster name to an existing roaster ID
+        let roaster_id = if let Some(ref roaster_name) = result.roaster_name {
+            match_roaster_id(&state, roaster_name)
+                .await
+                .unwrap_or_default()
+        } else {
+            String::new()
+        };
+
+        let tasting_notes = result
+            .tasting_notes
+            .as_ref()
+            .map(|notes| notes.join(", "))
+            .unwrap_or_default();
+
+        let signals = vec![
+            (
+                "_roast-name",
+                Value::String(result.name.unwrap_or_default()),
+            ),
+            ("_origin", Value::String(result.origin.unwrap_or_default())),
+            ("_region", Value::String(result.region.unwrap_or_default())),
+            (
+                "_producer",
+                Value::String(result.producer.unwrap_or_default()),
+            ),
+            (
+                "_process",
+                Value::String(result.process.unwrap_or_default()),
+            ),
+            ("_tasting-notes", Value::String(tasting_notes)),
+            ("_roaster-id", Value::String(roaster_id)),
+            ("_extracted", Value::Bool(true)),
+        ];
+        crate::application::routes::support::render_signals_json(&signals).map_err(ApiError::from)
+    } else {
+        Ok(Json(result).into_response())
+    }
+}
+
+/// Fuzzy-match a roaster name against existing roasters and return the matched ID.
+async fn match_roaster_id(state: &AppState, roaster_name: &str) -> Option<String> {
+    let roasters = state
+        .roaster_repo
+        .list_all_sorted(
+            crate::domain::roasters::RoasterSortKey::Name,
+            SortDirection::Asc,
+        )
+        .await
+        .ok()?;
+
+    let lower = roaster_name.to_lowercase();
+
+    // Exact match first
+    if let Some(roaster) = roasters.iter().find(|r| r.name.to_lowercase() == lower) {
+        return Some(roaster.id.to_string());
+    }
+
+    // Substring match (either direction)
+    roasters
+        .iter()
+        .find(|r| {
+            let r_lower = r.name.to_lowercase();
+            r_lower.contains(&lower) || lower.contains(&r_lower)
+        })
+        .map(|r| r.id.to_string())
 }
 
 define_list_fragment_renderer!(

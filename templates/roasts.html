@@ -1,39 +1,7 @@
 {% extends "base.html" %} {% block title %}Brewlog · Roasts{% endblock %}
 
-{% block head %}
-{% if is_authenticated && has_ai_extract %}
-<script src="/extract.js"></script>
-<script>
-  function fillRoastForm(data) {
-    var form = document.getElementById('roast-form');
-    if (!form) return;
-
-    if (data.roaster_name) {
-      var select = form.querySelector('[name="roaster_id"]');
-      var lowerName = data.roaster_name.toLowerCase();
-      for (var i = 0; i < select.options.length; i++) {
-        if (select.options[i].text.toLowerCase().includes(lowerName)) {
-          select.selectedIndex = i;
-          break;
-        }
-      }
-    }
-
-    if (data.name) form.querySelector('[name="name"]').value = data.name;
-    if (data.origin) form.querySelector('[name="origin"]').value = data.origin;
-    if (data.region) form.querySelector('[name="region"]').value = data.region;
-    if (data.producer) form.querySelector('[name="producer"]').value = data.producer;
-    if (data.process) form.querySelector('[name="process"]').value = data.process;
-    if (data.tasting_notes && data.tasting_notes.length > 0) {
-      form.querySelector('[name="tasting_notes"]').value = data.tasting_notes.join(', ');
-    }
-  }
-</script>
-{% endif %}
-{% endblock %}
-
 {% block content %}
-<section data-signals:_show-form="false">
+<section data-signals:_show-form="false" data-signals:_extracting="false" data-signals:_extract-error="''" data-signals:_submitting="false">
   <header class="flex flex-wrap items-start justify-between gap-4">
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">Roasts</h1>
@@ -78,60 +46,69 @@
         Select a roaster, describe the roast, and Brewlog will take care of the rest.
       </p>
     </div>
+
+    {% if has_ai_extract %}
+    <!-- Hidden file input — minimal JS for FileReader API -->
+    <input type="file" id="roast-photo" accept="image/*" capture="environment" class="hidden"
+      onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('roast-image').value=r.result;document.getElementById('roast-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
+
+    <!-- Extraction form -->
+    <form id="roast-extract-form" class="mt-4 border-b border-amber-200 pb-4"
+      data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-roast', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
+    >
+      <input type="hidden" name="image" id="roast-image" />
+      <div data-show="!$_extracting" class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onclick="document.getElementById('roast-photo').click()"
+          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+          </svg>
+          Extract from photo
+        </button>
+        <span class="text-xs text-stone-400">or</span>
+        <div class="flex flex-1 min-w-[200px] gap-2">
+          <input
+            type="text"
+            name="prompt"
+            class="input-field w-full text-sm"
+            placeholder="Describe the coffee&hellip;"
+          />
+          <button
+            type="submit"
+            class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+          >
+            Go
+          </button>
+        </div>
+      </div>
+      <div data-show="$_extracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+        <svg class="h-4 w-4 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Waiting for response&hellip;
+      </div>
+      <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
+    </form>
+    {% endif %}
+
     <form
       id="roast-form"
       method="post"
       action="/api/v1/roasts"
       class="mt-4 flex flex-col gap-4"
-      data-on:submit="@post('/api/v1/roasts?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
+      data-on:submit="$_submitting = true; @post('/api/v1/roasts?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#roast-list', mode: 'replace'}})"
       data-ref="_form"
-      data-on:datastar-fetch="evt.detail.type === 'finished' && ($_showForm = false, $_form && $_form.reset())"
+      data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'finished') { $_submitting = false; $_showForm = false; $_form && $_form.reset() } else if (evt.detail.type === 'error') { $_submitting = false }"
     >
-      {% if has_ai_extract %}
-      <div class="relative border-b border-amber-200 pb-4">
-        <div id="roast-form-extract-controls" class="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onclick="triggerPhotoExtract('roast-form', '/api/v1/extract-roast', fillRoastForm)"
-            class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
-          >
-            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-            </svg>
-            Extract from photo
-          </button>
-          <span class="text-xs text-stone-400">or</span>
-          <div class="flex flex-1 min-w-[200px] gap-2">
-            <input
-              type="text"
-              id="roast-form-extract-text"
-              class="input-field w-full text-sm"
-              placeholder="Describe the coffee&hellip;"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('roast-form','/api/v1/extract-roast',fillRoastForm)}"
-            />
-            <button
-              type="button"
-              onclick="extractFromText('roast-form', '/api/v1/extract-roast', fillRoastForm)"
-              class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
-            >
-              Go
-            </button>
-          </div>
-        </div>
-        <div id="roast-form-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
-          <svg class="h-4 w-4 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
-          Waiting for response&hellip;
-        </div>
-        <p id="roast-form-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
-      </div>
-      {% endif %}
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Roaster *</span>
-          <select name="roaster_id" required class="input-field">
+          <select name="roaster_id" required class="input-field" data-bind:_roaster-id>
             <option value="">Select a roaster</option>
             {% for roaster in roaster_options %}
             <option value="{{ roaster.id }}">{{ roaster.name }}</option>
@@ -146,15 +123,16 @@
             required
             class="input-field"
             placeholder="Ethiopia Yirgacheffe"
+            data-bind:_roast-name
           />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Origin *</span>
-          <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" />
+          <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_origin />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Region *</span>
-          <input type="text" name="region" required class="input-field" placeholder="Guji" />
+          <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_region />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Producer *</span>
@@ -164,11 +142,12 @@
             required
             class="input-field"
             placeholder="Chelbesa Cooperative"
+            data-bind:_producer
           />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Process *</span>
-          <input type="text" name="process" required class="input-field" placeholder="Washed" />
+          <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_process />
         </label>
         <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Tasting Notes * (comma or newline separated)</span>
@@ -178,6 +157,7 @@
             required
             class="input-field"
             placeholder="Blueberry, Jasmine"
+            data-bind:_tasting-notes
           ></textarea>
         </label>
       </div>

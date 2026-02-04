@@ -1,23 +1,7 @@
 {% extends "base.html" %} {% block title %}Brewlog · Roasters{% endblock %}
 
-{% block head %}
-{% if is_authenticated && has_ai_extract %}
-<script src="/extract.js"></script>
-<script>
-  function fillRoasterForm(data) {
-    var form = document.getElementById('roaster-form');
-    if (!form) return;
-    if (data.name) form.querySelector('[name="name"]').value = data.name;
-    if (data.country) form.querySelector('[name="country"]').value = data.country;
-    if (data.city) form.querySelector('[name="city"]').value = data.city;
-    if (data.homepage) form.querySelector('[name="homepage"]').value = data.homepage;
-  }
-</script>
-{% endif %}
-{% endblock %}
-
 {% block content %}
-<section data-signals:_show-form="false">
+<section data-signals:_show-form="false" data-signals:_extracting="false" data-signals:_extract-error="''" data-signals:_submitting="false">
   <header class="flex flex-wrap items-start justify-between gap-4">
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">Roasters</h1>
@@ -48,56 +32,65 @@
         Provide the core details and Brewlog will keep track of everything for you.
       </p>
     </div>
+
+    {% if has_ai_extract %}
+    <!-- Hidden file input — minimal JS for FileReader API -->
+    <input type="file" id="roaster-photo" accept="image/*" capture="environment" class="hidden"
+      onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('roaster-image').value=r.result;document.getElementById('roaster-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
+
+    <!-- Extraction form -->
+    <form id="roaster-extract-form" class="mt-4 border-b border-amber-200 pb-4"
+      data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-roaster', {contentType: 'form'})"
+      data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
+    >
+      <input type="hidden" name="image" id="roaster-image" />
+      <div data-show="!$_extracting" class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onclick="document.getElementById('roaster-photo').click()"
+          class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+          </svg>
+          Extract from photo
+        </button>
+        <span class="text-xs text-stone-400">or</span>
+        <div class="flex flex-1 min-w-[200px] gap-2">
+          <input
+            type="text"
+            name="prompt"
+            class="input-field w-full text-sm"
+            placeholder="Describe the roaster&hellip;"
+          />
+          <button
+            type="submit"
+            class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+          >
+            Go
+          </button>
+        </div>
+      </div>
+      <div data-show="$_extracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+        <svg class="h-4 w-4 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Waiting for response&hellip;
+      </div>
+      <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
+    </form>
+    {% endif %}
+
     <form
       id="roaster-form"
       method="post"
       action="/api/v1/roasters"
       class="mt-4 flex flex-col gap-4"
-      data-on:submit="@post('/api/v1/roasters?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
+      data-on:submit="$_submitting = true; @post('/api/v1/roasters?{{ navigator.query_for_page(1) }}', {contentType: 'form', responseOverrides: {selector: '#roaster-list', mode: 'replace'}})"
       data-ref="_form"
-      data-on:datastar-fetch="evt.detail.type === 'finished' && ($_showForm = false, $_form && $_form.reset())"
+      data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'finished') { $_submitting = false; $_showForm = false; $_form && $_form.reset() } else if (evt.detail.type === 'error') { $_submitting = false }"
     >
-      {% if has_ai_extract %}
-      <div class="relative border-b border-amber-200 pb-4">
-        <div id="roaster-form-extract-controls" class="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onclick="triggerPhotoExtract('roaster-form', '/api/v1/extract-roaster', fillRoasterForm)"
-            class="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
-          >
-            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M1 8a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 018.07 3h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v7a2 2 0 01-2 2H3a2 2 0 01-2-2V8zm13.5 3a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10 14a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-            </svg>
-            Extract from photo
-          </button>
-          <span class="text-xs text-stone-400">or</span>
-          <div class="flex flex-1 min-w-[200px] gap-2">
-            <input
-              type="text"
-              id="roaster-form-extract-text"
-              class="input-field w-full text-sm"
-              placeholder="Describe the roaster&hellip;"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();extractFromText('roaster-form','/api/v1/extract-roaster',fillRoasterForm)}"
-            />
-            <button
-              type="button"
-              onclick="extractFromText('roaster-form', '/api/v1/extract-roaster', fillRoasterForm)"
-              class="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
-            >
-              Go
-            </button>
-          </div>
-        </div>
-        <div id="roaster-form-extract-waiting" class="hidden flex items-center gap-3 text-sm text-amber-700">
-          <svg class="h-4 w-4 animate-spin text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
-          Waiting for response&hellip;
-        </div>
-        <p id="roaster-form-extract-error" class="hidden mt-2 text-sm text-red-600"></p>
-      </div>
-      {% endif %}
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Name *</span>
@@ -107,6 +100,7 @@
             required
             class="input-field"
             placeholder="Example Coffee Roasters"
+            data-bind:_roaster-name
           />
         </label>
         <label class="flex flex-col gap-1 text-sm">
@@ -117,11 +111,12 @@
             required
             class="input-field"
             placeholder="United States"
+            data-bind:_roaster-country
           />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">City</span>
-          <input type="text" name="city" class="input-field" placeholder="Portland" />
+          <input type="text" name="city" class="input-field" placeholder="Portland" data-bind:_roaster-city />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-stone-700">Homepage</span>
@@ -130,6 +125,7 @@
             name="homepage"
             class="input-field"
             placeholder="https://example.coffee"
+            data-bind:_roaster-homepage
           />
         </label>
       </div>
