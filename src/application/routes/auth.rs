@@ -36,7 +36,7 @@ pub(crate) async fn login_page(
 ) -> Result<Response, StatusCode> {
     // Check if already authenticated
     if is_authenticated(&state, &cookies).await {
-        return Ok(Redirect::to("/timeline").into_response());
+        return Ok(Redirect::to("/").into_response());
     }
 
     let template = LoginTemplate {
@@ -103,7 +103,7 @@ pub(crate) async fn login_submit(
 
     cookies.add(cookie);
 
-    Ok(Redirect::to("/timeline").into_response())
+    Ok(Redirect::to("/").into_response())
 }
 
 #[tracing::instrument(skip(state, cookies))]
@@ -124,7 +124,7 @@ pub(crate) async fn logout(State(state): State<AppState>, cookies: Cookies) -> R
     }
 
     cookies.remove(Cookie::from(SESSION_COOKIE_NAME));
-    Redirect::to("/timeline")
+    Redirect::to("/")
 }
 
 fn show_login_error(message: &str) -> Result<Response, StatusCode> {
