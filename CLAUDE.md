@@ -641,6 +641,92 @@ When creating sentinels dynamically in JS, use:
 newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
 ```
 
+## Keeping Code Flat and Simple
+
+These rules prevent complexity from creeping in through closures, iterator chains, and duplicated blocks.
+
+### Extract large closures into named functions
+
+If a closure passed to `.filter_map()`, `.map()`, or similar exceeds roughly 10 lines, extract it into a private named function. The iterator call should read as a single scannable line:
+
+```rust
+// Good — intent is obvious at the call site
+let cafes = results.into_iter().filter_map(|p| parse_cafe(p, location)).collect();
+
+// Bad — 30-line closure buries logic inside an iterator chain
+let cafes = results.into_iter().filter_map(|place| {
+    // ... 30 lines of validation, fallbacks, struct construction ...
+}).collect();
+```
+
+### DRY repeated blocks that differ only by a parameter
+
+When three or more code blocks follow the same structure and differ only by a value (an enum variant, a column name, a type), extract a helper function parameterised on that value:
+
+```rust
+// Good
+let grinder_options = load_gear_options(state, GearCategory::Grinder, &request).await?;
+let brewer_options  = load_gear_options(state, GearCategory::Brewer, &request).await?;
+
+// Bad — same 10-line block copy-pasted three times
+let grinders = state.gear_repo.list(GearFilter::for_category(GearCategory::Grinder), &request, None)
+    .await.map_err(AppError::from)?;
+let grinder_options: Vec<GearOptionView> = grinders.items.into_iter().map(GearOptionView::from).collect();
+// ... repeat for brewers, filter papers ...
+```
+
+### Prefer `match` over chained `if/else-if` when branching on a value
+
+When the condition is testing the same variable against different values, use `match` instead of `if/else-if` chains. This makes all branches visible at the same indentation level:
+
+```rust
+// Good — flat, each case at the same level
+match label_lower.as_str() {
+    "homepage" | "website" => { /* extract link */ }
+    "position" => { /* build map link */ }
+    _ => { /* default detail */ }
+}
+
+// Bad — nested if/else-if obscures the branching structure
+if label.eq_ignore_ascii_case("homepage") || label.eq_ignore_ascii_case("website") {
+    // ...
+} else if label.eq_ignore_ascii_case("position") {
+    // ...
+} else {
+    // ...
+}
+```
+
+### Extract shared predicates into named helpers
+
+When the same boolean condition appears in multiple functions, extract it:
+
+```rust
+fn is_blank(value: &str) -> bool {
+    value.is_empty() || value == "\u{2014}"
+}
+
+// Then use it everywhere instead of repeating the condition inline
+.filter(|v| !is_blank(v))
+```
+
+### Use generic helpers for repeated structural patterns
+
+When the same match/decode/encode pattern appears three or more times with different types, write a small generic helper:
+
+```rust
+fn decode_json_vec<T: DeserializeOwned>(raw: Option<String>, label: &str) -> anyhow::Result<Vec<T>> {
+    match raw {
+        Some(s) if !s.is_empty() => from_str(&s).with_context(|| format!("failed to decode {label}: {s}")),
+        _ => Ok(Vec::new()),
+    }
+}
+
+// Replaces three identical match blocks differing only in type and error message
+let details = decode_json_vec(self.details_json, "timeline event details")?;
+let tasting_notes = decode_json_vec(self.tasting_notes_json, "timeline tasting notes")?;
+```
+
 ## Conventions
 
 1. **Method naming**: Use `order_clause()` for sort query builders (not `sort_clause`)
