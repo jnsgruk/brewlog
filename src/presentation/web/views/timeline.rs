@@ -2,6 +2,11 @@ use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
 use super::relative_date;
 
+/// Returns `true` if the value is empty or just an em-dash placeholder.
+fn is_blank(value: &str) -> bool {
+    value.is_empty() || value == "\u{2014}"
+}
+
 #[derive(Clone)]
 pub struct TimelineEventDetailView {
     pub label: String,
@@ -141,7 +146,7 @@ impl TimelineEventView {
                 .iter()
                 .find(|d| d.label.eq_ignore_ascii_case(label))
                 .map(|d| d.value.trim())
-                .filter(|v| !v.is_empty() && *v != "\u{2014}")
+                .filter(|v| !is_blank(v))
         };
 
         let picks: &[&str] = match entity_type {
@@ -157,7 +162,7 @@ impl TimelineEventView {
                 .iter()
                 .take(3)
                 .map(|d| d.value.trim())
-                .filter(|v| !v.is_empty() && *v != "\u{2014}")
+                .filter(|v| !is_blank(v))
                 .collect()
         } else {
             picks.iter().filter_map(|l| find_value(l)).collect()
@@ -175,34 +180,41 @@ impl TimelineEventView {
     ) -> (Vec<TimelineEventDetailView>, Option<String>) {
         let mut mapped = Vec::new();
         let mut external_link = None;
+
         for detail in details {
-            if detail.label.eq_ignore_ascii_case("homepage")
-                || detail.label.eq_ignore_ascii_case("website")
-            {
-                let trimmed = detail.value.trim();
-                if !trimmed.is_empty() && trimmed != "—" {
-                    external_link = Some(trimmed.to_string());
+            let label_lower = detail.label.to_ascii_lowercase();
+            match label_lower.as_str() {
+                // Website/homepage links are extracted, not shown as detail rows
+                "homepage" | "website" => {
+                    let trimmed = detail.value.trim();
+                    if !is_blank(trimmed) {
+                        external_link = Some(trimmed.to_string());
+                    }
                 }
-            } else if detail.label.eq_ignore_ascii_case("position") {
-                let trimmed = detail.value.trim();
-                if !trimmed.is_empty() {
-                    let display = trimmed
-                        .strip_prefix("https://www.google.com/maps?q=")
-                        .unwrap_or(trimmed);
+                // Position values become clickable map links
+                "position" => {
+                    let trimmed = detail.value.trim();
+                    if !trimmed.is_empty() {
+                        let display = trimmed
+                            .strip_prefix("https://www.google.com/maps?q=")
+                            .unwrap_or(trimmed);
+                        mapped.push(TimelineEventDetailView {
+                            label: detail.label,
+                            value: display.to_string(),
+                            link: Some(trimmed.to_string()),
+                        });
+                    }
+                }
+                _ => {
                     mapped.push(TimelineEventDetailView {
                         label: detail.label,
-                        value: display.to_string(),
-                        link: Some(trimmed.to_string()),
+                        value: detail.value,
+                        link: None,
                     });
                 }
-            } else {
-                mapped.push(TimelineEventDetailView {
-                    label: detail.label,
-                    value: detail.value,
-                    link: None,
-                });
             }
         }
+
         (mapped, external_link)
     }
 }

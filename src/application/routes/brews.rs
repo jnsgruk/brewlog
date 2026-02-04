@@ -57,50 +57,10 @@ async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError>
 
     let gear_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
 
-    let grinders = state
-        .gear_repo
-        .list(
-            GearFilter::for_category(GearCategory::Grinder),
-            &gear_request,
-            None,
-        )
-        .await
-        .map_err(AppError::from)?;
-    let grinder_options: Vec<GearOptionView> = grinders
-        .items
-        .into_iter()
-        .map(GearOptionView::from)
-        .collect();
-
-    let brewers = state
-        .gear_repo
-        .list(
-            GearFilter::for_category(GearCategory::Brewer),
-            &gear_request,
-            None,
-        )
-        .await
-        .map_err(AppError::from)?;
-    let brewer_options: Vec<GearOptionView> = brewers
-        .items
-        .into_iter()
-        .map(GearOptionView::from)
-        .collect();
-
-    let filter_papers = state
-        .gear_repo
-        .list(
-            GearFilter::for_category(GearCategory::FilterPaper),
-            &gear_request,
-            None,
-        )
-        .await
-        .map_err(AppError::from)?;
-    let filter_paper_options: Vec<GearOptionView> = filter_papers
-        .items
-        .into_iter()
-        .map(GearOptionView::from)
-        .collect();
+    let grinder_options = load_gear_options(state, GearCategory::Grinder, &gear_request).await?;
+    let brewer_options = load_gear_options(state, GearCategory::Brewer, &gear_request).await?;
+    let filter_paper_options =
+        load_gear_options(state, GearCategory::FilterPaper, &gear_request).await?;
 
     let last_brew_request = ListRequest::new(
         1,
@@ -127,6 +87,19 @@ async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError>
         filter_paper_options,
         defaults,
     })
+}
+
+async fn load_gear_options(
+    state: &AppState,
+    category: GearCategory,
+    request: &ListRequest<GearSortKey>,
+) -> Result<Vec<GearOptionView>, AppError> {
+    let page = state
+        .gear_repo
+        .list(GearFilter::for_category(category), request, None)
+        .await
+        .map_err(AppError::from)?;
+    Ok(page.items.into_iter().map(GearOptionView::from).collect())
 }
 
 #[tracing::instrument(skip(state))]

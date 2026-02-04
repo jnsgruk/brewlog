@@ -1,4 +1,4 @@
-use sqlx::{FromRow, QueryBuilder, query_as, query_scalar};
+use sqlx::{FromRow, QueryBuilder, query_scalar};
 
 use crate::domain::RepositoryError;
 use crate::domain::listing::{ListRequest, Page, PageSize, SortKey};
@@ -42,22 +42,7 @@ where
 {
     match request.page_size() {
         PageSize::All => {
-            let records: Vec<R> = if let Some(sf) = search {
-                let mut qb = QueryBuilder::new(base_query);
-                append_search_condition(&mut qb, base_query, sf);
-                qb.push(" ORDER BY ");
-                qb.push(order_clause);
-                qb.build_query_as()
-                    .fetch_all(pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?
-            } else {
-                let query = format!("{base_query} ORDER BY {order_clause}");
-                query_as::<_, R>(&query)
-                    .fetch_all(pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?
-            };
+            let records = fetch_records::<R>(pool, base_query, order_clause, search, None).await?;
 
             let mut items = Vec::with_capacity(records.len());
             for record in records {
@@ -72,31 +57,29 @@ where
             let mut page = request.page();
             let offset = i64::from(page - 1).saturating_mul(limit);
 
-            let total: i64 = if let Some(sf) = search {
-                let mut count_qb = QueryBuilder::new(count_query);
-                append_search_condition(&mut count_qb, count_query, sf);
-                let row: (i64,) = count_qb
-                    .build_query_as()
-                    .fetch_one(pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-                row.0
-            } else {
-                query_scalar(count_query)
-                    .fetch_one(pool)
-                    .await
-                    .map_err(|err| RepositoryError::unexpected(err.to_string()))?
-            };
+            let total = fetch_count(pool, count_query, search).await?;
 
-            let mut records =
-                fetch_page::<R>(pool, base_query, order_clause, search, limit, offset).await?;
+            let mut records = fetch_records::<R>(
+                pool,
+                base_query,
+                order_clause,
+                search,
+                Some((limit, offset)),
+            )
+            .await?;
 
             if page > 1 && records.is_empty() && total > 0 {
                 let last_page = ((total + limit - 1) / limit) as u32;
                 page = last_page.max(1);
                 let offset = i64::from(page - 1).saturating_mul(limit);
-                records =
-                    fetch_page::<R>(pool, base_query, order_clause, search, limit, offset).await?;
+                records = fetch_records::<R>(
+                    pool,
+                    base_query,
+                    order_clause,
+                    search,
+                    Some((limit, offset)),
+                )
+                .await?;
             }
 
             let mut items = Vec::with_capacity(records.len());
@@ -109,36 +92,51 @@ where
     }
 }
 
-async fn fetch_page<R>(
+async fn fetch_records<R>(
     pool: &DatabasePool,
     base_query: &str,
     order_clause: &str,
     search: Option<&SearchFilter>,
-    limit: i64,
-    offset: i64,
+    limit_offset: Option<(i64, i64)>,
 ) -> Result<Vec<R>, RepositoryError>
 where
     R: for<'r> FromRow<'r, DatabaseRow> + Send + Unpin,
 {
+    let mut qb = QueryBuilder::new(base_query);
     if let Some(sf) = search {
-        let mut qb = QueryBuilder::new(base_query);
         append_search_condition(&mut qb, base_query, sf);
-        qb.push(" ORDER BY ");
-        qb.push(order_clause);
+    }
+    qb.push(" ORDER BY ");
+    qb.push(order_clause);
+    if let Some((limit, offset)) = limit_offset {
         qb.push(" LIMIT ");
         qb.push_bind(limit);
         qb.push(" OFFSET ");
         qb.push_bind(offset);
-        qb.build_query_as()
-            .fetch_all(pool)
+    }
+    qb.build_query_as()
+        .fetch_all(pool)
+        .await
+        .map_err(|err| RepositoryError::unexpected(err.to_string()))
+}
+
+async fn fetch_count(
+    pool: &DatabasePool,
+    count_query: &str,
+    search: Option<&SearchFilter>,
+) -> Result<i64, RepositoryError> {
+    if let Some(sf) = search {
+        let mut qb = QueryBuilder::new(count_query);
+        append_search_condition(&mut qb, count_query, sf);
+        let row: (i64,) = qb
+            .build_query_as()
+            .fetch_one(pool)
             .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        Ok(row.0)
     } else {
-        let query_sql = format!("{base_query} ORDER BY {order_clause} LIMIT ? OFFSET ?");
-        query_as::<_, R>(&query_sql)
-            .bind(limit)
-            .bind(offset)
-            .fetch_all(pool)
+        query_scalar(count_query)
+            .fetch_one(pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))
     }

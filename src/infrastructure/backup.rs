@@ -12,8 +12,32 @@ use crate::domain::gear::{Gear, GearCategory};
 use crate::domain::ids::{BagId, BrewId, CafeId, GearId, RoastId, RoasterId, TimelineEventId};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
-use crate::domain::timeline::{TimelineBrewData, TimelineEvent, TimelineEventDetail};
+use crate::domain::timeline::TimelineEvent;
 use crate::infrastructure::database::{DatabasePool, DatabaseTransaction};
+
+fn decode_json_vec<T: serde::de::DeserializeOwned>(
+    raw: Option<String>,
+    label: &str,
+) -> anyhow::Result<Vec<T>> {
+    match raw {
+        Some(s) if !s.is_empty() => {
+            from_str(&s).with_context(|| format!("failed to decode {label}: {s}"))
+        }
+        _ => Ok(Vec::new()),
+    }
+}
+
+fn decode_json_opt<T: serde::de::DeserializeOwned>(
+    raw: Option<String>,
+    label: &str,
+) -> anyhow::Result<Option<T>> {
+    match raw {
+        Some(s) if !s.is_empty() => from_str(&s)
+            .map(Some)
+            .with_context(|| format!("failed to decode {label}: {s}")),
+        _ => Ok(None),
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BackupData {
@@ -480,11 +504,7 @@ struct RoastRecord {
 
 impl RoastRecord {
     fn into_domain(self) -> anyhow::Result<Roast> {
-        let tasting_notes = match self.tasting_notes {
-            Some(raw) => from_str::<Vec<String>>(&raw)
-                .with_context(|| format!("failed to decode tasting notes: {raw}"))?,
-            None => Vec::new(),
-        };
+        let tasting_notes = decode_json_vec(self.tasting_notes, "tasting notes")?;
 
         Ok(Roast {
             id: RoastId::from(self.id),
@@ -611,25 +631,9 @@ struct TimelineEventRecord {
 
 impl TimelineEventRecord {
     fn into_domain(self) -> anyhow::Result<TimelineEvent> {
-        let details = match self.details_json {
-            Some(raw) if !raw.is_empty() => from_str::<Vec<TimelineEventDetail>>(&raw)
-                .with_context(|| format!("failed to decode timeline event details: {raw}"))?,
-            _ => Vec::new(),
-        };
-
-        let tasting_notes = match self.tasting_notes_json {
-            Some(raw) if !raw.is_empty() => from_str::<Vec<String>>(&raw)
-                .with_context(|| format!("failed to decode timeline tasting notes: {raw}"))?,
-            _ => Vec::new(),
-        };
-
-        let brew_data = match self.brew_data_json {
-            Some(raw) if !raw.is_empty() => Some(
-                from_str::<TimelineBrewData>(&raw)
-                    .with_context(|| format!("failed to decode timeline brew data: {raw}"))?,
-            ),
-            _ => None,
-        };
+        let details = decode_json_vec(self.details_json, "timeline event details")?;
+        let tasting_notes = decode_json_vec(self.tasting_notes_json, "timeline tasting notes")?;
+        let brew_data = decode_json_opt(self.brew_data_json, "timeline brew data")?;
 
         Ok(TimelineEvent {
             id: TimelineEventId::from(self.id),

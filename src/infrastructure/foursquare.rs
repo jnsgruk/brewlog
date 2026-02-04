@@ -84,44 +84,42 @@ pub async fn search_nearby(
     let cafes = result
         .results
         .into_iter()
-        .filter_map(|place| {
-            if place.name.is_empty() {
-                return None;
-            }
-
-            let place_lat = place.latitude?;
-            let place_lng = place.longitude?;
-            let place_location = place.location.unwrap_or_default();
-
-            let country = place_location
-                .country
-                .as_deref()
-                .map(country_name)
-                .unwrap_or_default();
-
-            let distance = place.distance.unwrap_or_else(|| {
-                if let SearchLocation::Coordinates { lat, lng } = location {
-                    haversine_distance(*lat, *lng, place_lat, place_lng) as u32
-                } else {
-                    0
-                }
-            });
-
-            let website = place.website.filter(|w| !w.trim().is_empty());
-
-            Some(NearbyCafe {
-                name: place.name,
-                latitude: place_lat,
-                longitude: place_lng,
-                city: place_location.locality.unwrap_or_default(),
-                country,
-                website,
-                distance_meters: distance,
-            })
-        })
+        .filter_map(|place| parse_cafe(place, location))
         .collect();
 
     Ok(cafes)
+}
+
+fn parse_cafe(place: FoursquarePlace, location: &SearchLocation) -> Option<NearbyCafe> {
+    if place.name.is_empty() {
+        return None;
+    }
+
+    let lat = place.latitude?;
+    let lng = place.longitude?;
+    let loc = place.location.unwrap_or_default();
+
+    let country = loc.country.as_deref().map(country_name).unwrap_or_default();
+
+    let distance = place.distance.unwrap_or_else(|| match location {
+        SearchLocation::Coordinates {
+            lat: ref_lat,
+            lng: ref_lng,
+        } => haversine_distance(*ref_lat, *ref_lng, lat, lng) as u32,
+        SearchLocation::Near(_) => 0,
+    });
+
+    let website = place.website.filter(|w| !w.trim().is_empty());
+
+    Some(NearbyCafe {
+        name: place.name,
+        latitude: lat,
+        longitude: lng,
+        city: loc.locality.unwrap_or_default(),
+        country,
+        website,
+        distance_meters: distance,
+    })
 }
 
 /// Converts a 2-letter ISO 3166-1 alpha-2 country code to a full country name.
