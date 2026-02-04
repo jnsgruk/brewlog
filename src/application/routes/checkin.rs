@@ -30,7 +30,7 @@ pub(crate) async fn checkin_page(
     let cafe_options = load_cafe_options(&state).await.map_err(map_app_error)?;
 
     let template = CheckInTemplate {
-        nav_active: "home",
+        nav_active: "checkin",
         is_authenticated: true,
         roast_options,
         cafe_options,
