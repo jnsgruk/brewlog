@@ -424,16 +424,41 @@ The route handler in `application/routes/cafes.rs` accepts either `lat`/`lng` qu
 
 ## Table & List Patterns
 
-### Template Structure
+### Page Template Structure
+
+Each list page template (`templates/{entity}.html`) places the form and list as **separate siblings** so they become independent flex children of `<main>` (which uses `flex flex-col gap-6`):
+
+```html
+<section data-signals:_show-form="false">
+  <header>...</header>
+  {% if is_authenticated %}
+  <div data-show="$_showForm" style="display: none">
+    <!-- Form -->
+  </div>
+  {% endif %}
+</section>
+
+{% include "partials/{entity}_list.html" %} {% endblock %}
+```
+
+The list include must be **outside** `</section>`, never inside it. Placing it inside removes the flex gap between the form section and the list, causing the table to sit higher on the page.
+
+### List Partial Structure
 
 List partials live in `templates/partials/` (e.g., `roaster_list.html`, `brew_list.html`). Each follows the same structure:
 
-```
+```html
 {% import "partials/table.html" as table %}
 
-<div id="{entity}-list">
+<div id="{entity}-list" class="mt-6" data-star-scope="{entity}">
   {% if items.is_empty() && !navigator.has_search() %}
-    <!-- Empty state (no data, no search active) -->
+  <div
+    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+  >
+    <p class="text-center">
+      No {entities} recorded yet. Use the form above to add your first {entity}.
+    </p>
+  </div>
   {% else %}
   <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
     {% if items.has_next() %}data-infinite-scroll data-next-url="..." data-target="#{entity}-list"{% endif %}
@@ -444,7 +469,7 @@ List partials live in `templates/partials/` (e.g., `roaster_list.html`, `brew_li
       <tbody>...</tbody>
     </table>
     {% if items.is_empty() %}
-      <!-- "No results match your search" message -->
+    <div class="p-8 text-center text-stone-500">No {entities} match your search.</div>
     {% endif %}
     {% call table::pagination_header(items, navigator, "#{entity}-list") %}
     {% if items.has_next() %}
@@ -455,10 +480,19 @@ List partials live in `templates/partials/` (e.g., `roaster_list.html`, `brew_li
 </div>
 ```
 
-Key points:
-- The outer `<div>` with `id="{entity}-list"` is the Datastar fragment target for replacements
-- Empty state only shows when there are no items **and** no active search query
-- When a search is active but returns no results, the table section renders with the search bar and a "no matches" message
+Required attributes and elements on every list partial:
+
+| Element | Requirement |
+|---------|-------------|
+| Outer `<div>` | `id="{entity}-list"`, `class="mt-6"`, `data-star-scope="{entity}"` |
+| Empty state | Conditional on `items.is_empty() && !navigator.has_search()`, dashed amber border |
+| Table wrapper | `<section>` (not `<div>`) |
+| Search header | `{% call table::search_header(...) %}` |
+| No-results msg | Inside the `<section>`, shown when search is active but returns nothing |
+| Pagination | `{% call table::pagination_header(...) %}` |
+| Scroll sentinel | `class="infinite-scroll-sentinel h-4 md:hidden"` |
+
+**Exception**: the bags partial uses a dual-section layout (open-bag cards + history table) and does not follow this pattern exactly.
 
 ### Shared Table Macros (`templates/partials/table.html`)
 

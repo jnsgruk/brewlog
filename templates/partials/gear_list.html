@@ -1,15 +1,16 @@
 {% import "partials/table.html" as table %}
 
-<div id="gear-list">
+<div id="gear-list" class="mt-6" data-star-scope="gear">
   {% if gear.items.is_empty() && !navigator.has_search() %}
-  <div class="rounded-lg border border-stone-200 bg-stone-50 p-8 text-center">
-    <p class="text-stone-500">No gear found.</p>
-    {% if is_authenticated %}
-    <p class="mt-2 text-sm text-stone-500">Add your first piece of brewing equipment above.</p>
-    {% endif %}
+  <div
+    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+  >
+    <p class="text-center">
+      No gear found. Use the form above to add your first piece of brewing equipment.
+    </p>
   </div>
   {% else %}
-  <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
     {% if gear.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(gear.next_page().unwrap())|safe }}" data-target="#gear-list"{% endif %}
   >
     {% call table::search_header(navigator, "#gear-list") %}
@@ -71,6 +72,6 @@
     {% if gear.has_next() %}
     <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}
-  </div>
+  </section>
   {% endif %}
 </div>

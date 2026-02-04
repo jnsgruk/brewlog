@@ -1,7 +1,16 @@
 {% import "partials/table.html" as table %}
 
-<div id="brew-list" class="space-y-4" data-star-scope="brews">
-  <div class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+<div id="brew-list" class="mt-6" data-star-scope="brews">
+  {% if brews.items.is_empty() && !navigator.has_search() %}
+  <div
+    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+  >
+    <p class="text-center">
+      No brews logged yet. Use the form above to log your first brew.
+    </p>
+  </div>
+  {% else %}
+  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
     {% if brews.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(brews.next_page().unwrap())|safe }}" data-target="#brew-list"{% endif %}
   >
     {% call table::search_header(navigator, "#brew-list") %}
@@ -118,7 +127,7 @@
 
     {% if brews.items.is_empty() %}
     <div class="p-8 text-center text-stone-500">
-      No brews logged yet. Start by logging your first cup!
+      No brews match your search.
     </div>
     {% endif %}
 
@@ -127,5 +136,6 @@
     {% if brews.has_next() %}
     <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}
-  </div>
+  </section>
+  {% endif %}
 </div>
