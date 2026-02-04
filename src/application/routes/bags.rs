@@ -22,7 +22,6 @@ const BAG_PAGE_PATH: &str = "/data?type=bags";
 const BAG_FRAGMENT_PATH: &str = "/data?type=bags#bag-list";
 
 pub(super) struct BagPageData {
-    pub(super) open_bags: Vec<BagView>,
     pub(super) bags: Paginated<BagView>,
     pub(super) navigator: ListNavigator<BagSortKey>,
 }
@@ -33,21 +32,9 @@ pub(super) async fn load_bag_page(
     request: ListRequest<BagSortKey>,
     search: Option<&str>,
 ) -> Result<BagPageData, AppError> {
-    let open_request = ListRequest::show_all(BagSortKey::RoastDate, SortDirection::Desc);
-    let open_page = state
-        .bag_repo
-        .list(BagFilter::open(), &open_request, None)
-        .await
-        .map_err(AppError::from)?;
-    let open_bags_view = open_page
-        .items
-        .into_iter()
-        .map(BagView::from_domain)
-        .collect();
-
     let page = state
         .bag_repo
-        .list(BagFilter::closed(), &request, search)
+        .list(BagFilter::all(), &request, search)
         .await
         .map_err(AppError::from)?;
 
@@ -60,11 +47,7 @@ pub(super) async fn load_bag_page(
         search.map(String::from),
     );
 
-    Ok(BagPageData {
-        open_bags: open_bags_view,
-        bags,
-        navigator,
-    })
+    Ok(BagPageData { bags, navigator })
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
@@ -295,15 +278,10 @@ async fn render_bag_list_fragment(
     search: Option<String>,
     is_authenticated: bool,
 ) -> Result<Response, AppError> {
-    let BagPageData {
-        open_bags,
-        bags,
-        navigator,
-    } = load_bag_page(&state, request, search.as_deref()).await?;
+    let BagPageData { bags, navigator } = load_bag_page(&state, request, search.as_deref()).await?;
 
     let template = BagListTemplate {
         is_authenticated,
-        open_bags,
         bags,
         navigator,
     };

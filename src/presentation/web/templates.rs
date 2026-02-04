@@ -54,7 +54,6 @@ pub struct TimelineChunkTemplate {
 #[template(path = "partials/bag_list.html")]
 pub struct BagListTemplate {
     pub is_authenticated: bool,
-    pub open_bags: Vec<BagView>,
     pub bags: Paginated<BagView>,
     pub navigator: ListNavigator<BagSortKey>,
 }

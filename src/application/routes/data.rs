@@ -198,7 +198,6 @@ async fn render_bags(
     render_list(
         BagListTemplate {
             is_authenticated,
-            open_bags: data.open_bags,
             bags: data.bags,
             navigator: data.navigator,
         },
