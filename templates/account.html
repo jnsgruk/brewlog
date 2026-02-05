@@ -212,6 +212,27 @@
   <div id="backup-error" class="mt-3 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"></div>
 </section>
 
+<!-- OpenRouter Usage -->
+{% if let Some(usage) = ai_usage %}
+<section>
+  <h2 class="text-lg font-semibold text-amber-700 mb-3">OpenRouter Usage</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 pt-4 pb-3 shadow-sm">
+      <span class="block text-sm text-stone-500">Total Cost</span>
+      <span class="mt-1 block text-lg font-semibold text-amber-800">{{ usage.total_cost }}</span>
+    </div>
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 pt-4 pb-3 shadow-sm">
+      <span class="block text-sm text-stone-500">API Calls</span>
+      <span class="mt-1 block text-lg font-semibold text-amber-800">{{ usage.total_calls }}</span>
+    </div>
+    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 pt-4 pb-3 shadow-sm">
+      <span class="block text-sm text-stone-500">Total Tokens</span>
+      <span class="mt-1 block text-lg font-semibold text-amber-800">{{ usage.total_tokens }}</span>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- Sign Out -->
 <section>
   <form method="post" action="/logout">

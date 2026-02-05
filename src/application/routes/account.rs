@@ -17,6 +17,36 @@ use super::auth::is_authenticated;
 // --- View types ---
 
 #[derive(Serialize)]
+pub struct AiUsageView {
+    pub total_calls: i64,
+    pub total_tokens: String,
+    pub total_cost: String,
+}
+
+fn format_cost(cost: f64) -> String {
+    if cost < 0.01 {
+        format!("${cost:.4}")
+    } else {
+        format!("${cost:.2}")
+    }
+}
+
+fn format_number(n: i64) -> String {
+    if n < 1_000 {
+        return n.to_string();
+    }
+    let s = n.to_string();
+    let mut result = String::with_capacity(s.len() + s.len() / 3);
+    for (i, c) in s.chars().rev().enumerate() {
+        if i > 0 && i % 3 == 0 {
+            result.push(',');
+        }
+        result.push(c);
+    }
+    result.chars().rev().collect()
+}
+
+#[derive(Serialize)]
 pub struct PasskeyView {
     pub id: i64,
     pub name: String,
@@ -43,6 +73,7 @@ fn format_date(dt: DateTime<Utc>) -> String {
 struct AccountTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
+    ai_usage: Option<AiUsageView>,
     passkeys: Vec<PasskeyView>,
     tokens: Vec<TokenView>,
 }
@@ -91,9 +122,22 @@ pub(crate) async fn account_page(
         })
         .collect();
 
+    let ai_usage = state
+        .ai_usage_repo
+        .summary_for_user(auth_user.id)
+        .await
+        .ok()
+        .filter(|s| s.total_calls > 0)
+        .map(|s| AiUsageView {
+            total_calls: s.total_calls,
+            total_tokens: format_number(s.total_tokens),
+            total_cost: format_cost(s.total_cost),
+        });
+
     let template = AccountTemplate {
         nav_active: "account",
         is_authenticated: true,
+        ai_usage,
         passkeys,
         tokens,
     };
