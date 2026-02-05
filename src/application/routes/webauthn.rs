@@ -138,7 +138,10 @@ pub(crate) async fn register_start(
         .registration_token_repo
         .get_by_token_hash(&token_hash)
         .await
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+        .map_err(|err| {
+            warn!(error = %err, "registration token lookup failed");
+            StatusCode::UNAUTHORIZED
+        })?;
 
     if !reg_token.is_valid() {
         return Err(StatusCode::GONE);
@@ -153,14 +156,19 @@ pub(crate) async fn register_start(
     })?;
 
     // Mark registration token as used
-    let _ = state
+    if let Err(err) = state
         .registration_token_repo
         .mark_used(reg_token.id, user.id)
-        .await;
+        .await
+    {
+        warn!(error = %err, token_id = %reg_token.id, "failed to mark registration token as used");
+    }
 
     // Start passkey registration ceremony
-    let webauthn_uuid =
-        Uuid::parse_str(&user_uuid).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let webauthn_uuid = Uuid::parse_str(&user_uuid).map_err(|err| {
+        error!(error = %err, "failed to parse user UUID");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let exclude_credentials = Vec::new();
 
     let (ccr, reg_state) = state
@@ -214,8 +222,10 @@ pub(crate) async fn register_finish(
         })?;
 
     // Store the credential
-    let credential_json =
-        serde_json::to_string(&passkey).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let credential_json = serde_json::to_string(&passkey).map_err(|err| {
+        error!(error = %err, "failed to serialize passkey credential");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let new_credential = NewPasskeyCredential::new(user_id, credential_json, payload.passkey_name);
     state
         .passkey_repo
@@ -242,11 +252,10 @@ pub(crate) async fn auth_start(
     Query(query): Query<AuthStartQuery>,
 ) -> Result<Json<AuthStartResponse>, StatusCode> {
     // Load all passkey credentials from all users
-    let users = state
-        .user_repo
-        .list_all()
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let users = state.user_repo.list_all().await.map_err(|err| {
+        error!(error = %err, "failed to list users for auth start");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     let mut all_passkeys: Vec<Passkey> = Vec::new();
     for user in &users {
@@ -254,7 +263,10 @@ pub(crate) async fn auth_start(
             .passkey_repo
             .list_by_user(user.id)
             .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+            .map_err(|err| {
+                error!(error = %err, user_id = %user.id, "failed to list passkeys for user");
+                StatusCode::INTERNAL_SERVER_ERROR
+            })?;
 
         for cred in credentials {
             let passkey: Passkey = serde_json::from_str(&cred.credential_json).map_err(|err| {
@@ -300,6 +312,7 @@ pub(crate) async fn auth_start(
 
 // --- Authentication finish ---
 
+#[allow(clippy::too_many_lines)]
 #[tracing::instrument(skip(state, cookies, payload))]
 pub(crate) async fn auth_finish(
     State(state): State<AppState>,
@@ -324,11 +337,10 @@ pub(crate) async fn auth_finish(
 
     // Find the user who owns this credential
     let credential_id = auth_result.cred_id();
-    let users = state
-        .user_repo
-        .list_all()
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let users = state.user_repo.list_all().await.map_err(|err| {
+        error!(error = %err, "failed to list users for credential lookup");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     let mut found_user_id = None;
     let mut found_cred_id = None;
@@ -339,11 +351,17 @@ pub(crate) async fn auth_finish(
             .passkey_repo
             .list_by_user(user.id)
             .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+            .map_err(|err| {
+                error!(error = %err, user_id = %user.id, "failed to list passkeys for user");
+                StatusCode::INTERNAL_SERVER_ERROR
+            })?;
 
         for cred in &credentials {
             let passkey: Passkey = serde_json::from_str(&cred.credential_json)
-                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+                .map_err(|err| {
+                    error!(error = %err, credential_id = %cred.id, "failed to deserialize passkey credential");
+                    StatusCode::INTERNAL_SERVER_ERROR
+                })?;
             if passkey.cred_id() == credential_id {
                 found_user_id = Some(user.id);
                 found_cred_id = Some(cred.id);
@@ -361,31 +379,45 @@ pub(crate) async fn auth_finish(
         && let Some(mut passkey) = found_passkey
     {
         passkey.update_credential(&auth_result);
-        if let Ok(updated_json) = serde_json::to_string(&passkey) {
-            let _ = state
-                .passkey_repo
-                .update_credential_json(cred_db_id, &updated_json)
-                .await;
+        match serde_json::to_string(&passkey) {
+            Ok(updated_json) => {
+                if let Err(err) = state
+                    .passkey_repo
+                    .update_credential_json(cred_db_id, &updated_json)
+                    .await
+                {
+                    warn!(error = %err, credential_id = %cred_db_id, "failed to update passkey credential counter");
+                }
+            }
+            Err(err) => {
+                warn!(error = %err, "failed to serialize updated passkey credential");
+            }
         }
     }
 
     // Update last used timestamp
     let passkey_repo = state.passkey_repo.clone();
     tokio::spawn(async move {
-        let _ = passkey_repo.update_last_used(cred_db_id).await;
+        if let Err(err) = passkey_repo.update_last_used(cred_db_id).await {
+            warn!(error = %err, credential_id = %cred_db_id, "failed to update passkey last_used");
+        }
     });
 
     // Handle CLI callback flow
     if let Some(cli_info) = cli_callback {
         // Generate a bearer token for the CLI
-        let token_value = generate_token().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        let token_value = generate_token().map_err(|err| {
+            error!(error = %err, "failed to generate CLI bearer token");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
         let token_hash_value = hash_token(&token_value);
         let new_token = NewToken::new(user_id, token_hash_value, cli_info.token_name);
-        state
-            .token_repo
-            .insert(new_token)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        state.token_repo.insert(new_token).await.map_err(|err| {
+            error!(error = %err, "failed to store CLI bearer token");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+        info!(user_id = %user_id, "CLI token created via passkey auth");
 
         let redirect_url = format!(
             "{}?token={}&state={}",
@@ -425,15 +457,20 @@ pub(crate) async fn passkey_add_start(
     Json(payload): Json<PasskeyAddStartRequest>,
 ) -> Result<Json<ChallengeResponse<CreationChallengeResponse>>, StatusCode> {
     let user = auth_user.0;
-    let webauthn_uuid =
-        Uuid::parse_str(&user.uuid).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let webauthn_uuid = Uuid::parse_str(&user.uuid).map_err(|err| {
+        error!(error = %err, "failed to parse user UUID for passkey add");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     // Load existing credentials to exclude (prevents re-registering same authenticator)
     let existing = state
         .passkey_repo
         .list_by_user(user.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| {
+            error!(error = %err, user_id = %user.id, "failed to list existing passkeys");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     let exclude_credentials = existing
         .iter()
@@ -485,8 +522,10 @@ pub(crate) async fn passkey_add_finish(
             StatusCode::BAD_REQUEST
         })?;
 
-    let credential_json =
-        serde_json::to_string(&passkey).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let credential_json = serde_json::to_string(&passkey).map_err(|err| {
+        error!(error = %err, "failed to serialize new passkey credential");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let new_credential = NewPasskeyCredential::new(user_id, credential_json, payload.name);
     state
         .passkey_repo

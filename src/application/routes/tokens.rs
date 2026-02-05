@@ -3,6 +3,7 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use tracing::{error, info};
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::server::AppState;
@@ -51,16 +52,20 @@ pub async fn create_token(
     auth_user: AuthenticatedUser,
     Json(payload): Json<CreateTokenRequest>,
 ) -> Result<Json<CreateTokenResponse>, StatusCode> {
-    let token_value = generate_token().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let token_value = generate_token().map_err(|err| {
+        error!(error = %err, "failed to generate token");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let token_hash_value = hash_token(&token_value);
 
     let new_token = NewToken::new(auth_user.0.id, token_hash_value, payload.name.clone());
 
-    let stored_token = state
-        .token_repo
-        .insert(new_token)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let stored_token = state.token_repo.insert(new_token).await.map_err(|err| {
+        error!(error = %err, "failed to store token");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    info!(token_id = %stored_token.id, token_name = %stored_token.name, user_id = %auth_user.0.id, "API token created");
 
     Ok(Json(CreateTokenResponse {
         id: stored_token.id,
@@ -78,7 +83,10 @@ pub async fn list_tokens(
         .token_repo
         .list_by_user(auth_user.0.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| {
+            error!(error = %err, "failed to list tokens");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     let token_responses: Vec<TokenResponse> = tokens.into_iter().map(TokenResponse::from).collect();
 
@@ -92,11 +100,10 @@ pub async fn revoke_token(
     Path(token_id): Path<TokenId>,
 ) -> Result<Json<TokenResponse>, StatusCode> {
     // Get the token to ensure it exists and belongs to the user
-    let token = state
-        .token_repo
-        .get(token_id)
-        .await
-        .map_err(|_| StatusCode::NOT_FOUND)?;
+    let token = state.token_repo.get(token_id).await.map_err(|err| {
+        error!(error = %err, %token_id, "failed to get token for revocation");
+        StatusCode::NOT_FOUND
+    })?;
 
     // Ensure the token belongs to the authenticated user
     if token.user_id != auth_user.0.id {
@@ -104,11 +111,12 @@ pub async fn revoke_token(
     }
 
     // Revoke the token
-    let revoked_token = state
-        .token_repo
-        .revoke(token_id)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let revoked_token = state.token_repo.revoke(token_id).await.map_err(|err| {
+        error!(error = %err, %token_id, "failed to revoke token");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    info!(%token_id, user_id = %auth_user.0.id, "API token revoked");
 
     Ok(Json(TokenResponse::from(revoked_token)))
 }

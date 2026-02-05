@@ -6,6 +6,7 @@ use axum::response::{IntoResponse, Redirect, Response};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use tower_cookies::Cookies;
+use tracing::{error, info, warn};
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::routes::render_html;
@@ -98,7 +99,10 @@ pub(crate) async fn account_page(
         .passkey_repo
         .list_by_user(auth_user.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .map_err(|err| {
+            error!(error = %err, "failed to list passkeys for account page");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
         .into_iter()
         .map(|p| PasskeyView {
             id: i64::from(p.id),
@@ -112,7 +116,10 @@ pub(crate) async fn account_page(
         .token_repo
         .list_by_user(auth_user.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .map_err(|err| {
+            error!(error = %err, "failed to list tokens for account page");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
         .into_iter()
         .filter(crate::domain::tokens::Token::is_active)
         .map(|t| TokenView {
@@ -123,17 +130,18 @@ pub(crate) async fn account_page(
         })
         .collect();
 
-    let ai_usage = state
-        .ai_usage_repo
-        .summary_for_user(auth_user.id)
-        .await
-        .ok()
-        .filter(|s| s.total_calls > 0)
-        .map(|s| AiUsageView {
-            total_calls: s.total_calls,
-            total_tokens: format_number(s.total_tokens),
-            total_cost: format_cost(s.total_cost),
-        });
+    let ai_usage = match state.ai_usage_repo.summary_for_user(auth_user.id).await {
+        Ok(summary) => Some(summary),
+        Err(err) => {
+            warn!(error = %err, "failed to load AI usage summary");
+            None
+        }
+    };
+    let ai_usage = ai_usage.filter(|s| s.total_calls > 0).map(|s| AiUsageView {
+        total_calls: s.total_calls,
+        total_tokens: format_number(s.total_tokens),
+        total_cost: format_cost(s.total_cost),
+    });
 
     let template = AccountTemplate {
         nav_active: "account",
@@ -165,7 +173,10 @@ pub(crate) async fn list_passkeys(
         .passkey_repo
         .list_by_user(auth_user.0.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| {
+            error!(error = %err, "failed to list passkeys");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     let responses: Vec<PasskeyResponse> = passkeys
         .into_iter()
@@ -186,11 +197,10 @@ pub(crate) async fn delete_passkey(
     Path(passkey_id): Path<PasskeyCredentialId>,
 ) -> Result<StatusCode, StatusCode> {
     // Verify the passkey belongs to the user
-    let passkey = state
-        .passkey_repo
-        .get(passkey_id)
-        .await
-        .map_err(|_| StatusCode::NOT_FOUND)?;
+    let passkey = state.passkey_repo.get(passkey_id).await.map_err(|err| {
+        error!(error = %err, %passkey_id, "failed to get passkey for deletion");
+        StatusCode::NOT_FOUND
+    })?;
 
     if passkey.user_id != auth_user.0.id {
         return Err(StatusCode::FORBIDDEN);
@@ -201,17 +211,21 @@ pub(crate) async fn delete_passkey(
         .passkey_repo
         .list_by_user(auth_user.0.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| {
+            error!(error = %err, "failed to list passkeys for deletion check");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     if all_passkeys.len() <= 1 {
         return Err(StatusCode::CONFLICT);
     }
 
-    state
-        .passkey_repo
-        .delete(passkey_id)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    state.passkey_repo.delete(passkey_id).await.map_err(|err| {
+        error!(error = %err, %passkey_id, "failed to delete passkey");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    info!(%passkey_id, user_id = %auth_user.0.id, "passkey deleted");
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -226,15 +240,27 @@ async fn extract_user_from_session(
     let session_token = cookie.value();
     let session_token_hash = crate::infrastructure::auth::hash_token(session_token);
 
-    let session = state
+    let session = match state
         .session_repo
         .get_by_token_hash(&session_token_hash)
         .await
-        .ok()?;
+    {
+        Ok(s) => s,
+        Err(err) => {
+            warn!(error = %err, "session lookup failed on account page");
+            return None;
+        }
+    };
 
     if session.is_expired() {
         return None;
     }
 
-    state.user_repo.get(session.user_id).await.ok()
+    match state.user_repo.get(session.user_id).await {
+        Ok(user) => Some(user),
+        Err(err) => {
+            warn!(error = %err, user_id = %session.user_id, "user lookup failed for valid session");
+            None
+        }
+    }
 }
