@@ -8,12 +8,10 @@ use crate::application::auth::AuthenticatedUser;
 use crate::application::server::AppState;
 use crate::domain::ids::{TokenId, UserId};
 use crate::domain::tokens::{NewToken, Token};
-use crate::infrastructure::auth::{generate_token, hash_token, verify_password};
+use crate::infrastructure::auth::{generate_token, hash_token};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateTokenRequest {
-    pub username: String,
-    pub password: String,
     pub name: String,
 }
 
@@ -47,33 +45,17 @@ impl From<Token> for TokenResponse {
     }
 }
 
-#[tracing::instrument(skip(state, payload), fields(token_name = %payload.name, username = %payload.username))]
+#[tracing::instrument(skip(state, auth_user, payload), fields(token_name = %payload.name))]
 pub async fn create_token(
     State(state): State<AppState>,
+    auth_user: AuthenticatedUser,
     Json(payload): Json<CreateTokenRequest>,
 ) -> Result<Json<CreateTokenResponse>, StatusCode> {
-    // Verify username and password
-    let user = state
-        .user_repo
-        .get_by_username(&payload.username)
-        .await
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
-
-    let password_valid = verify_password(&payload.password, &user.password_hash)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    if !password_valid {
-        return Err(StatusCode::UNAUTHORIZED);
-    }
-
-    // Generate new token
     let token_value = generate_token().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let token_hash_value = hash_token(&token_value);
 
-    let token_hash = hash_token(&token_value);
+    let new_token = NewToken::new(auth_user.0.id, token_hash_value, payload.name.clone());
 
-    let new_token = NewToken::new(user.id, token_hash, payload.name.clone());
-
-    // Store token
     let stored_token = state
         .token_repo
         .insert(new_token)

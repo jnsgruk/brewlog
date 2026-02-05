@@ -59,3 +59,5 @@ define_id!(GearId);
 define_id!(BrewId);
 define_id!(CafeId);
 define_id!(CupId);
+define_id!(PasskeyCredentialId);
+define_id!(RegistrationTokenId);

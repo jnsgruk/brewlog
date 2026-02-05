@@ -14,30 +14,6 @@ impl<'a> TokensClient<'a> {
         Self { client }
     }
 
-    pub async fn create(
-        &self,
-        username: &str,
-        password: &str,
-        name: &str,
-    ) -> Result<TokenResponse> {
-        let url = self.client.endpoint("api/v1/tokens")?;
-        let body = CreateTokenRequest {
-            username: username.to_string(),
-            password: password.to_string(),
-            name: name.to_string(),
-        };
-
-        let response = self
-            .client
-            .http_client()
-            .post(url)
-            .json(&body)
-            .send()
-            .await?;
-
-        self.client.handle_response(response).await
-    }
-
     pub async fn list(&self) -> Result<Vec<TokenInfo>> {
         let url = self.client.endpoint("api/v1/tokens")?;
 
@@ -63,13 +39,6 @@ impl<'a> TokensClient<'a> {
 
         self.client.handle_response(response).await
     }
-}
-
-#[derive(Debug, Serialize)]
-struct CreateTokenRequest {
-    username: String,
-    password: String,
-    name: String,
 }
 
 #[derive(Debug, Deserialize)]

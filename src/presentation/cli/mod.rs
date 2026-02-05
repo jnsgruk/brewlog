@@ -29,7 +29,7 @@ pub struct Cli {
         long,
         global = true,
         env = "BREWLOG_URL",
-        default_value = "http://127.0.0.1:3000"
+        default_value = "http://localhost:3000"
     )]
     pub api_url: String,
 
@@ -109,11 +109,11 @@ pub struct ServeCommand {
     #[arg(long, env = "BREWLOG_BIND_ADDRESS", default_value = "127.0.0.1:3000")]
     pub bind_address: SocketAddr,
 
-    #[arg(long, env = "BREWLOG_ADMIN_PASSWORD")]
-    pub admin_password: Option<String>,
+    #[arg(long, env = "BREWLOG_RP_ID")]
+    pub rp_id: Option<String>,
 
-    #[arg(long, env = "BREWLOG_ADMIN_USERNAME")]
-    pub admin_username: Option<String>,
+    #[arg(long, env = "BREWLOG_RP_ORIGIN")]
+    pub rp_origin: Option<String>,
 
     #[arg(long, env = "BREWLOG_OPENROUTER_API_KEY")]
     pub openrouter_api_key: Option<String>,

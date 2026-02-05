@@ -16,6 +16,7 @@ pub mod scan;
 pub mod support;
 pub mod timeline;
 pub mod tokens;
+pub mod webauthn;
 
 pub(crate) use auth::is_authenticated;
 
@@ -105,18 +106,28 @@ pub fn app_router(state: AppState) -> axum::Router {
             post(backup::restore_backup).layer(DefaultBodyLimit::max(50 * 1024 * 1024)),
         );
 
+    let webauthn_routes = axum::Router::new()
+        .route("/register/start", post(webauthn::register_start))
+        .route("/register/finish", post(webauthn::register_finish))
+        .route("/auth/start", get(webauthn::auth_start))
+        .route("/auth/finish", post(webauthn::auth_finish));
+
     axum::Router::new()
         .route("/", get(home::home_page))
-        .route("/login", get(auth::login_page).post(auth::login_submit))
+        .route("/login", get(auth::login_page))
         .route("/logout", post(auth::logout))
+        .route("/register/:token", get(webauthn::register_page))
+        .route("/auth/cli-callback", get(webauthn::cli_callback_page))
         .route("/data", get(data::data_page))
         .route("/add", get(add::add_page))
         .route("/scan", get(scan_redirect))
         .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
+        .route("/webauthn.js", get(webauthn_js))
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
+        .nest("/api/v1/webauthn", webauthn_routes)
         .layer(ServiceBuilder::new().layer(CookieManagerLayer::new()))
         .with_state(state)
 }
@@ -129,6 +140,13 @@ async fn styles() -> impl IntoResponse {
     (
         [("content-type", "text/css; charset=utf-8")],
         include_str!("../../../templates/styles.css"),
+    )
+}
+
+async fn webauthn_js() -> impl IntoResponse {
+    (
+        [("content-type", "application/javascript; charset=utf-8")],
+        include_str!("../../../templates/webauthn.js"),
     )
 }
 

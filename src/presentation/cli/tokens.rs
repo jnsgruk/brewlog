@@ -1,14 +1,18 @@
-use anyhow::{Context, Result};
+use std::net::SocketAddr;
+
+use anyhow::{Context, Result, anyhow};
 use clap::{Args, Subcommand};
-use std::io::{self, Write};
+use tokio::net::TcpListener;
+use tokio::sync::oneshot;
 
 use super::print_json;
 use crate::domain::ids::TokenId;
+use crate::infrastructure::auth::generate_session_token;
 use crate::infrastructure::client::BrewlogClient;
 
 #[derive(Debug, Subcommand)]
 pub enum TokenCommands {
-    /// Create a new API token
+    /// Create a new API token (opens browser for passkey authentication)
     Create(CreateTokenCommand),
     /// List all tokens
     List,
@@ -29,14 +33,6 @@ pub struct CreateTokenCommand {
     /// A descriptive name for this token
     #[arg(long)]
     pub name: String,
-
-    /// The username to authenticate with
-    #[arg(long)]
-    pub username: Option<String>,
-
-    /// The password to authenticate with
-    #[arg(long)]
-    pub password: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -47,39 +43,128 @@ pub struct RevokeTokenCommand {
 }
 
 pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Result<()> {
-    let username = if let Some(u) = cmd.username {
-        u
-    } else {
-        // Prompt for username
-        print!("Username: ");
-        io::stdout().flush()?;
-        let mut username = String::new();
-        io::stdin().read_line(&mut username)?;
-        username.trim().to_string()
+    let state = generate_session_token();
+
+    // Start a local server on a random port to receive the callback
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .context("failed to bind local callback server")?;
+    let local_addr = listener
+        .local_addr()
+        .context("failed to get local callback address")?;
+
+    let callback_url = format!("http://127.0.0.1:{}/callback", local_addr.port());
+
+    // Build the browser URL
+    let mut server_url = client
+        .endpoint("login")
+        .context("failed to build login URL")?;
+    server_url
+        .query_pairs_mut()
+        .append_pair("cli_callback", &callback_url)
+        .append_pair("state", &state)
+        .append_pair("token_name", &cmd.name);
+
+    println!("Opening browser for authentication...");
+    println!("If the browser doesn't open, visit this URL:");
+    println!("\n  {server_url}\n");
+
+    // Open the browser
+    if let Err(err) = open::that(server_url.as_str()) {
+        eprintln!("Warning: failed to open browser: {err}");
+    }
+
+    // Wait for the callback
+    let (tx, rx) = oneshot::channel::<String>();
+    let expected_state = state.clone();
+
+    let server = tokio::spawn(run_callback_server(
+        listener,
+        local_addr,
+        expected_state,
+        tx,
+    ));
+
+    // Wait for the token with a timeout
+    let token = tokio::select! {
+        result = rx => {
+            result.context("callback server closed without receiving a token")?
+        }
+        () = tokio::time::sleep(std::time::Duration::from_secs(120)) => {
+            return Err(anyhow!("timed out waiting for browser authentication (2 minutes)"));
+        }
     };
 
-    let password = if let Some(p) = cmd.password {
-        p
-    } else {
-        // Prompt for password (without echo)
-        rpassword::prompt_password("Password: ").context("failed to read password")?
-    };
+    // Clean up the server task
+    server.abort();
 
-    // Create the token
-    let token_response = client
-        .tokens()
-        .create(&username, &password, &cmd.name)
-        .await?;
-
-    println!("\nToken created successfully!");
-    println!("Token ID: {}", token_response.id);
-    println!("Token Name: {}", token_response.name);
-    println!("\n⚠️  Save this token securely - it will not be shown again:");
-    println!("\n{}", token_response.token);
+    println!("Token created successfully!");
+    println!("Token Name: {}", cmd.name);
+    println!("\nSave this token securely - it will not be shown again:");
+    println!("\n{token}");
     println!("\nExport it in your environment:");
-    println!("  export BREWLOG_TOKEN={}", token_response.token);
+    println!("  export BREWLOG_TOKEN={token}");
 
     Ok(())
+}
+
+async fn run_callback_server(
+    listener: TcpListener,
+    _addr: SocketAddr,
+    expected_state: String,
+    tx: oneshot::Sender<String>,
+) {
+    use axum::extract::Query;
+    use axum::response::Html;
+    use axum::routing::get;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct CallbackQuery {
+        token: Option<String>,
+        state: Option<String>,
+    }
+
+    let tx = std::sync::Arc::new(tokio::sync::Mutex::new(Some(tx)));
+    let state_clone = expected_state.clone();
+
+    let app = axum::Router::new().route(
+        "/callback",
+        get(move |Query(query): Query<CallbackQuery>| {
+            let tx = tx.clone();
+            let expected = state_clone.clone();
+            async move {
+                let Some(token) = query.token else {
+                    return Html(
+                        "<html><body><h1>Error</h1><p>No token received.</p></body></html>"
+                            .to_string(),
+                    );
+                };
+
+                let Some(received_state) = query.state else {
+                    return Html(
+                        "<html><body><h1>Error</h1><p>No state parameter.</p></body></html>"
+                            .to_string(),
+                    );
+                };
+
+                if received_state != expected {
+                    return Html(
+                        "<html><body><h1>Error</h1><p>State mismatch - possible CSRF attack.</p></body></html>"
+                            .to_string(),
+                    );
+                }
+
+                if let Some(sender) = tx.lock().await.take() {
+                    let _ = sender.send(token);
+                }
+
+                Html("<html><body><h1>Authenticated</h1><p>You can close this window and return to the terminal.</p></body></html>".to_string())
+            }
+        }),
+    );
+
+    let _ = axum::serve(listener, app).await;
 }
 
 pub async fn list_tokens(client: &BrewlogClient) -> Result<()> {

@@ -6,7 +6,6 @@ use brewlog::presentation::cli::{
     Cli, Commands, ServeCommand, bags, brews, cafes, cups, gear, roasters, roasts, tokens,
 };
 use clap::Parser;
-
 use tracing::{Subscriber, subscriber::set_global_default};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
@@ -76,6 +75,20 @@ async fn main() -> Result<()> {
 }
 
 async fn run_server(command: ServeCommand) -> Result<()> {
+    let rp_id = command.rp_id.ok_or_else(|| {
+        anyhow::anyhow!(
+            "BREWLOG_RP_ID is required. Set this to the domain where the app is hosted \
+             (e.g. 'brewlog.example.com' or 'localhost')."
+        )
+    })?;
+
+    let rp_origin = command.rp_origin.ok_or_else(|| {
+        anyhow::anyhow!(
+            "BREWLOG_RP_ORIGIN is required. Set this to the full origin URL \
+             (e.g. 'https://brewlog.example.com' or 'http://localhost:3000')."
+        )
+    })?;
+
     let openrouter_api_key = command.openrouter_api_key.ok_or_else(|| {
         anyhow::anyhow!(
             "BREWLOG_OPENROUTER_API_KEY is required. Set this environment variable \
@@ -93,8 +106,8 @@ async fn run_server(command: ServeCommand) -> Result<()> {
     let config = ServerConfig {
         bind_address: command.bind_address,
         database_url: command.database_url,
-        admin_password: command.admin_password,
-        admin_username: command.admin_username,
+        rp_id,
+        rp_origin,
         openrouter_api_key,
         openrouter_model: command.openrouter_model,
         foursquare_api_key,

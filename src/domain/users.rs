@@ -7,38 +7,29 @@ use crate::domain::ids::UserId;
 pub struct User {
     pub id: UserId,
     pub username: String,
-    #[serde(skip_serializing)]
-    pub password_hash: String,
+    pub uuid: String,
     pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]
 pub struct NewUser {
     pub username: String,
-    pub password_hash: String,
+    pub uuid: String,
 }
 
 impl User {
-    pub fn new(
-        id: UserId,
-        username: String,
-        password_hash: String,
-        created_at: DateTime<Utc>,
-    ) -> Self {
+    pub fn new(id: UserId, username: String, uuid: String, created_at: DateTime<Utc>) -> Self {
         Self {
             id,
             username,
-            password_hash,
+            uuid,
             created_at,
         }
     }
 }
 
 impl NewUser {
-    pub fn new(username: String, password_hash: String) -> Self {
-        Self {
-            username,
-            password_hash,
-        }
+    pub fn new(username: String, uuid: String) -> Self {
+        Self { username, uuid }
     }
 }

@@ -6,6 +6,8 @@ pub mod errors;
 pub mod gear;
 pub mod ids;
 pub mod listing;
+pub mod passkey_credentials;
+pub mod registration_tokens;
 pub mod repositories;
 pub mod roasters;
 pub mod roasts;

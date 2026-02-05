@@ -3,17 +3,20 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use axum::Router;
+use chrono::{Duration, Utc};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
+use webauthn_rs::prelude::*;
 
 use crate::application::routes::app_router;
+use crate::domain::registration_tokens::NewRegistrationToken;
 use crate::domain::repositories::{
-    BagRepository, BrewRepository, CafeRepository, CupRepository, GearRepository, RoastRepository,
-    RoasterRepository, SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    BagRepository, BrewRepository, CafeRepository, CupRepository, GearRepository,
+    PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository, RoasterRepository,
+    SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
 };
-use crate::domain::users::NewUser;
-use crate::infrastructure::auth::hash_password;
+use crate::infrastructure::auth::{generate_session_token, hash_token};
 use crate::infrastructure::backup::BackupService;
 use crate::infrastructure::database::Database;
 use crate::infrastructure::repositories::bags::SqlBagRepository;
@@ -21,18 +24,21 @@ use crate::infrastructure::repositories::brews::SqlBrewRepository;
 use crate::infrastructure::repositories::cafes::SqlCafeRepository;
 use crate::infrastructure::repositories::cups::SqlCupRepository;
 use crate::infrastructure::repositories::gear::SqlGearRepository;
+use crate::infrastructure::repositories::passkey_credentials::SqlPasskeyCredentialRepository;
+use crate::infrastructure::repositories::registration_tokens::SqlRegistrationTokenRepository;
 use crate::infrastructure::repositories::roasters::SqlRoasterRepository;
 use crate::infrastructure::repositories::roasts::SqlRoastRepository;
 use crate::infrastructure::repositories::sessions::SqlSessionRepository;
 use crate::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use crate::infrastructure::repositories::tokens::SqlTokenRepository;
 use crate::infrastructure::repositories::users::SqlUserRepository;
+use crate::infrastructure::webauthn::ChallengeStore;
 
 pub struct ServerConfig {
     pub bind_address: SocketAddr,
     pub database_url: String,
-    pub admin_password: Option<String>,
-    pub admin_username: Option<String>,
+    pub rp_id: String,
+    pub rp_origin: String,
     pub openrouter_api_key: String,
     pub openrouter_model: String,
     pub foursquare_api_key: String,
@@ -51,6 +57,10 @@ pub struct AppState {
     pub user_repo: Arc<dyn UserRepository>,
     pub token_repo: Arc<dyn TokenRepository>,
     pub session_repo: Arc<dyn SessionRepository>,
+    pub passkey_repo: Arc<dyn PasskeyCredentialRepository>,
+    pub registration_token_repo: Arc<dyn RegistrationTokenRepository>,
+    pub webauthn: Arc<Webauthn>,
+    pub challenge_store: Arc<ChallengeStore>,
     pub http_client: reqwest::Client,
     pub foursquare_url: String,
     pub foursquare_api_key: String,
@@ -59,54 +69,19 @@ pub struct AppState {
     pub backup_service: Arc<BackupService>,
 }
 
-impl AppState {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        roaster_repo: Arc<dyn RoasterRepository>,
-        roast_repo: Arc<dyn RoastRepository>,
-        bag_repo: Arc<dyn BagRepository>,
-        gear_repo: Arc<dyn GearRepository>,
-        brew_repo: Arc<dyn BrewRepository>,
-        cafe_repo: Arc<dyn CafeRepository>,
-        cup_repo: Arc<dyn CupRepository>,
-        timeline_repo: Arc<dyn TimelineEventRepository>,
-        user_repo: Arc<dyn UserRepository>,
-        token_repo: Arc<dyn TokenRepository>,
-        session_repo: Arc<dyn SessionRepository>,
-        http_client: reqwest::Client,
-        foursquare_url: String,
-        foursquare_api_key: String,
-        openrouter_api_key: String,
-        openrouter_model: String,
-        backup_service: Arc<BackupService>,
-    ) -> Self {
-        Self {
-            roaster_repo,
-            roast_repo,
-            bag_repo,
-            gear_repo,
-            brew_repo,
-            cafe_repo,
-            cup_repo,
-            timeline_repo,
-            user_repo,
-            token_repo,
-            session_repo,
-            http_client,
-            foursquare_url,
-            foursquare_api_key,
-            openrouter_api_key,
-            openrouter_model,
-            backup_service,
-        }
-    }
-}
-
 pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     let database = Database::connect(&config.database_url)
         .await
         .context("failed to connect to database")?;
-    database.migrate().await?;
+
+    let rp_origin = url::Url::parse(&config.rp_origin).context("invalid BREWLOG_RP_ORIGIN URL")?;
+    let webauthn = Arc::new(
+        WebauthnBuilder::new(&config.rp_id, &rp_origin)
+            .context("failed to build WebAuthn instance")?
+            .rp_name("Brewlog")
+            .build()
+            .context("failed to build WebAuthn instance")?,
+    );
 
     let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
     let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
@@ -122,13 +97,18 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         Arc::new(SqlTokenRepository::new(database.clone_pool()));
     let session_repo: Arc<dyn SessionRepository> =
         Arc::new(SqlSessionRepository::new(database.clone_pool()));
+    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
+        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
+    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
+        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
 
     let backup_service = Arc::new(BackupService::new(database.clone_pool()));
+    let challenge_store = Arc::new(ChallengeStore::new());
 
-    // Bootstrap admin user if no users exist
-    bootstrap_admin_user(&user_repo, config.admin_username, config.admin_password).await?;
+    // Bootstrap: if no users exist, generate a one-time registration token
+    bootstrap_registration(&registration_token_repo, &user_repo, &config.rp_origin).await?;
 
-    let state = AppState::new(
+    let state = AppState {
         roaster_repo,
         roast_repo,
         bag_repo,
@@ -140,13 +120,17 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         user_repo,
         token_repo,
         session_repo,
-        reqwest::Client::new(),
-        crate::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
-        config.foursquare_api_key,
-        config.openrouter_api_key,
-        config.openrouter_model,
+        passkey_repo,
+        registration_token_repo,
+        webauthn,
+        challenge_store,
+        http_client: reqwest::Client::new(),
+        foursquare_url: crate::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
+        foursquare_api_key: config.foursquare_api_key,
+        openrouter_api_key: config.openrouter_api_key,
+        openrouter_model: config.openrouter_model,
         backup_service,
-    );
+    };
 
     let listener = TcpListener::bind(config.bind_address)
         .await
@@ -154,7 +138,11 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
 
     let app: Router = app_router(state);
 
-    info!(address = %config.bind_address, "starting HTTP server");
+    info!(
+        address = %config.bind_address,
+        database = %config.database_url,
+        "starting HTTP server"
+    );
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -166,49 +154,39 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn bootstrap_admin_user(
+async fn bootstrap_registration(
+    registration_token_repo: &Arc<dyn RegistrationTokenRepository>,
     user_repo: &Arc<dyn UserRepository>,
-    admin_username: Option<String>,
-    admin_password: Option<String>,
+    rp_origin: &str,
 ) -> anyhow::Result<()> {
-    // Check if any users exist
     let users_exist = user_repo
         .exists()
         .await
         .context("failed to check if users exist")?;
 
     if users_exist {
-        // Users already exist, no need to bootstrap
         return Ok(());
     }
 
-    // No users exist - we need to create the admin user
-    let username = admin_username.ok_or_else(|| {
-        anyhow::anyhow!(
-            "No users exist in the database. Please provide BREWLOG_ADMIN_USERNAME \
-             environment variable to create the admin user."
-        )
-    })?;
+    // Generate one-time registration token
+    let token = generate_session_token();
+    let token_hash = hash_token(&token);
+    let now = Utc::now();
+    #[allow(clippy::expect_used)]
+    let expires_at = now
+        .checked_add_signed(Duration::hours(1))
+        .expect("timestamp overflow adding 1 hour");
 
-    let password = admin_password.ok_or_else(|| {
-        anyhow::anyhow!(
-            "No users exist in the database. Please provide BREWLOG_ADMIN_PASSWORD \
-             environment variable to create the admin user."
-        )
-    })?;
+    let new_token = NewRegistrationToken::new(token_hash, now, expires_at);
 
-    info!("No users found. Creating admin user '{}'...", username);
-
-    let password_hash = hash_password(&password).context("failed to hash admin password")?;
-
-    let admin_user = NewUser::new(username, password_hash);
-
-    user_repo
-        .insert(admin_user)
+    registration_token_repo
+        .insert(new_token)
         .await
-        .context("failed to create admin user")?;
+        .context("failed to create registration token")?;
 
-    info!("Admin user created successfully");
+    info!("No users found. Register the first user at:");
+    info!("  {}/register/{}", rp_origin, token);
+    info!("This link expires in 1 hour.");
 
     Ok(())
 }

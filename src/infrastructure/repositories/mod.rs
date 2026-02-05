@@ -5,6 +5,8 @@ pub mod cups;
 pub mod gear;
 mod macros;
 pub mod pagination;
+pub mod passkey_credentials;
+pub mod registration_tokens;
 pub mod roasters;
 pub mod roasts;
 pub mod sessions;

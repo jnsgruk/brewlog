@@ -7,8 +7,11 @@ use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
 use crate::domain::gear::{Gear, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::{
-    BagId, BrewId, CafeId, CupId, GearId, RoastId, RoasterId, SessionId, TokenId, UserId,
+    BagId, BrewId, CafeId, CupId, GearId, PasskeyCredentialId, RegistrationTokenId, RoastId,
+    RoasterId, SessionId, TokenId, UserId,
 };
+use crate::domain::passkey_credentials::{NewPasskeyCredential, PasskeyCredential};
+use crate::domain::registration_tokens::{NewRegistrationToken, RegistrationToken};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
 use crate::domain::roasts::RoastSortKey;
@@ -107,7 +110,9 @@ pub trait UserRepository: Send + Sync {
     async fn insert(&self, user: NewUser) -> Result<User, RepositoryError>;
     async fn get(&self, id: UserId) -> Result<User, RepositoryError>;
     async fn get_by_username(&self, username: &str) -> Result<User, RepositoryError>;
+    async fn get_by_uuid(&self, uuid: &str) -> Result<User, RepositoryError>;
     async fn exists(&self) -> Result<bool, RepositoryError>;
+    async fn list_all(&self) -> Result<Vec<User>, RepositoryError>;
 }
 
 #[async_trait]
@@ -218,4 +223,40 @@ pub trait CupRepository: Send + Sync {
     ) -> Result<Page<CupWithDetails>, RepositoryError>;
     async fn update(&self, id: CupId, changes: UpdateCup) -> Result<Cup, RepositoryError>;
     async fn delete(&self, id: CupId) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait PasskeyCredentialRepository: Send + Sync {
+    async fn insert(
+        &self,
+        credential: NewPasskeyCredential,
+    ) -> Result<PasskeyCredential, RepositoryError>;
+    async fn list_by_user(
+        &self,
+        user_id: UserId,
+    ) -> Result<Vec<PasskeyCredential>, RepositoryError>;
+    async fn update_credential_json(
+        &self,
+        id: PasskeyCredentialId,
+        credential_json: &str,
+    ) -> Result<(), RepositoryError>;
+    async fn update_last_used(&self, id: PasskeyCredentialId) -> Result<(), RepositoryError>;
+    async fn delete(&self, id: PasskeyCredentialId) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait RegistrationTokenRepository: Send + Sync {
+    async fn insert(
+        &self,
+        token: NewRegistrationToken,
+    ) -> Result<RegistrationToken, RepositoryError>;
+    async fn get_by_token_hash(
+        &self,
+        token_hash: &str,
+    ) -> Result<RegistrationToken, RepositoryError>;
+    async fn mark_used(
+        &self,
+        id: RegistrationTokenId,
+        user_id: UserId,
+    ) -> Result<(), RepositoryError>;
 }

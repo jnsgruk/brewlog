@@ -87,10 +87,6 @@ impl BrewlogClient {
             .with_context(|| format!("invalid API path: {path}"))
     }
 
-    pub(crate) fn http_client(&self) -> &Client {
-        &self.http
-    }
-
     /// Build a request with authentication if token is available
     pub(crate) fn request(&self, method: reqwest::Method, url: Url) -> reqwest::RequestBuilder {
         let mut request = self.http.request(method, url);
