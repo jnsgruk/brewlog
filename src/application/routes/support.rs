@@ -4,6 +4,7 @@ use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
 use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
 use axum::response::{Html, IntoResponse, Response};
 use serde::Deserialize;
+use tracing::warn;
 
 use crate::application::errors::{ApiError, AppError};
 use crate::application::server::AppState;
@@ -183,9 +184,13 @@ where
             .to_ascii_lowercase();
 
         if content_type.starts_with("application/json") {
-            let JsonPayload(payload) = JsonPayload::<T>::from_request(req, state)
-                .await
-                .map_err(|_| ApiError::from(AppError::validation("invalid JSON payload")))?;
+            let JsonPayload(payload) =
+                JsonPayload::<T>::from_request(req, state)
+                    .await
+                    .map_err(|_| {
+                        warn!("failed to parse JSON payload");
+                        ApiError::from(AppError::validation("invalid JSON payload"))
+                    })?;
 
             return Ok(Self {
                 inner: payload,
@@ -195,9 +200,10 @@ where
 
         if content_type.is_empty() || content_type.starts_with("application/x-www-form-urlencoded")
         {
-            let Form(payload) = Form::<T>::from_request(req, state)
-                .await
-                .map_err(|_| ApiError::from(AppError::validation("invalid form payload")))?;
+            let Form(payload) = Form::<T>::from_request(req, state).await.map_err(|_| {
+                warn!("failed to parse form payload");
+                ApiError::from(AppError::validation("invalid form payload"))
+            })?;
 
             return Ok(Self {
                 inner: payload,
