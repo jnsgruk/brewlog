@@ -737,7 +737,27 @@ let tasting_notes = decode_json_vec(self.tasting_notes_json, "timeline tasting n
 6. **Commit authorship**: Never add "Co-Authored-By" trailers to commit messages
 7. **Commit signing**: Never use `--no-gpg-sign` when committing — always allow the default GPG signing
 8. **Committing**: Do not commit unless explicitly asked to — provide a draft commit message instead
-9. **JavaScript style**: Use ES6+ syntax — `const`/`let`, arrow functions, template literals. Prefer `if`/`else` and `switch` over ternary operators; use ternaries only sparingly for simple, single-level expressions — never nest them
+9. **JavaScript style**:
+   - **Never use `var`** — always `const` (default) or `let` (only when reassignment is needed)
+   - **Never use `function` declarations** — always arrow functions assigned to `const`:
+     ```js
+     // Good
+     const showForm = () => { ... };
+     const handleClick = (evt) => { ... };
+
+     // Bad
+     function showForm() { ... }
+     ```
+   - **Always use template literals** for string interpolation — never `+` concatenation:
+     ```js
+     // Good
+     `Failed (HTTP ${response.status}).`
+
+     // Bad
+     'Failed (HTTP ' + response.status + ').'
+     ```
+   - Prefer `if`/`else` and `switch` over ternary operators; use ternaries only sparingly for simple, single-level expressions — never nest them
+   - **Inline `onclick` handlers + global arrow functions** — pages with imperative JS (e.g. account, checkin) define `const` arrow functions at `<script>` top level and call them from `onclick="fnName()"` in the HTML. Do not use `DOMContentLoaded` + `addEventListener` for these pages
 
 ## Communication Style
 
