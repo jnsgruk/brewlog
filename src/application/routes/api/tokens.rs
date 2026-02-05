@@ -1,11 +1,16 @@
 use axum::Json;
 use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::http::{HeaderMap, StatusCode};
+use axum::response::{IntoResponse, Response};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
 use crate::application::auth::AuthenticatedUser;
+use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::support::{
+    FlexiblePayload, is_datastar_request, render_signals_json,
+};
 use crate::application::server::AppState;
 use crate::domain::ids::{TokenId, UserId};
 use crate::domain::tokens::{NewToken, Token};
@@ -46,15 +51,18 @@ impl From<Token> for TokenResponse {
     }
 }
 
-#[tracing::instrument(skip(state, auth_user, payload), fields(token_name = %payload.name))]
+#[tracing::instrument(skip(state, auth_user, headers, payload))]
 pub async fn create_token(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
-    Json(payload): Json<CreateTokenRequest>,
-) -> Result<Json<CreateTokenResponse>, StatusCode> {
+    headers: HeaderMap,
+    payload: FlexiblePayload<CreateTokenRequest>,
+) -> Result<Response, ApiError> {
+    let (payload, _source) = payload.into_parts();
+
     let token_value = generate_token().map_err(|err| {
         error!(error = %err, "failed to generate token");
-        StatusCode::INTERNAL_SERVER_ERROR
+        ApiError::from(AppError::unexpected("failed to generate token"))
     })?;
     let token_hash_value = hash_token(&token_value);
 
@@ -62,16 +70,28 @@ pub async fn create_token(
 
     let stored_token = state.token_repo.insert(new_token).await.map_err(|err| {
         error!(error = %err, "failed to store token");
-        StatusCode::INTERNAL_SERVER_ERROR
+        ApiError::from(AppError::unexpected("failed to store token"))
     })?;
 
     info!(token_id = %stored_token.id, token_name = %stored_token.name, user_id = %auth_user.0.id, "API token created");
 
-    Ok(Json(CreateTokenResponse {
-        id: stored_token.id,
-        name: stored_token.name,
-        token: token_value,
-    }))
+    if is_datastar_request(&headers) {
+        use serde_json::Value;
+        let signals = vec![
+            ("_token-value", Value::String(token_value)),
+            ("_token-created", Value::Bool(true)),
+            ("_creating-token", Value::Bool(false)),
+            ("_show-token-form", Value::Bool(false)),
+        ];
+        render_signals_json(&signals).map_err(ApiError::from)
+    } else {
+        Ok(Json(CreateTokenResponse {
+            id: stored_token.id,
+            name: stored_token.name,
+            token: token_value,
+        })
+        .into_response())
+    }
 }
 
 #[tracing::instrument(skip(state, auth_user))]
