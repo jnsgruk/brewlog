@@ -25,6 +25,10 @@ fn tailwind() {
         println!("cargo:rerun-if-changed={entry}");
     }
     for entry in walkdir("static") {
+        // Skip the generated output file to avoid circular rebuilds
+        if entry == "static/css/styles.css" {
+            continue;
+        }
         println!("cargo:rerun-if-changed={entry}");
     }
 

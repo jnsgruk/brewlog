@@ -754,7 +754,8 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 Tabbed 02") | .id')" \
   --water-volume 250 \
-  --water-temp 92.0
+  --water-temp 92.0 \
+  --quick-notes good
 
 # AeroPress brew - Finca Tamana with J-Max (ratio 1:15)
 ./target/debug/brewlog brew add \
@@ -786,7 +787,8 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF") | .id')" \
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF Filters") | .id')" \
   --water-volume 300 \
-  --water-temp 93.0
+  --water-temp 93.0 \
+  --quick-notes too-fast,under-extracted
 
 # Light V60 brew - Red Brick Espresso with Comandante (ratio 1:16.7)
 ./target/debug/brewlog brew add \
@@ -807,7 +809,8 @@ fi
   --grind-setting 18.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Original") | .id')" \
   --water-volume 225 \
-  --water-temp 85.0
+  --water-temp 85.0 \
+  --quick-notes too-hot,over-extracted
 
 # V60 brew - Suke Quto with J-Max (ratio 1:16)
 ./target/debug/brewlog brew add \
@@ -818,7 +821,8 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="FAST Specialty 02") | .id')" \
   --water-volume 320 \
-  --water-temp 92.0
+  --water-temp 92.0 \
+  --quick-notes good
 
 # Stagg XF brew - Simbi with Comandante (ratio 1:16)
 ./target/debug/brewlog brew add \

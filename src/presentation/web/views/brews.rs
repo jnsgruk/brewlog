@@ -1,6 +1,27 @@
-use crate::domain::brews::{Brew, BrewWithDetails};
+use crate::domain::brews::{Brew, BrewWithDetails, QuickNote};
 
 use super::relative_date;
+
+#[derive(Clone)]
+pub struct QuickNoteView {
+    pub label: String,
+    pub pill_class: &'static str,
+    pub form_value: String,
+}
+
+impl From<QuickNote> for QuickNoteView {
+    fn from(note: QuickNote) -> Self {
+        Self {
+            label: note.label().to_string(),
+            pill_class: if note.is_positive() {
+                "pill pill-success"
+            } else {
+                "pill pill-warning"
+            },
+            form_value: note.form_value().to_string(),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct BrewView {
@@ -21,6 +42,8 @@ pub struct BrewView {
     pub water_volume: String,
     pub water_temp: String,
     pub ratio: String,
+    pub quick_notes: Vec<QuickNoteView>,
+    pub quick_notes_label: String,
     pub created_date: String,
     pub created_time: String,
     pub relative_date_label: String,
@@ -41,6 +64,19 @@ impl BrewView {
         } else {
             "\u{2014}".to_string()
         };
+
+        let quick_notes: Vec<QuickNoteView> = brew
+            .brew
+            .quick_notes
+            .iter()
+            .copied()
+            .map(QuickNoteView::from)
+            .collect();
+        let quick_notes_label = quick_notes
+            .iter()
+            .map(|n| n.label.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
 
         Self {
             id: brew.brew.id.to_string(),
@@ -63,6 +99,8 @@ impl BrewView {
             water_volume: format!("{}ml", brew.brew.water_volume),
             water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
             ratio,
+            quick_notes,
+            quick_notes_label,
             created_date: brew.brew.created_at.format("%Y-%m-%d").to_string(),
             created_time: brew.brew.created_at.format("%H:%M").to_string(),
             relative_date_label: relative_date(brew.brew.created_at),

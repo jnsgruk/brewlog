@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::query_as;
 
 use crate::domain::RepositoryError;
-use crate::domain::brews::{Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
+use crate::domain::brews::{Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BrewRepository;
@@ -13,6 +13,7 @@ const BASE_SELECT: &str = r"
     SELECT
         br.id, br.bag_id, br.coffee_weight, br.grinder_id, br.grind_setting,
         br.brewer_id, br.filter_paper_id, br.water_volume, br.water_temp,
+        br.quick_notes,
         br.created_at, br.updated_at,
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug,
@@ -51,6 +52,26 @@ impl SqlBrewRepository {
         }
     }
 
+    fn decode_quick_notes(raw: Option<String>) -> Vec<QuickNote> {
+        match raw {
+            Some(s) if !s.is_empty() => serde_json::from_str::<Vec<String>>(&s)
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|v| QuickNote::from_str_value(v))
+                .collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    fn encode_quick_notes(notes: &[QuickNote]) -> Option<String> {
+        if notes.is_empty() {
+            None
+        } else {
+            let labels: Vec<&str> = notes.iter().map(|n| n.label()).collect();
+            serde_json::to_string(&labels).ok()
+        }
+    }
+
     fn to_domain(record: BrewRecord) -> Brew {
         Brew {
             id: BrewId::new(record.id),
@@ -62,6 +83,7 @@ impl SqlBrewRepository {
             filter_paper_id: record.filter_paper_id.map(GearId::new),
             water_volume: record.water_volume,
             water_temp: record.water_temp,
+            quick_notes: Self::decode_quick_notes(record.quick_notes),
             created_at: record.created_at,
             updated_at: record.updated_at,
         }
@@ -79,6 +101,7 @@ impl SqlBrewRepository {
                 filter_paper_id: record.filter_paper_id.map(GearId::new),
                 water_volume: record.water_volume,
                 water_temp: record.water_temp,
+                quick_notes: Self::decode_quick_notes(record.quick_notes),
                 created_at: record.created_at,
                 updated_at: record.updated_at,
             },
@@ -135,9 +158,9 @@ impl BrewRepository for SqlBrewRepository {
 
         // Insert the brew
         let insert_query = r"
-            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at
+            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at
         ";
 
         let record = query_as::<_, BrewRecord>(insert_query)
@@ -152,6 +175,7 @@ impl BrewRepository for SqlBrewRepository {
             )
             .bind(brew.water_volume)
             .bind(brew.water_temp)
+            .bind(Self::encode_quick_notes(&brew.quick_notes))
             .fetch_one(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -165,7 +189,7 @@ impl BrewRepository for SqlBrewRepository {
 
     async fn get(&self, id: BrewId) -> Result<Brew, RepositoryError> {
         let query = r"
-            SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at
+            SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at
             FROM brews
             WHERE id = ?
         ";
@@ -263,6 +287,7 @@ struct BrewRecord {
     filter_paper_id: Option<i64>,
     water_volume: i32,
     water_temp: f64,
+    quick_notes: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -278,6 +303,7 @@ struct BrewWithDetailsRecord {
     filter_paper_id: Option<i64>,
     water_volume: i32,
     water_temp: f64,
+    quick_notes: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
     roast_name: String,

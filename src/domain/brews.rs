@@ -4,6 +4,67 @@ use serde::{Deserialize, Serialize};
 use super::ids::{BagId, BrewId, GearId};
 use super::listing::{SortDirection, SortKey};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum QuickNote {
+    Good,
+    TooFast,
+    TooSlow,
+    TooHot,
+    UnderExtracted,
+    OverExtracted,
+}
+
+impl QuickNote {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Good => "Good",
+            Self::TooFast => "Too Fast",
+            Self::TooSlow => "Too Slow",
+            Self::TooHot => "Too Hot",
+            Self::UnderExtracted => "Under Extracted",
+            Self::OverExtracted => "Over Extracted",
+        }
+    }
+
+    pub fn form_value(self) -> &'static str {
+        match self {
+            Self::Good => "good",
+            Self::TooFast => "too-fast",
+            Self::TooSlow => "too-slow",
+            Self::TooHot => "too-hot",
+            Self::UnderExtracted => "under-extracted",
+            Self::OverExtracted => "over-extracted",
+        }
+    }
+
+    pub fn from_str_value(s: &str) -> Option<Self> {
+        match s {
+            "good" | "Good" => Some(Self::Good),
+            "too-fast" | "Too Fast" => Some(Self::TooFast),
+            "too-slow" | "Too Slow" => Some(Self::TooSlow),
+            "too-hot" | "Too Hot" => Some(Self::TooHot),
+            "under-extracted" | "Under Extracted" => Some(Self::UnderExtracted),
+            "over-extracted" | "Over Extracted" => Some(Self::OverExtracted),
+            _ => None,
+        }
+    }
+
+    pub fn is_positive(self) -> bool {
+        matches!(self, Self::Good)
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::Good,
+            Self::TooFast,
+            Self::TooSlow,
+            Self::TooHot,
+            Self::UnderExtracted,
+            Self::OverExtracted,
+        ]
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Brew {
     pub id: BrewId,
@@ -15,6 +76,7 @@ pub struct Brew {
     pub filter_paper_id: Option<GearId>,
     pub water_volume: i32,
     pub water_temp: f64,
+    pub quick_notes: Vec<QuickNote>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -42,6 +104,7 @@ pub struct NewBrew {
     pub filter_paper_id: Option<GearId>,
     pub water_volume: i32,
     pub water_temp: f64,
+    pub quick_notes: Vec<QuickNote>,
 }
 
 /// Filter criteria for brew queries.

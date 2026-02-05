@@ -13,7 +13,7 @@ use crate::application::routes::support::{
 };
 use crate::application::server::AppState;
 use crate::domain::bags::BagFilter;
-use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
+use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote};
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, PageSize, SortDirection};
@@ -21,6 +21,7 @@ use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventD
 use crate::presentation::web::templates::BrewListTemplate;
 use crate::presentation::web::views::{
     BagOptionView, BrewDefaultsView, BrewView, GearOptionView, ListNavigator, Paginated,
+    QuickNoteView,
 };
 
 const BREW_PAGE_PATH: &str = "/data?type=brews";
@@ -37,6 +38,7 @@ pub(crate) struct BrewFormData {
     pub(crate) brewer_options: Vec<GearOptionView>,
     pub(crate) filter_paper_options: Vec<GearOptionView>,
     pub(crate) defaults: BrewDefaultsView,
+    pub(crate) quick_note_options: Vec<QuickNoteView>,
 }
 
 pub(crate) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError> {
@@ -80,12 +82,19 @@ pub(crate) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData
         .map(|b| BrewDefaultsView::from(b.brew))
         .unwrap_or_default();
 
+    let quick_note_options = QuickNote::all()
+        .iter()
+        .copied()
+        .map(QuickNoteView::from)
+        .collect();
+
     Ok(BrewFormData {
         bag_options,
         grinder_options,
         brewer_options,
         filter_paper_options,
         defaults,
+        quick_note_options,
     })
 }
 
@@ -147,6 +156,26 @@ where
     }
 }
 
+fn deserialize_quick_notes<'de, D>(deserializer: D) -> Result<Vec<QuickNote>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    match value {
+        None | Some(serde_json::Value::Null) => Ok(Vec::new()),
+        Some(serde_json::Value::String(s)) if s.is_empty() => Ok(Vec::new()),
+        Some(serde_json::Value::String(s)) => Ok(s
+            .split(',')
+            .filter_map(|v| QuickNote::from_str_value(v.trim()))
+            .collect()),
+        Some(serde_json::Value::Array(arr)) => Ok(arr
+            .iter()
+            .filter_map(|v| v.as_str().and_then(QuickNote::from_str_value))
+            .collect()),
+        Some(_) => Err(serde::de::Error::custom("invalid quick_notes")),
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub(crate) struct NewBrewSubmission {
     bag_id: BagId,
@@ -158,6 +187,8 @@ pub(crate) struct NewBrewSubmission {
     filter_paper_id: Option<GearId>,
     water_volume: i32,
     water_temp: f64,
+    #[serde(default, deserialize_with = "deserialize_quick_notes")]
+    quick_notes: Vec<QuickNote>,
 }
 
 impl NewBrewSubmission {
@@ -186,6 +217,7 @@ impl NewBrewSubmission {
             filter_paper_id: self.filter_paper_id,
             water_volume: self.water_volume,
             water_temp: self.water_temp,
+            quick_notes: self.quick_notes,
         })
     }
 }
@@ -308,6 +340,19 @@ fn brew_timeline_event(enriched: &BrewWithDetails) -> NewTimelineEvent {
         label: "Ratio".to_string(),
         value: ratio,
     });
+
+    if !enriched.brew.quick_notes.is_empty() {
+        let labels: Vec<&str> = enriched
+            .brew
+            .quick_notes
+            .iter()
+            .map(|n| n.label())
+            .collect();
+        details.push(TimelineEventDetail {
+            label: "Notes".to_string(),
+            value: labels.join(", "),
+        });
+    }
 
     NewTimelineEvent {
         entity_type: "brew".to_string(),

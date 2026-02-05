@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string};
 
 use crate::domain::bags::Bag;
-use crate::domain::brews::Brew;
+use crate::domain::brews::{Brew, QuickNote};
 use crate::domain::cafes::Cafe;
 use crate::domain::gear::{Gear, GearCategory};
 use crate::domain::ids::{BagId, BrewId, CafeId, GearId, RoastId, RoasterId, TimelineEventId};
@@ -164,7 +164,7 @@ impl BackupService {
 
     async fn export_brews(&self) -> anyhow::Result<Vec<Brew>> {
         let records = sqlx::query_as::<_, BrewRecord>(
-            "SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at FROM brews ORDER BY id",
+            "SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at FROM brews ORDER BY id",
         )
         .fetch_all(&self.pool)
         .await
@@ -561,12 +561,21 @@ struct BrewRecord {
     filter_paper_id: Option<i64>,
     water_volume: i32,
     water_temp: f64,
+    quick_notes: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
 
 impl BrewRecord {
     fn into_domain(self) -> Brew {
+        let quick_notes = match self.quick_notes {
+            Some(s) if !s.is_empty() => serde_json::from_str::<Vec<String>>(&s)
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|v| QuickNote::from_str_value(v))
+                .collect(),
+            _ => Vec::new(),
+        };
         Brew {
             id: BrewId::new(self.id),
             bag_id: BagId::new(self.bag_id),
@@ -577,6 +586,7 @@ impl BrewRecord {
             filter_paper_id: self.filter_paper_id.map(GearId::new),
             water_volume: self.water_volume,
             water_temp: self.water_temp,
+            quick_notes,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

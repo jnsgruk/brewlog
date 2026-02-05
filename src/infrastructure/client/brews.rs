@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 
-use crate::domain::brews::BrewWithDetails;
+use crate::domain::brews::{BrewWithDetails, QuickNote};
 use crate::domain::ids::{BagId, BrewId, GearId};
 
 use super::BrewlogClient;
@@ -25,6 +25,7 @@ impl<'a> BrewsClient<'a> {
         filter_paper_id: Option<GearId>,
         water_volume: i32,
         water_temp: f64,
+        quick_notes: Vec<QuickNote>,
     ) -> Result<BrewWithDetails> {
         let url = self.inner.endpoint("api/v1/brews")?;
         let mut payload = serde_json::json!({
@@ -38,6 +39,10 @@ impl<'a> BrewsClient<'a> {
         });
         if let Some(fp_id) = filter_paper_id {
             payload["filter_paper_id"] = serde_json::json!(fp_id);
+        }
+        if !quick_notes.is_empty() {
+            let labels: Vec<&str> = quick_notes.iter().map(|n| n.label()).collect();
+            payload["quick_notes"] = serde_json::json!(labels);
         }
 
         let response = self

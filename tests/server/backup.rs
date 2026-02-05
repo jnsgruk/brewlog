@@ -201,6 +201,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             filter_paper_id: Some(filter_paper.id),
             water_volume: 250,
             water_temp: 93.5,
+            quick_notes: Vec::new(),
         })
         .await
         .expect("failed to create brew");

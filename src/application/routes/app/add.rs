@@ -99,6 +99,7 @@ pub(crate) async fn add_page(
         filter_paper_options: brew_form.filter_paper_options,
         cafe_options,
         defaults: brew_form.defaults,
+        quick_note_options: brew_form.quick_note_options,
     };
 
     render_html(template).map(IntoResponse::into_response)

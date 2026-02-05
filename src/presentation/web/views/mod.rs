@@ -8,7 +8,7 @@ mod roasts;
 mod timeline;
 
 pub use bags::{BagOptionView, BagView};
-pub use brews::{BrewDefaultsView, BrewView};
+pub use brews::{BrewDefaultsView, BrewView, QuickNoteView};
 pub use cafes::{CafeOptionView, CafeView, NearbyCafeView};
 pub use cups::CupView;
 pub use gear::{GearOptionView, GearView};

@@ -3,6 +3,7 @@ use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
 use super::print_json;
+use crate::domain::brews::QuickNote;
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::infrastructure::client::BrewlogClient;
 
@@ -60,9 +61,19 @@ pub struct AddBrewCommand {
     /// Water temperature in Celsius
     #[arg(long, default_value = "91.0")]
     pub water_temp: f64,
+
+    /// Quick notes (comma-separated: good,too-fast,too-slow,too-hot,under-extracted,over-extracted)
+    #[arg(long, value_delimiter = ',')]
+    pub quick_notes: Vec<String>,
 }
 
 pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result<()> {
+    let quick_notes: Vec<QuickNote> = command
+        .quick_notes
+        .iter()
+        .filter_map(|s| QuickNote::from_str_value(s))
+        .collect();
+
     let brew = client
         .brews()
         .create(
@@ -74,6 +85,7 @@ pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result
             command.filter_paper_id.map(GearId::new),
             command.water_volume,
             command.water_temp,
+            quick_notes,
         )
         .await?;
     print_json(&brew)

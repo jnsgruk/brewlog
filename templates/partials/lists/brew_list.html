@@ -29,6 +29,7 @@
             <th scope="col" class="px-4 py-3">Grind</th>
             <th scope="col" class="px-4 py-3">Recipe</th>
             <th scope="col" class="px-4 py-3">Brewer</th>
+            <th scope="col" class="px-4 py-3">Notes</th>
             {% if is_authenticated %}
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
             {% endif %}
@@ -66,6 +67,13 @@
             {% if let Some(fp_name) = brew.filter_paper_name %}
             <td data-label="Filter" class="px-4 py-3 whitespace-nowrap md:hidden">{{ fp_name }}</td>
             {% endif %}
+            <td data-label="Notes" class="px-4 py-3 text-xs text-stone-500">
+              {% if !brew.quick_notes_label.is_empty() %}
+              {{ brew.quick_notes_label }}
+              {% else %}
+              <span class="text-stone-400">&mdash;</span>
+              {% endif %}
+            </td>
             {% if is_authenticated %}
             <td data-label="" class="card-detail hidden">
               <div class="flex items-center gap-4">

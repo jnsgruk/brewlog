@@ -25,6 +25,7 @@ async fn creating_a_brew_returns_201_for_valid_data() {
         filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     // Act
@@ -71,6 +72,7 @@ async fn creating_a_brew_with_filter_paper_returns_201() {
         filter_paper_id: Some(filter_paper.id),
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     // Act
@@ -109,6 +111,7 @@ async fn creating_a_brew_deducts_from_bag_remaining() {
         filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     // Act
@@ -151,6 +154,7 @@ async fn creating_a_brew_fails_if_insufficient_coffee_in_bag() {
         filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     // Act
@@ -217,6 +221,7 @@ async fn listing_brews_returns_200_and_enriched_data() {
         filter_paper_id: Some(filter_paper.id),
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     client
@@ -270,6 +275,7 @@ async fn listing_brews_without_filter_paper_returns_none() {
         filter_paper_id: None,
         water_volume: 255,
         water_temp: 88.0,
+        quick_notes: Vec::new(),
     };
 
     client
@@ -318,6 +324,7 @@ async fn listing_brews_with_bag_filter_returns_filtered_results() {
         filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     client
@@ -338,6 +345,7 @@ async fn listing_brews_with_bag_filter_returns_filtered_results() {
         filter_paper_id: None,
         water_volume: 255,
         water_temp: 88.0,
+        quick_notes: Vec::new(),
     };
 
     client
@@ -383,6 +391,7 @@ async fn getting_a_brew_returns_200_for_valid_id() {
         filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     let create_response = client
@@ -432,6 +441,7 @@ async fn deleting_a_brew_returns_204() {
         filter_paper_id: None,
         water_volume: 250,
         water_temp: 92.0,
+        quick_notes: Vec::new(),
     };
 
     let create_response = client

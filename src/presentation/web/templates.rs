@@ -2,8 +2,9 @@ use askama::Template;
 
 use super::views::{
     BagOptionView, BagView, BrewDefaultsView, BrewView, CafeOptionView, CafeView, CupView,
-    GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, RoastOptionView, RoastView,
-    RoasterOptionView, RoasterView, StatsView, TimelineEventView, TimelineMonthView,
+    GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, QuickNoteView,
+    RoastOptionView, RoastView, RoasterOptionView, RoasterView, StatsView, TimelineEventView,
+    TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -170,6 +171,7 @@ pub struct AddTemplate {
     pub filter_paper_options: Vec<GearOptionView>,
     pub cafe_options: Vec<CafeOptionView>,
     pub defaults: BrewDefaultsView,
+    pub quick_note_options: Vec<QuickNoteView>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {
