@@ -59,13 +59,14 @@
       <button
         id="add-passkey-btn"
         type="button"
+        onclick="registerPasskey()"
         class="shrink-0 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Register
       </button>
       <button
-        id="cancel-add-passkey"
         type="button"
+        onclick="hidePasskeyForm()"
         class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800"
       >
         Cancel
@@ -80,6 +81,7 @@
   <button
     id="show-add-passkey"
     type="button"
+    onclick="showPasskeyForm()"
     class="mt-3 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500"
   >
     Add Passkey
@@ -139,13 +141,14 @@
       <button
         id="create-token-btn"
         type="button"
+        onclick="createToken()"
         class="shrink-0 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Create
       </button>
       <button
-        id="cancel-create-token"
         type="button"
+        onclick="hideTokenForm()"
         class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800"
       >
         Cancel
@@ -159,16 +162,16 @@
     <div class="mt-3 flex items-center gap-2">
       <code id="token-value" class="flex-1 rounded bg-white px-3 py-2 text-sm font-mono text-stone-800 border border-green-200 break-all select-all"></code>
       <button
-        id="copy-token-btn"
         type="button"
+        onclick="copyToken(this)"
         class="shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-green-50 transition hover:bg-green-500"
       >
         Copy
       </button>
     </div>
     <button
-      id="dismiss-token"
       type="button"
+      onclick="window.location.reload()"
       class="mt-2 text-sm text-stone-500 hover:text-stone-700"
     >
       Dismiss
@@ -178,6 +181,7 @@
   <button
     id="show-create-token"
     type="button"
+    onclick="showTokenForm()"
     class="mt-3 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500"
   >
     Create Token
@@ -247,144 +251,119 @@
 </section>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // --- Passkey management ---
-    const showAddPasskey = document.getElementById("show-add-passkey");
-    const addPasskeyForm = document.getElementById("add-passkey-form");
-    const cancelAddPasskey = document.getElementById("cancel-add-passkey");
-    const addPasskeyBtn = document.getElementById("add-passkey-btn");
-    const passkeyNameInput = document.getElementById("passkey-name");
-    const addPasskeyError = document.getElementById("add-passkey-error");
-    const addPasskeyLoading = document.getElementById("add-passkey-loading");
+  // --- Passkey form ---
 
-    showAddPasskey.addEventListener("click", function () {
-      addPasskeyForm.classList.remove("hidden");
-      showAddPasskey.classList.add("hidden");
-      passkeyNameInput.focus();
-    });
+  const showPasskeyForm = () => {
+    document.getElementById("add-passkey-form").classList.remove("hidden");
+    document.getElementById("show-add-passkey").classList.add("hidden");
+    document.getElementById("passkey-name").focus();
+  };
 
-    cancelAddPasskey.addEventListener("click", function () {
-      addPasskeyForm.classList.add("hidden");
-      showAddPasskey.classList.remove("hidden");
-      addPasskeyError.classList.add("hidden");
-      passkeyNameInput.value = "";
-    });
+  const hidePasskeyForm = () => {
+    document.getElementById("add-passkey-form").classList.add("hidden");
+    document.getElementById("show-add-passkey").classList.remove("hidden");
+    document.getElementById("add-passkey-error").classList.add("hidden");
+    document.getElementById("passkey-name").value = "";
+  };
 
-    addPasskeyBtn.addEventListener("click", async function () {
-      const name = passkeyNameInput.value.trim();
-      if (!name) {
-        addPasskeyError.textContent = "Please enter a name for this passkey.";
-        addPasskeyError.classList.remove("hidden");
-        return;
-      }
+  const registerPasskey = async () => {
+    const name = document.getElementById("passkey-name").value.trim();
+    const errorEl = document.getElementById("add-passkey-error");
+    const loadingEl = document.getElementById("add-passkey-loading");
+    const btn = document.getElementById("add-passkey-btn");
 
-      addPasskeyError.classList.add("hidden");
-      addPasskeyLoading.classList.remove("hidden");
-      addPasskeyBtn.disabled = true;
+    if (!name) {
+      errorEl.textContent = "Please enter a name for this passkey.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
 
-      try {
-        await addPasskey(name);
-        window.location.reload();
-      } catch (err) {
-        addPasskeyError.textContent = err.message;
-        addPasskeyError.classList.remove("hidden");
-        addPasskeyLoading.classList.add("hidden");
-        addPasskeyBtn.disabled = false;
-      }
-    });
+    errorEl.classList.add("hidden");
+    loadingEl.classList.remove("hidden");
+    btn.disabled = true;
 
-    // --- Token management ---
-    const showCreateToken = document.getElementById("show-create-token");
-    const createTokenForm = document.getElementById("create-token-form");
-    const cancelCreateToken = document.getElementById("cancel-create-token");
-    const createTokenBtn = document.getElementById("create-token-btn");
-    const tokenNameInput = document.getElementById("token-name");
-    const createTokenError = document.getElementById("create-token-error");
-    const tokenCreated = document.getElementById("token-created");
-    const tokenValue = document.getElementById("token-value");
-    const copyTokenBtn = document.getElementById("copy-token-btn");
-    const dismissToken = document.getElementById("dismiss-token");
-
-    showCreateToken.addEventListener("click", function () {
-      createTokenForm.classList.remove("hidden");
-      showCreateToken.classList.add("hidden");
-      tokenNameInput.focus();
-    });
-
-    cancelCreateToken.addEventListener("click", function () {
-      createTokenForm.classList.add("hidden");
-      showCreateToken.classList.remove("hidden");
-      createTokenError.classList.add("hidden");
-      tokenNameInput.value = "";
-    });
-
-    createTokenBtn.addEventListener("click", async function () {
-      const name = tokenNameInput.value.trim();
-      if (!name) {
-        createTokenError.textContent = "Please enter a name for this token.";
-        createTokenError.classList.remove("hidden");
-        return;
-      }
-
-      createTokenError.classList.add("hidden");
-      createTokenBtn.disabled = true;
-
-      try {
-        const response = await fetch("/api/v1/tokens", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to create token (HTTP " + response.status + ").");
-        }
-
-        const data = await response.json();
-
-        // Show the one-time token value
-        createTokenForm.classList.add("hidden");
-        tokenValue.textContent = data.token;
-        tokenCreated.classList.remove("hidden");
-      } catch (err) {
-        createTokenError.textContent = err.message;
-        createTokenError.classList.remove("hidden");
-        createTokenBtn.disabled = false;
-      }
-    });
-
-    copyTokenBtn.addEventListener("click", function () {
-      const token = tokenValue.textContent;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(token).then(function () {
-          copyTokenBtn.textContent = "Copied!";
-          setTimeout(function () {
-            copyTokenBtn.textContent = "Copy";
-          }, 2000);
-        });
-      } else {
-        // Fallback: select the text
-        const range = document.createRange();
-        range.selectNodeContents(tokenValue);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    });
-
-    dismissToken.addEventListener("click", function () {
-      tokenCreated.classList.add("hidden");
-      showCreateToken.classList.remove("hidden");
-      tokenNameInput.value = "";
-      createTokenBtn.disabled = false;
+    try {
+      await addPasskey(name);
       window.location.reload();
-    });
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.classList.remove("hidden");
+      loadingEl.classList.add("hidden");
+      btn.disabled = false;
+    }
+  };
 
-  });
+  // --- Token form ---
 
-  // --- Global functions for inline onclick/onchange handlers ---
+  const showTokenForm = () => {
+    document.getElementById("create-token-form").classList.remove("hidden");
+    document.getElementById("show-create-token").classList.add("hidden");
+    document.getElementById("token-name").focus();
+  };
 
-  async function restoreFromFile(input) {
+  const hideTokenForm = () => {
+    document.getElementById("create-token-form").classList.add("hidden");
+    document.getElementById("show-create-token").classList.remove("hidden");
+    document.getElementById("create-token-error").classList.add("hidden");
+    document.getElementById("token-name").value = "";
+  };
+
+  const createToken = async () => {
+    const name = document.getElementById("token-name").value.trim();
+    const errorEl = document.getElementById("create-token-error");
+    const btn = document.getElementById("create-token-btn");
+
+    if (!name) {
+      errorEl.textContent = "Please enter a name for this token.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+
+    errorEl.classList.add("hidden");
+    btn.disabled = true;
+
+    try {
+      const response = await fetch("/api/v1/tokens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create token (HTTP ${response.status}).`);
+      }
+
+      const data = await response.json();
+
+      document.getElementById("create-token-form").classList.add("hidden");
+      document.getElementById("token-value").textContent = data.token;
+      document.getElementById("token-created").classList.remove("hidden");
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.classList.remove("hidden");
+      btn.disabled = false;
+    }
+  };
+
+  const copyToken = (btn) => {
+    const token = document.getElementById("token-value").textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(token).then(() => {
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+      });
+    } else {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById("token-value"));
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  };
+
+  // --- Data management ---
+
+  const restoreFromFile = async (input) => {
     const file = input.files[0];
     if (!file) return;
     input.value = "";
@@ -412,7 +391,7 @@
         throw new Error("Database is not empty. Restore requires an empty database.");
       }
       if (!response.ok) {
-        throw new Error("Restore failed (HTTP " + response.status + ").");
+        throw new Error(`Restore failed (HTTP ${response.status}).`);
       }
 
       status.textContent = "Backup restored successfully.";
@@ -421,13 +400,13 @@
       error.textContent = err instanceof SyntaxError ? "Invalid JSON file." : err.message;
       error.classList.remove("hidden");
     }
-  }
+  };
 
-  async function deletePasskey(id, name) {
-    if (!confirm('Delete passkey "' + name + '"? This cannot be undone.')) return;
+  const deletePasskey = async (id, name) => {
+    if (!confirm(`Delete passkey "${name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await fetch("/api/v1/passkeys/" + id, { method: "DELETE" });
+      const response = await fetch(`/api/v1/passkeys/${id}`, { method: "DELETE" });
       if (response.ok) {
         window.location.reload();
       } else if (response.status === 409) {
@@ -436,23 +415,23 @@
         alert("Failed to delete passkey.");
       }
     } catch (err) {
-      alert("Failed to delete passkey: " + err.message);
+      alert(`Failed to delete passkey: ${err.message}`);
     }
-  }
+  };
 
-  async function revokeToken(id, name) {
-    if (!confirm('Revoke token "' + name + '"? This cannot be undone.')) return;
+  const revokeToken = async (id, name) => {
+    if (!confirm(`Revoke token "${name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await fetch("/api/v1/tokens/" + id + "/revoke", { method: "POST" });
+      const response = await fetch(`/api/v1/tokens/${id}/revoke`, { method: "POST" });
       if (response.ok) {
         window.location.reload();
       } else {
         alert("Failed to revoke token.");
       }
     } catch (err) {
-      alert("Failed to revoke token: " + err.message);
+      alert(`Failed to revoke token: ${err.message}`);
     }
-  }
+  };
 </script>
 {% endblock %}
