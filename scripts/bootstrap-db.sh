@@ -3,11 +3,15 @@ set -euo pipefail
 
 cargo build
 
-BREWLOG_TOKEN="$(./target/debug/brewlog token create --name "bootstrap-token" --username admin --password password | grep -Po "BREWLOG_TOKEN=\K.+$")"
-export BREWLOG_TOKEN
-
-if [[ -z "$BREWLOG_TOKEN" ]]; then
+# BREWLOG_TOKEN must be set before running this script.
+# To create a token:
+#   1. Start the server: ./target/debug/brewlog serve
+#   2. Register at the URL printed on first start
+#   3. Create a token: ./target/debug/brewlog token create --name "bootstrap-token"
+#   4. Export the token: export BREWLOG_TOKEN=<token>
+if [[ -z "${BREWLOG_TOKEN:-}" ]]; then
   echo "Error: BREWLOG_TOKEN environment variable is not set."
+  echo "Create a token first: ./target/debug/brewlog token create --name bootstrap-token"
   exit 1
 fi
 

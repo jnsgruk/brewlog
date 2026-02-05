@@ -20,50 +20,59 @@ B{rew}log ships as one executable. You decide whether it acts as a server or a c
 
 ### First-time setup
 
-The server requires `BREWLOG_OPENROUTER_API_KEY` and `BREWLOG_FOURSQUARE_API_KEY` to be set. On first start, you must also set an admin username and password:
+The server requires `BREWLOG_RP_ID` and `BREWLOG_RP_ORIGIN` for passkey authentication:
 
 ```bash
-BREWLOG_ADMIN_USERNAME="admin" \
-BREWLOG_ADMIN_PASSWORD="your-secure-password" \
+BREWLOG_RP_ID="localhost" \
+BREWLOG_RP_ORIGIN="http://localhost:3000" \
 BREWLOG_OPENROUTER_API_KEY="sk-or-..." \
 BREWLOG_FOURSQUARE_API_KEY="fsq3..." \
 brewlog serve
 ```
 
-This creates the admin user in the database. On subsequent starts, the admin environment variables are not required.
+On first start with an empty database, the server prints a one-time registration URL:
+
+```
+No users found. Register the first user at:
+  http://localhost:3000/register/abc123...
+This link expires in 1 hour.
+```
+
+Open that URL in your browser, enter a display name, and register a passkey. This creates the first user account and signs you in.
+
+> **Important**: The `BREWLOG_RP_ID` is baked into registered passkeys. If you change the domain, all existing passkeys become invalid and you'll need to re-register.
 
 ### Authentication
 
-Brewlog supports two authentication methods:
+Brewlog uses passkey (WebAuthn) authentication. There are no passwords.
 
-1. **Web Frontend**: Session-based authentication via login page
-2. **CLI/API**: Token-based authentication via Bearer tokens
+1. **Web Frontend**: Sign in with your passkey to get a session cookie
+2. **CLI/API**: Bearer tokens created via browser handoff
 
 #### Web Authentication
 
 1. Start the server and browse to the frontend
 2. Click "Login" in the navigation bar
-3. Sign in with username `admin` and your password
+3. Authenticate with your passkey (fingerprint, face, security key, etc.)
 4. You're now authenticated and can create/update/delete records
 
 #### CLI/API Authentication
 
-First, create an API token:
+Token creation uses a browser handoff flow (similar to `gh auth login`):
 
 ```bash
 brewlog token create --name "my-cli-token"
-# You will be prompted for username and password.
-# Alternatively, you can provide them via flags:
-# brewlog token create --name "my-cli-token" --username admin --password secret
-
-# Username: admin
-# Password: ********
+# Opening browser for authentication...
+# If the browser doesn't open, visit this URL:
+#
+#   http://localhost:3000/login?cli_callback=...
+#
+# (authenticate with your passkey in the browser)
 #
 # Token created successfully!
-# Token ID: nye9BDqnLL
 # Token Name: my-cli-token
 #
-# ⚠  Save this token securely - it will not be shown again:
+# Save this token securely - it will not be shown again:
 #
 # dEadB3efDeadb33fdeadb33F...
 #
@@ -146,8 +155,8 @@ All configuration is via environment variables or CLI flags. A `.env` file in th
 |----------|---------|---------|
 | `BREWLOG_DATABASE_URL` | Database connection string | `sqlite://brewlog.db` |
 | `BREWLOG_BIND_ADDRESS` | Server bind address | `127.0.0.1:3000` |
-| `BREWLOG_ADMIN_USERNAME` | Initial admin username | — (required on first run) |
-| `BREWLOG_ADMIN_PASSWORD` | Initial admin password | — (required on first run) |
+| `BREWLOG_RP_ID` | WebAuthn Relying Party ID (your domain, e.g. `localhost` or `brewlog.example.com`) | — (required) |
+| `BREWLOG_RP_ORIGIN` | WebAuthn Relying Party origin (full URL, e.g. `http://localhost:3000`) | — (required) |
 | `BREWLOG_SECURE_COOKIES` | Set to `true` to enable the Secure cookie flag (for HTTPS) | `false` |
 | `RUST_LOG` | Log level filter | `info` |
 
@@ -155,7 +164,7 @@ All configuration is via environment variables or CLI flags. A `.env` file in th
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `BREWLOG_URL` | Server URL for CLI commands | `http://127.0.0.1:3000` |
+| `BREWLOG_URL` | Server URL for CLI commands | `http://localhost:3000` |
 | `BREWLOG_TOKEN` | API token for authenticated CLI operations | — |
 
 ### Integrations
