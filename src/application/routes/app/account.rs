@@ -1,19 +1,14 @@
 use askama::Template;
-use axum::Json;
-use axum::extract::{Path, State};
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use tower_cookies::Cookies;
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 
-use crate::application::auth::AuthenticatedUser;
 use crate::application::routes::render_html;
 use crate::application::server::AppState;
-use crate::domain::ids::PasskeyCredentialId;
-
-use super::auth::is_authenticated;
 
 // --- View types ---
 
@@ -86,7 +81,7 @@ pub(crate) async fn account_page(
     State(state): State<AppState>,
     cookies: Cookies,
 ) -> Result<Response, StatusCode> {
-    if !is_authenticated(&state, &cookies).await {
+    if !crate::application::routes::is_authenticated(&state, &cookies).await {
         return Ok(Redirect::to("/login").into_response());
     }
 
@@ -153,81 +148,6 @@ pub(crate) async fn account_page(
     };
 
     render_html(template).map(IntoResponse::into_response)
-}
-
-// --- Passkey API ---
-
-#[derive(Serialize)]
-pub struct PasskeyResponse {
-    pub id: i64,
-    pub name: String,
-    pub created_at: DateTime<Utc>,
-    pub last_used_at: Option<DateTime<Utc>>,
-}
-
-pub(crate) async fn list_passkeys(
-    State(state): State<AppState>,
-    auth_user: AuthenticatedUser,
-) -> Result<Json<Vec<PasskeyResponse>>, StatusCode> {
-    let passkeys = state
-        .passkey_repo
-        .list_by_user(auth_user.0.id)
-        .await
-        .map_err(|err| {
-            error!(error = %err, "failed to list passkeys");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-
-    let responses: Vec<PasskeyResponse> = passkeys
-        .into_iter()
-        .map(|p| PasskeyResponse {
-            id: i64::from(p.id),
-            name: p.name,
-            created_at: p.created_at,
-            last_used_at: p.last_used_at,
-        })
-        .collect();
-
-    Ok(Json(responses))
-}
-
-pub(crate) async fn delete_passkey(
-    State(state): State<AppState>,
-    auth_user: AuthenticatedUser,
-    Path(passkey_id): Path<PasskeyCredentialId>,
-) -> Result<StatusCode, StatusCode> {
-    // Verify the passkey belongs to the user
-    let passkey = state.passkey_repo.get(passkey_id).await.map_err(|err| {
-        error!(error = %err, %passkey_id, "failed to get passkey for deletion");
-        StatusCode::NOT_FOUND
-    })?;
-
-    if passkey.user_id != auth_user.0.id {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // Ensure the user has more than one passkey
-    let all_passkeys = state
-        .passkey_repo
-        .list_by_user(auth_user.0.id)
-        .await
-        .map_err(|err| {
-            error!(error = %err, "failed to list passkeys for deletion check");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-
-    if all_passkeys.len() <= 1 {
-        return Err(StatusCode::CONFLICT);
-    }
-
-    state.passkey_repo.delete(passkey_id).await.map_err(|err| {
-        error!(error = %err, %passkey_id, "failed to delete passkey");
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
-
-    info!(%passkey_id, user_id = %auth_user.0.id, "passkey deleted");
-
-    Ok(StatusCode::NO_CONTENT)
 }
 
 // --- Helpers ---
