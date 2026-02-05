@@ -14,9 +14,9 @@ use crate::application::server::AppState;
 
 #[derive(Serialize)]
 pub struct AiUsageView {
-    pub total_calls: i64,
-    pub total_tokens: String,
-    pub total_cost: String,
+    pub calls: i64,
+    pub tokens: String,
+    pub cost: String,
 }
 
 fn format_cost(cost: f64) -> String {
@@ -133,9 +133,9 @@ pub(crate) async fn account_page(
         }
     };
     let ai_usage = ai_usage.filter(|s| s.total_calls > 0).map(|s| AiUsageView {
-        total_calls: s.total_calls,
-        total_tokens: format_number(s.total_tokens),
-        total_cost: format_cost(s.total_cost),
+        calls: s.total_calls,
+        tokens: format_number(s.total_tokens),
+        cost: format_cost(s.total_cost),
     });
 
     let template = AccountTemplate {

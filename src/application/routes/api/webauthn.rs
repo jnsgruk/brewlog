@@ -25,7 +25,6 @@ const SESSION_COOKIE_NAME: &str = "brewlog_session";
 pub struct RegisterStartRequest {
     pub token: String,
     pub display_name: String,
-    pub passkey_name: String,
 }
 
 #[derive(Serialize)]
