@@ -1,6 +1,79 @@
+@import "tailwindcss";
+@source "./";
+
+/* ── Dark mode variant (selector-based) ────────────────────────── */
+
+@custom-variant dark (&:where([data-theme="dark"] *));
+
+/* ── Design tokens ─────────────────────────────────────────────── */
+
 :root {
   color-scheme: light;
+
+  /* Surfaces */
+  --page: #fafaf9;           /* stone-50  */
+  --surface: #ffffff;         /* white     */
+  --surface-alt: #f5f5f4;    /* stone-100 */
+
+  /* Borders */
+  --border: #e7e5e4;          /* stone-200 */
+  --border-muted: #f5f5f4;    /* stone-100 */
+
+  /* Accent */
+  --accent: #c2410c;          /* orange-700 */
+  --accent-hover: #ea580c;    /* orange-600 */
+  --accent-subtle: #fff7ed;   /* orange-50  */
+  --accent-text: #ffffff;
+
+  /* Text */
+  --text: #1c1917;            /* stone-900 */
+  --text-secondary: #78716c;  /* stone-500 */
+  --text-muted: #a8a29e;      /* stone-400 */
 }
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #1c1917;
+  --surface: #292524;
+  --surface-alt: #44403c;
+
+  --border: #57534e;
+  --border-muted: #44403c;
+
+  --accent: #ea580c;
+  --accent-hover: #f97316;
+  --accent-subtle: rgba(234, 88, 12, 0.1);
+  --accent-text: #ffffff;
+
+  --text: #e7e5e4;
+  --text-secondary: #a8a29e;
+  --text-muted: #78716c;
+}
+
+/* ── Theme: map raw vars to Tailwind utilities ─────────────────── */
+
+@theme {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-text: var(--accent-text);
+}
+
+/* ── Base: default border color ────────────────────────────────── */
+
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+}
+
+/* ── Typography ────────────────────────────────────────────────── */
 
 body {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -10,21 +83,23 @@ a {
   text-decoration: none;
 }
 
+/* ── Form controls ─────────────────────────────────────────────── */
+
 .input-field {
   width: 100%;
   min-width: 0;
   border-radius: 0.5rem;
-  border: 1px solid rgba(120, 53, 15, 0.3);
-  background-color: rgba(254, 243, 199, 0.85);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
   padding: 0.6rem 0.75rem;
-  color: #4a2f0b;
+  color: var(--text);
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: rgba(180, 83, 9, 0.6);
-  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.15);
 }
 
 .btn-adjust {
@@ -34,18 +109,41 @@ a {
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
-  border: 1px solid rgba(245, 158, 11, 1);
+  border: 1px solid var(--border);
   background-color: transparent;
-  color: rgba(180, 83, 9, 1);
+  color: var(--text-secondary);
   font-weight: 700;
-  transition: background-color 150ms ease;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 .btn-adjust:hover {
-  background-color: rgba(255, 251, 235, 1);
+  background-color: var(--surface-alt);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-/* Timeline layout */
+/* ── Pills ─────────────────────────────────────────────────────── */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.pill-muted {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  background-color: var(--surface-alt);
+}
+
+
+
+/* ── Timeline layout ───────────────────────────────────────────── */
 
 /* Mobile: single column, centred line behind cards */
 .timeline-line {
@@ -68,7 +166,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: #fefce8; /* amber-50, matches page background */
+  background-color: var(--page);
   padding-top: 1rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid transparent;
@@ -77,7 +175,7 @@ a {
 }
 
 .timeline-heading.is-stuck {
-  border-bottom-color: #b45309; /* amber-700 */
+  border-bottom-color: var(--accent);
 }
 
 .timeline-top-btn {
@@ -87,7 +185,7 @@ a {
   top: 50%;
   transform: translateY(-50%);
   padding: 0.25rem;
-  color: #b45309; /* amber-700 */
+  color: var(--text-secondary);
   opacity: 0.7;
   transition: opacity 0.15s ease;
 }
@@ -100,6 +198,8 @@ a {
   display: block;
 }
 
+/* ── Data page ─────────────────────────────────────────────────── */
+
 /* Hide duplicate search inside data page - search is in the tab bar */
 .data-page-content section:has(.responsive-table) > div:first-child:has(input[type="search"]) {
   display: none;
@@ -110,7 +210,8 @@ a {
   margin-top: 0;
 }
 
-/* Responsive tables: convert rows to cards on mobile */
+/* ── Responsive tables: convert rows to cards on mobile ────────── */
+
 @media (max-width: 767px) {
   /* Remove outer section border/background on mobile - cards are standalone */
   section:has(.responsive-table) {
@@ -156,16 +257,16 @@ a {
     padding: 0;
   }
 
-  /* Match home page brew card style */
+  /* Mobile card style */
   .responsive-table tr {
     display: flex;
     flex-direction: column;
     position: relative;
     padding: 1rem;
     border-radius: 0.5rem;
-    border: 1px solid #fde68a !important; /* amber-200 */
-    background-color: #fffbeb; /* amber-50 */
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    border: 1px solid var(--border) !important;
+    background-color: var(--surface);
+    box-shadow: none;
   }
 
   .responsive-table td {
@@ -184,7 +285,7 @@ a {
     min-width: 5.5rem;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: #78716c; /* stone-500 - more muted like brew card */
+    color: var(--text-secondary);
     margin-right: 0.75rem;
   }
 
@@ -202,14 +303,14 @@ a {
     padding: 0 0 0.5rem 0;
     padding-right: 2.5rem;
     margin-bottom: 0.5rem;
-    border-bottom: 1px solid #fef3c7 !important; /* amber-100 */
+    border-bottom: 1px solid var(--border-muted) !important;
   }
 
   .responsive-table td.card-title,
   .responsive-table td.card-title > :first-child {
     font-size: 1rem;
     font-weight: 600;
-    color: #92400e; /* amber-800 */
+    color: var(--text);
   }
 
   .responsive-table td.card-title::before {
@@ -221,15 +322,15 @@ a {
     order: 99;
     padding-top: 0.5rem;
     margin-top: 0.5rem;
-    border-top: 1px solid #fef3c7 !important; /* amber-100 */
+    border-top: 1px solid var(--border-muted) !important;
     font-size: 0.75rem;
-    color: #78716c;
+    color: var(--text-secondary);
   }
 
   .responsive-table td.card-date::before {
     font-size: 0.75rem;
     font-weight: 500;
-    color: #78716c;
+    color: var(--text-secondary);
     min-width: auto;
     margin-right: 0.5rem;
   }
@@ -262,13 +363,13 @@ a {
     align-items: center;
     justify-content: center;
     border-radius: 0.375rem;
-    color: #78716c;
+    color: var(--text-secondary);
     transition: color 150ms ease, background-color 150ms ease;
   }
 
   .card-menu summary:hover {
-    color: #b45309;
-    background-color: rgba(254, 243, 199, 0.8);
+    color: var(--accent);
+    background-color: var(--surface-alt);
   }
 
   .card-menu summary::-webkit-details-marker {
@@ -276,8 +377,8 @@ a {
   }
 
   .card-menu[open] summary {
-    color: #b45309;
-    background-color: rgba(254, 243, 199, 0.8);
+    color: var(--accent);
+    background-color: var(--surface-alt);
   }
 
   .card-menu .card-menu-items {
@@ -288,8 +389,8 @@ a {
     min-width: 10rem;
     margin-top: 0.25rem;
     border-radius: 0.5rem;
-    border: 1px solid rgba(217, 169, 55, 0.4);
-    background-color: #fffbeb;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
     padding: 0.25rem 0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   }
@@ -303,7 +404,7 @@ a {
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
-    color: #44403c;
+    color: var(--text);
     text-align: left;
     background: none;
     border: none;
@@ -315,7 +416,7 @@ a {
   .card-menu .card-menu-items a:hover,
   .card-menu .card-menu-items button:hover,
   .card-menu .card-menu-items form button:hover {
-    background-color: rgba(254, 243, 199, 0.6);
+    background-color: var(--surface-alt);
   }
 
   .card-menu .card-menu-items .menu-item-danger {
@@ -331,7 +432,8 @@ a {
   }
 }
 
-/* Desktop: alternating cards with central line */
+/* ── Desktop timeline ──────────────────────────────────────────── */
+
 @media (min-width: 768px) {
   .timeline-list {
     display: flex;

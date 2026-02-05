@@ -50,8 +50,12 @@
               src = lib.cleanSource ./.;
               cargoLock.lockFile = ./Cargo.lock;
 
-              nativeBuildInputs = [ pkgs.pkg-config ];
+              nativeBuildInputs = [ pkgs.pkg-config pkgs.tailwindcss_4 ];
               buildInputs = [ pkgs.openssl ];
+
+              preBuild = ''
+                tailwindcss -i templates/input.css -o templates/styles.css --minify
+              '';
 
               meta = {
                 description = "Log your favourite roasters, roasts, brews and cafes!";
@@ -79,6 +83,7 @@
                   nixfmt
                   sqlite
                   sqlx-cli
+                  tailwindcss_4
                 ]);
             };
           };
