@@ -69,7 +69,7 @@ fn format_date(dt: DateTime<Utc>) -> String {
 // --- Templates ---
 
 #[derive(Template)]
-#[template(path = "account.html")]
+#[template(path = "pages/account.html")]
 struct AccountTemplate {
     nav_active: &'static str,
     is_authenticated: bool,

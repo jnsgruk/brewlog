@@ -25,7 +25,7 @@ const SESSION_COOKIE_NAME: &str = "brewlog_session";
 // --- Templates ---
 
 #[derive(Template)]
-#[template(path = "register.html")]
+#[template(path = "pages/register.html")]
 struct RegisterTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
@@ -34,7 +34,7 @@ struct RegisterTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "cli_callback.html")]
+#[template(path = "pages/cli_callback.html")]
 struct CliCallbackTemplate {
     nav_active: &'static str,
     is_authenticated: bool,

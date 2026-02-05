@@ -17,7 +17,7 @@ pub struct LoginQuery {
 }
 
 #[derive(Template)]
-#[template(path = "login.html")]
+#[template(path = "pages/login.html")]
 struct LoginTemplate {
     nav_active: &'static str,
     is_authenticated: bool,

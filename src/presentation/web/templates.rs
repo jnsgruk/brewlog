@@ -15,7 +15,7 @@ use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
 use crate::domain::timeline::TimelineSortKey;
 
 #[derive(Template)]
-#[template(path = "partials/roaster_list.html")]
+#[template(path = "partials/lists/roaster_list.html")]
 pub struct RoasterListTemplate {
     pub is_authenticated: bool,
     pub roasters: Paginated<RoasterView>,
@@ -23,7 +23,7 @@ pub struct RoasterListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "partials/roast_list.html")]
+#[template(path = "partials/lists/roast_list.html")]
 pub struct RoastListTemplate {
     pub is_authenticated: bool,
     pub roasts: Paginated<RoastView>,
@@ -31,7 +31,7 @@ pub struct RoastListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "timeline.html")]
+#[template(path = "pages/timeline.html")]
 pub struct TimelineTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
@@ -52,7 +52,7 @@ pub struct TimelineChunkTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "partials/bag_list.html")]
+#[template(path = "partials/lists/bag_list.html")]
 pub struct BagListTemplate {
     pub is_authenticated: bool,
     pub bags: Paginated<BagView>,
@@ -60,7 +60,7 @@ pub struct BagListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "partials/gear_list.html")]
+#[template(path = "partials/lists/gear_list.html")]
 pub struct GearListTemplate {
     pub is_authenticated: bool,
     pub gear: Paginated<GearView>,
@@ -74,7 +74,7 @@ pub struct RoastOptionsTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "partials/brew_list.html")]
+#[template(path = "partials/lists/brew_list.html")]
 pub struct BrewListTemplate {
     pub is_authenticated: bool,
     pub brews: Paginated<BrewView>,
@@ -82,7 +82,7 @@ pub struct BrewListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "partials/cafe_list.html")]
+#[template(path = "partials/lists/cafe_list.html")]
 pub struct CafeListTemplate {
     pub is_authenticated: bool,
     pub cafes: Paginated<CafeView>,
@@ -90,7 +90,7 @@ pub struct CafeListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "partials/cup_list.html")]
+#[template(path = "partials/lists/cup_list.html")]
 pub struct CupListTemplate {
     pub is_authenticated: bool,
     pub cups: Paginated<CupView>,
@@ -98,7 +98,7 @@ pub struct CupListTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "home.html")]
+#[template(path = "pages/home.html")]
 pub struct HomeTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
@@ -111,7 +111,7 @@ pub struct HomeTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "checkin.html")]
+#[template(path = "pages/checkin.html")]
 pub struct CheckInTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
@@ -128,7 +128,7 @@ pub struct NearbyCafesFragment {
 }
 
 #[derive(Template)]
-#[template(path = "data.html")]
+#[template(path = "pages/data.html")]
 pub struct DataTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
@@ -150,7 +150,7 @@ pub struct Tab {
 }
 
 #[derive(Template)]
-#[template(path = "add.html")]
+#[template(path = "pages/add.html")]
 pub struct AddTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
