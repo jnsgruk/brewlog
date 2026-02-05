@@ -35,12 +35,11 @@ sqlx = { version = "0.7", default-features = false, features = [
 thiserror = "1.0"
 tokio = { version = "1.38", features = ["rt-multi-thread", "macros", "signal"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
 tower = "0.4"
 tower-cookies = "0.10"
+tower-http = { version = "0.6", features = ["trace"] }
 slug = "0.1.6"
-tracing-bunyan-formatter = "0.3.10"
-tracing-log = "0.2.0"
 url = "2"
 uuid = { version = "1", features = ["v4"] }
 webauthn-rs = { version = "0.5", features = ["danger-allow-state-serialisation"] }

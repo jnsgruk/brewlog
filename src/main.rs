@@ -6,19 +6,14 @@ use brewlog::presentation::cli::{
     Cli, Commands, ServeCommand, bags, brews, cafes, cups, gear, roasters, roasts, tokens,
 };
 use clap::Parser;
-use tracing::{Subscriber, subscriber::set_global_default};
-use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
-use tracing_log::LogTracer;
-use tracing_subscriber::fmt::MakeWriter;
-use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Load .env file if present (before clap parses env vars)
     let _ = dotenvy::dotenv();
 
-    let subscriber = get_subscriber("brewlog".into(), "info".into(), std::io::stdout);
-    init_subscriber(subscriber);
+    init_tracing();
 
     let cli = Cli::parse();
 
@@ -116,29 +111,21 @@ async fn run_server(command: ServeCommand) -> Result<()> {
     serve(config).await
 }
 
-pub fn get_subscriber<Sink>(
-    name: String,
-    env_filter: String,
-    sink: Sink,
-) -> impl Subscriber + Send + Sync
-where
-    Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
-{
-    let env_filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
-    let formatting_layer = BunyanFormattingLayer::new(name, sink);
-
-    Registry::default()
-        .with(env_filter)
-        .with(JsonStorageLayer)
-        .with(formatting_layer)
-}
-
-/// Register a subscriber as global default to process span data.
-///
-/// This should only be called once!
 #[allow(clippy::expect_used)] // Startup: panicking is appropriate if logging cannot be initialized
-pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
-    LogTracer::init().expect("Failed to set logger");
-    set_global_default(subscriber).expect("Failed to set subscriber");
+fn init_tracing() {
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+
+    let use_json = std::env::var("RUST_LOG_FORMAT").is_ok_and(|v| v.eq_ignore_ascii_case("json"));
+
+    let registry = tracing_subscriber::registry().with(env_filter);
+
+    if use_json {
+        registry
+            .with(tracing_subscriber::fmt::layer().json())
+            .init();
+    } else {
+        registry
+            .with(tracing_subscriber::fmt::layer().compact())
+            .init();
+    }
 }

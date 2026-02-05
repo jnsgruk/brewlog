@@ -28,6 +28,8 @@ use axum::response::{Html, IntoResponse, Redirect};
 use axum::routing::{get, post};
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
+use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
+use tracing::Level;
 use tracing::error;
 
 use crate::application::server::AppState;
@@ -138,7 +140,15 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
         .nest("/api/v1/webauthn", webauthn_routes)
-        .layer(ServiceBuilder::new().layer(CookieManagerLayer::new()))
+        .layer(
+            ServiceBuilder::new()
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                        .on_response(DefaultOnResponse::new().level(Level::INFO)),
+                )
+                .layer(CookieManagerLayer::new()),
+        )
         .with_state(state)
 }
 
