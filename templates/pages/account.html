@@ -157,10 +157,10 @@
   </div>
 
   <!-- One-time token display (hidden by default) -->
-  <div id="token-created" class="mt-3 hidden rounded-lg border border-green-300 bg-green-50 p-5">
-    <p class="text-sm font-medium text-green-800">Token created! Copy it now — you won't see it again.</p>
+  <div id="token-created" class="mt-3 hidden rounded-lg border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/40 p-5">
+    <p class="text-sm font-medium text-green-800 dark:text-green-300">Token created! Copy it now — you won't see it again.</p>
     <div class="mt-3 flex items-center gap-2">
-      <code id="token-value" class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 break-all select-all"></code>
+      <code id="token-value" class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 dark:border-green-800 break-all select-all"></code>
       <button
         type="button"
         onclick="copyToken(this)"

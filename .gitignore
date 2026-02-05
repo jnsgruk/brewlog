@@ -1,8 +1,8 @@
 target/
 result*
-brewlog.db
+*.db
+*.db-journal
 TODO.md
-SPEC.md
 backup.json
 .env
 static/css/styles.css
