@@ -376,18 +376,23 @@ There is no `tower-http` static file serving — all assets are embedded at comp
 The UI uses **Tailwind CSS v4** built via the standalone CLI (no Node.js required). The Nix flake provides `tailwindcss_4` in both the devShell and the package `preBuild`.
 
 **Source file**: `templates/input.css` — the single source of truth for all styles.
-**Generated file**: `templates/styles.css` — gitignored, built by Tailwind CLI.
+**Generated file**: `templates/styles.css` — gitignored, built automatically by `build.rs`.
 
-#### Dev workflow
+#### Build integration
+
+`build.rs` runs `tailwindcss` automatically during `cargo build`. It watches all files under `templates/` and re-runs when any change. Release builds pass `--minify`. If `tailwindcss` is not found on `PATH`, the build prints a warning but continues (useful for CI without the CLI installed).
+
+There is **no need to run `tailwindcss` manually** — `cargo build` / `cargo run` handles it. You can still run it directly for validation or to check output without a full Rust compile:
+
+```bash
+tailwindcss -i templates/input.css -o templates/styles.css
+```
+
+For continuous CSS-only iteration, the `--watch` flag is useful alongside `cargo watch`:
 
 ```bash
 tailwindcss -i templates/input.css -o templates/styles.css --watch  # terminal 1
 cargo watch -x run                                                    # terminal 2
-```
-
-After any template or CSS change, regenerate with:
-```bash
-tailwindcss -i templates/input.css -o templates/styles.css
 ```
 
 #### Design Tokens
