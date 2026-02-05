@@ -73,6 +73,7 @@ fn format_date(dt: DateTime<Utc>) -> String {
 struct AccountTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
+    version_info: &'static crate::VersionInfo,
     ai_usage: Option<AiUsageView>,
     passkeys: Vec<PasskeyView>,
     tokens: Vec<TokenView>,
@@ -137,6 +138,7 @@ pub(crate) async fn account_page(
     let template = AccountTemplate {
         nav_active: "account",
         is_authenticated: true,
+        version_info: &crate::VERSION_INFO,
         ai_usage,
         passkeys,
         tokens,

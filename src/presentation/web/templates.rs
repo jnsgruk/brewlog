@@ -35,6 +35,7 @@ pub struct RoastListTemplate {
 pub struct TimelineTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
 
     pub events: Paginated<TimelineEventView>,
     pub navigator: ListNavigator<TimelineSortKey>,
@@ -101,6 +102,7 @@ pub struct CupListTemplate {
 pub struct HomeTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
 
     pub recent_brews: Vec<BrewView>,
     pub open_bags: Vec<BagView>,
@@ -113,6 +115,7 @@ pub struct HomeTemplate {
 pub struct CheckInTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
 
     pub roast_options: Vec<RoastOptionView>,
     pub cafe_options: Vec<CafeOptionView>,
@@ -129,6 +132,7 @@ pub struct NearbyCafesFragment {
 pub struct DataTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
     pub active_type: String,
     pub tabs: Vec<DataTab>,
     pub content: String,
@@ -145,6 +149,7 @@ pub struct DataTab {
 pub struct AddTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
     pub active_type: String,
     pub roaster_options: Vec<RoasterOptionView>,
     pub roast_options: Vec<RoastOptionView>,

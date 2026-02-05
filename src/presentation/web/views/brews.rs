@@ -87,6 +87,7 @@ impl Default for BrewDefaultsView {
     fn default() -> Self {
         Self {
             bag_id: String::new(),
+
             grinder_id: String::new(),
             brewer_id: String::new(),
             filter_paper_id: String::new(),
@@ -102,6 +103,7 @@ impl From<Brew> for BrewDefaultsView {
     fn from(brew: Brew) -> Self {
         Self {
             bag_id: brew.bag_id.to_string(),
+
             grinder_id: brew.grinder_id.to_string(),
             brewer_id: brew.brewer_id.to_string(),
             filter_paper_id: brew

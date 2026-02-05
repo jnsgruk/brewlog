@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog{% endblock %}
+{% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import "partials/icons.html" as icons %} {% import "partials/scan_input.html" as scan %} {% block title %}Brewlog{% endblock %}
 
 {% block head %}
 {% if is_authenticated %}
@@ -49,52 +49,25 @@
   data-signals:_open-bag="true"
   data-signals:_bag-amount="250"
 >
-  <h2 class="text-lg font-semibold text-amber-700 mb-3">Scan Bag</h2>
-
-  <!-- Hidden file input — minimal JS for FileReader API -->
-  <input type="file" id="scan-photo" accept="image/*" capture="environment" class="hidden"
-    onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{document.getElementById('scan-image').value=r.result;document.getElementById('scan-extract-form').requestSubmit()};r.readAsDataURL(this.files[0]);this.value=''}" />
-
   <!-- Input: photo or text (shown when not yet extracted) -->
-  <div data-show="!$_scanExtracted" class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm">
+  <div data-show="!$_scanExtracted" class="rounded-lg border bg-surface p-5">
     <form id="scan-extract-form"
       data-on:submit="$_extracting = true; $_extractError = ''; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
-      <input type="hidden" name="image" id="scan-image" />
-      <div data-show="!$_extracting" class="flex items-center gap-2">
-        <button
-          type="button"
-          onclick="document.getElementById('scan-photo').click()"
-          class="shrink-0 inline-flex items-center justify-center rounded-md border border-amber-500 p-2.5 text-amber-700 transition hover:bg-amber-50"
-          aria-label="Take Photo"
-        >
-          {% call icons::camera("h-5 w-5") %}
-        </button>
-        <input
-          type="text"
-          name="prompt"
-          class="input-field w-full text-sm"
-          placeholder="Describe the coffee bag&hellip;"
-        />
-      </div>
-      <div data-show="$_extracting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
-        {% call icons::spinner("h-5 w-5") %}
-        Waiting for response&hellip;
-      </div>
-      <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
+      {% call scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") %}
     </form>
   </div>
 
   <!-- Form: pre-filled roaster + roast (shown after extraction) -->
   <div data-show="$_scanExtracted" style="display: none">
     <form
-      class="rounded-lg border border-amber-300 bg-amber-100/80 p-5 shadow-sm flex flex-col gap-6"
+      class="rounded-lg border bg-surface p-5 flex flex-col gap-6"
       data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { $_scanSubmitting = false; $_scanExtracted = false; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; $_openBag = true; $_bagAmount = 250; window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
     >
       <div>
-        <h3 class="text-base font-semibold text-amber-700">Roaster</h3>
+        <h3 class="text-base font-semibold text-stone-800">Roaster</h3>
         <p class="mt-1 text-sm text-stone-600">If this roaster already exists, it will be matched automatically.</p>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
@@ -116,7 +89,7 @@
         </div>
       </div>
       <div>
-        <h3 class="text-base font-semibold text-amber-700">Roast</h3>
+        <h3 class="text-base font-semibold text-stone-800">Roast</h3>
         <p class="mt-1 text-sm text-stone-600">Details about this specific coffee.</p>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
@@ -147,8 +120,8 @@
       </div>
       <div>
         <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" name="open_bag" value="true" class="accent-amber-600" data-bind:_open-bag />
-          <span class="font-semibold text-amber-700">Open a bag of this coffee</span>
+          <input type="checkbox" name="open_bag" value="true" class="accent-orange-700" data-bind:_open-bag />
+          <span class="font-semibold text-stone-800">Open a bag of this coffee</span>
         </label>
         <div data-show="$_openBag" class="mt-3 grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
@@ -158,7 +131,7 @@
         </div>
       </div>
       <p data-show="$_scanError" data-text="$_scanError" style="display:none" class="text-sm text-red-600"></p>
-      <div data-show="$_scanSubmitting" style="display:none" class="flex items-center gap-3 text-sm text-amber-700">
+      <div data-show="$_scanSubmitting" style="display:none" class="flex items-center gap-3 text-sm text-accent">
         {% call icons::spinner("h-5 w-5") %}
         Saving&hellip;
       </div>
@@ -166,13 +139,13 @@
         <button
           type="button"
           data-on:click="$_scanExtracted = false"
-          class="rounded-md border border-amber-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-400 hover:text-stone-800"
+          class="rounded-md border px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-surface-alt"
         >
           Cancel
         </button>
         <button
           type="submit"
-          class="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-500"
+          class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
         >
           Save Roaster &amp; Roast
         </button>
@@ -186,15 +159,15 @@
 {% if !recent_brews.is_empty() %}
 <section>
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-amber-700">Recent Brews</h2>
-    <a href="/data?type=brews" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all brews &rarr;</a>
+    <h2 class="text-lg font-semibold text-stone-800">Recent Brews</h2>
+    <a href="/data?type=brews" class="text-sm text-accent hover:text-accent-hover font-medium">View all brews &rarr;</a>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start gap-4">
     {% for brew in recent_brews %}
-    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 pt-4 pb-3 shadow-sm min-w-0">
+    <div class="rounded-lg border bg-surface p-4 min-w-0">
       <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
-          <span class="block truncate font-semibold text-amber-800">{{ brew.roast_name }}</span>
+          <span class="block truncate font-semibold text-stone-800">{{ brew.roast_name }}</span>
           <p class="truncate text-sm text-stone-500">{{ brew.roaster_name }}</p>
         </div>
         <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ brew.relative_date_label }}</time>
@@ -205,7 +178,7 @@
         <p class="truncate"><span class="font-medium text-stone-800">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-stone-500">· {{ fp }}</span>{% endif %}</p>
       </div>
       {% if is_authenticated %}
-      <div class="mt-3 pt-3 border-t border-amber-100 flex gap-3">
+      <div class="mt-3 pt-3 border-t flex gap-3">
         <form
           class="inline"
           data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
@@ -222,7 +195,7 @@
           <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
           <button
             type="submit"
-            class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-500"
+            class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
           >
             {% call icons::plus_circle("h-4 w-4") %}
             Brew Again
@@ -240,8 +213,8 @@
 {% if !open_bags.is_empty() %}
 <section id="open-bags-section">
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-amber-700">Open Bags</h2>
-    <a href="/data?type=bags" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View all bags &rarr;</a>
+    <h2 class="text-lg font-semibold text-stone-800">Open Bags</h2>
+    <a href="/data?type=bags" class="text-sm text-accent hover:text-accent-hover font-medium">View all bags &rarr;</a>
   </div>
   <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for bag in open_bags %}
@@ -255,15 +228,15 @@
 {% if !recent_events.is_empty() %}
 <section>
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-amber-700">Recent Activity</h2>
-    <a href="/timeline" class="text-sm text-amber-600 hover:text-amber-500 font-medium">View full timeline &rarr;</a>
+    <h2 class="text-lg font-semibold text-stone-800">Recent Activity</h2>
+    <a href="/timeline" class="text-sm text-accent hover:text-accent-hover font-medium">View full timeline &rarr;</a>
   </div>
   <div class="space-y-2">
     {% for event in recent_events %}
-    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm flex items-center justify-between gap-3">
+    <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <span class="inline-flex w-28 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-200 text-amber-800">{{ event.kind_label }}</span>
-        <p class="min-w-0 truncate text-sm"><a href="{{ event.link }}" class="font-medium text-stone-700 hover:text-amber-600">{{ event.title }}</a>{% if let Some(sub) = event.subtitle %} <span class="text-xs text-stone-400 italic">· {{ sub }}</span>{% endif %}</p>
+        <span class="pill pill-muted w-28 shrink-0 justify-center whitespace-nowrap">{{ event.kind_label }}</span>
+        <p class="min-w-0 truncate text-sm"><a href="{{ event.link }}" class="font-medium text-stone-700 hover:text-accent">{{ event.title }}</a>{% if let Some(sub) = event.subtitle %} <span class="text-xs text-stone-400 italic">· {{ sub }}</span>{% endif %}</p>
       </div>
       <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ event.relative_date_label }}</time>
     </div>
@@ -275,42 +248,42 @@
 <!-- Stats -->
 <section>
   <div class="flex items-center justify-between mb-5">
-    <h2 class="text-lg font-semibold text-amber-700">Stats</h2>
+    <h2 class="text-lg font-semibold text-stone-800">Stats</h2>
   </div>
-  <div class="grid grid-cols-2 gap-3 md:flex md:flex-wrap md:justify-center">
-    <a href="/data?type=brews" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::beaker("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.brews }}</span>
+  <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-7">
+    <a href="/data?type=brews" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::beaker("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.brews }}</span>
       <span class="text-xs text-stone-500">Brews</span>
     </a>
-    <a href="/data?type=roasts" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::fire("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasts }}</span>
+    <a href="/data?type=roasts" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::fire("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.roasts }}</span>
       <span class="text-xs text-stone-500">Roasts</span>
     </a>
-    <a href="/data?type=roasters" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::building("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.roasters }}</span>
+    <a href="/data?type=roasters" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::building("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.roasters }}</span>
       <span class="text-xs text-stone-500">Roasters</span>
     </a>
-    <a href="/data?type=bags" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::bag("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.bags }}</span>
+    <a href="/data?type=bags" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::bag("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.bags }}</span>
       <span class="text-xs text-stone-500">Bags</span>
     </a>
-    <a href="/data?type=cups" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::cup("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cups }}</span>
+    <a href="/data?type=cups" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::cup("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.cups }}</span>
       <span class="text-xs text-stone-500">Cups</span>
     </a>
-    <a href="/data?type=cafes" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::location("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.cafes }}</span>
+    <a href="/data?type=cafes" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::location("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.cafes }}</span>
       <span class="text-xs text-stone-500">Cafes</span>
     </a>
-    <a href="/data?type=gear" class="group inline-flex items-center gap-2 rounded-full border-l-4 border-l-amber-400 bg-amber-50/60 py-2 pl-3 pr-4 transition hover:bg-amber-100/80">
-      {% call icons::wrench("h-4 w-4 text-amber-600") %}
-      <span class="min-w-[2ch] text-base font-bold text-amber-800 group-hover:text-amber-600">{{ stats.gear }}</span>
+    <a href="/data?type=gear" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+      {% call icons::wrench("h-6 w-6 text-accent") %}
+      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.gear }}</span>
       <span class="text-xs text-stone-500">Gear</span>
     </a>
   </div>

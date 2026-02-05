@@ -21,6 +21,7 @@ pub struct LoginQuery {
 struct LoginTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
+    version_info: &'static crate::VersionInfo,
 }
 
 #[tracing::instrument(skip(state, cookies))]
@@ -38,6 +39,7 @@ pub(crate) async fn login_page(
     let template = LoginTemplate {
         nav_active: "login",
         is_authenticated: false,
+        version_info: &crate::VERSION_INFO,
     };
 
     render_html(template).map(IntoResponse::into_response)

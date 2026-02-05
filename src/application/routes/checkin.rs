@@ -32,6 +32,7 @@ pub(crate) async fn checkin_page(
     let template = CheckInTemplate {
         nav_active: "checkin",
         is_authenticated: true,
+        version_info: &crate::VERSION_INFO,
         roast_options,
         cafe_options,
     };

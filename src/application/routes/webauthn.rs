@@ -29,6 +29,7 @@ const SESSION_COOKIE_NAME: &str = "brewlog_session";
 struct RegisterTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
+    version_info: &'static crate::VersionInfo,
     token: String,
 }
 
@@ -37,6 +38,7 @@ struct RegisterTemplate {
 struct CliCallbackTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
+    version_info: &'static crate::VersionInfo,
     token: Option<String>,
     error: Option<String>,
 }
@@ -116,6 +118,7 @@ pub(crate) async fn register_page(
     let template = RegisterTemplate {
         nav_active: "",
         is_authenticated: false,
+        version_info: &crate::VERSION_INFO,
         token,
     };
 
@@ -505,6 +508,7 @@ pub(crate) async fn cli_callback_page() -> Result<Response, StatusCode> {
     let template = CliCallbackTemplate {
         nav_active: "",
         is_authenticated: false,
+        version_info: &crate::VERSION_INFO,
         token: None,
         error: None,
     };

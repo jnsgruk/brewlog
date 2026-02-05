@@ -4,7 +4,7 @@
 <div id="roast-list" class="mt-6" data-star-scope="roasts">
   {% if roasts.items.is_empty() && !navigator.has_search() %}
   <div
-    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+    class="rounded-lg border border-dashed px-4 py-6 text-sm text-stone-600"
   >
     <p class="text-center">
       {% if is_authenticated %}
@@ -15,13 +15,13 @@
     </p>
   </div>
   {% else %}
-  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+  <section class="rounded-lg border bg-surface"
     {% if roasts.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(roasts.next_page().unwrap())|safe }}" data-target="#roast-list"{% endif %}
   >
     {% call table::search_header(navigator, "#roast-list") %}
     <div class="overflow-x-auto">
-      <table class="responsive-table min-w-full divide-y divide-amber-200 text-left text-sm text-stone-700">
-        <thead class="bg-amber-200/60 text-xs font-semibold tracking-wide text-amber-900">
+      <table class="responsive-table min-w-full divide-y text-left text-sm text-stone-700">
+        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-stone-700">
           <tr>
             {% call table::sortable_header("Added", "created-at", navigator, "#roast-list") %}
             {% call table::sortable_header("Roast", "name", navigator, "#roast-list") %}
@@ -32,7 +32,7 @@
             {% endif %}
           </tr>
         </thead>
-        <tbody class="divide-y divide-amber-200/70">
+        <tbody class="divide-y/70">
           {% for roast in roasts.items %}
           <tr
             data-star-key="{{ roast.full_id }}"
@@ -41,7 +41,7 @@
             data-sort-roaster="{{ roast.roaster_label }}"
             data-sort-origin="{{ roast.origin }}"
             data-sort-producer="{{ roast.producer }}"
-            class="bg-amber-50/40 transition hover:bg-amber-50"
+            class="transition hover:bg-surface-alt"
           >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
               {{ roast.created_at }}

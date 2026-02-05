@@ -1,50 +1,72 @@
 {% import "partials/icons.html" as icons %}
-<nav class="relative rounded-lg border border-amber-300 bg-amber-100/80 p-3 text-sm text-stone-600" data-signals:_nav-open="false">
+<nav class="relative border-b pb-4 text-sm" data-signals:_nav-open="false">
     <div class="flex items-center justify-between">
-        <div class="font-semibold uppercase tracking-[0.25em] text-amber-700"><a href="/">B{rew}log</a></div>
-        <!-- Desktop links -->
-        <div class="hidden md:flex items-center gap-3">
-            <a class="border-b-2 pb-1 transition {% if nav_active == "home" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/">Home</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "data" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/data">Data</a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "timeline" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/timeline">Timeline</a>
-            {% if is_authenticated %}
-            <a class="border-b-2 pb-1 transition {% if nav_active == "checkin" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/check-in" aria-label="Check In">
-                {% call icons::checkin("inline h-4 w-4") %}
+        <div class="font-semibold uppercase tracking-[0.25em] text-accent"><a href="/">B{rew}log</a></div>
+        <div class="flex items-center gap-1">
+            <a class="rounded-md p-1.5 transition {% if nav_active == "home" %}text-accent{% else %}text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300{% endif %}" href="/" title="Home" aria-label="Home">
+                {% call icons::home("h-5 w-5") %}
             </a>
-            <a class="border-b-2 pb-1 transition {% if nav_active == "account" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/account" aria-label="Account">
-                {% call icons::user("inline h-4 w-4") %}
-            </a>
-            {% else %}
-            <a class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" href="/login" aria-label="Login">
-                {% call icons::user("inline h-4 w-4") %}
-            </a>
-            {% endif %}
+            <button type="button" class="rounded-md p-1.5 text-stone-400 transition hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300" title="Toggle theme" aria-label="Toggle theme" onclick="toggleTheme()">
+                <span class="theme-icon-light">{% call icons::sun("h-5 w-5") %}</span>
+                <span class="theme-icon-dark hidden">{% call icons::moon("h-5 w-5") %}</span>
+            </button>
+            <button class="rounded-md p-1.5 text-stone-400 transition hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300" data-on:click="$_navOpen = !$_navOpen" title="Menu" aria-label="Toggle menu">
+                <span data-show="!$_navOpen">{% call icons::hamburger("h-5 w-5") %}</span>
+                <span data-show="$_navOpen" style="display:none">{% call icons::close("h-5 w-5") %}</span>
+            </button>
         </div>
-        <!-- Hamburger button (mobile only) -->
-        <button class="md:hidden p-1 text-amber-700" data-on:click="$_navOpen = !$_navOpen" aria-label="Toggle menu">
-            <span data-show="!$_navOpen">{% call icons::hamburger("h-6 w-6") %}</span>
-            <span data-show="$_navOpen" style="display:none">{% call icons::close("h-6 w-6") %}</span>
-        </button>
     </div>
-    <!-- Mobile menu -->
-    <div class="md:hidden flex flex-col gap-2 pt-3 mt-3 border-t border-amber-300" data-show="$_navOpen" style="display:none">
-        <a class="py-1 transition {% if nav_active == "home" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/">Home</a>
-        <a class="py-1 transition {% if nav_active == "data" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/data">Data</a>
-        <a class="py-1 transition {% if nav_active == "timeline" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/timeline">Timeline</a>
+    <!-- Menu -->
+    <div class="flex flex-col gap-2 pt-3 mt-3 border-t md:items-end" data-show="$_navOpen" style="display:none">
+        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "data" %}text-accent font-medium{% else %}text-stone-500 hover:text-stone-800 dark:hover:text-stone-300{% endif %}" href="/data">
+            Data {% call icons::database("h-4 w-4") %}
+        </a>
+        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "timeline" %}text-accent font-medium{% else %}text-stone-500 hover:text-stone-800 dark:hover:text-stone-300{% endif %}" href="/timeline">
+            Timeline {% call icons::timeline("h-4 w-4") %}
+        </a>
         {% if is_authenticated %}
-        <a class="py-1 transition inline-flex items-center gap-1 {% if nav_active == "checkin" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/check-in">
-            {% call icons::checkin("inline h-4 w-4") %}
-            Check In
+        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "checkin" %}text-accent font-medium{% else %}text-stone-500 hover:text-stone-800 dark:hover:text-stone-300{% endif %}" href="/check-in">
+            Check In {% call icons::checkin("h-4 w-4") %}
         </a>
-        <a class="py-1 transition inline-flex items-center gap-1 {% if nav_active == "account" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/account">
-            {% call icons::user("inline h-4 w-4") %}
-            Account
+        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "account" %}text-accent font-medium{% else %}text-stone-500 hover:text-stone-800 dark:hover:text-stone-300{% endif %}" href="/account">
+            Admin {% call icons::cog("h-4 w-4") %}
         </a>
+        <form method="post" action="/logout" class="flex md:justify-end">
+            <button type="submit" class="py-1 transition inline-flex items-center gap-1.5 text-stone-500 hover:text-stone-800 dark:hover:text-stone-300">
+                Sign Out {% call icons::logout("h-4 w-4") %}
+            </button>
+        </form>
         {% else %}
-        <a class="py-1 transition inline-flex items-center gap-1 text-stone-500 hover:text-amber-600" href="/login">
-            {% call icons::user("inline h-4 w-4") %}
-            Login
+        <a class="py-1 transition inline-flex items-center gap-1.5 text-stone-500 hover:text-stone-800 dark:hover:text-stone-300" href="/login">
+            Login {% call icons::user("h-4 w-4") %}
         </a>
         {% endif %}
     </div>
 </nav>
+<script>
+    const toggleTheme = () => {
+        const html = document.documentElement;
+        const isDark = html.getAttribute("data-theme") === "dark";
+        if (isDark) {
+            html.removeAttribute("data-theme");
+            localStorage.setItem("theme", "light");
+        } else {
+            html.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+        }
+        updateThemeIcons();
+    };
+
+    const updateThemeIcons = () => {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        document.querySelectorAll(".theme-icon-light").forEach((el) => {
+            el.classList.toggle("hidden", isDark);
+        });
+        document.querySelectorAll(".theme-icon-dark").forEach((el) => {
+            el.classList.toggle("hidden", !isDark);
+        });
+    };
+
+    // Set correct icon state on load
+    updateThemeIcons();
+</script>

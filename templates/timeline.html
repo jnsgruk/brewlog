@@ -1,19 +1,12 @@
 {% extends "base.html" %} {% block title %}Brewlog · Timeline{% endblock %} {% block content %}
-<header class="flex flex-col gap-2">
-  <h1 class="text-3xl font-semibold">Timeline</h1>
-  <p class="max-w-2xl text-sm text-stone-600">
-    Follow the history of roasters and roasts in Brewlog.
-  </p>
-</header>
-
-<div class="mt-8">
+<div>
   <section
     id="timeline-events"
     data-empty="{{ months.is_empty() }}"
   >
     {% if months.is_empty() %}
     <p
-      class="rounded-lg border border-dashed border-amber-300 bg-amber-100/60 p-6 text-sm text-stone-600"
+      class="rounded-lg border border-dashed p-6 text-sm text-stone-600"
       data-role="timeline-empty-state"
     >
       No events yet.
@@ -21,7 +14,7 @@
     {% else %}
     <div class="timeline-list relative" id="timeline-items">
       {# Single central timeline line for all months #}
-      <div class="timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200" aria-hidden="true"></div>
+      <div class="timeline-line absolute top-0 bottom-0 w-1 bg-stone-300 dark:bg-stone-600" aria-hidden="true"></div>
       {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
     </div>
     {% endif %}
@@ -36,7 +29,7 @@
       <button
         id="timeline-load-more"
         type="button"
-        class="inline-flex items-center gap-2 rounded-full border border-amber-500 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:border-amber-200 disabled:text-amber-300"
+        class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-accent transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
         style="{% if months.is_empty() || !events.has_next() %}display: none{% endif %}"
       >
         <span aria-hidden="true">↓</span>
@@ -95,7 +88,7 @@
       container.className = "timeline-list relative"
       container.id = "timeline-items"
       const line = document.createElement("div")
-      line.className = "timeline-line absolute top-0 bottom-0 w-0.5 bg-amber-200"
+      line.className = "timeline-line absolute top-0 bottom-0 w-1 bg-stone-300 dark:bg-stone-600"
       line.setAttribute("aria-hidden", "true")
       container.appendChild(line)
       section.insertBefore(container, loader)

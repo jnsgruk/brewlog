@@ -42,16 +42,23 @@ impl BagView {
 pub struct BagOptionView {
     pub id: String,
     pub label: String,
+    pub roast_name: String,
+    pub roaster_name: String,
+    pub remaining: String,
 }
 
 impl From<BagWithRoast> for BagOptionView {
     fn from(bag: BagWithRoast) -> Self {
+        let remaining = format!("{:.0}g", bag.bag.remaining);
         Self {
             id: bag.bag.id.to_string(),
             label: format!(
-                "{} - {} ({:.0}g remaining)",
-                bag.roaster_name, bag.roast_name, bag.bag.remaining
+                "{} - {} ({} remaining)",
+                bag.roaster_name, bag.roast_name, remaining
             ),
+            roast_name: bag.roast_name,
+            roaster_name: bag.roaster_name,
+            remaining,
         }
     }
 }

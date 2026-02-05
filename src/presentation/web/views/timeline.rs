@@ -7,6 +7,20 @@ fn is_blank(value: &str) -> bool {
     value.is_empty() || value == "\u{2014}"
 }
 
+/// Rounds "lat,lon" coordinates to 3 decimal places for display.
+fn round_coords(coords: &str) -> String {
+    let parts: Vec<&str> = coords.split(',').collect();
+    if parts.len() == 2
+        && let (Ok(lat), Ok(lon)) = (
+            parts[0].trim().parse::<f64>(),
+            parts[1].trim().parse::<f64>(),
+        )
+    {
+        return format!("{lat:.3}, {lon:.3}");
+    }
+    coords.to_string()
+}
+
 #[derive(Clone)]
 pub struct TimelineEventDetailView {
     pub label: String,
@@ -189,13 +203,19 @@ impl TimelineEventView {
                 "position" => {
                     let trimmed = detail.value.trim();
                     if !trimmed.is_empty() {
-                        let display = trimmed
+                        let coords = trimmed
                             .strip_prefix("https://www.google.com/maps?q=")
                             .unwrap_or(trimmed);
+                        let display = round_coords(coords);
+                        let link = if trimmed.starts_with("http") {
+                            trimmed.to_string()
+                        } else {
+                            format!("https://www.google.com/maps?q={coords}")
+                        };
                         mapped.push(TimelineEventDetailView {
                             label: detail.label,
-                            value: display.to_string(),
-                            link: Some(trimmed.to_string()),
+                            value: display,
+                            link: Some(link),
                         });
                     }
                 }

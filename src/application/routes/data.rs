@@ -95,6 +95,7 @@ pub(crate) async fn data_page(
     let template = DataTemplate {
         nav_active: "data",
         is_authenticated,
+        version_info: &crate::VERSION_INFO,
         active_type: entity_type,
         tabs,
         content,

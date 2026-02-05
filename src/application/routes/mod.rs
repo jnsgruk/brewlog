@@ -130,6 +130,11 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/timeline", get(timeline::timeline_page))
         .route("/styles.css", get(styles))
         .route("/webauthn.js", get(webauthn_js))
+        .route("/components/photo-capture.js", get(photo_capture_js))
+        .route(
+            "/components/searchable-select.js",
+            get(searchable_select_js),
+        )
         .route("/favicon.ico", get(favicon))
         .nest("/api/v1", api_routes)
         .nest("/api/v1/webauthn", webauthn_routes)
@@ -152,6 +157,20 @@ async fn webauthn_js() -> impl IntoResponse {
     (
         [("content-type", "application/javascript; charset=utf-8")],
         include_str!("../../../templates/webauthn.js"),
+    )
+}
+
+async fn photo_capture_js() -> impl IntoResponse {
+    (
+        [("content-type", "application/javascript; charset=utf-8")],
+        include_str!("../../../templates/components/photo-capture.js"),
+    )
+}
+
+async fn searchable_select_js() -> impl IntoResponse {
+    (
+        [("content-type", "application/javascript; charset=utf-8")],
+        include_str!("../../../templates/components/searchable-select.js"),
     )
 }
 

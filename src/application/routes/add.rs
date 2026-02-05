@@ -46,6 +46,7 @@ pub(crate) async fn add_page(
     let template = AddTemplate {
         nav_active: "data",
         is_authenticated,
+        version_info: &crate::VERSION_INFO,
         active_type: query.entity_type,
         roaster_options,
         roast_options,

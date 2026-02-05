@@ -5,11 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Brewlog{% endblock %}</title>
     <link rel="stylesheet" href="/styles.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      (() => {
+        const stored = localStorage.getItem("theme");
+        if (stored === "dark" || (!stored && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
     <script
       type="module"
       src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"
     ></script>
+    <script src="/components/photo-capture.js"></script>
+    <script src="/components/searchable-select.js"></script>
     {% block head %}{% endblock %}
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -88,11 +97,11 @@
       });
     </script>
   </head>
-  <body class="min-h-screen bg-amber-50 text-stone-900">
+  <body class="min-h-screen bg-page text-stone-900">
     <main class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
       {% include "nav.html" %} {% block content %}{% endblock %}
-      <footer class="mt-8 text-xs text-stone-500">
-        <p>Built with Axum, Tailwind CSS, and Datastar.</p>
+      <footer class="mt-8 text-center text-xs tracking-widest text-stone-400" style="font-variant: small-caps">
+        <p>B{rew}log by <a href="https://jnsgr.uk" class="text-stone-500 hover:text-accent transition" target="_blank" rel="noreferrer noopener">jnsgruk</a> · {{ version_info.version }} · <a href="https://github.com/jnsgruk/brewlog/commit/{{ version_info.commit }}" class="text-stone-500 hover:text-accent transition" target="_blank" rel="noreferrer noopener">{{ version_info.commit }}</a></p>
       </footer>
     </main>
   </body>
