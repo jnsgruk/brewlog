@@ -16,6 +16,7 @@ use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster
 use crate::infrastructure::ai::{self, ExtractionInput};
 use crate::presentation::web::templates::RoasterListTemplate;
 use crate::presentation::web::views::{ListNavigator, Paginated, RoasterView};
+use tracing::info;
 
 const ROASTER_PAGE_PATH: &str = "/data?type=roasters";
 const ROASTER_FRAGMENT_PATH: &str = "/data?type=roasters#roaster-list";
@@ -71,6 +72,8 @@ pub(crate) async fn create_roaster(
         .await
         .map_err(AppError::from)?;
 
+    info!(roaster_id = %roaster.id, name = %roaster.name, "roaster created");
+
     if is_datastar_request(&headers) {
         render_roaster_list_fragment(state, request, search, true)
             .await
@@ -107,6 +110,7 @@ pub(crate) async fn update_roaster(
         .update(id, payload)
         .await
         .map_err(AppError::from)?;
+    info!(%id, "roaster updated");
     Ok(Json(roaster))
 }
 

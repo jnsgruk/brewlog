@@ -3,6 +3,7 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
+use tracing::{info, warn};
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
@@ -285,6 +286,8 @@ pub(crate) async fn submit_scan(
         .await
         .map_err(AppError::from)?;
 
+    info!(roaster_id = %roaster.id, roast_id = %roast.id, roast_name = %roast.name, "scan created roast");
+
     // Optionally create a bag
     let wants_bag = submission
         .open_bag
@@ -324,7 +327,9 @@ pub(crate) async fn submit_scan(
             roaster_slug: Some(roaster.slug.clone()),
             brew_data: None,
         };
-        let _ = state.timeline_repo.insert(event).await;
+        if let Err(err) = state.timeline_repo.insert(event).await {
+            warn!(error = %err, entity_type = "bag", "failed to record timeline event");
+        }
     }
 
     let redirect = format!("/roasters/{}/roasts/{}", roaster.slug, roast.slug);

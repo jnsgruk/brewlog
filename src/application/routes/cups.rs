@@ -17,6 +17,7 @@ use crate::domain::ids::CupId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::CupListTemplate;
 use crate::presentation::web::views::{CupView, ListNavigator, Paginated};
+use tracing::info;
 
 const CUP_PAGE_PATH: &str = "/data?type=cups";
 const CUP_FRAGMENT_PATH: &str = "/data?type=cups#cup-list";
@@ -59,6 +60,8 @@ pub(crate) async fn create_cup(
         .insert(new_cup)
         .await
         .map_err(AppError::from)?;
+
+    info!(cup_id = %cup.id, "cup created");
 
     if is_datastar_request(&headers) {
         render_cup_list_fragment(state, request, search, true)

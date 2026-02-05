@@ -3,6 +3,7 @@ use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::{Deserialize, Deserializer};
+use tracing::{info, warn};
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
@@ -207,6 +208,8 @@ pub(crate) async fn create_brew(
         .await
         .map_err(AppError::from)?;
 
+    info!(brew_id = %brew.id, "brew created");
+
     // Fetch enriched brew details for timeline event
     let enriched = state
         .brew_repo
@@ -215,10 +218,13 @@ pub(crate) async fn create_brew(
         .map_err(AppError::from)?;
 
     // Add timeline event
-    let _ = state
+    if let Err(err) = state
         .timeline_repo
         .insert(brew_timeline_event(&enriched))
-        .await;
+        .await
+    {
+        warn!(error = %err, entity_type = "brew", "failed to record timeline event");
+    }
 
     if is_datastar_request(&headers) {
         // Check if request came from timeline - return a script that redirects

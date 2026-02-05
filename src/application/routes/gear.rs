@@ -5,6 +5,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
+use tracing::{info, warn};
 
 use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
@@ -63,6 +64,8 @@ pub(crate) async fn create_gear(
         .await
         .map_err(AppError::from)?;
 
+    info!(gear_id = %gear.id, make = %gear.make, model = %gear.model, "gear created");
+
     // Add timeline event
     let event = NewTimelineEvent {
         entity_type: "gear".to_string(),
@@ -89,7 +92,9 @@ pub(crate) async fn create_gear(
         roaster_slug: None, // Gear is not related to roasters
         brew_data: None,
     };
-    let _ = state.timeline_repo.insert(event).await;
+    if let Err(err) = state.timeline_repo.insert(event).await {
+        warn!(error = %err, entity_type = "gear", "failed to record timeline event");
+    }
 
     if is_datastar_request(&headers) {
         render_gear_list_fragment(state, request, search, true)
@@ -144,6 +149,8 @@ pub(crate) async fn update_gear(
         .update(id, payload.0)
         .await
         .map_err(AppError::from)?;
+
+    info!(%id, "gear updated");
 
     if is_datastar_request(&headers) {
         render_gear_list_fragment(state, request, search, true)

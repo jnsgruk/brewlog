@@ -19,6 +19,7 @@ use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoas
 use crate::infrastructure::ai::{self, ExtractionInput};
 use crate::presentation::web::templates::{RoastListTemplate, RoastOptionsTemplate};
 use crate::presentation::web::views::{ListNavigator, Paginated, RoastView};
+use tracing::info;
 
 const ROAST_PAGE_PATH: &str = "/data?type=roasts";
 const ROAST_FRAGMENT_PATH: &str = "/data?type=roasts#roast-list";
@@ -68,6 +69,8 @@ pub(crate) async fn create_roast(
         .insert(new_roast)
         .await
         .map_err(AppError::from)?;
+
+    info!(roast_id = %roast.id, name = %roast.name, "roast created");
 
     if is_datastar_request(&headers) {
         render_roast_list_fragment(state, request, search, true)
@@ -168,6 +171,8 @@ pub(crate) async fn update_roast(
         .update(id, payload)
         .await
         .map_err(AppError::from)?;
+
+    info!(%id, "roast updated");
 
     let enriched = state
         .roast_repo

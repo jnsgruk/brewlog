@@ -15,6 +15,7 @@ use crate::domain::cafes::NewCafe;
 use crate::domain::cups::NewCup;
 use crate::domain::ids::{CafeId, RoastId};
 use crate::presentation::web::templates::CheckInTemplate;
+use tracing::info;
 
 #[tracing::instrument(skip(state, cookies))]
 pub(crate) async fn checkin_page(
@@ -114,6 +115,8 @@ pub(crate) async fn submit_checkin(
         .insert(new_cup)
         .await
         .map_err(AppError::from)?;
+
+    info!(cup_id = %cup.id, %cafe_id, "check-in recorded");
 
     if is_datastar_request(&headers) {
         crate::application::routes::support::render_signals_json(&[]).map_err(ApiError::from)

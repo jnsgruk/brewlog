@@ -17,6 +17,7 @@ use crate::domain::listing::{ListRequest, SortDirection};
 use crate::infrastructure::foursquare;
 use crate::presentation::web::templates::{CafeListTemplate, NearbyCafesFragment};
 use crate::presentation::web::views::{CafeView, ListNavigator, NearbyCafeView, Paginated};
+use tracing::info;
 
 const CAFE_PAGE_PATH: &str = "/data?type=cafes";
 const CAFE_FRAGMENT_PATH: &str = "/data?type=cafes#cafe-list";
@@ -70,6 +71,8 @@ pub(crate) async fn create_cafe(
         .await
         .map_err(AppError::from)?;
 
+    info!(cafe_id = %cafe.id, name = %cafe.name, "cafe created");
+
     if is_datastar_request(&headers) {
         render_cafe_list_fragment(state, request, search, true)
             .await
@@ -108,6 +111,7 @@ pub(crate) async fn update_cafe(
         .update(id, payload)
         .await
         .map_err(AppError::from)?;
+    info!(%id, "cafe updated");
     Ok(Json(cafe))
 }
 

@@ -3,6 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
+use tracing::{info, warn};
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
@@ -80,6 +81,8 @@ pub(crate) async fn create_bag(
         .await
         .map_err(AppError::from)?;
 
+    info!(bag_id = %bag.id, roast = %roast.name, "bag created");
+
     // Add timeline event
     let event = NewTimelineEvent {
         entity_type: "bag".to_string(),
@@ -102,7 +105,9 @@ pub(crate) async fn create_bag(
         roaster_slug: Some(roaster.slug.clone()),
         brew_data: None,
     };
-    let _ = state.timeline_repo.insert(event).await;
+    if let Err(err) = state.timeline_repo.insert(event).await {
+        warn!(error = %err, entity_type = "bag", "failed to record timeline event");
+    }
 
     if is_datastar_request(&headers) {
         render_bag_list_fragment(state, request, search, true)
@@ -181,6 +186,8 @@ pub(crate) async fn update_bag(
         .await
         .map_err(AppError::from)?;
 
+    info!(%id, closed = ?update.closed, "bag updated");
+
     if let Some(true) = update.closed {
         // Fetch roast and roaster for timeline event
         if let Ok(roast) = state.roast_repo.get(bag.roast_id).await
@@ -207,7 +214,9 @@ pub(crate) async fn update_bag(
                 roaster_slug: Some(roaster.slug.clone()),
                 brew_data: None,
             };
-            let _ = state.timeline_repo.insert(event).await;
+            if let Err(err) = state.timeline_repo.insert(event).await {
+                warn!(error = %err, entity_type = "bag", "failed to record timeline event");
+            }
         }
     }
 
