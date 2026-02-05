@@ -8,11 +8,9 @@ use tempfile::TempDir;
 /// Fields prefixed with `_` are kept alive to prevent cleanup:
 /// - `_temp_dir`: keeps temporary database file from being deleted
 /// - `_process`: keeps server process running
-/// - `_db_url`: retained for consistency
 struct SharedServer {
     address: String,
-    admin_password: String,
-    _db_url: String,
+    db_url: String,
     _temp_dir: TempDir,
     _process: std::process::Child,
 }
@@ -40,11 +38,10 @@ fn ensure_server_started() -> Result<(String, String), String> {
         let temp_dir = TempDir::new().map_err(|e| format!("Failed to create temp dir: {}", e))?;
         let db_path = temp_dir.path().join("test.db");
         let db_url = format!("sqlite:{}", db_path.display());
-        let admin_password = "test_admin_password";
 
         // Start server on a random port
         let port = portpicker::pick_unused_port().ok_or("No ports available")?;
-        let address = format!("http://127.0.0.1:{}", port);
+        let address = format!("http://localhost:{}", port);
 
         eprintln!("Starting server on {}", address);
 
@@ -57,8 +54,10 @@ fn ensure_server_started() -> Result<(String, String), String> {
                 "--database-url",
                 &db_url,
             ])
-            .env("BREWLOG_ADMIN_PASSWORD", admin_password)
-            .env("BREWLOG_ADMIN_USERNAME", "admin")
+            .env("BREWLOG_RP_ID", "localhost")
+            .env("BREWLOG_RP_ORIGIN", &address)
+            .env("BREWLOG_OPENROUTER_API_KEY", "test-key")
+            .env("BREWLOG_FOURSQUARE_API_KEY", "test-key")
             .env("RUST_LOG", "error")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
@@ -97,55 +96,70 @@ fn ensure_server_started() -> Result<(String, String), String> {
 
         *server = Some(SharedServer {
             address: address.clone(),
-            admin_password: admin_password.to_string(),
-            _db_url: db_url,
+            db_url: db_url.clone(),
             _temp_dir: temp_dir,
             _process: process,
         });
     }
 
     let srv = server.as_ref().unwrap();
-    Ok((srv.address.clone(), srv.admin_password.clone()))
+    Ok((srv.address.clone(), srv.db_url.clone()))
 }
 
-/// Get the shared server address and admin password
+/// Get the shared server address and database URL
 pub fn server_info() -> (String, String) {
     ensure_server_started().expect("Failed to start test server")
 }
 
-/// Create a token for testing using the CLI
+/// Create a token for testing by directly inserting into the database
 pub fn create_token(name: &str) -> String {
-    let (_, password) = ensure_server_started().expect("Failed to start test server");
+    let (_, db_url) = ensure_server_started().expect("Failed to start test server");
 
-    let output = run_brewlog(
-        &[
-            "token",
-            "create",
-            "--name",
-            name,
-            "--username",
-            "admin",
-            "--password",
-            &password,
-        ],
-        &[],
-    );
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("Failed to create tokio runtime");
 
-    if !output.status.success() {
-        panic!(
-            "Failed to create token: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
+    rt.block_on(async {
+        let pool = sqlx::SqlitePool::connect(&db_url)
+            .await
+            .expect("Failed to connect to test database");
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    for line in stdout.lines() {
-        if let Some(token) = line.trim().strip_prefix("export BREWLOG_TOKEN=") {
-            return token.to_string();
-        }
-    }
+        // Ensure a user exists (INSERT OR IGNORE to handle concurrent test threads)
+        let uuid = uuid::Uuid::new_v4().to_string();
+        sqlx::query(
+            "INSERT OR IGNORE INTO users (username, uuid, created_at) VALUES (?, ?, datetime('now'))",
+        )
+        .bind("admin")
+        .bind(&uuid)
+        .execute(&pool)
+        .await
+        .expect("Failed to ensure test user");
 
-    panic!("Could not find token in output: {}", stdout);
+        let user_id: i64 =
+            sqlx::query_scalar::<_, i64>("SELECT id FROM users WHERE username = ?")
+                .bind("admin")
+                .fetch_one(&pool)
+                .await
+                .expect("Failed to query test user");
+
+        // Generate and insert a bearer token
+        let token_value =
+            brewlog::infrastructure::auth::generate_token().expect("Failed to generate token");
+        let token_hash = brewlog::infrastructure::auth::hash_token(&token_value);
+
+        sqlx::query(
+            "INSERT INTO tokens (user_id, token_hash, name, created_at) VALUES (?, ?, ?, datetime('now'))",
+        )
+        .bind(user_id)
+        .bind(&token_hash)
+        .bind(name)
+        .execute(&pool)
+        .await
+        .expect("Failed to insert token");
+
+        token_value
+    })
 }
 
 /// Run a brewlog CLI command and return the output

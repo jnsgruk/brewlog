@@ -4,12 +4,11 @@ use brewlog::application::routes::app_router;
 use brewlog::application::server::AppState;
 use brewlog::domain::cafes::{Cafe, NewCafe};
 use brewlog::domain::repositories::{
-    CafeRepository, RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
-    TokenRepository, UserRepository,
+    CafeRepository, PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository,
+    RoasterRepository, SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::NewUser;
-use brewlog::infrastructure::auth::hash_password;
 use brewlog::infrastructure::backup::BackupService;
 use brewlog::infrastructure::database::Database;
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
@@ -17,15 +16,19 @@ use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
 use brewlog::infrastructure::repositories::cafes::SqlCafeRepository;
 use brewlog::infrastructure::repositories::cups::SqlCupRepository;
 use brewlog::infrastructure::repositories::gear::SqlGearRepository;
+use brewlog::infrastructure::repositories::passkey_credentials::SqlPasskeyCredentialRepository;
+use brewlog::infrastructure::repositories::registration_tokens::SqlRegistrationTokenRepository;
 use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
 use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
 use brewlog::infrastructure::repositories::sessions::SqlSessionRepository;
 use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
 use brewlog::infrastructure::repositories::users::SqlUserRepository;
+use brewlog::infrastructure::webauthn::ChallengeStore;
 use reqwest::Client;
 use tokio::net::TcpListener;
 use tokio::task::AbortHandle;
+use webauthn_rs::prelude::*;
 
 pub struct TestApp {
     pub address: String,
@@ -57,6 +60,19 @@ impl Drop for TestApp {
     }
 }
 
+fn test_webauthn() -> Arc<Webauthn> {
+    #[allow(clippy::expect_used)]
+    let rp_origin = url::Url::parse("http://localhost:0").expect("valid URL");
+    #[allow(clippy::expect_used)]
+    Arc::new(
+        WebauthnBuilder::new("localhost", &rp_origin)
+            .expect("valid RP config")
+            .rp_name("Brewlog Test")
+            .build()
+            .expect("valid WebAuthn"),
+    )
+}
+
 pub async fn spawn_app() -> TestApp {
     // Use in-memory SQLite database for testing
     let database = Database::connect("sqlite::memory:")
@@ -84,6 +100,10 @@ pub async fn spawn_app() -> TestApp {
         Arc::new(SqlTokenRepository::new(database.clone_pool()));
     let session_repo: Arc<dyn SessionRepository> =
         Arc::new(SqlSessionRepository::new(database.clone_pool()));
+    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
+        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
+    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
+        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
 
     spawn_app_inner(
         database,
@@ -98,6 +118,8 @@ pub async fn spawn_app() -> TestApp {
         user_repo,
         token_repo,
         session_repo,
+        passkey_repo,
+        registration_token_repo,
         brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
         String::new(),
         None,
@@ -119,6 +141,8 @@ async fn spawn_app_inner(
     user_repo: Arc<dyn UserRepository>,
     token_repo: Arc<dyn TokenRepository>,
     session_repo: Arc<dyn SessionRepository>,
+    passkey_repo: Arc<dyn PasskeyCredentialRepository>,
+    registration_token_repo: Arc<dyn RegistrationTokenRepository>,
     foursquare_url: String,
     foursquare_api_key: String,
     mock_server: Option<wiremock::MockServer>,
@@ -126,25 +150,29 @@ async fn spawn_app_inner(
     let backup_service = Arc::new(BackupService::new(_database.clone_pool()));
 
     // Create application state
-    let state = AppState::new(
-        roaster_repo.clone(),
-        roast_repo.clone(),
-        bag_repo.clone(),
-        gear_repo.clone(),
-        brew_repo.clone(),
-        cafe_repo.clone(),
-        cup_repo.clone(),
-        timeline_repo.clone(),
-        user_repo.clone(),
-        token_repo.clone(),
+    let state = AppState {
+        roaster_repo: roaster_repo.clone(),
+        roast_repo: roast_repo.clone(),
+        bag_repo: bag_repo.clone(),
+        gear_repo: gear_repo.clone(),
+        brew_repo: brew_repo.clone(),
+        cafe_repo: cafe_repo.clone(),
+        cup_repo: cup_repo.clone(),
+        timeline_repo: timeline_repo.clone(),
+        user_repo: user_repo.clone(),
+        token_repo: token_repo.clone(),
         session_repo,
-        reqwest::Client::new(),
+        passkey_repo,
+        registration_token_repo,
+        webauthn: test_webauthn(),
+        challenge_store: Arc::new(ChallengeStore::new()),
+        http_client: reqwest::Client::new(),
         foursquare_url,
         foursquare_api_key,
-        String::new(),
-        "openrouter/free".to_string(),
+        openrouter_api_key: String::new(),
+        openrouter_model: "openrouter/free".to_string(),
         backup_service,
-    );
+    };
 
     // Create router
     let app = app_router(state);
@@ -211,6 +239,10 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
         Arc::new(SqlTokenRepository::new(database.clone_pool()));
     let session_repo: Arc<dyn SessionRepository> =
         Arc::new(SqlSessionRepository::new(database.clone_pool()));
+    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
+        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
+    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
+        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
 
     let app = spawn_app_inner(
         database,
@@ -225,6 +257,8 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
         user_repo,
         token_repo,
         session_repo,
+        passkey_repo,
+        registration_token_repo,
         foursquare_url,
         "test-api-key".to_string(),
         Some(mock_server),
@@ -235,9 +269,9 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
 }
 
 async fn add_auth_to_app(mut app: TestApp) -> TestApp {
-    // Create admin user with known password
-    let password_hash = hash_password("test_password").expect("Failed to hash password");
-    let admin_user = NewUser::new("admin".to_string(), password_hash);
+    // Create user with UUID (no password)
+    let user_uuid = uuid::Uuid::new_v4().to_string();
+    let admin_user = NewUser::new("admin".to_string(), user_uuid);
 
     let admin_user = app
         .user_repo
@@ -247,7 +281,7 @@ async fn add_auth_to_app(mut app: TestApp) -> TestApp {
         .await
         .expect("Failed to create admin user");
 
-    // Create a token for testing
+    // Create a token for testing via direct DB insert
     use brewlog::domain::tokens::NewToken;
     use brewlog::infrastructure::auth::{generate_token, hash_token};
 
