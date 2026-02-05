@@ -74,7 +74,7 @@
 
 <!-- Recent Brews -->
 {% if !recent_brews.is_empty() %}
-<section>
+<section data-signals:_brewing="false">
   <div class="flex items-center justify-between mb-3">
     <h2 class="text-lg font-semibold text-text">Recent Brews</h2>
     <a href="/data?type=brews" class="text-sm text-accent hover:text-accent-hover font-medium">View all brews &rarr;</a>
@@ -107,7 +107,8 @@
         {% if is_authenticated %}
         <form
           class="inline shrink-0"
-          data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
+          data-on:submit="$_brewing = true; @post('/api/v1/brews', {contentType: 'form'})"
+          data-on:datastar-fetch="if (!$_brewing) return; if (evt.detail.type === 'finished') { window.location.reload() } else if (evt.detail.type === 'error') { $_brewing = false }"
         >
           <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
           <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight_raw }}" />
