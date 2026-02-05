@@ -272,6 +272,7 @@ pub(crate) async fn extract_roast_info(
     let (input, _) = payload.into_parts();
     let (result, usage) = ai::extract_roast(
         &state.http_client,
+        &state.openrouter_url,
         &state.openrouter_api_key,
         &state.openrouter_model,
         &input,

@@ -27,6 +27,7 @@ pub(crate) async fn extract_bag_scan(
     let (input, _) = payload.into_parts();
     let (result, usage) = ai::extract_bag_scan(
         &state.http_client,
+        &state.openrouter_url,
         &state.openrouter_api_key,
         &state.openrouter_model,
         &input,
@@ -150,6 +151,7 @@ async fn extract_into_submission(
     };
     let (result, usage) = ai::extract_bag_scan(
         &state.http_client,
+        &state.openrouter_url,
         &state.openrouter_api_key,
         &state.openrouter_model,
         &input,

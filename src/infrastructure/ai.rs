@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::application::errors::AppError;
 
-const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
+pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 const USER_AGENT: &str = "Brewlog/1.0";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(90);
 
@@ -93,11 +93,13 @@ pub struct ExtractedBagScan {
 
 pub async fn extract_roaster(
     client: &reqwest::Client,
+    url: &str,
     api_key: &str,
     model: &str,
     input: &ExtractionInput,
 ) -> Result<(ExtractedRoaster, Option<Usage>), AppError> {
-    let (content, usage) = call_openrouter(client, api_key, model, ROASTER_PROMPT, input).await?;
+    let (content, usage) =
+        call_openrouter(client, url, api_key, model, ROASTER_PROMPT, input).await?;
     let json = extract_json(&content);
 
     let extracted = serde_json::from_str(json).map_err(|e| {
@@ -108,11 +110,13 @@ pub async fn extract_roaster(
 
 pub async fn extract_roast(
     client: &reqwest::Client,
+    url: &str,
     api_key: &str,
     model: &str,
     input: &ExtractionInput,
 ) -> Result<(ExtractedRoast, Option<Usage>), AppError> {
-    let (content, usage) = call_openrouter(client, api_key, model, ROAST_PROMPT, input).await?;
+    let (content, usage) =
+        call_openrouter(client, url, api_key, model, ROAST_PROMPT, input).await?;
     let json = extract_json(&content);
 
     let extracted = serde_json::from_str(json).map_err(|e| {
@@ -123,11 +127,12 @@ pub async fn extract_roast(
 
 pub async fn extract_bag_scan(
     client: &reqwest::Client,
+    url: &str,
     api_key: &str,
     model: &str,
     input: &ExtractionInput,
 ) -> Result<(ExtractedBagScan, Option<Usage>), AppError> {
-    let (content, usage) = call_openrouter(client, api_key, model, SCAN_PROMPT, input).await?;
+    let (content, usage) = call_openrouter(client, url, api_key, model, SCAN_PROMPT, input).await?;
     let json = extract_json(&content);
 
     let extracted = serde_json::from_str(json).map_err(|e| {
@@ -140,6 +145,7 @@ pub async fn extract_bag_scan(
 
 async fn call_openrouter(
     client: &reqwest::Client,
+    url: &str,
     api_key: &str,
     model: &str,
     system_prompt: &str,
@@ -183,7 +189,7 @@ async fn call_openrouter(
     };
 
     let response = client
-        .post(OPENROUTER_URL)
+        .post(url)
         .header("User-Agent", USER_AGENT)
         .header("Authorization", format!("Bearer {api_key}"))
         .timeout(REQUEST_TIMEOUT)

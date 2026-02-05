@@ -42,6 +42,7 @@ pub struct TestApp {
     pub user_repo: Option<Arc<dyn UserRepository>>,
     #[allow(dead_code)]
     pub token_repo: Option<Arc<dyn TokenRepository>>,
+    pub session_repo: Option<Arc<dyn SessionRepository>>,
     pub auth_token: Option<String>,
     #[allow(dead_code)]
     pub mock_server: Option<wiremock::MockServer>,
@@ -51,6 +52,10 @@ pub struct TestApp {
 impl TestApp {
     pub fn api_url(&self, path: &str) -> String {
         format!("{}/api/v1{}", self.address, path)
+    }
+
+    pub fn page_url(&self, path: &str) -> String {
+        format!("{}{}", self.address, path)
     }
 }
 
@@ -122,6 +127,7 @@ pub async fn spawn_app() -> TestApp {
         registration_token_repo,
         brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
         String::new(),
+        brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
         None,
     )
     .await
@@ -145,9 +151,12 @@ async fn spawn_app_inner(
     registration_token_repo: Arc<dyn RegistrationTokenRepository>,
     foursquare_url: String,
     foursquare_api_key: String,
+    openrouter_url: String,
     mock_server: Option<wiremock::MockServer>,
 ) -> TestApp {
     let backup_service = Arc::new(BackupService::new(_database.clone_pool()));
+
+    let session_repo_clone: Arc<dyn SessionRepository> = session_repo.clone();
 
     // Create application state
     let state = AppState {
@@ -174,6 +183,7 @@ async fn spawn_app_inner(
         http_client: reqwest::Client::new(),
         foursquare_url,
         foursquare_api_key,
+        openrouter_url,
         openrouter_api_key: String::new(),
         openrouter_model: "openrouter/free".to_string(),
         backup_service,
@@ -206,6 +216,7 @@ async fn spawn_app_inner(
         timeline_repo,
         user_repo: Some(user_repo),
         token_repo: Some(token_repo),
+        session_repo: Some(session_repo_clone),
         auth_token: None,
         mock_server,
         server_handle,
@@ -266,6 +277,7 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
         registration_token_repo,
         foursquare_url,
         "test-api-key".to_string(),
+        brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
         Some(mock_server),
     )
     .await;
@@ -525,4 +537,98 @@ pub async fn create_cafe_with_payload(app: &TestApp, payload: NewCafe) -> Cafe {
         .json()
         .await
         .expect("failed to deserialize cafe from response")
+}
+
+/// Creates a session for the authenticated user and returns the raw session token
+/// to use as a `brewlog_session` cookie value.
+pub async fn create_session(app: &TestApp) -> String {
+    use brewlog::domain::sessions::NewSession;
+    use brewlog::infrastructure::auth::{generate_session_token, hash_token};
+
+    let session_token = generate_session_token();
+    let session_hash = hash_token(&session_token);
+
+    // Get the user ID from the auth token
+    let token_hash = hash_token(app.auth_token.as_ref().expect("auth token required"));
+    let token = app
+        .token_repo
+        .as_ref()
+        .expect("token_repo required")
+        .get_by_token_hash(&token_hash)
+        .await
+        .expect("failed to find token");
+
+    let now = chrono::Utc::now();
+    #[allow(clippy::expect_used)]
+    let expires_at = now
+        .checked_add_signed(chrono::Duration::hours(24))
+        .expect("timestamp overflow");
+
+    let new_session = NewSession::new(token.user_id, session_hash, now, expires_at);
+
+    app.session_repo
+        .as_ref()
+        .expect("session_repo required")
+        .insert(new_session)
+        .await
+        .expect("failed to create session");
+
+    session_token
+}
+
+pub async fn spawn_app_with_openrouter_mock() -> TestApp {
+    let mock_server = wiremock::MockServer::start().await;
+    let openrouter_url = format!("{}/api/v1/chat/completions", mock_server.uri());
+
+    let database = Database::connect("sqlite::memory:")
+        .await
+        .expect("Failed to connect to in-memory database");
+
+    database
+        .migrate()
+        .await
+        .expect("Failed to migrate database");
+
+    let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
+    let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
+    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
+    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
+    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
+    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
+    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
+    let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
+    let user_repo: Arc<dyn UserRepository> =
+        Arc::new(SqlUserRepository::new(database.clone_pool()));
+    let token_repo: Arc<dyn TokenRepository> =
+        Arc::new(SqlTokenRepository::new(database.clone_pool()));
+    let session_repo: Arc<dyn SessionRepository> =
+        Arc::new(SqlSessionRepository::new(database.clone_pool()));
+    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
+        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
+    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
+        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
+
+    let app = spawn_app_inner(
+        database,
+        roaster_repo,
+        roast_repo,
+        bag_repo,
+        gear_repo,
+        brew_repo,
+        cafe_repo,
+        cup_repo,
+        timeline_repo,
+        user_repo,
+        token_repo,
+        session_repo,
+        passkey_repo,
+        registration_token_repo,
+        brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
+        String::new(),
+        openrouter_url,
+        Some(mock_server),
+    )
+    .await;
+
+    add_auth_to_app(app).await
 }
