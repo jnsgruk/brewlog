@@ -13,12 +13,12 @@
     <div class="rounded-lg border bg-surface p-4 flex flex-col justify-between">
       <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
-          <span class="block font-semibold text-stone-800">{% call icons::key("inline h-4 w-4 mr-1 text-accent") %}{{ passkey.name }}</span>
+          <span class="block font-semibold text-text">{% call icons::key("inline h-4 w-4 mr-1 text-accent") %}{{ passkey.name }}</span>
         </div>
         {% if passkeys.len() > 1 %}
         <button
           type="button"
-          class="shrink-0 rounded-md p-1 text-stone-400 transition hover:text-red-600"
+          class="shrink-0 rounded-md p-1 text-text-muted transition hover:text-red-600"
           onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
           aria-label="Delete passkey"
         >
@@ -26,7 +26,7 @@
         </button>
         {% endif %}
       </div>
-      <div class="mt-2 space-y-0.5 text-sm text-stone-500">
+      <div class="mt-2 space-y-0.5 text-sm text-text-muted">
         <p>Added {{ passkey.created_at }}</p>
         {% if let Some(last_used) = passkey.last_used_at %}
         <p>Last used {{ last_used }}</p>
@@ -39,7 +39,7 @@
   </div>
 
   {% if passkeys.len() <= 1 %}
-  <p class="mt-2 text-xs text-stone-400">Add another passkey before removing your only one.</p>
+  <p class="mt-2 text-xs text-text-muted">Add another passkey before removing your only one.</p>
   {% endif %}
 
   <!-- Add passkey form (hidden by default) -->
@@ -47,7 +47,7 @@
     <div id="add-passkey-error" class="mb-3 hidden rounded-md bg-red-100 border border-red-300 p-2 text-sm text-red-800"></div>
     <div class="flex items-end gap-3">
       <label class="flex-1 flex flex-col gap-1 text-sm">
-        <span class="text-stone-700">Passkey Name</span>
+        <span class="text-text">Passkey Name</span>
         <input
           type="text"
           id="passkey-name"
@@ -67,7 +67,7 @@
       <button
         type="button"
         onclick="hidePasskeyForm()"
-        class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800"
+        class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-text-muted transition hover:text-text"
       >
         Cancel
       </button>
@@ -93,25 +93,25 @@
   <h2 class="text-lg font-semibold text-accent mb-3">API Tokens</h2>
 
   {% if tokens.is_empty() %}
-  <p class="text-sm text-stone-500">No active tokens. Create one to use the CLI or API.</p>
+  <p class="text-sm text-text-muted">No active tokens. Create one to use the CLI or API.</p>
   {% else %}
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
     {% for token in tokens %}
     <div class="rounded-lg border bg-surface p-4 flex flex-col justify-between">
       <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
-          <span class="block font-semibold text-stone-800">{{ token.name }}</span>
+          <span class="block font-semibold text-text">{{ token.name }}</span>
         </div>
         <button
           type="button"
-          class="shrink-0 rounded-md p-1 text-stone-400 transition hover:text-red-600"
+          class="shrink-0 rounded-md p-1 text-text-muted transition hover:text-red-600"
           onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
           aria-label="Revoke token"
         >
           {% call icons::delete("h-4 w-4") %}
         </button>
       </div>
-      <div class="mt-2 space-y-0.5 text-sm text-stone-500">
+      <div class="mt-2 space-y-0.5 text-sm text-text-muted">
         <p>Created {{ token.created_at }}</p>
         {% if let Some(last_used) = token.last_used_at %}
         <p>Last used {{ last_used }}</p>
@@ -129,7 +129,7 @@
     <div id="create-token-error" class="mb-3 hidden rounded-md bg-red-100 border border-red-300 p-2 text-sm text-red-800"></div>
     <div class="flex items-end gap-3">
       <label class="flex-1 flex flex-col gap-1 text-sm">
-        <span class="text-stone-700">Token Name</span>
+        <span class="text-text">Token Name</span>
         <input
           type="text"
           id="token-name"
@@ -149,7 +149,7 @@
       <button
         type="button"
         onclick="hideTokenForm()"
-        class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-stone-800"
+        class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-text-muted transition hover:text-text"
       >
         Cancel
       </button>
@@ -160,7 +160,7 @@
   <div id="token-created" class="mt-3 hidden rounded-lg border border-green-300 bg-green-50 p-5">
     <p class="text-sm font-medium text-green-800">Token created! Copy it now — you won't see it again.</p>
     <div class="mt-3 flex items-center gap-2">
-      <code id="token-value" class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-stone-800 border border-green-200 break-all select-all"></code>
+      <code id="token-value" class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 break-all select-all"></code>
       <button
         type="button"
         onclick="copyToken(this)"
@@ -172,7 +172,7 @@
     <button
       type="button"
       onclick="window.location.reload()"
-      class="mt-2 text-sm text-stone-500 hover:text-stone-700"
+      class="mt-2 text-sm text-text-muted hover:text-text"
     >
       Dismiss
     </button>
@@ -191,7 +191,7 @@
 <!-- Data -->
 <section>
   <h2 class="text-lg font-semibold text-accent mb-3">Data</h2>
-  <p class="text-sm text-stone-500 mb-3">Export all coffee data as JSON, or restore from a previous backup.</p>
+  <p class="text-sm text-text-muted mb-3">Export all coffee data as JSON, or restore from a previous backup.</p>
 
   <div class="flex flex-wrap gap-3">
     <a
@@ -203,7 +203,7 @@
     </a>
     <button
       type="button"
-      class="rounded-md border bg-surface px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-surface-alt hover:text-stone-800"
+      class="rounded-md border bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt hover:text-text"
       onclick="document.getElementById('restore-file-input').click()"
     >
       Restore from Backup
@@ -223,16 +223,16 @@
   <h2 class="text-lg font-semibold text-accent mb-3">OpenRouter Usage</h2>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
     <div class="rounded-lg border bg-surface p-4">
-      <span class="block text-sm text-stone-500">Total Cost</span>
-      <span class="mt-1 block text-lg font-semibold text-stone-800">{{ usage.cost }}</span>
+      <span class="block text-sm text-text-muted">Total Cost</span>
+      <span class="mt-1 block text-lg font-semibold text-text">{{ usage.cost }}</span>
     </div>
     <div class="rounded-lg border bg-surface p-4">
-      <span class="block text-sm text-stone-500">API Calls</span>
-      <span class="mt-1 block text-lg font-semibold text-stone-800">{{ usage.calls }}</span>
+      <span class="block text-sm text-text-muted">API Calls</span>
+      <span class="mt-1 block text-lg font-semibold text-text">{{ usage.calls }}</span>
     </div>
     <div class="rounded-lg border bg-surface p-4">
-      <span class="block text-sm text-stone-500">Total Tokens</span>
-      <span class="mt-1 block text-lg font-semibold text-stone-800">{{ usage.tokens }}</span>
+      <span class="block text-sm text-text-muted">Total Tokens</span>
+      <span class="mt-1 block text-lg font-semibold text-text">{{ usage.tokens }}</span>
     </div>
   </div>
 </section>

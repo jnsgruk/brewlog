@@ -4,7 +4,7 @@
 <div id="roaster-list" class="mt-6" data-star-scope="roasters">
   {% if roasters.items.is_empty() && !navigator.has_search() %}
   <div
-    class="rounded-lg border border-dashed px-4 py-6 text-sm text-stone-600"
+    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
   >
     <p class="text-center">
       {% if is_authenticated %}
@@ -20,8 +20,8 @@
   >
     {% call table::search_header(navigator, "#roaster-list") %}
     <div class="overflow-x-auto">
-      <table class="responsive-table min-w-full divide-y text-left text-sm text-stone-700">
-        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-stone-700">
+      <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
+        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text">
           <tr>
             {% call table::sortable_header("Added", "created-at", navigator, "#roaster-list") %}
             {% call table::sortable_header("Name", "name", navigator, "#roaster-list") %}
@@ -39,17 +39,17 @@
             data-sort-city="{{ roaster.city }}"
             class="transition hover:bg-surface-alt"
           >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
               <div>{{ roaster.created_date }}</div>
-              <div class="hidden md:block font-normal text-stone-400">{{ roaster.created_time }}</div>
+              <div class="hidden md:block font-normal text-text-muted">{{ roaster.created_time }}</div>
             </td>
-            <td data-label="Name" class="card-title px-4 py-3 font-medium text-stone-800">
+            <td data-label="Name" class="card-title px-4 py-3 font-medium text-text">
               {{ roaster.name }}
             </td>
             <td data-label="Location" class="px-4 py-3 whitespace-nowrap">
               {{ roaster.country }}
               {% if !roaster.city.is_empty() %}
-              <div class="hidden md:block text-xs text-stone-500">{{ roaster.city }}</div>
+              <div class="hidden md:block text-xs text-text-muted">{{ roaster.city }}</div>
               {% endif %}
             </td>
             {% if !roaster.city.is_empty() %}
@@ -66,7 +66,7 @@
                 {% endif %}
                 {% if is_authenticated %}
                 <button type="button"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-red-600"
+                  class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
                   data-on:click="confirm('Delete this roaster?') && @delete('/api/v1/roasters/{{ roaster.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})">
                   {% call icons::delete("h-4 w-4") %} Delete
                 </button>
@@ -77,7 +77,7 @@
             <td data-label="" class="card-actions px-4 py-3 text-right">
               {% if roaster.has_homepage || is_authenticated %}
               <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-400 transition hover:text-accent hover:bg-surface-alt"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
                 onclick="const tr=this.closest('tr');const d=tr.querySelector('.card-detail');if(d)d.classList.toggle('hidden');const r=tr.nextElementSibling;if(r&&r.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand').classList.toggle('hidden');this.querySelector('.icon-collapse').classList.toggle('hidden');"
                 title="Actions">
                 <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
@@ -98,7 +98,7 @@
                 {% endif %}
                 {% if is_authenticated %}
                 <button type="button"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-red-600"
+                  class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
                   data-on:click="confirm('Delete this roaster?') && @delete('/api/v1/roasters/{{ roaster.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})">
                   {% call icons::delete("h-4 w-4") %} Delete
                 </button>
@@ -112,7 +112,7 @@
       </table>
     </div>
     {% if roasters.items.is_empty() %}
-    <div class="p-8 text-center text-stone-500">No roasters match your search.</div>
+    <div class="p-8 text-center text-text-muted">No roasters match your search.</div>
     {% endif %}
     {% call table::pagination_header(roasters, navigator, "#roaster-list") %}
     {% if roasters.has_next() %}

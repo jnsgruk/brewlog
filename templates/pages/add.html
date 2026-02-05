@@ -88,7 +88,7 @@
   data-signals:_qn-under-extracted="false"
   data-signals:_qn-over-extracted="false"
 >
-  <h2 class="text-lg font-semibold text-stone-800 mb-3">Manual Add</h2>
+  <h2 class="text-lg font-semibold text-text mb-3">Manual Add</h2>
 
   <!-- Entity type selector -->
   <div class="rounded-lg border bg-surface mb-4">
@@ -98,26 +98,26 @@
   <!-- ========== ROASTER FORM ========== -->
   <div data-show="$_addType === 'roaster'" style="display:none" class="rounded-lg border bg-surface p-5">
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Roaster</h3>
-      <p class="mt-1 text-sm text-stone-600">Provide the core details and Brewlog will keep track of everything for you.</p>
+      <h3 class="text-lg font-semibold text-text">New Roaster</h3>
+      <p class="mt-1 text-sm text-text-secondary">Provide the core details and Brewlog will keep track of everything for you.</p>
     </div>
 
     <form method="post" action="/api/v1/roasters" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Name *</span>
+          <span class="text-text">Name *</span>
           <input type="text" name="name" required class="input-field" placeholder="Example Coffee Roasters" data-bind:_add-roaster-name />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Country *</span>
+          <span class="text-text">Country *</span>
           <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_add-roaster-country />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">City</span>
+          <span class="text-text">City</span>
           <input type="text" name="city" class="input-field" placeholder="Portland" data-bind:_add-roaster-city />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Homepage</span>
+          <span class="text-text">Homepage</span>
           <input type="url" name="homepage" class="input-field" placeholder="https://example.coffee" data-bind:_add-roaster-homepage />
         </label>
       </div>
@@ -132,51 +132,51 @@
   <!-- ========== ROAST FORM ========== -->
   <div data-show="$_addType === 'roast'" style="display:none" class="rounded-lg border bg-surface p-5">
     {% if roaster_options.is_empty() %}
-    <div class="text-sm text-stone-600">
-      <h3 class="text-lg font-semibold text-stone-800">Add a roaster first</h3>
+    <div class="text-sm text-text-secondary">
+      <h3 class="text-lg font-semibold text-text">Add a roaster first</h3>
       <p class="mt-2">Roasts need a roaster. Add a roaster above to enable this form.</p>
     </div>
     {% else %}
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Roast</h3>
-      <p class="mt-1 text-sm text-stone-600">Select a roaster and fill in the details.</p>
+      <h3 class="text-lg font-semibold text-text">New Roast</h3>
+      <p class="mt-1 text-sm text-text-secondary">Select a roaster and fill in the details.</p>
     </div>
 
     <form method="post" action="/api/v1/roasts" class="mt-4 flex flex-col gap-4">
       <div class="flex flex-col gap-1 text-sm">
-        <span class="text-stone-700">Roaster *</span>
+        <span class="text-text">Roaster *</span>
         <searchable-select name="roaster_id" placeholder="Type to search roasters&hellip;">
           {% for roaster in roaster_options %}
           <button type="button" value="{{ roaster.id }}" data-display="{{ roaster.name }}"
             class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-            <span class="font-medium text-stone-800">{{ roaster.name }}</span>
+            <span class="font-medium text-text">{{ roaster.name }}</span>
           </button>
           {% endfor %}
         </searchable-select>
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Roast Name *</span>
+          <span class="text-text">Roast Name *</span>
           <input type="text" name="name" required class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_add-roast-name />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Origin *</span>
+          <span class="text-text">Origin *</span>
           <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_add-origin />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Region *</span>
+          <span class="text-text">Region *</span>
           <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_add-region />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Producer *</span>
+          <span class="text-text">Producer *</span>
           <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" data-bind:_add-producer />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Process *</span>
+          <span class="text-text">Process *</span>
           <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_add-process />
         </label>
         <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Tasting Notes * (comma or newline separated)</span>
+          <span class="text-text">Tasting Notes * (comma or newline separated)</span>
           <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine" data-bind:_add-tasting-notes></textarea>
         </label>
       </div>
@@ -192,35 +192,35 @@
   <!-- ========== BAG FORM ========== -->
   <div data-show="$_addType === 'bag'" style="display:none" class="rounded-lg border bg-surface p-5">
     {% if roast_options.is_empty() %}
-    <div class="text-sm text-stone-600">
-      <h3 class="text-lg font-semibold text-stone-800">Add a roast first</h3>
+    <div class="text-sm text-text-secondary">
+      <h3 class="text-lg font-semibold text-text">Add a roast first</h3>
       <p class="mt-2">Bags need a roast. Add a roaster and roast to enable this form.</p>
     </div>
     {% else %}
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Bag</h3>
-      <p class="mt-1 text-sm text-stone-600">Select a roast and enter the details.</p>
+      <h3 class="text-lg font-semibold text-text">New Bag</h3>
+      <p class="mt-1 text-sm text-text-secondary">Select a roast and enter the details.</p>
     </div>
     <form method="post" action="/api/v1/bags" class="mt-4 flex flex-col gap-4">
       <div class="flex flex-col gap-1 text-sm">
-        <span class="text-stone-700">Roast *</span>
+        <span class="text-text">Roast *</span>
         <searchable-select name="roast_id" placeholder="Type to search roasts&hellip;">
           {% for roast in roast_options %}
           <button type="button" value="{{ roast.id }}" data-display="{{ roast.label }}"
             class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-            <span class="font-medium text-stone-800">{{ roast.name }}</span>
-            <span class="ml-2 text-xs text-stone-500">{{ roast.roaster_name }}</span>
+            <span class="font-medium text-text">{{ roast.name }}</span>
+            <span class="ml-2 text-xs text-text-muted">{{ roast.roaster_name }}</span>
           </button>
           {% endfor %}
         </searchable-select>
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Roast Date</span>
+          <span class="text-text">Roast Date</span>
           <input type="date" name="roast_date" class="input-field" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Amount (g) *</span>
+          <span class="text-text">Amount (g) *</span>
           <input type="number" name="amount" step="0.1" required class="input-field" placeholder="250" />
         </label>
       </div>
@@ -236,39 +236,39 @@
   <!-- ========== BREW FORM ========== -->
   <div data-show="$_addType === 'brew'" style="display:none" class="rounded-lg border bg-surface p-5">
     {% if bag_options.is_empty() %}
-    <div class="text-sm text-stone-600">
-      <h3 class="text-lg font-semibold text-stone-800">Open a bag first</h3>
+    <div class="text-sm text-text-secondary">
+      <h3 class="text-lg font-semibold text-text">Open a bag first</h3>
       <p class="mt-2">Brews need an open bag of coffee. Add a bag to enable this form.</p>
     </div>
     {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
-    <div class="text-sm text-stone-600">
-      <h3 class="text-lg font-semibold text-stone-800">Add your gear first</h3>
+    <div class="text-sm text-text-secondary">
+      <h3 class="text-lg font-semibold text-text">Add your gear first</h3>
       <p class="mt-2">Brews need a grinder and brewer. Add your gear to enable this form.</p>
     </div>
     {% else %}
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Brew</h3>
-      <p class="mt-1 text-sm text-stone-600">Log a cup of coffee.</p>
+      <h3 class="text-lg font-semibold text-text">New Brew</h3>
+      <p class="mt-1 text-sm text-text-secondary">Log a cup of coffee.</p>
     </div>
     <form method="post" action="/api/v1/brews" class="mt-4 flex flex-col gap-6 overflow-hidden">
       <!-- Coffee -->
       <div>
-        <h4 class="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Coffee</h4>
+        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Coffee</h4>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Bag *</span>
+            <span class="text-text">Bag *</span>
             <searchable-select name="bag_id" placeholder="Type to search bags&hellip;">
               {% for bag in bag_options %}
               <button type="button" value="{{ bag.id }}" data-display="{{ bag.roast_name }}"
                 class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-                <span class="font-medium text-stone-800">{{ bag.roast_name }}</span>
-                <span class="ml-2 text-xs text-stone-500">{{ bag.roaster_name }} &middot; {{ bag.remaining }}</span>
+                <span class="font-medium text-text">{{ bag.roast_name }}</span>
+                <span class="ml-2 text-xs text-text-muted">{{ bag.roaster_name }} &middot; {{ bag.remaining }}</span>
               </button>
               {% endfor %}
             </searchable-select>
           </div>
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Weight (g) *</span>
+            <span class="text-text">Weight (g) *</span>
             <div class="flex items-center gap-2">
               <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Math.max(1, $_brewWeight - 0.5)">-</button>
               <input type="number" name="coffee_weight" step="any" min="1" required class="input-field flex-1 text-center" data-attr:value="$_brewWeight" data-on:input="$_brewWeight = this.valueAsNumber" />
@@ -280,10 +280,10 @@
 
       <!-- Grinder -->
       <div>
-        <h4 class="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Grinder</h4>
+        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Grinder</h4>
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Grinder *</span>
+            <span class="text-text">Grinder *</span>
             <select name="grinder_id" required class="input-field">
               {% for grinder in grinder_options %}
               <option value="{{ grinder.id }}"{% if grinder.id == defaults.grinder_id %} selected{% endif %}>{{ grinder.label }}</option>
@@ -291,7 +291,7 @@
             </select>
           </label>
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Grind Setting *</span>
+            <span class="text-text">Grind Setting *</span>
             <div class="flex items-center gap-2">
               <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Math.max(0, $_brewGrind - 0.5)">-</button>
               <input type="number" name="grind_setting" step="any" min="0" required class="input-field flex-1 text-center" data-attr:value="$_brewGrind" data-on:input="$_brewGrind = this.valueAsNumber" />
@@ -303,10 +303,10 @@
 
       <!-- Brewer -->
       <div>
-        <h4 class="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Brewer</h4>
+        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Brewer</h4>
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Brewer *</span>
+            <span class="text-text">Brewer *</span>
             <select name="brewer_id" required class="input-field">
               {% for brewer in brewer_options %}
               <option value="{{ brewer.id }}"{% if brewer.id == defaults.brewer_id %} selected{% endif %}>{{ brewer.label }}</option>
@@ -314,7 +314,7 @@
             </select>
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Filter Paper</span>
+            <span class="text-text">Filter Paper</span>
             <select name="filter_paper_id" class="input-field">
               <option value="">None</option>
               {% for fp in filter_paper_options %}
@@ -327,10 +327,10 @@
 
       <!-- Water -->
       <div>
-        <h4 class="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Water</h4>
+        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Water</h4>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Volume (ml) *</span>
+            <span class="text-text">Volume (ml) *</span>
             <div class="flex items-center gap-2">
               <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Math.max(10, $_brewVolume - 10)">-</button>
               <input type="number" name="water_volume" step="any" min="10" required class="input-field flex-1 text-center" data-attr:value="$_brewVolume" data-on:input="$_brewVolume = this.valueAsNumber" />
@@ -338,7 +338,7 @@
             </div>
           </div>
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Temp (&deg;C) *</span>
+            <span class="text-text">Temp (&deg;C) *</span>
             <div class="flex items-center gap-2">
               <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.max(0, $_brewTemp - 0.5)">-</button>
               <input type="number" name="water_temp" step="any" min="0" max="100" required class="input-field flex-1 text-center" data-attr:value="$_brewTemp" data-on:input="$_brewTemp = this.valueAsNumber" />
@@ -349,7 +349,7 @@
       </div>
       <!-- Quick Notes -->
       <div>
-        <h4 class="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">Quick Notes</h4>
+        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Quick Notes</h4>
         <div class="flex flex-wrap gap-2">
           <button type="button"
             data-on:click="$_qnGood = !$_qnGood"
@@ -385,13 +385,13 @@
   <!-- ========== GEAR FORM ========== -->
   <div data-show="$_addType === 'gear'" style="display:none" class="rounded-lg border bg-surface p-5">
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Gear</h3>
-      <p class="mt-1 text-sm text-stone-600">Add brewing equipment to your collection.</p>
+      <h3 class="text-lg font-semibold text-text">New Gear</h3>
+      <p class="mt-1 text-sm text-text-secondary">Add brewing equipment to your collection.</p>
     </div>
     <form method="post" action="/api/v1/gear" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Category *</span>
+          <span class="text-text">Category *</span>
           <select name="category" required class="input-field">
             <option value="">Select a category</option>
             <option value="grinder">Grinder</option>
@@ -400,11 +400,11 @@
           </select>
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Make *</span>
+          <span class="text-text">Make *</span>
           <input type="text" name="make" required class="input-field" placeholder="Baratza" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Model *</span>
+          <span class="text-text">Model *</span>
           <input type="text" name="model" required class="input-field" placeholder="Encore" />
         </label>
       </div>
@@ -419,8 +419,8 @@
   <!-- ========== CAFE FORM ========== -->
   <div data-show="$_addType === 'cafe'" style="display:none" class="rounded-lg border bg-surface p-5">
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Cafe</h3>
-      <p class="mt-1 text-sm text-stone-600">Search for a nearby cafe or enter details manually.</p>
+      <h3 class="text-lg font-semibold text-text">New Cafe</h3>
+      <p class="mt-1 text-sm text-text-secondary">Search for a nearby cafe or enter details manually.</p>
     </div>
 
     <!-- Location search -->
@@ -433,11 +433,11 @@
     <div class="mt-4 border-b pb-4 flex items-center justify-between" data-show="$_reviewingCafe" style="display:none">
       <div class="flex items-center gap-2">
         {% call icons::location("h-4 w-4 text-accent shrink-0") %}
-        <span class="text-sm font-medium text-stone-800" data-text="$_cafeName"></span>
-        <span class="text-xs text-stone-500" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
+        <span class="text-sm font-medium text-text" data-text="$_cafeName"></span>
+        <span class="text-xs text-text-muted" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
       </div>
       <button type="button"
-        class="text-xs text-stone-500 hover:text-stone-700"
+        class="text-xs text-text-muted hover:text-text"
         data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = ''; $_cafeLng = ''; $_cafeWebsite = ''"
       >Back</button>
     </div>
@@ -445,27 +445,27 @@
     <form id="cafe-form" method="post" action="/api/v1/cafes" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Name *</span>
+          <span class="text-text">Name *</span>
           <input type="text" name="name" required class="input-field" placeholder="Blue Bottle Coffee" data-bind:_cafe-name />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">City *</span>
+          <span class="text-text">City *</span>
           <input type="text" name="city" required class="input-field" placeholder="San Francisco" data-bind:_cafe-city />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Country *</span>
+          <span class="text-text">Country *</span>
           <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_cafe-country />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Website</span>
+          <span class="text-text">Website</span>
           <input type="url" name="website" class="input-field" placeholder="https://bluebottlecoffee.com" data-bind:_cafe-website />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Latitude *</span>
+          <span class="text-text">Latitude *</span>
           <input type="number" name="latitude" step="any" required class="input-field" placeholder="37.7749" data-bind:_cafe-lat />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Longitude *</span>
+          <span class="text-text">Longitude *</span>
           <input type="number" name="longitude" step="any" required class="input-field" placeholder="-122.4194" data-bind:_cafe-lng />
         </label>
       </div>
@@ -480,37 +480,37 @@
   <!-- ========== CUP FORM ========== -->
   <div data-show="$_addType === 'cup'" style="display:none" class="rounded-lg border bg-surface p-5">
     {% if roast_options.is_empty() || cafe_options.is_empty() %}
-    <div class="text-sm text-stone-600">
-      <h3 class="text-lg font-semibold text-stone-800">Add a roast and cafe first</h3>
+    <div class="text-sm text-text-secondary">
+      <h3 class="text-lg font-semibold text-text">Add a roast and cafe first</h3>
       <p class="mt-2">Cups need both a roast and a cafe. Add them above to enable this form.</p>
     </div>
     {% else %}
     <div>
-      <h3 class="text-lg font-semibold text-stone-800">New Cup</h3>
-      <p class="mt-1 text-sm text-stone-600">Record a coffee you had at a cafe.</p>
+      <h3 class="text-lg font-semibold text-text">New Cup</h3>
+      <p class="mt-1 text-sm text-text-secondary">Record a coffee you had at a cafe.</p>
     </div>
     <form method="post" action="/api/v1/cups" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Coffee *</span>
+          <span class="text-text">Coffee *</span>
           <searchable-select name="roast_id" placeholder="Type to search roasts&hellip;">
             {% for roast in roast_options %}
             <button type="button" value="{{ roast.id }}" data-display="{{ roast.name }}"
               class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-              <span class="font-medium text-stone-800">{{ roast.name }}</span>
-              <span class="ml-2 text-xs text-stone-500">{{ roast.roaster_name }}</span>
+              <span class="font-medium text-text">{{ roast.name }}</span>
+              <span class="ml-2 text-xs text-text-muted">{{ roast.roaster_name }}</span>
             </button>
             {% endfor %}
           </searchable-select>
         </div>
         <div class="flex flex-col gap-1 text-sm">
-          <span class="text-stone-700">Cafe *</span>
+          <span class="text-text">Cafe *</span>
           <searchable-select name="cafe_id" placeholder="Type to search cafes&hellip;">
             {% for cafe in cafe_options %}
             <button type="button" value="{{ cafe.id }}" data-display="{{ cafe.name }}"
               class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-              <span class="font-medium text-stone-800">{{ cafe.name }}</span>
-              <span class="ml-2 text-xs text-stone-500">{{ cafe.city }}</span>
+              <span class="font-medium text-text">{{ cafe.name }}</span>
+              <span class="ml-2 text-xs text-text-muted">{{ cafe.city }}</span>
             </button>
             {% endfor %}
           </searchable-select>

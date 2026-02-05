@@ -28,8 +28,8 @@
 
   /* Text */
   --text: #1c1917;            /* stone-900 */
-  --text-secondary: #78716c;  /* stone-500 */
-  --text-muted: #a8a29e;      /* stone-400 */
+  --text-secondary: #57534e;  /* stone-600 */
+  --text-muted: #78716c;      /* stone-500 */
 }
 
 [data-theme="dark"] {
@@ -48,8 +48,8 @@
   --accent-text: #ffffff;
 
   --text: #e7e5e4;
-  --text-secondary: #a8a29e;
-  --text-muted: #78716c;
+  --text-secondary: #d6d3d1;
+  --text-muted: #a8a29e;
 }
 
 /* ── Theme: map raw vars to Tailwind utilities ─────────────────── */
@@ -62,6 +62,9 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-subtle: var(--accent-subtle);
   --color-accent-text: var(--accent-text);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 }
 
 /* ── Base: default border color ────────────────────────────────── */

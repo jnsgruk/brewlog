@@ -409,6 +409,9 @@ Colors are defined as raw CSS custom properties in `:root` (light) and `[data-th
 | `--accent-hover` | `#ea580c` | `#f97316` | `bg-accent-hover`, `hover:bg-accent-hover` |
 | `--accent-subtle` | `#fff7ed` (orange-50) | `rgba(234,88,12,0.1)` | `bg-accent-subtle` |
 | `--accent-text` | `#ffffff` | `#ffffff` | `text-accent-text` |
+| `--text` | `#1c1917` (stone-900) | `#e7e5e4` (stone-200) | `text-text` |
+| `--text-secondary` | `#57534e` (stone-600) | `#d6d3d1` (stone-300) | `text-text-secondary` |
+| `--text-muted` | `#78716c` (stone-500) | `#a8a29e` (stone-400) | `text-text-muted` |
 
 A base layer rule sets the default border color so bare `border` / `divide-y` classes use the theme:
 
@@ -420,7 +423,7 @@ A base layer rule sets the default border color so bare `border` / `divide-y` cl
 }
 ```
 
-Neutral text colors (`text-stone-800`, `text-stone-500`, etc.) are used directly — they are not tokenised since they're static in both themes.
+Neutral text colors use the tokenised utilities (`text-text`, `text-text-secondary`, `text-text-muted`) which adapt automatically between light and dark themes. Do not use hardcoded `text-stone-*` classes for neutral text — always use the token-based classes.
 
 #### Dark Mode
 
@@ -459,11 +462,11 @@ Extra utilities (e.g., `w-28 justify-center whitespace-nowrap`) can be added alo
 | Level | Classes | Use |
 |-------|---------|-----|
 | Page title | `text-3xl font-semibold` | Top-level `<h1>` on each page |
-| Section title | `text-lg font-semibold text-stone-800` | `<h2>` / `<h3>` for form card titles |
-| Subsection title | `text-base font-semibold text-stone-800` | `<h3>` within cards (e.g. "Confirm cafe details") |
-| Form section label | `text-xs font-semibold text-stone-500 uppercase tracking-wide` | `<h4>` grouping related fields (e.g. "Coffee", "Grinder", "Water") |
-| Body / description | `text-sm text-stone-600` | Paragraph text below headings |
-| Muted secondary | `text-xs text-stone-500` | Subtext in option lists, metadata |
+| Section title | `text-lg font-semibold text-text` | `<h2>` / `<h3>` for form card titles |
+| Subsection title | `text-base font-semibold text-text` | `<h3>` within cards (e.g. "Confirm cafe details") |
+| Form section label | `text-xs font-semibold text-text-muted uppercase tracking-wide` | `<h4>` grouping related fields (e.g. "Coffee", "Grinder", "Water") |
+| Body / description | `text-sm text-text-secondary` | Paragraph text below headings |
+| Muted secondary | `text-xs text-text-muted` | Subtext in option lists, metadata |
 | Accent title | `text-2xl font-semibold text-accent` | Login / register page headers |
 
 Page headers follow a consistent structure — title + constrained description:
@@ -471,7 +474,7 @@ Page headers follow a consistent structure — title + constrained description:
 ```html
 <header class="flex flex-col gap-2">
   <h1 class="text-3xl font-semibold">Page Title</h1>
-  <p class="max-w-2xl text-sm text-stone-600">Short description of what the page does.</p>
+  <p class="max-w-2xl text-sm text-text-secondary">Short description of what the page does.</p>
 </header>
 ```
 
@@ -485,17 +488,17 @@ Use `w-full` for full-width CTAs. Use `py-3` for larger touch targets on final s
 
 **Secondary** — cancel, back, alternative actions:
 ```html
-<button class="rounded-md border px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-accent hover:text-stone-800">
+<button class="rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:border-accent hover:text-text">
 ```
 
 **Text-only** — minimal actions in summary bars (Change, Back):
 ```html
-<button class="text-xs text-stone-500 hover:text-stone-700">
+<button class="text-xs text-text-muted hover:text-text">
 ```
 
 **Icon-only** — delete, revoke actions in rows/cards:
 ```html
-<button class="inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-stone-400 transition hover:text-red-600">
+<button class="inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-text-muted transition hover:text-red-600">
 ```
 
 **Link-style** — inline actions with icon (Brew Again, View all):
@@ -520,7 +523,7 @@ Submit buttons are always right-aligned: `<div class="flex items-center justify-
 
 ```html
 <label class="flex flex-col gap-1 text-sm">
-  <span class="text-stone-700">Field Name *</span>
+  <span class="text-text">Field Name *</span>
   <input type="text" name="field" required class="input-field" placeholder="Example" />
 </label>
 ```
@@ -537,7 +540,7 @@ Mark required fields with `*` in the label text. The `input-field` class is defi
 ```html
 <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
   <input type="checkbox" name="flag" value="true" class="accent-orange-700" />
-  <span class="font-semibold text-stone-800">Label text</span>
+  <span class="font-semibold text-text">Label text</span>
 </label>
 ```
 
@@ -573,8 +576,8 @@ When a form requires a parent entity that doesn't exist yet (e.g. "roasts need a
 
 ```html
 {% if roaster_options.is_empty() %}
-<div class="text-sm text-stone-600">
-  <h3 class="text-lg font-semibold text-stone-800">Add a roaster first</h3>
+<div class="text-sm text-text-secondary">
+  <h3 class="text-lg font-semibold text-text">Add a roaster first</h3>
   <p class="mt-2">Roasts need a roaster. Add a roaster above to enable this form.</p>
 </div>
 {% else %}
@@ -591,10 +594,10 @@ When a user selects an item (cafe, roast) in a multi-step flow, show a summary b
   data-show="$_step > 1 && $_cafeName" style="display: none">
   <div class="flex items-center gap-2">
     {% call icons::location("h-4 w-4 text-accent shrink-0") %}
-    <span class="font-medium text-stone-800" data-text="$_cafeName"></span>
-    <span class="text-xs text-stone-500" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
+    <span class="font-medium text-text" data-text="$_cafeName"></span>
+    <span class="text-xs text-text-muted" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
   </div>
-  <button type="button" class="text-xs text-stone-500 hover:text-stone-700"
+  <button type="button" class="text-xs text-text-muted hover:text-text"
     data-on:click="$_cafeName = ''; $_step = 1">Change</button>
 </div>
 ```
@@ -609,7 +612,7 @@ Each page template passes `nav_active` to the layout. Nav links use conditional 
 {% if nav_active == "data" %}
   class="text-accent font-medium"
 {% else %}
-  class="text-stone-500 hover:text-stone-800 transition"
+  class="text-text-muted hover:text-text transition"
 {% endif %}
 ```
 
@@ -673,7 +676,7 @@ The `<searchable-select>` custom element (defined in `static/js/components/searc
   {% for roaster in roaster_options %}
   <button type="button" value="{{ roaster.id }}" data-display="{{ roaster.name }}"
     class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-    <span class="font-medium text-stone-800">{{ roaster.name }}</span>
+    <span class="font-medium text-text">{{ roaster.name }}</span>
   </button>
   {% endfor %}
 </searchable-select>
@@ -899,7 +902,7 @@ List partials live in `templates/partials/lists/` (e.g., `roaster_list.html`, `b
 <div id="{entity}-list" class="mt-6" data-star-scope="{entity}">
   {% if items.is_empty() && !navigator.has_search() %}
   <div
-    class="rounded-lg border border-dashed px-4 py-6 text-sm text-stone-600"
+    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
   >
     <p class="text-center">
       No {entities} recorded yet. Use the form above to add your first {entity}.
@@ -915,7 +918,7 @@ List partials live in `templates/partials/lists/` (e.g., `roaster_list.html`, `b
       <tbody>...</tbody>
     </table>
     {% if items.is_empty() %}
-    <div class="p-8 text-center text-stone-500">No {entities} match your search.</div>
+    <div class="p-8 text-center text-text-muted">No {entities} match your search.</div>
     {% endif %}
     {% call table::pagination_header(items, navigator, "#{entity}-list") %}
     {% if items.has_next() %}
@@ -953,12 +956,12 @@ Three macros are available:
 Every table has a sortable "Added" column as its **first column**, sorted by `created-at`. It uses a distinct smaller style to visually separate it from content columns:
 
 ```html
-<td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
+<td data-label="Added" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
   {{ item.created_at }}
 </td>
 ```
 
-The `text-xs font-medium text-stone-600` classes give it a muted, compact appearance compared to the default `text-sm` body text.
+The `text-xs font-medium text-text-secondary` classes give it a muted, compact appearance compared to the default `text-sm` body text.
 
 ### Actions Column
 
@@ -984,7 +987,7 @@ Tables use the `responsive-table` CSS class which converts rows to card-style la
 ```html
 <td data-label="Coffee" class="px-4 py-3 whitespace-nowrap">
   <div class="font-medium">{{ brew.roast_name }}</div>
-  <div class="hidden md:block text-xs text-stone-500">{{ brew.roaster_name }}</div>
+  <div class="hidden md:block text-xs text-text-muted">{{ brew.roaster_name }}</div>
 </td>
 ```
 

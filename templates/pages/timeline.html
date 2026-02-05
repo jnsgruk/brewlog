@@ -6,7 +6,7 @@
   >
     {% if months.is_empty() %}
     <p
-      class="rounded-lg border border-dashed p-6 text-sm text-stone-600"
+      class="rounded-lg border border-dashed p-6 text-sm text-text-secondary"
       data-role="timeline-empty-state"
     >
       No events yet.
@@ -14,7 +14,7 @@
     {% else %}
     <div class="timeline-list relative" id="timeline-items">
       {# Single central timeline line for all months #}
-      <div class="timeline-line absolute top-0 bottom-0 w-1 bg-stone-300 dark:bg-stone-600" aria-hidden="true"></div>
+      <div class="timeline-line absolute top-0 bottom-0 w-1 bg-border" aria-hidden="true"></div>
       {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
     </div>
     {% endif %}
@@ -35,8 +35,8 @@
         <span aria-hidden="true">↓</span>
         Load more
       </button>
-      <p id="timeline-status" class="text-xs text-stone-500" hidden>Loading…</p>
-      <p id="timeline-end" class="text-sm text-stone-500" style="{% if events.has_next() || months.is_empty() %}display: none{% endif %}">No more events.</p>
+      <p id="timeline-status" class="text-xs text-text-muted" hidden>Loading…</p>
+      <p id="timeline-end" class="text-sm text-text-muted" style="{% if events.has_next() || months.is_empty() %}display: none{% endif %}">No more events.</p>
       <p id="timeline-error" class="text-sm text-red-600" hidden></p>
     </div>
     <div id="timeline-sentinel" class="h-1"></div>
@@ -88,7 +88,7 @@
       container.className = "timeline-list relative"
       container.id = "timeline-items"
       const line = document.createElement("div")
-      line.className = "timeline-line absolute top-0 bottom-0 w-1 bg-stone-300 dark:bg-stone-600"
+      line.className = "timeline-line absolute top-0 bottom-0 w-1 bg-border"
       line.setAttribute("aria-hidden", "true")
       container.appendChild(line)
       section.insertBefore(container, loader)

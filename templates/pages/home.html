@@ -76,7 +76,7 @@
 {% if !recent_brews.is_empty() %}
 <section>
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-stone-800">Recent Brews</h2>
+    <h2 class="text-lg font-semibold text-text">Recent Brews</h2>
     <a href="/data?type=brews" class="text-sm text-accent hover:text-accent-hover font-medium">View all brews &rarr;</a>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start gap-4">
@@ -84,15 +84,15 @@
     <div class="rounded-lg border bg-surface p-4 min-w-0">
       <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
-          <span class="block truncate font-semibold text-stone-800">{{ brew.roast_name }}</span>
-          <p class="truncate text-sm text-stone-500">{{ brew.roaster_name }}</p>
+          <span class="block truncate font-semibold text-text">{{ brew.roast_name }}</span>
+          <p class="truncate text-sm text-text-muted">{{ brew.roaster_name }}</p>
         </div>
-        <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ brew.relative_date_label }}</time>
+        <time class="text-xs text-text-muted whitespace-nowrap shrink-0">{{ brew.relative_date_label }}</time>
       </div>
       <div class="mt-2 space-y-0.5 text-sm">
-        <p class="truncate"><span class="font-medium text-stone-800">{{ brew.coffee_weight }} / {{ brew.water_volume }}</span> <span class="text-stone-500">· {{ brew.ratio }} · {{ brew.water_temp }}</span></p>
-        <p class="truncate"><span class="font-medium text-stone-800">{{ brew.grind_setting }}</span> <span class="text-stone-500">· {{ brew.grinder_name }}</span></p>
-        <p class="truncate"><span class="font-medium text-stone-800">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-stone-500">· {{ fp }}</span>{% endif %}</p>
+        <p class="truncate"><span class="font-medium text-text">{{ brew.coffee_weight }} / {{ brew.water_volume }}</span> <span class="text-text-muted">· {{ brew.ratio }} · {{ brew.water_temp }}</span></p>
+        <p class="truncate"><span class="font-medium text-text">{{ brew.grind_setting }}</span> <span class="text-text-muted">· {{ brew.grinder_name }}</span></p>
+        <p class="truncate"><span class="font-medium text-text">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-text-muted">· {{ fp }}</span>{% endif %}</p>
       </div>
       <div class="mt-3 pt-3 border-t flex items-center justify-between gap-3">
         <div class="flex flex-wrap gap-1">
@@ -139,7 +139,7 @@
 {% if !open_bags.is_empty() %}
 <section id="open-bags-section">
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-stone-800">Open Bags</h2>
+    <h2 class="text-lg font-semibold text-text">Open Bags</h2>
     <a href="/data?type=bags" class="text-sm text-accent hover:text-accent-hover font-medium">View all bags &rarr;</a>
   </div>
   <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -154,7 +154,7 @@
 {% if !recent_events.is_empty() %}
 <section>
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-stone-800">Recent Activity</h2>
+    <h2 class="text-lg font-semibold text-text">Recent Activity</h2>
     <a href="/timeline" class="text-sm text-accent hover:text-accent-hover font-medium">View full timeline &rarr;</a>
   </div>
   <div class="space-y-2">
@@ -162,9 +162,9 @@
     <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
         <span class="pill pill-muted w-28 shrink-0 justify-center whitespace-nowrap">{{ event.kind_label }}</span>
-        <p class="min-w-0 truncate text-sm"><a href="{{ event.link }}" class="font-medium text-stone-700 hover:text-accent">{{ event.title }}</a>{% if let Some(sub) = event.subtitle %} <span class="text-xs text-stone-400 italic">· {{ sub }}</span>{% endif %}</p>
+        <p class="min-w-0 truncate text-sm"><a href="{{ event.link }}" class="font-medium text-text hover:text-accent">{{ event.title }}</a>{% if let Some(sub) = event.subtitle %} <span class="text-xs text-text-muted italic">· {{ sub }}</span>{% endif %}</p>
       </div>
-      <time class="text-xs text-stone-500 whitespace-nowrap shrink-0">{{ event.relative_date_label }}</time>
+      <time class="text-xs text-text-muted whitespace-nowrap shrink-0">{{ event.relative_date_label }}</time>
     </div>
     {% endfor %}
   </div>
@@ -174,43 +174,43 @@
 <!-- Stats -->
 <section>
   <div class="flex items-center justify-between mb-5">
-    <h2 class="text-lg font-semibold text-stone-800">Stats</h2>
+    <h2 class="text-lg font-semibold text-text">Stats</h2>
   </div>
   <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-7">
     <a href="/data?type=brews" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::beaker("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.brews }}</span>
-      <span class="text-xs text-stone-500">Brews</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.brews }}</span>
+      <span class="text-xs text-text-muted">Brews</span>
     </a>
     <a href="/data?type=roasts" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::fire("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.roasts }}</span>
-      <span class="text-xs text-stone-500">Roasts</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasts }}</span>
+      <span class="text-xs text-text-muted">Roasts</span>
     </a>
     <a href="/data?type=roasters" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::building("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.roasters }}</span>
-      <span class="text-xs text-stone-500">Roasters</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasters }}</span>
+      <span class="text-xs text-text-muted">Roasters</span>
     </a>
     <a href="/data?type=bags" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::bag("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.bags }}</span>
-      <span class="text-xs text-stone-500">Bags</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.bags }}</span>
+      <span class="text-xs text-text-muted">Bags</span>
     </a>
     <a href="/data?type=cups" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::cup("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.cups }}</span>
-      <span class="text-xs text-stone-500">Cups</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cups }}</span>
+      <span class="text-xs text-text-muted">Cups</span>
     </a>
     <a href="/data?type=cafes" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::location("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.cafes }}</span>
-      <span class="text-xs text-stone-500">Cafes</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cafes }}</span>
+      <span class="text-xs text-text-muted">Cafes</span>
     </a>
     <a href="/data?type=gear" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
       {% call icons::wrench("h-6 w-6 text-accent") %}
-      <span class="text-lg font-bold text-stone-800 group-hover:text-accent">{{ stats.gear }}</span>
-      <span class="text-xs text-stone-500">Gear</span>
+      <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.gear }}</span>
+      <span class="text-xs text-text-muted">Gear</span>
     </a>
   </div>
 </section>

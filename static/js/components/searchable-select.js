@@ -33,7 +33,7 @@ customElements.define("searchable-select", class extends HTMLElement {
 
     const clear = document.createElement("button");
     clear.type = "button";
-    clear.className = "absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition";
+    clear.className = "absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition";
     clear.innerHTML = '<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>';
 
     const selectedWrap = document.createElement("div");

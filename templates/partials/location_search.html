@@ -39,7 +39,7 @@ const locateUser = (triggerEl) => {
     <button type="button"
       data-on:click="locateUser(el)"
       class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 transition hover:bg-surface-alt"
-      data-class="{'text-accent': $_locationFound, 'text-stone-800': !$_locationFound}"
+      data-class="{'text-accent': $_locationFound, 'text-text': !$_locationFound}"
       data-attr:disabled="$_locating || $_locationFound"
       aria-label="Use my location"
     >

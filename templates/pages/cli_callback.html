@@ -5,7 +5,7 @@
   <div class="rounded-lg border bg-surface p-6">
     {% if token.is_some() %}
     <h1 class="text-2xl font-semibold text-green-700">Authenticated</h1>
-    <p class="mt-2 text-sm text-stone-600">
+    <p class="mt-2 text-sm text-text-secondary">
       Your CLI has been authenticated. You can close this window.
     </p>
     {% else if error.is_some() %}
@@ -15,7 +15,7 @@
     </div>
     {% else %}
     <h1 class="text-2xl font-semibold text-accent">CLI Authentication</h1>
-    <p class="mt-2 text-sm text-stone-600">
+    <p class="mt-2 text-sm text-text-secondary">
       Processing authentication...
     </p>
     {% endif %}

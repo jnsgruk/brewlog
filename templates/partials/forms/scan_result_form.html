@@ -1,51 +1,51 @@
       <div>
-        <h3 class="text-base font-semibold text-stone-800">Roaster</h3>
-        <p class="mt-1 text-sm text-stone-600">If this roaster already exists, it will be matched automatically.</p>
+        <h3 class="text-base font-semibold text-text">Roaster</h3>
+        <p class="mt-1 text-sm text-text-secondary">If this roaster already exists, it will be matched automatically.</p>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Name *</span>
+            <span class="text-text">Name *</span>
             <input type="text" name="roaster_name" required class="input-field" placeholder="Example Coffee Roasters" data-bind:_roaster-name />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Country *</span>
+            <span class="text-text">Country *</span>
             <input type="text" name="roaster_country" required class="input-field" placeholder="United States" data-bind:_roaster-country />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">City</span>
+            <span class="text-text">City</span>
             <input type="text" name="roaster_city" class="input-field" placeholder="Portland" data-bind:_roaster-city />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Homepage</span>
+            <span class="text-text">Homepage</span>
             <input type="url" name="roaster_homepage" class="input-field" placeholder="https://example.coffee" data-bind:_roaster-homepage />
           </label>
         </div>
       </div>
       <div>
-        <h3 class="text-base font-semibold text-stone-800">Roast</h3>
-        <p class="mt-1 text-sm text-stone-600">Details about this specific coffee.</p>
+        <h3 class="text-base font-semibold text-text">Roast</h3>
+        <p class="mt-1 text-sm text-text-secondary">Details about this specific coffee.</p>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Roast Name *</span>
+            <span class="text-text">Roast Name *</span>
             <input type="text" name="roast_name" required class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_roast-name />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Origin *</span>
+            <span class="text-text">Origin *</span>
             <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_origin />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Region *</span>
+            <span class="text-text">Region *</span>
             <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_region />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Producer *</span>
+            <span class="text-text">Producer *</span>
             <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" data-bind:_producer />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Process *</span>
+            <span class="text-text">Process *</span>
             <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_process />
           </label>
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Tasting Notes * (comma separated)</span>
+            <span class="text-text">Tasting Notes * (comma separated)</span>
             <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine" data-bind:_tasting-notes></textarea>
           </label>
         </div>
@@ -53,11 +53,11 @@
       <div>
         <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" name="open_bag" value="true" class="accent-orange-700" data-bind:_open-bag />
-          <span class="font-semibold text-stone-800">Open a bag of this coffee</span>
+          <span class="font-semibold text-text">Open a bag of this coffee</span>
         </label>
         <div data-show="$_openBag" class="mt-3 grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
-            <span class="text-stone-700">Amount (grams)</span>
+            <span class="text-text">Amount (grams)</span>
             <input type="number" name="bag_amount" min="1" step="any" class="input-field" placeholder="250" data-bind:_bag-amount />
           </label>
         </div>
@@ -71,7 +71,7 @@
         <button
           type="button"
           data-on:click="$_scanExtracted = false"
-          class="rounded-md border px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-surface-alt"
+          class="rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt"
         >
           Cancel
         </button>

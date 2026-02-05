@@ -1,5 +1,5 @@
 {% import "partials/icons.html" as icons %}
-<h2 id="{{ month.anchor }}" class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-stone-800" data-timeline-month>
+<h2 id="{{ month.anchor }}" class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-text" data-timeline-month>
   {{ month.heading }}
   <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
     {% call icons::arrow_up("h-5 w-5") %}
@@ -17,13 +17,13 @@
       <span class="pill pill-muted">{{ event.kind_label }}</span>
       <time
         datetime="{{ event.iso_timestamp }}"
-        class="text-xs uppercase tracking-wide text-stone-500"
+        class="text-xs uppercase tracking-wide text-text-muted"
       >
         {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif
         %}
       </time>
     </div>
-    <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-stone-800">
+    <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-text">
       <a href="{{ event.link }}" class="hover:text-accent">{{ event.title }}</a>
       {% if let Some(url) = event.external_link %}
       <a
@@ -66,10 +66,10 @@
       {% endif %}
     </h3>
     {% if event.details.len() > 0 %}
-    <dl class="mt-4 flex flex-col gap-2 text-sm text-stone-600">
+    <dl class="mt-4 flex flex-col gap-2 text-sm text-text-secondary">
       {% for detail in event.details %}
       <div class="flex justify-between gap-2">
-        <dt class="font-medium text-stone-500">{{ detail.label }}</dt>
+        <dt class="font-medium text-text-muted">{{ detail.label }}</dt>
         {% if detail.label.eq_ignore_ascii_case("position") && detail.link.is_some() %}
         <dd class="text-right flex items-center justify-end gap-1.5">
           {{ detail.value }}
@@ -87,7 +87,7 @@
       {% if let Some(notes) = event.tasting_notes %}
       {% if !notes.is_empty() %}
       <div class="flex justify-between gap-2">
-        <dt class="shrink-0 font-medium text-stone-500">Tasting Notes</dt>
+        <dt class="shrink-0 font-medium text-text-muted">Tasting Notes</dt>
         <dd class="text-right">{{ notes.join(", ") }}</dd>
       </div>
       {% endif %}
