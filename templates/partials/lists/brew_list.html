@@ -1,6 +1,33 @@
 {% import "partials/lists/table.html" as table %}
 {% import "partials/icons.html" as icons %}
 
+{% macro brew_actions(brew, navigator) %}
+<div class="flex items-center gap-4">
+  <form class="inline" data-on:submit="@post('/api/v1/brews?{{ navigator.query() }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
+    <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
+    <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight_raw }}" />
+    <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
+    <input type="hidden" name="grind_setting" value="{{ brew.grind_setting_raw }}" />
+    <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
+    {% if let Some(fp_id) = brew.filter_paper_id %}
+    <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
+    {% endif %}
+    <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
+    <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
+    <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
+    <button type="submit"
+      class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
+      {% call icons::plus_circle("h-4 w-4") %} Brew Again
+    </button>
+  </form>
+  <button type="button"
+    class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
+    data-on:click="confirm('Delete this brew?') && @delete('/api/v1/brews/{{ brew.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
+    {% call icons::delete("h-4 w-4") %} Delete
+  </button>
+</div>
+{% endmacro %}
+
 <div id="brew-list" class="mt-6" data-star-scope="brews">
   {% if brews.items.is_empty() && !navigator.has_search() %}
   <div
@@ -76,30 +103,7 @@
             </td>
             {% if is_authenticated %}
             <td data-label="" class="card-detail hidden">
-              <div class="flex items-center gap-4">
-                <form class="inline" data-on:submit="@post('/api/v1/brews?{{ navigator.query() }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
-                  <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
-                  <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight_raw }}" />
-                  <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
-                  <input type="hidden" name="grind_setting" value="{{ brew.grind_setting_raw }}" />
-                  <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
-                  {% if let Some(fp_id) = brew.filter_paper_id %}
-                  <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
-                  {% endif %}
-                  <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
-                  <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
-                  <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
-                  <button type="submit"
-                    class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
-                    {% call icons::plus_circle("h-4 w-4") %} Brew Again
-                  </button>
-                </form>
-                <button type="button"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
-                  data-on:click="confirm('Delete this brew?') && @delete('/api/v1/brews/{{ brew.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
-                  {% call icons::delete("h-4 w-4") %} Delete
-                </button>
-              </div>
+              {% call brew_actions(brew, navigator) %}
             </td>
             <td data-label="" class="card-actions px-4 py-3 text-right">
               <button type="button"
@@ -115,30 +119,7 @@
           {% if is_authenticated %}
           <tr class="hidden detail-row">
             <td colspan="7" class="bg-surface-alt px-4 py-2">
-              <div class="flex items-center gap-4">
-                <form class="inline" data-on:submit="@post('/api/v1/brews?{{ navigator.query() }}', {contentType: 'form', responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
-                  <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
-                  <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight_raw }}" />
-                  <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
-                  <input type="hidden" name="grind_setting" value="{{ brew.grind_setting_raw }}" />
-                  <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
-                  {% if let Some(fp_id) = brew.filter_paper_id %}
-                  <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
-                  {% endif %}
-                  <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
-                  <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
-                  <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
-                  <button type="submit"
-                    class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
-                    {% call icons::plus_circle("h-4 w-4") %} Brew Again
-                  </button>
-                </form>
-                <button type="button"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
-                  data-on:click="confirm('Delete this brew?') && @delete('/api/v1/brews/{{ brew.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
-                  {% call icons::delete("h-4 w-4") %} Delete
-                </button>
-              </div>
+              {% call brew_actions(brew, navigator) %}
             </td>
           </tr>
           {% endif %}
