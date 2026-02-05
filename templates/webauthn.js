@@ -73,12 +73,12 @@ function serializeAuthenticationCredential(credential) {
 }
 
 // Start passkey registration ceremony
-async function startPasskeyRegistration(token, displayName) {
+async function startPasskeyRegistration(token, displayName, passkeyName) {
   // 1. Get challenge from server
   const startResponse = await fetch("/api/v1/webauthn/register/start", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, display_name: displayName }),
+    body: JSON.stringify({ token, display_name: displayName, passkey_name: passkeyName }),
   });
 
   if (!startResponse.ok) {
@@ -100,6 +100,7 @@ async function startPasskeyRegistration(token, displayName) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       challenge_id,
+      passkey_name: passkeyName,
       credential: serializeRegistrationCredential(credential),
     }),
   });

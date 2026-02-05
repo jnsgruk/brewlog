@@ -47,6 +47,7 @@ struct CliCallbackTemplate {
 pub struct RegisterStartRequest {
     pub token: String,
     pub display_name: String,
+    pub passkey_name: String,
 }
 
 #[derive(Serialize)]
@@ -58,6 +59,7 @@ pub struct ChallengeResponse<T: Serialize> {
 #[derive(Deserialize)]
 pub struct RegisterFinishRequest {
     pub challenge_id: String,
+    pub passkey_name: String,
     pub credential: RegisterPublicKeyCredential,
 }
 
@@ -211,7 +213,7 @@ pub(crate) async fn register_finish(
     // Store the credential
     let credential_json =
         serde_json::to_string(&passkey).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    let new_credential = NewPasskeyCredential::new(user_id, credential_json, "default".to_string());
+    let new_credential = NewPasskeyCredential::new(user_id, credential_json, payload.passkey_name);
     state
         .passkey_repo
         .insert(new_credential)

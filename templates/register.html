@@ -30,6 +30,17 @@
         />
       </label>
 
+      <label class="flex flex-col gap-1 text-sm">
+        <span class="text-stone-700">Passkey Name</span>
+        <input
+          type="text"
+          id="passkey-name"
+          required
+          class="input-field"
+          placeholder="e.g. MacBook Touch ID, iPhone"
+        />
+      </label>
+
       <button
         id="register-button"
         type="button"
@@ -63,6 +74,7 @@
     const token = "{{ token }}";
     const button = document.getElementById("register-button");
     const displayNameInput = document.getElementById("display-name");
+    const passkeyNameInput = document.getElementById("passkey-name");
     const errorDiv = document.getElementById("register-error");
     const loadingDiv = document.getElementById("register-loading");
     const unsupportedDiv = document.getElementById("register-unsupported");
@@ -84,12 +96,19 @@
         return;
       }
 
+      const passkeyName = passkeyNameInput.value.trim();
+      if (!passkeyName) {
+        errorDiv.textContent = "Please enter a name for this passkey.";
+        errorDiv.classList.remove("hidden");
+        return;
+      }
+
       errorDiv.classList.add("hidden");
       loadingDiv.classList.remove("hidden");
       button.disabled = true;
 
       try {
-        await startPasskeyRegistration(token, displayName);
+        await startPasskeyRegistration(token, displayName, passkeyName);
         formDiv.classList.add("hidden");
         successDiv.classList.remove("hidden");
       } catch (err) {
