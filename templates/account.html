@@ -190,23 +190,24 @@
   <p class="text-sm text-stone-500 mb-3">Export all coffee data as JSON, or restore from a previous backup.</p>
 
   <div class="flex flex-wrap gap-3">
-    <button
-      id="download-backup-btn"
-      type="button"
-      class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
+    <a
+      href="/api/v1/backup"
+      download
+      class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-500 inline-block"
     >
       Download Backup
-    </button>
+    </a>
     <button
-      id="restore-backup-btn"
       type="button"
       class="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-50 hover:text-stone-800"
+      onclick="document.getElementById('restore-file-input').click()"
     >
       Restore from Backup
     </button>
   </div>
 
-  <input type="file" id="restore-file-input" accept=".json" class="hidden" />
+  <input type="file" id="restore-file-input" accept=".json" class="hidden"
+    onchange="restoreFromFile(this)" />
 
   <div id="backup-status" class="mt-3 hidden rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-800"></div>
   <div id="backup-error" class="mt-3 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"></div>
@@ -379,101 +380,48 @@
       window.location.reload();
     });
 
-    // --- Backup / Restore ---
-    const downloadBackupBtn = document.getElementById("download-backup-btn");
-    const restoreBackupBtn = document.getElementById("restore-backup-btn");
-    const restoreFileInput = document.getElementById("restore-file-input");
-    const backupStatus = document.getElementById("backup-status");
-    const backupError = document.getElementById("backup-error");
-
-    function showBackupStatus(message) {
-      backupError.classList.add("hidden");
-      backupStatus.textContent = message;
-      backupStatus.classList.remove("hidden");
-    }
-
-    function showBackupError(message) {
-      backupStatus.classList.add("hidden");
-      backupError.textContent = message;
-      backupError.classList.remove("hidden");
-    }
-
-    downloadBackupBtn.addEventListener("click", async function () {
-      downloadBackupBtn.disabled = true;
-      backupStatus.classList.add("hidden");
-      backupError.classList.add("hidden");
-
-      try {
-        const response = await fetch("/api/v1/backup");
-        if (!response.ok) {
-          throw new Error("Failed to download backup (HTTP " + response.status + ").");
-        }
-
-        const blob = await response.blob();
-        const date = new Date().toISOString().slice(0, 10);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "brewlog-backup-" + date + ".json";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        showBackupError(err.message);
-      } finally {
-        downloadBackupBtn.disabled = false;
-      }
-    });
-
-    restoreBackupBtn.addEventListener("click", function () {
-      restoreFileInput.click();
-    });
-
-    restoreFileInput.addEventListener("change", async function () {
-      const file = restoreFileInput.files[0];
-      if (!file) return;
-      restoreFileInput.value = "";
-
-      if (!confirm("Restore from backup? This will replace all data.\n\nThe database must be empty for restore to succeed.")) {
-        return;
-      }
-
-      backupStatus.classList.add("hidden");
-      backupError.classList.add("hidden");
-      restoreBackupBtn.disabled = true;
-
-      try {
-        const text = await file.text();
-        JSON.parse(text); // validate JSON before sending
-
-        const response = await fetch("/api/v1/backup/restore", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: text,
-        });
-
-        if (response.status === 409) {
-          throw new Error("Database is not empty. Restore requires an empty database.");
-        }
-        if (!response.ok) {
-          throw new Error("Restore failed (HTTP " + response.status + ").");
-        }
-
-        showBackupStatus("Backup restored successfully.");
-      } catch (err) {
-        if (err instanceof SyntaxError) {
-          showBackupError("Invalid JSON file.");
-        } else {
-          showBackupError(err.message);
-        }
-      } finally {
-        restoreBackupBtn.disabled = false;
-      }
-    });
   });
 
-  // --- Global functions for inline onclick handlers ---
+  // --- Global functions for inline onclick/onchange handlers ---
+
+  async function restoreFromFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = "";
+
+    if (!confirm("Restore from backup? This will replace all data.\n\nThe database must be empty for restore to succeed.")) {
+      return;
+    }
+
+    const status = document.getElementById("backup-status");
+    const error = document.getElementById("backup-error");
+    status.classList.add("hidden");
+    error.classList.add("hidden");
+
+    try {
+      const text = await file.text();
+      JSON.parse(text);
+
+      const response = await fetch("/api/v1/backup/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: text,
+      });
+
+      if (response.status === 409) {
+        throw new Error("Database is not empty. Restore requires an empty database.");
+      }
+      if (!response.ok) {
+        throw new Error("Restore failed (HTTP " + response.status + ").");
+      }
+
+      status.textContent = "Backup restored successfully.";
+      status.classList.remove("hidden");
+    } catch (err) {
+      error.textContent = err instanceof SyntaxError ? "Invalid JSON file." : err.message;
+      error.classList.remove("hidden");
+    }
+  }
 
   async function deletePasskey(id, name) {
     if (!confirm('Delete passkey "' + name + '"? This cannot be undone.')) return;
