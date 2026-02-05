@@ -90,7 +90,7 @@
         <time class="text-xs text-text-muted whitespace-nowrap shrink-0">{{ brew.relative_date_label }}</time>
       </div>
       <div class="mt-2 space-y-0.5 text-sm">
-        <p class="truncate"><span class="font-medium text-text">{{ brew.coffee_weight }} / {{ brew.water_volume }}</span> <span class="text-text-muted">· {{ brew.ratio }} · {{ brew.water_temp }}</span></p>
+        <p class="truncate"><span class="font-medium text-text">{{ brew.coffee_weight }} · {{ brew.water_volume }} · {{ brew.water_temp }}</span> <span class="text-text-muted">· {{ brew.ratio }}</span></p>
         <p class="truncate"><span class="font-medium text-text">{{ brew.grind_setting }}</span> <span class="text-text-muted">· {{ brew.grinder_name }}</span></p>
         <p class="truncate"><span class="font-medium text-text">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-text-muted">· {{ fp }}</span>{% endif %}</p>
       </div>
