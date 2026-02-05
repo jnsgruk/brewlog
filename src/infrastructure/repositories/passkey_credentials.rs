@@ -64,6 +64,27 @@ impl PasskeyCredentialRepository for SqlPasskeyCredentialRepository {
         Ok(Self::to_domain(record))
     }
 
+    async fn get(&self, id: PasskeyCredentialId) -> Result<PasskeyCredential, RepositoryError> {
+        let sql = r"
+            SELECT id, user_id, credential_json, name, created_at, last_used_at
+            FROM passkey_credentials
+            WHERE id = ?
+        ";
+
+        let record = query_as::<_, PasskeyCredentialRecord>(sql)
+            .bind(i64::from(id))
+            .fetch_one(&self.pool)
+            .await
+            .map_err(|err| match err {
+                sqlx::Error::RowNotFound => RepositoryError::NotFound,
+                err => {
+                    RepositoryError::unexpected(format!("failed to get passkey credential: {err}"))
+                }
+            })?;
+
+        Ok(Self::to_domain(record))
+    }
+
     async fn list_by_user(
         &self,
         user_id: UserId,

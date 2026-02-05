@@ -145,3 +145,38 @@ async function startPasskeyAuthentication(queryParams) {
 
   return finishResponse.json();
 }
+
+// Add a passkey to an existing authenticated account
+async function addPasskey(name) {
+  // 1. Get challenge from server
+  const startResponse = await fetch("/api/v1/webauthn/passkey/start", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!startResponse.ok) {
+    throw new Error("Failed to start passkey registration (HTTP " + startResponse.status + ").");
+  }
+
+  const { challenge_id, options } = await startResponse.json();
+
+  // 2. Create credential via browser WebAuthn API
+  const creationOptions = prepareCreationOptions(options);
+  const credential = await navigator.credentials.create(creationOptions);
+
+  // 3. Send credential to server
+  const finishResponse = await fetch("/api/v1/webauthn/passkey/finish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      challenge_id,
+      name,
+      credential: serializeRegistrationCredential(credential),
+    }),
+  });
+
+  if (!finishResponse.ok) {
+    throw new Error("Failed to complete passkey registration (HTTP " + finishResponse.status + ").");
+  }
+}

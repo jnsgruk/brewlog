@@ -10,6 +10,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 use webauthn_rs::prelude::*;
 
+use crate::application::auth::AuthenticatedUser;
 use crate::application::routes::render_html;
 use crate::application::server::AppState;
 use crate::domain::passkey_credentials::NewPasskeyCredential;
@@ -396,6 +397,104 @@ pub(crate) async fn auth_finish(
     info!(user_id = %user_id, "user authenticated via passkey");
 
     Ok(Json(AuthFinishResponse { redirect: None }))
+}
+
+// --- Add passkey to existing account ---
+
+#[derive(Deserialize)]
+pub struct PasskeyAddStartRequest {
+    pub name: String,
+}
+
+#[derive(Deserialize)]
+pub struct PasskeyAddFinishRequest {
+    pub challenge_id: String,
+    pub name: String,
+    pub credential: RegisterPublicKeyCredential,
+}
+
+#[tracing::instrument(skip(state, auth_user, payload), fields(passkey_name = %payload.name))]
+pub(crate) async fn passkey_add_start(
+    State(state): State<AppState>,
+    auth_user: AuthenticatedUser,
+    Json(payload): Json<PasskeyAddStartRequest>,
+) -> Result<Json<ChallengeResponse<CreationChallengeResponse>>, StatusCode> {
+    let user = auth_user.0;
+    let webauthn_uuid =
+        Uuid::parse_str(&user.uuid).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    // Load existing credentials to exclude (prevents re-registering same authenticator)
+    let existing = state
+        .passkey_repo
+        .list_by_user(user.id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let exclude_credentials = existing
+        .iter()
+        .filter_map(|c| serde_json::from_str::<Passkey>(&c.credential_json).ok())
+        .map(|p| p.cred_id().clone())
+        .collect::<Vec<_>>();
+
+    let (ccr, reg_state) = state
+        .webauthn
+        .start_passkey_registration(
+            webauthn_uuid,
+            &user.username,
+            &user.username,
+            Some(exclude_credentials),
+        )
+        .map_err(|err| {
+            error!(error = %err, "failed to start passkey registration for existing user");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    let challenge_id = generate_session_token();
+    state
+        .challenge_store
+        .store_registration(challenge_id.clone(), user.id, reg_state)
+        .await;
+
+    Ok(Json(ChallengeResponse {
+        challenge_id,
+        options: ccr,
+    }))
+}
+
+#[tracing::instrument(skip(state, payload))]
+pub(crate) async fn passkey_add_finish(
+    State(state): State<AppState>,
+    Json(payload): Json<PasskeyAddFinishRequest>,
+) -> Result<StatusCode, StatusCode> {
+    let (user_id, reg_state) = state
+        .challenge_store
+        .take_registration(&payload.challenge_id)
+        .await
+        .ok_or(StatusCode::BAD_REQUEST)?;
+
+    let passkey = state
+        .webauthn
+        .finish_passkey_registration(&payload.credential, &reg_state)
+        .map_err(|err| {
+            warn!(error = %err, "passkey add registration failed");
+            StatusCode::BAD_REQUEST
+        })?;
+
+    let credential_json =
+        serde_json::to_string(&passkey).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let new_credential = NewPasskeyCredential::new(user_id, credential_json, payload.name);
+    state
+        .passkey_repo
+        .insert(new_credential)
+        .await
+        .map_err(|err| {
+            error!(error = %err, "failed to store new passkey credential");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    info!(user_id = %user_id, "additional passkey registered successfully");
+
+    Ok(StatusCode::OK)
 }
 
 // --- CLI callback page ---

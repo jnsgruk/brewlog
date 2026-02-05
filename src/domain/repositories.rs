@@ -231,6 +231,7 @@ pub trait PasskeyCredentialRepository: Send + Sync {
         &self,
         credential: NewPasskeyCredential,
     ) -> Result<PasskeyCredential, RepositoryError>;
+    async fn get(&self, id: PasskeyCredentialId) -> Result<PasskeyCredential, RepositoryError>;
     async fn list_by_user(
         &self,
         user_id: UserId,

@@ -11,14 +11,12 @@
             <a class="border-b-2 pb-1 transition {% if nav_active == "checkin" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/check-in" aria-label="Check In">
                 {% call icons::checkin("inline h-4 w-4") %}
             </a>
-            <form method="post" action="/logout" class="inline">
-                <button type="submit" class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" aria-label="Logout">
-                    {% call icons::logout("inline h-4 w-4") %}
-                </button>
-            </form>
+            <a class="border-b-2 pb-1 transition {% if nav_active == "account" %}text-amber-700 border-amber-500{% else %}text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400{% endif %}" href="/account" aria-label="Account">
+                {% call icons::user("inline h-4 w-4") %}
+            </a>
             {% else %}
             <a class="border-b-2 pb-1 transition text-stone-500 border-transparent hover:text-amber-600 hover:border-amber-400" href="/login" aria-label="Login">
-                {% call icons::login("inline h-4 w-4") %}
+                {% call icons::user("inline h-4 w-4") %}
             </a>
             {% endif %}
         </div>
@@ -38,15 +36,13 @@
             {% call icons::checkin("inline h-4 w-4") %}
             Check In
         </a>
-        <form method="post" action="/logout" class="inline">
-            <button type="submit" class="py-1 transition inline-flex items-center gap-1 text-stone-500 hover:text-amber-600 text-left">
-                {% call icons::logout("inline h-4 w-4") %}
-                Logout
-            </button>
-        </form>
+        <a class="py-1 transition inline-flex items-center gap-1 {% if nav_active == "account" %}text-amber-700 font-medium{% else %}text-stone-500 hover:text-amber-600{% endif %}" href="/account">
+            {% call icons::user("inline h-4 w-4") %}
+            Account
+        </a>
         {% else %}
         <a class="py-1 transition inline-flex items-center gap-1 text-stone-500 hover:text-amber-600" href="/login">
-            {% call icons::login("inline h-4 w-4") %}
+            {% call icons::user("inline h-4 w-4") %}
             Login
         </a>
         {% endif %}

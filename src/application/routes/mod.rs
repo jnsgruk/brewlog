@@ -1,3 +1,4 @@
+pub mod account;
 pub mod add;
 pub mod auth;
 pub mod backup;
@@ -33,6 +34,7 @@ use crate::application::server::AppState;
 
 use crate::presentation::web::templates::render_template;
 
+#[allow(clippy::too_many_lines)]
 pub fn app_router(state: AppState) -> axum::Router {
     let api_routes = axum::Router::new()
         // Public API routes
@@ -100,6 +102,11 @@ pub fn app_router(state: AppState) -> axum::Router {
             post(tokens::create_token).get(tokens::list_tokens),
         )
         .route("/tokens/:id/revoke", post(tokens::revoke_token))
+        .route("/passkeys", get(account::list_passkeys))
+        .route(
+            "/passkeys/:id",
+            axum::routing::delete(account::delete_passkey),
+        )
         .route("/backup", get(backup::export_backup))
         .route(
             "/backup/restore",
@@ -110,12 +117,15 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/register/start", post(webauthn::register_start))
         .route("/register/finish", post(webauthn::register_finish))
         .route("/auth/start", get(webauthn::auth_start))
-        .route("/auth/finish", post(webauthn::auth_finish));
+        .route("/auth/finish", post(webauthn::auth_finish))
+        .route("/passkey/start", post(webauthn::passkey_add_start))
+        .route("/passkey/finish", post(webauthn::passkey_add_finish));
 
     axum::Router::new()
         .route("/", get(home::home_page))
         .route("/login", get(auth::login_page))
         .route("/logout", post(auth::logout))
+        .route("/account", get(account::account_page))
         .route("/register/:token", get(webauthn::register_page))
         .route("/auth/cli-callback", get(webauthn::cli_callback_page))
         .route("/data", get(data::data_page))
