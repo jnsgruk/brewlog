@@ -22,13 +22,13 @@ use crate::presentation::web::views::{BagView, ListNavigator, Paginated};
 const BAG_PAGE_PATH: &str = "/data?type=bags";
 const BAG_FRAGMENT_PATH: &str = "/data?type=bags#bag-list";
 
-pub(in crate::application::routes) struct BagPageData {
-    pub(in crate::application::routes) bags: Paginated<BagView>,
-    pub(in crate::application::routes) navigator: ListNavigator<BagSortKey>,
+pub(crate) struct BagPageData {
+    pub(crate) bags: Paginated<BagView>,
+    pub(crate) navigator: ListNavigator<BagSortKey>,
 }
 
 #[tracing::instrument(skip(state))]
-pub(in crate::application::routes) async fn load_bag_page(
+pub(crate) async fn load_bag_page(
     state: &AppState,
     request: ListRequest<BagSortKey>,
     search: Option<&str>,

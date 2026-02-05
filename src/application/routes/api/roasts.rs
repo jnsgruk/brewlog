@@ -25,7 +25,7 @@ const ROAST_PAGE_PATH: &str = "/data?type=roasts";
 const ROAST_FRAGMENT_PATH: &str = "/data?type=roasts#roast-list";
 
 #[tracing::instrument(skip(state))]
-pub(in crate::application::routes) async fn load_roast_page(
+pub(crate) async fn load_roast_page(
     state: &AppState,
     request: ListRequest<RoastSortKey>,
     search: Option<&str>,

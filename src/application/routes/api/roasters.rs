@@ -22,7 +22,7 @@ const ROASTER_PAGE_PATH: &str = "/data?type=roasters";
 const ROASTER_FRAGMENT_PATH: &str = "/data?type=roasters#roaster-list";
 
 #[tracing::instrument(skip(state))]
-pub(in crate::application::routes) async fn load_roaster_page(
+pub(crate) async fn load_roaster_page(
     state: &AppState,
     request: ListRequest<RoasterSortKey>,
     search: Option<&str>,

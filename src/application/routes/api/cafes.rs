@@ -23,7 +23,7 @@ const CAFE_PAGE_PATH: &str = "/data?type=cafes";
 const CAFE_FRAGMENT_PATH: &str = "/data?type=cafes#cafe-list";
 
 #[tracing::instrument(skip(state))]
-pub(in crate::application::routes) async fn load_cafe_page(
+pub(crate) async fn load_cafe_page(
     state: &AppState,
     request: ListRequest<CafeSortKey>,
     search: Option<&str>,

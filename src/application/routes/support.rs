@@ -215,7 +215,7 @@ where
     }
 }
 
-pub(in crate::application::routes) async fn load_roaster_options(
+pub(crate) async fn load_roaster_options(
     state: &AppState,
 ) -> Result<Vec<RoasterOptionView>, AppError> {
     use crate::domain::roasters::RoasterSortKey;
@@ -227,16 +227,12 @@ pub(in crate::application::routes) async fn load_roaster_options(
     Ok(roasters.into_iter().map(RoasterOptionView::from).collect())
 }
 
-pub(in crate::application::routes) async fn load_roast_options(
-    state: &AppState,
-) -> Result<Vec<RoastOptionView>, AppError> {
+pub(crate) async fn load_roast_options(state: &AppState) -> Result<Vec<RoastOptionView>, AppError> {
     let roasts = state.roast_repo.list_all().await.map_err(AppError::from)?;
     Ok(roasts.into_iter().map(RoastOptionView::from).collect())
 }
 
-pub(in crate::application::routes) async fn load_cafe_options(
-    state: &AppState,
-) -> Result<Vec<CafeOptionView>, AppError> {
+pub(crate) async fn load_cafe_options(state: &AppState) -> Result<Vec<CafeOptionView>, AppError> {
     use crate::domain::cafes::CafeSortKey;
     let cafes = state
         .cafe_repo
