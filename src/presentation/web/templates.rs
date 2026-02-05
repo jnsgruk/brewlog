@@ -134,12 +134,17 @@ pub struct DataTemplate {
     pub is_authenticated: bool,
     pub version_info: &'static crate::VersionInfo,
     pub active_type: String,
-    pub tabs: Vec<DataTab>,
+    pub tabs: Vec<Tab>,
+    pub tab_signal: &'static str,
+    pub tab_signal_js: &'static str,
+    pub tab_base_url: &'static str,
+    pub tab_fetch_target: &'static str,
+    pub tab_fetch_mode: &'static str,
     pub content: String,
     pub search_value: String,
 }
 
-pub struct DataTab {
+pub struct Tab {
     pub key: &'static str,
     pub label: &'static str,
 }
@@ -151,6 +156,12 @@ pub struct AddTemplate {
     pub is_authenticated: bool,
     pub version_info: &'static crate::VersionInfo,
     pub active_type: String,
+    pub tabs: Vec<Tab>,
+    pub tab_signal: &'static str,
+    pub tab_signal_js: &'static str,
+    pub tab_base_url: &'static str,
+    pub tab_fetch_target: &'static str,
+    pub tab_fetch_mode: &'static str,
     pub roaster_options: Vec<RoasterOptionView>,
     pub roast_options: Vec<RoastOptionView>,
     pub bag_options: Vec<BagOptionView>,

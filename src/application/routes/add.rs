@@ -9,9 +9,40 @@ use crate::application::routes::support::{
     load_cafe_options, load_roast_options, load_roaster_options,
 };
 use crate::application::server::AppState;
-use crate::presentation::web::templates::AddTemplate;
+use crate::presentation::web::templates::{AddTemplate, Tab};
 
 use super::brews::load_brew_form_data;
+
+const ADD_TABS: &[Tab] = &[
+    Tab {
+        key: "roaster",
+        label: "Roaster",
+    },
+    Tab {
+        key: "roast",
+        label: "Roast",
+    },
+    Tab {
+        key: "bag",
+        label: "Bag",
+    },
+    Tab {
+        key: "brew",
+        label: "Brew",
+    },
+    Tab {
+        key: "gear",
+        label: "Gear",
+    },
+    Tab {
+        key: "cafe",
+        label: "Cafe",
+    },
+    Tab {
+        key: "cup",
+        label: "Cup",
+    },
+];
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct AddQuery {
@@ -48,6 +79,18 @@ pub(crate) async fn add_page(
         is_authenticated,
         version_info: &crate::VERSION_INFO,
         active_type: query.entity_type,
+        tabs: ADD_TABS
+            .iter()
+            .map(|t| Tab {
+                key: t.key,
+                label: t.label,
+            })
+            .collect(),
+        tab_signal: "_add-type",
+        tab_signal_js: "$_addType",
+        tab_base_url: "",
+        tab_fetch_target: "",
+        tab_fetch_mode: "",
         roaster_options,
         roast_options,
         bag_options: brew_form.bag_options,

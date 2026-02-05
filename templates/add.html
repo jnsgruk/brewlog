@@ -134,7 +134,6 @@
 
 <!-- Manual Add -->
 <section
-  data-signals:_add-type="'{{ active_type }}'"
   data-signals:_add-submitting="false"
   data-signals:_add-roaster-name="''"
   data-signals:_add-roaster-country="''"
@@ -168,24 +167,9 @@
 >
   <h2 class="text-lg font-semibold text-stone-800 mb-3">Manual Add</h2>
 
-  <!-- Entity type selector pills -->
-  <div class="flex flex-wrap gap-2 mb-4">
-    {% for (key, label) in [("roaster", "Roaster"), ("roast", "Roast"), ("bag", "Bag"), ("brew", "Brew"), ("gear", "Gear"), ("cafe", "Cafe"), ("cup", "Cup")] %}
-    <button
-      type="button"
-      data-on:click="$_addType = '{{ key }}'"
-      class="rounded-full px-3 py-1.5 text-sm font-medium transition border"
-      data-class:bg-accent="$_addType === '{{ key }}'"
-      data-class:text-accent-text="$_addType === '{{ key }}'"
-      data-class:border-accent="$_addType === '{{ key }}'"
-      data-class:bg-transparent="$_addType !== '{{ key }}'"
-      data-class:text-stone-600="$_addType !== '{{ key }}'"
-      data-class:border="$_addType !== '{{ key }}'"
-      data-class:hover--bg-surface-alt="$_addType !== '{{ key }}'"
-    >
-      {{ label }}
-    </button>
-    {% endfor %}
+  <!-- Entity type selector -->
+  <div class="rounded-lg border bg-surface mb-4">
+    {% include "partials/tab_bar.html" %}
   </div>
 
   <!-- ========== ROASTER FORM ========== -->

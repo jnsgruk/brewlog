@@ -8,36 +8,36 @@ use crate::application::routes::render_html;
 use crate::application::routes::support::{ListQuery, is_datastar_request};
 use crate::application::server::AppState;
 use crate::presentation::web::templates::{
-    BagListTemplate, BrewListTemplate, CafeListTemplate, CupListTemplate, DataTab, DataTemplate,
-    GearListTemplate, RoastListTemplate, RoasterListTemplate, render_template,
+    BagListTemplate, BrewListTemplate, CafeListTemplate, CupListTemplate, DataTemplate,
+    GearListTemplate, RoastListTemplate, RoasterListTemplate, Tab, render_template,
 };
 
-const TABS: &[DataTab] = &[
-    DataTab {
+const TABS: &[Tab] = &[
+    Tab {
         key: "brews",
         label: "Brews",
     },
-    DataTab {
+    Tab {
         key: "roasters",
         label: "Roasters",
     },
-    DataTab {
+    Tab {
         key: "roasts",
         label: "Roasts",
     },
-    DataTab {
+    Tab {
         key: "bags",
         label: "Bags",
     },
-    DataTab {
+    Tab {
         key: "gear",
         label: "Gear",
     },
-    DataTab {
+    Tab {
         key: "cafes",
         label: "Cafes",
     },
-    DataTab {
+    Tab {
         key: "cups",
         label: "Cups",
     },
@@ -84,9 +84,9 @@ pub(crate) async fn data_page(
         return Ok(response);
     }
 
-    let tabs: Vec<DataTab> = TABS
+    let tabs: Vec<Tab> = TABS
         .iter()
-        .map(|t| DataTab {
+        .map(|t| Tab {
             key: t.key,
             label: t.label,
         })
@@ -98,6 +98,11 @@ pub(crate) async fn data_page(
         version_info: &crate::VERSION_INFO,
         active_type: entity_type,
         tabs,
+        tab_signal: "_active-tab",
+        tab_signal_js: "$_activeTab",
+        tab_base_url: "/data?type=",
+        tab_fetch_target: "#data-content",
+        tab_fetch_mode: "inner",
         content,
         search_value,
     };

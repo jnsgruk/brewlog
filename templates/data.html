@@ -16,51 +16,8 @@
   {% endif %}
 </header>
 
-<div class="rounded-lg border bg-surface"
-  data-signals:_active-tab="'{{ active_type }}'" data-signals:_tabs-open="false">
-  <!-- Desktop tabs -->
-  <nav class="hidden md:flex flex-wrap gap-1 p-1.5">
-    {% for tab in tabs %}
-    <a
-      href="/data?type={{ tab.key }}"
-      data-class:bg-accent="$_activeTab === '{{ tab.key }}'"
-      data-class:text-white="$_activeTab === '{{ tab.key }}'"
-      data-class:shadow-sm="$_activeTab === '{{ tab.key }}'"
-      data-class:text-stone-600="$_activeTab !== '{{ tab.key }}'"
-      class="rounded-md px-3 py-1.5 text-sm font-medium transition"
-      data-on:click__prevent="$_activeTab = '{{ tab.key }}'; history.pushState(null, '', '/data?type={{ tab.key }}'); @get('/data?type={{ tab.key }}', {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
-    >{{ tab.label }}</a>
-    {% endfor %}
-  </nav>
-  <!-- Mobile tab selector -->
-  <div class="md:hidden">
-    <button
-      type="button"
-      class="flex w-full items-center justify-between p-3 text-sm font-medium text-stone-800"
-      data-on:click="$_tabsOpen = !$_tabsOpen"
-    >
-      <span>
-        {% for tab in tabs %}
-        <span data-show="$_activeTab === '{{ tab.key }}'">{{ tab.label }}</span>
-        {% endfor %}
-      </span>
-      <span data-show="!$_tabsOpen">{% call icons::chevron_down("h-5 w-5") %}</span>
-      <span data-show="$_tabsOpen" style="display:none">{% call icons::chevron_up("h-5 w-5") %}</span>
-    </button>
-    <div class="flex flex-col border-t" data-show="$_tabsOpen" style="display:none">
-      {% for tab in tabs %}
-      <a
-        href="/data?type={{ tab.key }}"
-        data-class:bg-accent-subtle="$_activeTab === '{{ tab.key }}'"
-        data-class:text-stone-800="$_activeTab === '{{ tab.key }}'"
-        data-class:font-semibold="$_activeTab === '{{ tab.key }}'"
-        data-class:text-stone-600="$_activeTab !== '{{ tab.key }}'"
-        class="px-3 py-2 text-sm transition hover:bg-surface-alt"
-        data-on:click__prevent="$_activeTab = '{{ tab.key }}'; $_tabsOpen = false; history.pushState(null, '', '/data?type={{ tab.key }}'); @get('/data?type={{ tab.key }}', {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
-      >{{ tab.label }}</a>
-      {% endfor %}
-    </div>
-  </div>
+<div class="rounded-lg border bg-surface">
+  {% include "partials/tab_bar.html" %}
   <!-- Search -->
   <div class="border-t px-3 py-2">
     <input
