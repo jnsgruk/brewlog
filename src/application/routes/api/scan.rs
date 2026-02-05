@@ -5,9 +5,9 @@ use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
+use super::roasts::TastingNotesInput;
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
-use crate::application::routes::roasts::TastingNotesInput;
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
 use crate::application::server::AppState;
 use crate::domain::bags::NewBag;
@@ -34,7 +34,7 @@ pub(crate) async fn extract_bag_scan(
     .await
     .map_err(ApiError::from)?;
 
-    super::support::record_ai_usage(
+    crate::application::routes::support::record_ai_usage(
         state.ai_usage_repo.clone(),
         auth_user.0.id,
         &state.openrouter_model,
@@ -207,7 +207,7 @@ pub(crate) async fn submit_scan(
 
     if has_raw_input {
         let usage = extract_into_submission(&state, &mut submission).await?;
-        super::support::record_ai_usage(
+        crate::application::routes::support::record_ai_usage(
             state.ai_usage_repo.clone(),
             auth_user.0.id,
             &state.openrouter_model,

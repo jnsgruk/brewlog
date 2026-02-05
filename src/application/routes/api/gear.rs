@@ -25,7 +25,7 @@ const GEAR_PAGE_PATH: &str = "/data?type=gear";
 const GEAR_FRAGMENT_PATH: &str = "/data?type=gear#gear-list";
 
 #[tracing::instrument(skip(state))]
-pub(super) async fn load_gear_page(
+pub(in crate::application::routes) async fn load_gear_page(
     state: &AppState,
     request: ListRequest<GearSortKey>,
     search: Option<&str>,

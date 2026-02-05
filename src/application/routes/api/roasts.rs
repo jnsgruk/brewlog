@@ -25,7 +25,7 @@ const ROAST_PAGE_PATH: &str = "/data?type=roasts";
 const ROAST_FRAGMENT_PATH: &str = "/data?type=roasts#roast-list";
 
 #[tracing::instrument(skip(state))]
-pub(super) async fn load_roast_page(
+pub(in crate::application::routes) async fn load_roast_page(
     state: &AppState,
     request: ListRequest<RoastSortKey>,
     search: Option<&str>,
@@ -279,7 +279,7 @@ pub(crate) async fn extract_roast_info(
     .await
     .map_err(ApiError::from)?;
 
-    super::support::record_ai_usage(
+    crate::application::routes::support::record_ai_usage(
         state.ai_usage_repo.clone(),
         auth_user.0.id,
         &state.openrouter_model,

@@ -23,7 +23,7 @@ const CUP_PAGE_PATH: &str = "/data?type=cups";
 const CUP_FRAGMENT_PATH: &str = "/data?type=cups#cup-list";
 
 #[tracing::instrument(skip(state))]
-pub(super) async fn load_cup_page(
+pub(in crate::application::routes) async fn load_cup_page(
     state: &AppState,
     request: ListRequest<CupSortKey>,
     search: Option<&str>,

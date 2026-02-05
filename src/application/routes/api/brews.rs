@@ -26,20 +26,22 @@ use crate::presentation::web::views::{
 const BREW_PAGE_PATH: &str = "/data?type=brews";
 const BREW_FRAGMENT_PATH: &str = "/data?type=brews#brew-list";
 
-pub(super) struct BrewPageData {
-    pub(super) brews: Paginated<BrewView>,
-    pub(super) navigator: ListNavigator<BrewSortKey>,
+pub(in crate::application::routes) struct BrewPageData {
+    pub(in crate::application::routes) brews: Paginated<BrewView>,
+    pub(in crate::application::routes) navigator: ListNavigator<BrewSortKey>,
 }
 
-pub(super) struct BrewFormData {
-    pub(super) bag_options: Vec<BagOptionView>,
-    pub(super) grinder_options: Vec<GearOptionView>,
-    pub(super) brewer_options: Vec<GearOptionView>,
-    pub(super) filter_paper_options: Vec<GearOptionView>,
-    pub(super) defaults: BrewDefaultsView,
+pub(in crate::application::routes) struct BrewFormData {
+    pub(in crate::application::routes) bag_options: Vec<BagOptionView>,
+    pub(in crate::application::routes) grinder_options: Vec<GearOptionView>,
+    pub(in crate::application::routes) brewer_options: Vec<GearOptionView>,
+    pub(in crate::application::routes) filter_paper_options: Vec<GearOptionView>,
+    pub(in crate::application::routes) defaults: BrewDefaultsView,
 }
 
-pub(super) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData, AppError> {
+pub(in crate::application::routes) async fn load_brew_form_data(
+    state: &AppState,
+) -> Result<BrewFormData, AppError> {
     let open_bags_request = ListRequest::show_all(
         crate::domain::bags::BagSortKey::RoastDate,
         SortDirection::Desc,
@@ -89,7 +91,7 @@ pub(super) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData
     })
 }
 
-pub(super) async fn load_gear_options(
+pub(in crate::application::routes) async fn load_gear_options(
     state: &AppState,
     category: GearCategory,
     request: &ListRequest<GearSortKey>,
@@ -103,7 +105,7 @@ pub(super) async fn load_gear_options(
 }
 
 #[tracing::instrument(skip(state))]
-pub(super) async fn load_brew_page(
+pub(in crate::application::routes) async fn load_brew_page(
     state: &AppState,
     request: ListRequest<BrewSortKey>,
     search: Option<&str>,
