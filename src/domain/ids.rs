@@ -61,3 +61,4 @@ define_id!(CafeId);
 define_id!(CupId);
 define_id!(PasskeyCredentialId);
 define_id!(RegistrationTokenId);
+define_id!(AiUsageId);

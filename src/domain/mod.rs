@@ -1,3 +1,4 @@
+pub mod ai_usage;
 pub mod bags;
 pub mod brews;
 pub mod cafes;

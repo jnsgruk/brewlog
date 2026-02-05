@@ -1,4 +1,5 @@
 use super::RepositoryError;
+use crate::domain::ai_usage::{AiUsage, AiUsageSummary, NewAiUsage};
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
@@ -260,4 +261,10 @@ pub trait RegistrationTokenRepository: Send + Sync {
         id: RegistrationTokenId,
         user_id: UserId,
     ) -> Result<(), RepositoryError>;
+}
+
+#[async_trait]
+pub trait AiUsageRepository: Send + Sync {
+    async fn insert(&self, usage: NewAiUsage) -> Result<AiUsage, RepositoryError>;
+    async fn summary_for_user(&self, user_id: UserId) -> Result<AiUsageSummary, RepositoryError>;
 }

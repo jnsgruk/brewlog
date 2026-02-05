@@ -50,6 +50,14 @@ Only include fields you can identify with confidence. Each tasting note must be 
 
 // --- Public types ---
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct Usage {
+    pub prompt_tokens: i64,
+    pub completion_tokens: i64,
+    pub total_tokens: i64,
+    pub cost: f64,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ExtractionInput {
     pub image: Option<String>,
@@ -88,13 +96,14 @@ pub async fn extract_roaster(
     api_key: &str,
     model: &str,
     input: &ExtractionInput,
-) -> Result<ExtractedRoaster, AppError> {
-    let content = call_openrouter(client, api_key, model, ROASTER_PROMPT, input).await?;
+) -> Result<(ExtractedRoaster, Option<Usage>), AppError> {
+    let (content, usage) = call_openrouter(client, api_key, model, ROASTER_PROMPT, input).await?;
     let json = extract_json(&content);
 
-    serde_json::from_str(json).map_err(|e| {
+    let extracted = serde_json::from_str(json).map_err(|e| {
         AppError::unexpected(format!("Failed to parse AI response as roaster data: {e}"))
-    })
+    })?;
+    Ok((extracted, usage))
 }
 
 pub async fn extract_roast(
@@ -102,13 +111,14 @@ pub async fn extract_roast(
     api_key: &str,
     model: &str,
     input: &ExtractionInput,
-) -> Result<ExtractedRoast, AppError> {
-    let content = call_openrouter(client, api_key, model, ROAST_PROMPT, input).await?;
+) -> Result<(ExtractedRoast, Option<Usage>), AppError> {
+    let (content, usage) = call_openrouter(client, api_key, model, ROAST_PROMPT, input).await?;
     let json = extract_json(&content);
 
-    serde_json::from_str(json).map_err(|e| {
+    let extracted = serde_json::from_str(json).map_err(|e| {
         AppError::unexpected(format!("Failed to parse AI response as roast data: {e}"))
-    })
+    })?;
+    Ok((extracted, usage))
 }
 
 pub async fn extract_bag_scan(
@@ -116,13 +126,14 @@ pub async fn extract_bag_scan(
     api_key: &str,
     model: &str,
     input: &ExtractionInput,
-) -> Result<ExtractedBagScan, AppError> {
-    let content = call_openrouter(client, api_key, model, SCAN_PROMPT, input).await?;
+) -> Result<(ExtractedBagScan, Option<Usage>), AppError> {
+    let (content, usage) = call_openrouter(client, api_key, model, SCAN_PROMPT, input).await?;
     let json = extract_json(&content);
 
-    serde_json::from_str(json).map_err(|e| {
+    let extracted = serde_json::from_str(json).map_err(|e| {
         AppError::unexpected(format!("Failed to parse AI response as bag scan data: {e}"))
-    })
+    })?;
+    Ok((extracted, usage))
 }
 
 // --- Internal helpers ---
@@ -133,7 +144,7 @@ async fn call_openrouter(
     model: &str,
     system_prompt: &str,
     input: &ExtractionInput,
-) -> Result<String, AppError> {
+) -> Result<(String, Option<Usage>), AppError> {
     let has_image = input.image.as_ref().is_some_and(|s| !s.trim().is_empty());
     let has_prompt = input.prompt.as_ref().is_some_and(|s| !s.trim().is_empty());
 
@@ -212,7 +223,7 @@ async fn call_openrouter(
         ));
     }
 
-    Ok(content)
+    Ok((content, chat_response.usage))
 }
 
 /// Extract a JSON object from a model response that may contain markdown
@@ -273,6 +284,7 @@ struct ImageUrlDetail {
 #[derive(Debug, Deserialize)]
 struct ChatResponse {
     choices: Vec<Choice>,
+    usage: Option<Usage>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -303,7 +315,13 @@ mod tests {
                     },
                     "finish_reason": "stop"
                 }
-            ]
+            ],
+            "usage": {
+                "prompt_tokens": 194,
+                "completion_tokens": 42,
+                "total_tokens": 236,
+                "cost": 0.0012
+            }
         }"#;
 
         let response: ChatResponse = serde_json::from_str(json).unwrap();
@@ -315,6 +333,33 @@ mod tests {
         assert_eq!(roaster.country.as_deref(), Some("United Kingdom"));
         assert_eq!(roaster.city.as_deref(), Some("London"));
         assert!(roaster.homepage.is_none());
+
+        let usage = response.usage.unwrap();
+        assert_eq!(usage.prompt_tokens, 194);
+        assert_eq!(usage.completion_tokens, 42);
+        assert_eq!(usage.total_tokens, 236);
+        assert!((usage.cost - 0.0012).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn parse_chat_response_without_usage() {
+        let json = r#"{
+            "id": "gen-abc123",
+            "model": "openrouter/free",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "{\"name\": \"Square Mile\"}"
+                    },
+                    "finish_reason": "stop"
+                }
+            ]
+        }"#;
+
+        let response: ChatResponse = serde_json::from_str(json).unwrap();
+        assert!(response.usage.is_none());
     }
 
     #[test]
