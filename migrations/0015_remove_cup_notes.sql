@@ -1,1 +1,0 @@
-ALTER TABLE cups DROP COLUMN notes;
