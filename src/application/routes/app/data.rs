@@ -62,7 +62,7 @@ pub(crate) async fn data_page(
     Query(list_query): Query<ListQuery>,
 ) -> Result<Response, StatusCode> {
     let entity_type = data_type.entity_type;
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
+    let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
     let search_value = list_query.search_value();
 
     let content = render_entity_content(&state, &entity_type, list_query, is_authenticated)
@@ -145,7 +145,9 @@ async fn render_brews(
 ) -> Result<String, AppError> {
     use crate::domain::brews::BrewSortKey;
     let (request, search) = list_query.into_request_and_search::<BrewSortKey>();
-    let data = super::brews::load_brew_page(state, request, search.as_deref()).await?;
+    let data =
+        crate::application::routes::api::brews::load_brew_page(state, request, search.as_deref())
+            .await?;
     render_list(
         BrewListTemplate {
             is_authenticated,
@@ -163,8 +165,12 @@ async fn render_roasters(
 ) -> Result<String, AppError> {
     use crate::domain::roasters::RoasterSortKey;
     let (request, search) = list_query.into_request_and_search::<RoasterSortKey>();
-    let (roasters, navigator) =
-        super::roasters::load_roaster_page(state, request, search.as_deref()).await?;
+    let (roasters, navigator) = crate::application::routes::api::roasters::load_roaster_page(
+        state,
+        request,
+        search.as_deref(),
+    )
+    .await?;
     render_list(
         RoasterListTemplate {
             is_authenticated,
@@ -183,7 +189,8 @@ async fn render_roasts(
     use crate::domain::roasts::RoastSortKey;
     let (request, search) = list_query.into_request_and_search::<RoastSortKey>();
     let (roasts, navigator) =
-        super::roasts::load_roast_page(state, request, search.as_deref()).await?;
+        crate::application::routes::api::roasts::load_roast_page(state, request, search.as_deref())
+            .await?;
     render_list(
         RoastListTemplate {
             is_authenticated,
@@ -201,7 +208,9 @@ async fn render_bags(
 ) -> Result<String, AppError> {
     use crate::domain::bags::BagSortKey;
     let (request, search) = list_query.into_request_and_search::<BagSortKey>();
-    let data = super::bags::load_bag_page(state, request, search.as_deref()).await?;
+    let data =
+        crate::application::routes::api::bags::load_bag_page(state, request, search.as_deref())
+            .await?;
     render_list(
         BagListTemplate {
             is_authenticated,
@@ -219,7 +228,9 @@ async fn render_gear(
 ) -> Result<String, AppError> {
     use crate::domain::gear::GearSortKey;
     let (request, search) = list_query.into_request_and_search::<GearSortKey>();
-    let (gear, navigator) = super::gear::load_gear_page(state, request, search.as_deref()).await?;
+    let (gear, navigator) =
+        crate::application::routes::api::gear::load_gear_page(state, request, search.as_deref())
+            .await?;
     render_list(
         GearListTemplate {
             is_authenticated,
@@ -238,7 +249,8 @@ async fn render_cafes(
     use crate::domain::cafes::CafeSortKey;
     let (request, search) = list_query.into_request_and_search::<CafeSortKey>();
     let (cafes, navigator) =
-        super::cafes::load_cafe_page(state, request, search.as_deref()).await?;
+        crate::application::routes::api::cafes::load_cafe_page(state, request, search.as_deref())
+            .await?;
     render_list(
         CafeListTemplate {
             is_authenticated,
@@ -256,7 +268,9 @@ async fn render_cups(
 ) -> Result<String, AppError> {
     use crate::domain::cups::CupSortKey;
     let (request, search) = list_query.into_request_and_search::<CupSortKey>();
-    let (cups, navigator) = super::cups::load_cup_page(state, request, search.as_deref()).await?;
+    let (cups, navigator) =
+        crate::application::routes::api::cups::load_cup_page(state, request, search.as_deref())
+            .await?;
     render_list(
         CupListTemplate {
             is_authenticated,

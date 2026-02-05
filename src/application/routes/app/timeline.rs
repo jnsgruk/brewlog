@@ -78,7 +78,7 @@ pub(crate) async fn timeline_page(
     Query(query): Query<TimelineQuery>,
 ) -> Result<Response, StatusCode> {
     let request = query.to_request();
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
+    let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
 
     if is_datastar_request(&headers) {
         return render_timeline_chunk(state, request, is_authenticated)

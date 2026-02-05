@@ -23,7 +23,7 @@ pub(crate) async fn home_page(
     State(state): State<AppState>,
     cookies: tower_cookies::Cookies,
 ) -> Result<Response, StatusCode> {
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
+    let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
 
     let (content, stats) =
         tokio::try_join!(load_home_content(&state), load_stats(&state),).map_err(map_app_error)?;

@@ -11,7 +11,7 @@ use crate::application::routes::support::{
 use crate::application::server::AppState;
 use crate::presentation::web::templates::{AddTemplate, Tab};
 
-use super::brews::load_brew_form_data;
+use crate::application::routes::api::brews::load_brew_form_data;
 
 const ADD_TABS: &[Tab] = &[
     Tab {
@@ -60,7 +60,7 @@ pub(crate) async fn add_page(
     cookies: tower_cookies::Cookies,
     Query(query): Query<AddQuery>,
 ) -> Result<Response, StatusCode> {
-    let is_authenticated = super::is_authenticated(&state, &cookies).await;
+    let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
 
     if !is_authenticated {
         return Ok(Redirect::to("/login").into_response());
