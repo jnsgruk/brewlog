@@ -257,15 +257,15 @@ impl TastingNotesInput {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, auth_user, headers, payload))]
 pub(crate) async fn extract_roast_info(
     State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
+    auth_user: AuthenticatedUser,
     headers: HeaderMap,
     payload: FlexiblePayload<ExtractionInput>,
 ) -> Result<Response, ApiError> {
     let (input, _) = payload.into_parts();
-    let result = ai::extract_roast(
+    let (result, usage) = ai::extract_roast(
         &state.http_client,
         &state.openrouter_api_key,
         &state.openrouter_model,
@@ -273,6 +273,14 @@ pub(crate) async fn extract_roast_info(
     )
     .await
     .map_err(ApiError::from)?;
+
+    super::support::record_ai_usage(
+        state.ai_usage_repo.clone(),
+        auth_user.0.id,
+        &state.openrouter_model,
+        "extract-roast",
+        usage,
+    );
 
     if is_datastar_request(&headers) {
         use serde_json::Value;

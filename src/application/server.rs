@@ -12,13 +12,14 @@ use webauthn_rs::prelude::*;
 use crate::application::routes::app_router;
 use crate::domain::registration_tokens::NewRegistrationToken;
 use crate::domain::repositories::{
-    BagRepository, BrewRepository, CafeRepository, CupRepository, GearRepository,
-    PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository, RoasterRepository,
-    SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    AiUsageRepository, BagRepository, BrewRepository, CafeRepository, CupRepository,
+    GearRepository, PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository,
+    RoasterRepository, SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
 };
 use crate::infrastructure::auth::{generate_session_token, hash_token};
 use crate::infrastructure::backup::BackupService;
 use crate::infrastructure::database::Database;
+use crate::infrastructure::repositories::ai_usage::SqlAiUsageRepository;
 use crate::infrastructure::repositories::bags::SqlBagRepository;
 use crate::infrastructure::repositories::brews::SqlBrewRepository;
 use crate::infrastructure::repositories::cafes::SqlCafeRepository;
@@ -59,6 +60,7 @@ pub struct AppState {
     pub session_repo: Arc<dyn SessionRepository>,
     pub passkey_repo: Arc<dyn PasskeyCredentialRepository>,
     pub registration_token_repo: Arc<dyn RegistrationTokenRepository>,
+    pub ai_usage_repo: Arc<dyn AiUsageRepository>,
     pub webauthn: Arc<Webauthn>,
     pub challenge_store: Arc<ChallengeStore>,
     pub http_client: reqwest::Client,
@@ -101,6 +103,8 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
     let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
         Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
+    let ai_usage_repo: Arc<dyn AiUsageRepository> =
+        Arc::new(SqlAiUsageRepository::new(database.clone_pool()));
 
     let backup_service = Arc::new(BackupService::new(database.clone_pool()));
     let challenge_store = Arc::new(ChallengeStore::new());
@@ -122,6 +126,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         session_repo,
         passkey_repo,
         registration_token_repo,
+        ai_usage_repo,
         webauthn,
         challenge_store,
         http_client: reqwest::Client::new(),

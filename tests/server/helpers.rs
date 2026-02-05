@@ -164,6 +164,11 @@ async fn spawn_app_inner(
         session_repo,
         passkey_repo,
         registration_token_repo,
+        ai_usage_repo: Arc::new(
+            brewlog::infrastructure::repositories::ai_usage::SqlAiUsageRepository::new(
+                _database.clone_pool(),
+            ),
+        ),
         webauthn: test_webauthn(),
         challenge_store: Arc::new(ChallengeStore::new()),
         http_client: reqwest::Client::new(),

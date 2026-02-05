@@ -14,17 +14,17 @@ use crate::domain::errors::RepositoryError;
 use crate::domain::roasters::NewRoaster;
 use crate::domain::roasts::NewRoast;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
-use crate::infrastructure::ai::{self, ExtractionInput};
+use crate::infrastructure::ai::{self, ExtractionInput, Usage};
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, auth_user, headers, payload))]
 pub(crate) async fn extract_bag_scan(
     State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
+    auth_user: AuthenticatedUser,
     headers: HeaderMap,
     payload: FlexiblePayload<ExtractionInput>,
 ) -> Result<Response, ApiError> {
     let (input, _) = payload.into_parts();
-    let result = ai::extract_bag_scan(
+    let (result, usage) = ai::extract_bag_scan(
         &state.http_client,
         &state.openrouter_api_key,
         &state.openrouter_model,
@@ -32,6 +32,14 @@ pub(crate) async fn extract_bag_scan(
     )
     .await
     .map_err(ApiError::from)?;
+
+    super::support::record_ai_usage(
+        state.ai_usage_repo.clone(),
+        auth_user.0.id,
+        &state.openrouter_model,
+        "extract-bag-scan",
+        usage,
+    );
 
     if is_datastar_request(&headers) {
         use serde_json::Value;
@@ -130,15 +138,16 @@ struct ScanResult {
 }
 
 /// Populate a `BagScanSubmission` from AI extraction when image/prompt is provided.
+/// Returns the usage data so the caller can record it.
 async fn extract_into_submission(
     state: &AppState,
     submission: &mut BagScanSubmission,
-) -> Result<(), ApiError> {
+) -> Result<Option<Usage>, ApiError> {
     let input = ExtractionInput {
         image: submission.image.take(),
         prompt: submission.prompt.take(),
     };
-    let result = ai::extract_bag_scan(
+    let (result, usage) = ai::extract_bag_scan(
         &state.http_client,
         &state.openrouter_api_key,
         &state.openrouter_model,
@@ -178,14 +187,14 @@ async fn extract_into_submission(
         submission.tasting_notes = TastingNotesInput::Text(notes.join(", "));
     }
 
-    Ok(())
+    Ok(usage)
 }
 
 #[allow(clippy::too_many_lines)]
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, auth_user, headers, payload))]
 pub(crate) async fn submit_scan(
     State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
+    auth_user: AuthenticatedUser,
     headers: HeaderMap,
     payload: FlexiblePayload<BagScanSubmission>,
 ) -> Result<Response, ApiError> {
@@ -196,7 +205,14 @@ pub(crate) async fn submit_scan(
         || submission.prompt.as_deref().is_some_and(|s| !s.is_empty());
 
     if has_raw_input {
-        extract_into_submission(&state, &mut submission).await?;
+        let usage = extract_into_submission(&state, &mut submission).await?;
+        super::support::record_ai_usage(
+            state.ai_usage_repo.clone(),
+            auth_user.0.id,
+            &state.openrouter_model,
+            "extract-bag-scan",
+            usage,
+        );
     }
 
     // Build and normalize the roaster

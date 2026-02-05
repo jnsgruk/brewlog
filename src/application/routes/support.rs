@@ -236,6 +236,31 @@ pub(super) async fn load_cafe_options(state: &AppState) -> Result<Vec<CafeOption
     Ok(cafes.into_iter().map(CafeOptionView::from).collect())
 }
 
+/// Record AI usage in the background. Failures are logged but do not affect the response.
+pub fn record_ai_usage(
+    repo: std::sync::Arc<dyn crate::domain::repositories::AiUsageRepository>,
+    user_id: crate::domain::ids::UserId,
+    model: &str,
+    endpoint: &str,
+    usage: Option<crate::infrastructure::ai::Usage>,
+) {
+    let Some(usage) = usage else { return };
+    let new_usage = crate::domain::ai_usage::NewAiUsage {
+        user_id,
+        model: model.to_string(),
+        endpoint: endpoint.to_string(),
+        prompt_tokens: usage.prompt_tokens,
+        completion_tokens: usage.completion_tokens,
+        total_tokens: usage.total_tokens,
+        cost: usage.cost,
+    };
+    tokio::spawn(async move {
+        if let Err(err) = repo.insert(new_usage).await {
+            tracing::warn!(error = %err, "failed to record AI usage");
+        }
+    });
+}
+
 pub fn is_datastar_request(headers: &HeaderMap) -> bool {
     headers
         .get("datastar-request")
