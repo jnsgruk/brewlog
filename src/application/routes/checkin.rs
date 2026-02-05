@@ -56,8 +56,6 @@ pub(crate) struct CheckInSubmission {
     #[serde(default)]
     cafe_website: Option<String>,
     roast_id: String,
-    #[serde(default)]
-    rating: i32,
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
@@ -105,16 +103,9 @@ pub(crate) async fn submit_checkin(
         cafe.id
     };
 
-    let rating = if (1..=5).contains(&submission.rating) {
-        Some(submission.rating)
-    } else {
-        None
-    };
-
     let new_cup = NewCup {
         roast_id: RoastId::from(roast_id),
         cafe_id,
-        rating,
     };
 
     let cup = state

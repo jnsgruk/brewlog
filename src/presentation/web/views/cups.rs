@@ -9,19 +9,11 @@ pub struct CupView {
     pub roaster_slug: String,
     pub cafe_name: String,
     pub cafe_slug: String,
-    pub rating: String,
-    pub has_rating: bool,
     pub created_at: String,
 }
 
 impl CupView {
     pub fn from_domain(cup: CupWithDetails) -> Self {
-        let rating = cup
-            .cup
-            .rating
-            .map_or_else(|| "—".to_string(), |r| format!("{r}/5"));
-        let has_rating = cup.cup.rating.is_some();
-
         Self {
             id: cup.cup.id.to_string(),
             roast_name: cup.roast_name,
@@ -30,8 +22,6 @@ impl CupView {
             roaster_slug: cup.roaster_slug,
             cafe_name: cup.cafe_name,
             cafe_slug: cup.cafe_slug,
-            rating,
-            has_rating,
             created_at: cup.cup.created_at.format("%Y-%m-%d %H:%M").to_string(),
         }
     }

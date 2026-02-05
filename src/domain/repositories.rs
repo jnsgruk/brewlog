@@ -5,7 +5,7 @@ use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::brews::{Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew};
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
-use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
+use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup};
 use crate::domain::gear::{Gear, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::{
     BagId, BrewId, CafeId, CupId, GearId, PasskeyCredentialId, RegistrationTokenId, RoastId,
@@ -222,7 +222,6 @@ pub trait CupRepository: Send + Sync {
         request: &ListRequest<CupSortKey>,
         search: Option<&str>,
     ) -> Result<Page<CupWithDetails>, RepositoryError>;
-    async fn update(&self, id: CupId, changes: UpdateCup) -> Result<Cup, RepositoryError>;
     async fn delete(&self, id: CupId) -> Result<(), RepositoryError>;
 }
 

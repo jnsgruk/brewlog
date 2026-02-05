@@ -1,0 +1,1 @@
+ALTER TABLE cups DROP COLUMN rating;

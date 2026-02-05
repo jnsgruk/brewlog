@@ -137,7 +137,7 @@ brewlog bag <cmd>          Manage bags of coffee
 brewlog gear <cmd>         Manage brewing gear (grinders, brewers, filter papers)
 brewlog brew <cmd>         Manage brews (add, list, get, delete — no update)
 brewlog cafe <cmd>         Manage cafes
-brewlog cup <cmd>          Manage cups (cafe visits with ratings)
+brewlog cup <cmd>          Manage cups (cafe visits)
 brewlog token <cmd>        Manage API tokens (create, list, revoke)
 brewlog backup             Export all data to JSON on stdout (requires BREWLOG_TOKEN)
 brewlog restore --file F   Restore data from a JSON backup into an empty database (requires BREWLOG_TOKEN)

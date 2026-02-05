@@ -91,12 +91,7 @@ pub fn app_router(state: AppState) -> axum::Router {
         .route("/scan", post(scan::submit_scan))
         .route("/check-in", post(checkin::submit_checkin))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
-        .route(
-            "/cups/:id",
-            get(cups::get_cup)
-                .put(cups::update_cup)
-                .delete(cups::delete_cup),
-        )
+        .route("/cups/:id", get(cups::get_cup).delete(cups::delete_cup))
         .route(
             "/tokens",
             post(tokens::create_token).get(tokens::list_tokens),

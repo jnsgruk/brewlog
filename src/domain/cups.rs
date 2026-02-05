@@ -9,7 +9,6 @@ pub struct Cup {
     pub id: CupId,
     pub roast_id: RoastId,
     pub cafe_id: CafeId,
-    pub rating: Option<i32>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -30,12 +29,6 @@ pub struct CupWithDetails {
 pub struct NewCup {
     pub roast_id: RoastId,
     pub cafe_id: CafeId,
-    pub rating: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct UpdateCup {
-    pub rating: Option<i32>,
 }
 
 /// Filter criteria for cup queries.
@@ -73,7 +66,6 @@ pub enum CupSortKey {
     CreatedAt,
     CafeName,
     RoastName,
-    Rating,
 }
 
 impl SortKey for CupSortKey {
@@ -86,7 +78,6 @@ impl SortKey for CupSortKey {
             "created-at" => Some(CupSortKey::CreatedAt),
             "cafe" => Some(CupSortKey::CafeName),
             "roast" => Some(CupSortKey::RoastName),
-            "rating" => Some(CupSortKey::Rating),
             _ => None,
         }
     }
@@ -96,13 +87,12 @@ impl SortKey for CupSortKey {
             CupSortKey::CreatedAt => "created-at",
             CupSortKey::CafeName => "cafe",
             CupSortKey::RoastName => "roast",
-            CupSortKey::Rating => "rating",
         }
     }
 
     fn default_direction(self) -> SortDirection {
         match self {
-            CupSortKey::CreatedAt | CupSortKey::Rating => SortDirection::Desc,
+            CupSortKey::CreatedAt => SortDirection::Desc,
             _ => SortDirection::Asc,
         }
     }

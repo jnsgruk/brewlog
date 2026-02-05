@@ -1,5 +1,5 @@
 use axum::Json;
-use axum::extract::{Path, Query, State};
+use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 
@@ -12,7 +12,7 @@ use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
 use crate::application::server::AppState;
-use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
+use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup};
 use crate::domain::ids::CupId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::CupListTemplate;
@@ -54,12 +54,6 @@ pub(crate) async fn create_cup(
     let (request, search) = query.into_request_and_search::<CupSortKey>();
     let (new_cup, source) = payload.into_parts();
 
-    if let Some(rating) = new_cup.rating
-        && !(1..=5).contains(&rating)
-    {
-        return Err(AppError::validation("rating must be between 1 and 5").into());
-    }
-
     let cup = state
         .cup_repo
         .insert(new_cup)
@@ -93,33 +87,6 @@ pub(crate) async fn list_cups(
 }
 
 define_enriched_get_handler!(get_cup, CupId, CupWithDetails, cup_repo, get_with_details);
-
-#[tracing::instrument(skip(state, _auth_user))]
-pub(crate) async fn update_cup(
-    State(state): State<AppState>,
-    _auth_user: AuthenticatedUser,
-    Path(id): Path<CupId>,
-    Json(payload): Json<UpdateCup>,
-) -> Result<Json<Cup>, ApiError> {
-    let has_changes = payload.rating.is_some();
-
-    if !has_changes {
-        return Err(AppError::validation("no changes provided").into());
-    }
-
-    if let Some(rating) = payload.rating.as_ref()
-        && !(1..=5).contains(rating)
-    {
-        return Err(AppError::validation("rating must be between 1 and 5").into());
-    }
-
-    let cup = state
-        .cup_repo
-        .update(id, payload)
-        .await
-        .map_err(AppError::from)?;
-    Ok(Json(cup))
-}
 
 define_delete_handler!(
     delete_cup,

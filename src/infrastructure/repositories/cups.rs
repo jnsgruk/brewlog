@@ -1,10 +1,9 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{QueryBuilder, query, query_as};
+use sqlx::{query, query_as};
 
-use super::macros::push_update_field;
 use crate::domain::RepositoryError;
-use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
+use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup};
 use crate::domain::ids::{CafeId, CupId, RoastId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::CupRepository;
@@ -13,7 +12,7 @@ use crate::infrastructure::database::DatabasePool;
 
 const BASE_SELECT: &str = r"
     SELECT
-        c.id, c.roast_id, c.cafe_id, c.rating,
+        c.id, c.roast_id, c.cafe_id,
         c.created_at, c.updated_at,
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug,
@@ -48,7 +47,6 @@ impl SqlCupRepository {
             CupSortKey::RoastName => {
                 format!("LOWER(r.name) {dir_sql}, c.created_at DESC")
             }
-            CupSortKey::Rating => format!("c.rating {dir_sql}, c.created_at DESC"),
         }
     }
 
@@ -57,7 +55,6 @@ impl SqlCupRepository {
             id: CupId::new(record.id),
             roast_id: RoastId::new(record.roast_id),
             cafe_id: CafeId::new(record.cafe_id),
-            rating: record.rating,
             created_at: record.created_at,
             updated_at: record.updated_at,
         }
@@ -69,7 +66,6 @@ impl SqlCupRepository {
                 id: CupId::new(record.id),
                 roast_id: RoastId::new(record.roast_id),
                 cafe_id: CafeId::new(record.cafe_id),
-                rating: record.rating,
                 created_at: record.created_at,
                 updated_at: record.updated_at,
             },
@@ -101,7 +97,7 @@ impl SqlCupRepository {
     }
 
     fn details_for_cup(cup_with_details: &CupWithDetails) -> Result<String, RepositoryError> {
-        let mut details = vec![
+        let details = vec![
             TimelineEventDetail {
                 label: "Coffee".to_string(),
                 value: cup_with_details.roast_name.clone(),
@@ -115,13 +111,6 @@ impl SqlCupRepository {
                 value: cup_with_details.cafe_name.clone(),
             },
         ];
-
-        if let Some(rating) = cup_with_details.cup.rating {
-            details.push(TimelineEventDetail {
-                label: "Rating".to_string(),
-                value: format!("{rating}/5"),
-            });
-        }
 
         serde_json::to_string(&details).map_err(|err| {
             RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
@@ -139,12 +128,11 @@ impl CupRepository for SqlCupRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         let record = query_as::<_, CupRecord>(
-            "INSERT INTO cups (roast_id, cafe_id, rating) VALUES (?, ?, ?) \
-             RETURNING id, roast_id, cafe_id, rating, created_at, updated_at",
+            "INSERT INTO cups (roast_id, cafe_id) VALUES (?, ?) \
+             RETURNING id, roast_id, cafe_id, created_at, updated_at",
         )
         .bind(new_cup.roast_id.into_inner())
         .bind(new_cup.cafe_id.into_inner())
-        .bind(new_cup.rating)
         .fetch_one(&mut *tx)
         .await
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -190,7 +178,7 @@ impl CupRepository for SqlCupRepository {
 
     async fn get(&self, id: CupId) -> Result<Cup, RepositoryError> {
         let record = query_as::<_, CupRecord>(
-            "SELECT id, roast_id, cafe_id, rating, created_at, updated_at FROM cups WHERE id = ?",
+            "SELECT id, roast_id, cafe_id, created_at, updated_at FROM cups WHERE id = ?",
         )
         .bind(i64::from(id))
         .fetch_optional(&self.pool)
@@ -258,29 +246,6 @@ impl CupRepository for SqlCupRepository {
         .await
     }
 
-    async fn update(&self, id: CupId, changes: UpdateCup) -> Result<Cup, RepositoryError> {
-        let mut builder = QueryBuilder::new("UPDATE cups SET updated_at = CURRENT_TIMESTAMP");
-        let mut sep = true;
-
-        push_update_field!(builder, sep, "rating", changes.rating);
-        let _ = sep;
-
-        builder.push(" WHERE id = ");
-        builder.push_bind(i64::from(id));
-
-        let result = builder
-            .build()
-            .execute(&self.pool)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        if result.rows_affected() == 0 {
-            return Err(RepositoryError::NotFound);
-        }
-
-        self.get(id).await
-    }
-
     async fn delete(&self, id: CupId) -> Result<(), RepositoryError> {
         let result = query("DELETE FROM cups WHERE id = ?")
             .bind(i64::from(id))
@@ -301,7 +266,6 @@ struct CupRecord {
     id: i64,
     roast_id: i64,
     cafe_id: i64,
-    rating: Option<i32>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -311,7 +275,6 @@ struct CupWithDetailsRecord {
     id: i64,
     roast_id: i64,
     cafe_id: i64,
-    rating: Option<i32>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
     roast_name: String,
