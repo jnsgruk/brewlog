@@ -52,7 +52,7 @@
   <!-- Input: photo or text (shown when not yet extracted) -->
   <div data-show="!$_scanExtracted" class="rounded-lg border bg-surface p-5">
     <form id="scan-extract-form"
-      data-on:submit="$_extracting = true; $_extractError = ''; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
+      data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
       {% call scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") %}
@@ -64,7 +64,7 @@
     <form
       class="rounded-lg border bg-surface p-5 flex flex-col gap-6"
       data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
-      data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { $_scanSubmitting = false; $_scanExtracted = false; $_roasterName = ''; $_roasterCountry = ''; $_roasterCity = ''; $_roasterHomepage = ''; $_roastName = ''; $_origin = ''; $_region = ''; $_producer = ''; $_process = ''; $_tastingNotes = ''; $_openBag = true; $_bagAmount = 250; window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
+      data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
     >
       {% include "partials/forms/scan_result_form.html" %}
     </form>

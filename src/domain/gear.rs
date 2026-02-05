@@ -96,7 +96,7 @@ pub enum GearSortKey {
 
 impl SortKey for GearSortKey {
     fn default() -> Self {
-        GearSortKey::Make
+        GearSortKey::CreatedAt
     }
 
     fn from_query(value: &str) -> Option<Self> {

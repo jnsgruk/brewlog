@@ -91,7 +91,7 @@ pub enum BagSortKey {
 
 impl SortKey for BagSortKey {
     fn default() -> Self {
-        BagSortKey::RoastDate
+        BagSortKey::CreatedAt
     }
 
     fn from_query(value: &str) -> Option<Self> {
