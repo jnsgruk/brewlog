@@ -355,7 +355,7 @@ let (items, navigator) = build_page_view(page, request, RoasterView::from,
 
 ### Static Assets
 
-Static files live in `templates/` and are compiled into the binary via `include_str!()`/`include_bytes!()`. Each file needs an explicit route in `application/routes/mod.rs`:
+Static files live in `static/` and are compiled into the binary via `include_str!()`/`include_bytes!()`. Each file needs an explicit route in `application/routes/mod.rs`:
 
 ```rust
 .route("/styles.css", get(styles))
@@ -364,35 +364,35 @@ Static files live in `templates/` and are compiled into the binary via `include_
 async fn styles() -> impl IntoResponse {
     (
         [("content-type", "text/css; charset=utf-8")],
-        include_str!("../../../templates/styles.css"),
+        include_str!("../../../static/css/styles.css"),
     )
 }
 ```
 
-There is no `tower-http` static file serving — all assets are embedded at compile time. Web component JS files live in `templates/components/` and are served via explicit routes (e.g., `/components/photo-capture.js`, `/components/searchable-select.js`). Most interactivity is handled via Datastar attributes and minimal inline JS.
+There is no `tower-http` static file serving — all assets are embedded at compile time. Web component JS files live in `static/js/components/` and are served via explicit routes (e.g., `/components/photo-capture.js`, `/components/searchable-select.js`). Most interactivity is handled via Datastar attributes and minimal inline JS.
 
 ### CSS Architecture
 
 The UI uses **Tailwind CSS v4** built via the standalone CLI (no Node.js required). The Nix flake provides `tailwindcss_4` in both the devShell and the package `preBuild`.
 
-**Source file**: `templates/input.css` — the single source of truth for all styles.
-**Generated file**: `templates/styles.css` — gitignored, built automatically by `build.rs`.
+**Source file**: `static/css/input.css` — the single source of truth for all styles.
+**Generated file**: `static/css/styles.css` — gitignored, built automatically by `build.rs`.
 
 #### Build integration
 
-`build.rs` runs `tailwindcss` automatically during `cargo build`. It watches all files under `templates/` and re-runs when any change. Release builds pass `--minify`. If `tailwindcss` is not found on `PATH`, the build prints a warning but continues (useful for CI without the CLI installed).
+`build.rs` runs `tailwindcss` automatically during `cargo build`. It watches all files under `templates/` and `static/` and re-runs when any change. Release builds pass `--minify`. If `tailwindcss` is not found on `PATH`, the build prints a warning but continues (useful for CI without the CLI installed).
 
 There is **no need to run `tailwindcss` manually** — `cargo build` / `cargo run` handles it. You can still run it directly for validation or to check output without a full Rust compile:
 
 ```bash
-tailwindcss -i templates/input.css -o templates/styles.css
+tailwindcss -i static/css/input.css -o static/css/styles.css
 ```
 
 For continuous CSS-only iteration, the `--watch` flag is useful alongside `cargo watch`:
 
 ```bash
-tailwindcss -i templates/input.css -o templates/styles.css --watch  # terminal 1
-cargo watch -x run                                                    # terminal 2
+tailwindcss -i static/css/input.css -o static/css/styles.css --watch  # terminal 1
+cargo watch -x run                                                      # terminal 2
 ```
 
 #### Design Tokens
@@ -636,7 +636,7 @@ Desktop nav: `hidden md:flex items-center gap-6`. Mobile nav: toggled via `data-
 
 ### `<brew-photo-capture>` Web Component
 
-The `<brew-photo-capture>` custom element (defined in `templates/components/photo-capture.js`, served at `/components/photo-capture.js`) encapsulates the FileReader + hidden file input pattern used for photo-based AI extraction. It replaces 5 identical inline `onchange` handlers.
+The `<brew-photo-capture>` custom element (defined in `static/js/components/photo-capture.js`, served at `/components/photo-capture.js`) encapsulates the FileReader + hidden file input pattern used for photo-based AI extraction. It replaces 5 identical inline `onchange` handlers.
 
 **Attributes**:
 - `target-input` — ID of the hidden `<input>` that receives the data URL
@@ -656,7 +656,7 @@ The component creates a hidden file input internally, reads the selected file as
 
 ### `<searchable-select>` Web Component
 
-The `<searchable-select>` custom element (defined in `templates/components/searchable-select.js`, served at `/components/searchable-select.js`) encapsulates the search-filter-select-clear pattern used for picking from a list of options. It replaces the repeated pattern of search input + button list + hidden input + selected display + clear button.
+The `<searchable-select>` custom element (defined in `static/js/components/searchable-select.js`, served at `/components/searchable-select.js`) encapsulates the search-filter-select-clear pattern used for picking from a list of options. It replaces the repeated pattern of search input + button list + hidden input + selected display + clear button.
 
 **Attributes**:
 - `name` — Name for the hidden `<input>` included in form submission
@@ -803,7 +803,7 @@ The route handler in `application/routes/cafes.rs` accepts either `lat`/`lng` qu
 
 ### Page Template Structure
 
-Each list page template (`templates/{entity}.html`) places the form and list as **separate siblings** so they become independent flex children of `<main>` (which uses `flex flex-col gap-6`):
+Each list page template (`templates/pages/{entity}.html`) places the form and list as **separate siblings** so they become independent flex children of `<main>` (which uses `flex flex-col gap-6`):
 
 ```html
 <section data-signals:_show-form="false">
@@ -815,17 +815,17 @@ Each list page template (`templates/{entity}.html`) places the form and list as 
   {% endif %}
 </section>
 
-{% include "partials/{entity}_list.html" %} {% endblock %}
+{% include "partials/lists/{entity}_list.html" %} {% endblock %}
 ```
 
 The list include must be **outside** `</section>`, never inside it. Placing it inside removes the flex gap between the form section and the list, causing the table to sit higher on the page.
 
 ### List Partial Structure
 
-List partials live in `templates/partials/` (e.g., `roaster_list.html`, `brew_list.html`). Each follows the same structure:
+List partials live in `templates/partials/lists/` (e.g., `roaster_list.html`, `brew_list.html`). Each follows the same structure:
 
 ```html
-{% import "partials/table.html" as table %}
+{% import "partials/lists/table.html" as table %}
 
 <div id="{entity}-list" class="mt-6" data-star-scope="{entity}">
   {% if items.is_empty() && !navigator.has_search() %}
@@ -871,7 +871,7 @@ Required attributes and elements on every list partial:
 
 **Exception**: the bags partial uses a dual-section layout (open-bag cards + history table) and does not follow this pattern exactly.
 
-### Shared Table Macros (`templates/partials/table.html`)
+### Shared Table Macros (`templates/partials/lists/table.html`)
 
 Three macros are available:
 
@@ -1042,7 +1042,7 @@ let tasting_notes = decode_json_vec(self.tasting_notes_json, "timeline tasting n
 5. **Commits**: Use Conventional Commit format (`feat:`, `fix:`, `refactor:`, etc.)
 6. **Commit authorship**: Never add "Co-Authored-By" trailers to commit messages
 7. **Commit signing**: Never use `--no-gpg-sign` when committing — always allow the default GPG signing
-8. **Committing**: Do not commit unless explicitly asked to — provide a draft commit message instead
+8. **Committing**: Never try to commit unless explicitly prompted — provide a draft commit message instead
 9. **JavaScript style**:
    - **Never use `var`** — always `const` (default) or `let` (only when reassignment is needed)
    - **Never use `function` declarations** — always arrow functions assigned to `const`:
