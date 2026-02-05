@@ -353,6 +353,28 @@ let (items, navigator) = build_page_view(page, request, RoasterView::from,
     ROASTER_PAGE_PATH, ROASTER_FRAGMENT_PATH, search);
 ```
 
+### When to Use Datastar vs JavaScript
+
+**Use Datastar for:**
+- Visibility toggling (`data-show` + signals) — replaces `classList.add/remove("hidden")`
+- List CRUD — delete with `confirm() && @delete()`, create with `@post()` + fragment re-render
+- Debounced search — `data-on:input__debounce.300ms` + `@get()` with `responseOverrides`
+- AI extraction signal patching — server returns `application/json` signal patches via `render_signals_json()`
+- Multi-step wizards — step signals (`$_step`) with `data-show="$_step === N"`
+- Searchable selection lists — use `<searchable-select>` component with `data-on:change`
+
+**Use JavaScript for:**
+- Browser APIs: WebAuthn (`navigator.credentials`), clipboard (`navigator.clipboard`), geolocation (`navigator.geolocation`), FileReader
+- Infinite scroll (`IntersectionObserver` in `base.html`) — no native Datastar equivalent
+- Theme toggle — must run in `<head>` before DOM renders, manipulates `<html>` data-theme attribute + `localStorage`
+- Any flow that requires `window.location.reload()` after completion (delete passkey, revoke token)
+
+**Signal naming conventions for in-progress states:**
+- `_extracting` — AI extraction in progress (consistent across home, add, check-in pages)
+- `_submitting` — form save/create in progress
+- `_extract-error` / `_error` — error message signals
+- `_show-{thing}` — boolean visibility toggles (e.g. `_show-passkey-form`)
+
 ### Static Assets
 
 Static files live in `static/` and are compiled into the binary via `include_str!()`/`include_bytes!()`. Each file needs an explicit route in `application/routes/mod.rs`:

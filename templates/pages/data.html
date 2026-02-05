@@ -19,14 +19,14 @@
 <div class="rounded-lg border bg-surface">
   {% include "partials/tab_bar.html" %}
   <!-- Search -->
-  <div class="border-t px-3 py-2">
+  <div class="border-t px-3 py-2" data-signals:_data-search="'{{ search_value }}'">
     <input
       type="search"
-      id="data-search"
+      data-bind:_data-search
       placeholder="Search..."
-      value="{{ search_value }}"
       class="input-field w-full text-sm"
-      {% if !search_value.is_empty() %}data-init="el.focus(); el.selectionStart = el.value.length"{% endif %}
+      data-on:input__debounce.300ms="history.pushState(null, '', '/data?type=' + $_activeTab + '&q=' + encodeURIComponent($_dataSearch)); @get('/data?type=' + $_activeTab + '&q=' + encodeURIComponent($_dataSearch), {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
+      {% if !search_value.is_empty() %}autofocus{% endif %}
     />
   </div>
 </div>
@@ -36,30 +36,4 @@
 </div>
 
 <div id="detail-panel"></div>
-
-<script>
-(() => {
-  const searchInput = document.getElementById('data-search');
-  if (!searchInput) return;
-
-  let debounceTimer;
-  searchInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      const params = new URLSearchParams(window.location.search);
-      const activeTab = params.get('type') || 'brews';
-      const query = searchInput.value;
-      const url = `/data?type=${activeTab}&q=${encodeURIComponent(query)}`;
-
-      history.pushState(null, '', url);
-
-      fetch(url, { headers: { 'datastar-request': 'true' } })
-        .then((res) => res.text())
-        .then((html) => {
-          document.getElementById('data-content').innerHTML = html;
-        });
-    }, 300);
-  });
-})();
-</script>
 {% endblock %}

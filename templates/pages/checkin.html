@@ -2,15 +2,6 @@
 
 {% block head %}
 <script>
-const filterList = (input, listId) => {
-  const q = input.value.toLowerCase();
-  const list = document.getElementById(listId);
-  list.classList.toggle('hidden', !q);
-  list.querySelectorAll('button').forEach((b) => {
-    b.style.display = b.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-};
-
 {% call location::location_search_js() %}
 </script>
 {% endblock %}
@@ -38,8 +29,8 @@ const filterList = (input, listId) => {
   data-signals:_user-lng="0"
   data-signals:_city-name="''"
   data-signals:_reviewing-cafe="false"
-  data-signals:_scan-waiting="false"
-  data-signals:_scan-error="''"
+  data-signals:_extracting="false"
+  data-signals:_extract-error="''"
   data-signals:_scan-success="''"
 >
   <header class="flex flex-col gap-2">
@@ -188,26 +179,18 @@ const filterList = (input, listId) => {
       {% if !cafe_options.is_empty() %}
       <div class="mt-3 border-t pt-3" data-show="!$_reviewingCafe">
         <p class="mb-2 text-xs text-text-muted">Or choose a saved cafe:</p>
-        <input
-          type="text"
-          class="input-field w-full text-sm"
-          placeholder="Type to search saved cafes&hellip;"
-          oninput="filterList(this, 'cafe-options')"
-        />
-        <div id="cafe-options" class="hidden mt-2 max-h-48 overflow-y-auto rounded-lg border bg-surface">
+        <searchable-select name="saved_cafe_id" placeholder="Type to search saved cafes&hellip;"
+          data-on:change="$_cafeId = evt.detail.value; $_cafeName = evt.detail.display; $_cafeCity = evt.detail.data.city; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2"
+        >
           {% for cafe in cafe_options %}
-          <button
-            type="button"
-            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
-            data-on:click="$_cafeId = '{{ cafe.id }}'; $_cafeName = el.dataset.name; $_cafeCity = el.dataset.city; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2"
-            data-name="{{ cafe.name }}"
+          <button type="button" value="{{ cafe.id }}" data-display="{{ cafe.name }}"
             data-city="{{ cafe.city }}"
-          >
+            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
             <span class="font-medium text-text">{{ cafe.name }}</span>
             <span class="ml-2 text-xs text-text-muted">{{ cafe.city }}</span>
           </button>
           {% endfor %}
-        </div>
+        </searchable-select>
       </div>
       {% endif %}
     </div>
@@ -219,13 +202,13 @@ const filterList = (input, listId) => {
       <h3 class="text-base font-semibold text-text mb-3">What are you drinking?</h3>
 
       <div data-show="!$_scanSuccess" class="mb-4">
-        <p class="text-sm text-text-secondary mb-3" data-show="!$_scanWaiting">Scan a bag to identify the coffee, or select from your existing roasts below.</p>
+        <p class="text-sm text-text-secondary mb-3" data-show="!$_extracting">Scan a bag to identify the coffee, or select from your existing roasts below.</p>
 
         <form id="checkin-scan-form"
-          data-on:submit="$_scanWaiting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
-          data-on:datastar-fetch="if (!$_scanWaiting) return; if (evt.detail.type === 'finished') { $_scanWaiting = false; $_roastName = $_scanSuccess; $_step = 3 } else if (evt.detail.type === 'error') { $_scanWaiting = false; $_scanError = 'Scan failed. Please try again.' }"
+          data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/scan', {contentType: 'form'})"
+          data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_roastName = $_scanSuccess; $_step = 3 } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Scan failed. Please try again.' }"
         >
-          {% call scan::scan_input("checkin-scan-form", "checkin-image", "$_scanWaiting", "$_scanError", "Describe the coffee…", "Scanning…") %}
+          {% call scan::scan_input("checkin-scan-form", "checkin-image", "$_extracting", "$_extractError", "Describe the coffee…", "Scanning…") %}
         </form>
       </div>
 
@@ -240,26 +223,18 @@ const filterList = (input, listId) => {
       {% if !roast_options.is_empty() %}
       <div class="border-t pt-3">
         <p class="text-xs text-text-muted mb-2">Or select an existing roast:</p>
-        <input
-          type="text"
-          class="input-field w-full text-sm"
-          placeholder="Type to search existing roasts&hellip;"
-          oninput="filterList(this, 'roast-options')"
-        />
-        <div id="roast-options" class="hidden mt-2 max-h-48 overflow-y-auto rounded-lg border bg-surface">
+        <searchable-select name="roast_id" placeholder="Type to search existing roasts&hellip;"
+          data-on:change="$_roastId = evt.detail.value; $_roastName = evt.detail.display; $_roasterName = evt.detail.data.roaster; $_step = 3"
+        >
           {% for roast in roast_options %}
-          <button
-            type="button"
-            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
-            data-on:click="$_roastId = '{{ roast.id }}'; $_roastName = el.dataset.name; $_roasterName = el.dataset.roaster; $_step = 3"
-            data-name="{{ roast.name }}"
+          <button type="button" value="{{ roast.id }}" data-display="{{ roast.name }}"
             data-roaster="{{ roast.roaster_name }}"
-          >
+            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
             <span class="font-medium text-text">{{ roast.name }}</span>
             <span class="ml-2 text-xs text-text-muted">{{ roast.roaster_name }}</span>
           </button>
           {% endfor %}
-        </div>
+        </searchable-select>
       </div>
       {% endif %}
     </div>
