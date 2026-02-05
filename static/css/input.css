@@ -65,6 +65,7 @@
   --color-text: var(--text);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
 }
 
 /* ── Base: default border color ────────────────────────────────── */
