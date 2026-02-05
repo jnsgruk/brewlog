@@ -7,7 +7,11 @@
     class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
   >
     <p class="text-center">
-      No brews logged yet. Use the form above to log your first brew.
+      {% if is_authenticated %}
+      No brews logged yet. Click the Add button to log your first brew.
+      {% else %}
+      No brews logged yet.
+      {% endif %}
     </p>
   </div>
   {% else %}

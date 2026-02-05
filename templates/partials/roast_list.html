@@ -6,7 +6,13 @@
   <div
     class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
   >
-    <p class="text-center">No roasts recorded yet. Use the form above to add your first roast.</p>
+    <p class="text-center">
+      {% if is_authenticated %}
+      No roasts added yet. Click the Add button to create your first roast.
+      {% else %}
+      No roasts added yet.
+      {% endif %}
+    </p>
   </div>
   {% else %}
   <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"

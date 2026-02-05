@@ -7,7 +7,11 @@
     class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
   >
     <p class="text-center">
-      No gear found. Use the form above to add your first piece of brewing equipment.
+      {% if is_authenticated %}
+      No gear added yet. Click the Add button to add your first piece of equipment.
+      {% else %}
+      No gear added yet.
+      {% endif %}
     </p>
   </div>
   {% else %}
