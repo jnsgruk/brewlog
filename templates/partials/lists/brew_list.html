@@ -88,6 +88,7 @@
                   {% endif %}
                   <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
                   <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
+                  <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
                   <button type="submit"
                     class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
                     {% call icons::plus_circle("h-4 w-4") %} Brew Again
@@ -126,6 +127,7 @@
                   {% endif %}
                   <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
                   <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
+                  <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
                   <button type="submit"
                     class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
                     {% call icons::plus_circle("h-4 w-4") %} Brew Again

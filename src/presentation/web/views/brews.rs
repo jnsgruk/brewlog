@@ -44,6 +44,7 @@ pub struct BrewView {
     pub ratio: String,
     pub quick_notes: Vec<QuickNoteView>,
     pub quick_notes_label: String,
+    pub quick_notes_raw: String,
     pub created_date: String,
     pub created_time: String,
     pub relative_date_label: String,
@@ -77,6 +78,11 @@ impl BrewView {
             .map(|n| n.label.as_str())
             .collect::<Vec<_>>()
             .join(", ");
+        let quick_notes_raw = quick_notes
+            .iter()
+            .map(|n| n.form_value.as_str())
+            .collect::<Vec<_>>()
+            .join(",");
 
         Self {
             id: brew.brew.id.to_string(),
@@ -101,6 +107,7 @@ impl BrewView {
             ratio,
             quick_notes,
             quick_notes_label,
+            quick_notes_raw,
             created_date: brew.brew.created_at.format("%Y-%m-%d").to_string(),
             created_time: brew.brew.created_at.format("%H:%M").to_string(),
             relative_date_label: relative_date(brew.brew.created_at),
