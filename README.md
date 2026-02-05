@@ -159,6 +159,7 @@ All configuration is via environment variables or CLI flags. A `.env` file in th
 | `BREWLOG_RP_ORIGIN` | WebAuthn Relying Party origin (full URL, e.g. `http://localhost:3000`) | — (required) |
 | `BREWLOG_SECURE_COOKIES` | Set to `true` to enable the Secure cookie flag (for HTTPS) | `false` |
 | `RUST_LOG` | Log level filter | `info` |
+| `RUST_LOG_FORMAT` | Log output format: omit for compact human-readable, set to `json` for structured JSON | — |
 
 ### CLI Client
 

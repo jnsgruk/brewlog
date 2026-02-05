@@ -799,6 +799,75 @@ The route handler in `application/routes/cafes.rs` accepts either `lat`/`lng` qu
 - HTTP errors: `AppError` in `application/errors.rs` with proper status code mapping
 - CLI errors: Use `anyhow::Result` for simplicity
 
+### Logging & Tracing
+
+The server uses `tracing` + `tracing-subscriber` for structured logging, with `tower-http`'s `TraceLayer` for automatic HTTP request/response logging.
+
+**Configuration**:
+- `RUST_LOG` — filter level (default `info`)
+- `RUST_LOG_FORMAT=json` — opt-in structured JSON output (default is compact human-readable)
+
+**Initialisation** is in `src/main.rs` via `init_tracing()`. The `TraceLayer` is added to the Axum middleware stack in `application/routes/mod.rs`.
+
+#### Error logging rules
+
+Never silently discard errors. Every error path must be logged before being mapped or discarded:
+
+1. **`map_err(|_| StatusCode::*)` patterns** — always log the original error before mapping:
+   ```rust
+   .map_err(|err| {
+       error!(error = %err, "failed to list passkeys");
+       StatusCode::INTERNAL_SERVER_ERROR
+   })?;
+   ```
+   Use `warn!` for client-caused failures (auth, validation), `error!` for server-side failures.
+
+2. **`.ok()` / `.ok()?` patterns** — replace with explicit match that logs:
+   ```rust
+   let session = match state.session_repo.get_by_token_hash(&hash).await {
+       Ok(s) => s,
+       Err(err) => {
+           warn!(error = %err, "session lookup failed");
+           return None;
+       }
+   };
+   ```
+
+3. **Fire-and-forget (`let _ = ...`)** — always log failures:
+   ```rust
+   if let Err(err) = state.timeline_repo.insert(event).await {
+       warn!(error = %err, entity_type = "bag", "failed to record timeline event");
+   }
+   ```
+
+4. **Background tasks (`tokio::spawn`)** — log inside the spawned future:
+   ```rust
+   tokio::spawn(async move {
+       if let Err(err) = token_repo.update_last_used(token_id).await {
+           warn!(error = %err, %token_id, "failed to update token last_used");
+       }
+   });
+   ```
+
+#### CRUD operation logging
+
+Every successful create, update, and delete operation logs at `info!` level with the entity ID and key fields:
+
+```rust
+info!(roaster_id = %roaster.id, name = %roaster.name, "roaster created");
+info!(%id, "roaster updated");
+info!(%id, "entity deleted");  // in define_delete_handler! macro
+```
+
+#### Security event logging
+
+Authentication and credential lifecycle events are logged at `info!` level:
+
+- Token create/revoke: `info!(token_id, token_name, user_id, "API token created/revoked")`
+- Passkey delete: `info!(passkey_id, user_id, "passkey deleted")`
+- Login/logout: `info!("user logged out")`, `info!(user_id, "user authenticated via passkey")`
+- CLI token creation: `info!(user_id, "CLI token created via passkey auth")`
+
 ## Table & List Patterns
 
 ### Page Template Structure
