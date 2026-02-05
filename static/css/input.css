@@ -142,6 +142,28 @@ a {
   background-color: var(--surface-alt);
 }
 
+.pill-warning {
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #92400e;
+  background-color: #fffbeb;
+}
+
+[data-theme="dark"] .pill-warning {
+  color: #fbbf24;
+  background-color: rgba(217, 119, 6, 0.1);
+}
+
+.pill-success {
+  border-color: rgba(5, 150, 105, 0.4);
+  color: #065f46;
+  background-color: #ecfdf5;
+}
+
+[data-theme="dark"] .pill-success {
+  color: #34d399;
+  background-color: rgba(5, 150, 105, 0.1);
+}
+
 /* ── Tabs ──────────────────────────────────────────────────────── */
 
 .tab {
@@ -367,8 +389,8 @@ a {
   /* "Added" date: footer section with top divider */
   .responsive-table td.card-date {
     order: 99;
-    padding-top: 0.5rem;
-    margin-top: 0.5rem;
+    margin: 0.5rem -1rem -1rem !important;
+    padding: 0.75rem 1rem !important;
     border-top: 1px solid var(--border-muted) !important;
     font-size: 0.75rem;
     color: var(--text-secondary);
@@ -396,82 +418,27 @@ a {
     display: none;
   }
 
-  /* Three-dot dropdown menu */
-  .card-menu {
-    position: relative;
+  /* Hide detail row on mobile — inline card-detail is used instead */
+  .responsive-table .detail-row {
+    display: none !important;
   }
 
-  .card-menu summary {
-    list-style: none;
-    cursor: pointer;
-    display: inline-flex;
-    height: 2rem;
-    width: 2rem;
-    align-items: center;
+  /* Inline detail content within cards */
+  .responsive-table .card-detail {
+    order: -1;
+    margin: 0 -1rem 0.25rem !important;
+    padding: 0.5rem 1rem !important;
+    border-bottom: 1px solid var(--border-muted) !important;
+    background-color: var(--surface-alt);
     justify-content: center;
-    border-radius: 0.375rem;
-    color: var(--text-secondary);
-    transition: color 150ms ease, background-color 150ms ease;
   }
 
-  .card-menu summary:hover {
-    color: var(--accent);
-    background-color: var(--surface-alt);
+  .responsive-table .card-detail.hidden {
+    display: none !important;
   }
 
-  .card-menu summary::-webkit-details-marker {
+  .responsive-table .card-detail::before {
     display: none;
-  }
-
-  .card-menu[open] summary {
-    color: var(--accent);
-    background-color: var(--surface-alt);
-  }
-
-  .card-menu .card-menu-items {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    z-index: 20;
-    min-width: 10rem;
-    margin-top: 0.25rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--border);
-    background-color: var(--surface);
-    padding: 0.25rem 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  }
-
-  .card-menu .card-menu-items a,
-  .card-menu .card-menu-items button,
-  .card-menu .card-menu-items form button {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    color: var(--text);
-    text-align: left;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: background-color 150ms ease;
-    text-decoration: none;
-  }
-
-  .card-menu .card-menu-items a:hover,
-  .card-menu .card-menu-items button:hover,
-  .card-menu .card-menu-items form button:hover {
-    background-color: var(--surface-alt);
-  }
-
-  .card-menu .card-menu-items .menu-item-danger {
-    color: #dc2626;
-  }
-
-  .card-menu .card-menu-items .menu-item-danger:hover {
-    background-color: rgba(254, 202, 202, 0.3);
   }
 
   .pagination-controls {
@@ -482,6 +449,11 @@ a {
 /* ── Desktop timeline ──────────────────────────────────────────── */
 
 @media (min-width: 768px) {
+  /* Hide inline card-detail on desktop — detail row is used instead */
+  .responsive-table .card-detail {
+    display: none !important;
+  }
+
   .timeline-list {
     display: flex;
     flex-direction: column;

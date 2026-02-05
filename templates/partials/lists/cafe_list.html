@@ -40,7 +40,8 @@
             class="transition hover:bg-surface-alt"
           >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-600">
-              {{ cafe.created_at }}
+              <div>{{ cafe.created_date }}</div>
+              <div class="hidden md:block font-normal text-stone-400">{{ cafe.created_time }}</div>
             </td>
             <td data-label="Name" class="card-title px-4 py-3 font-medium text-stone-800">
               {{ cafe.name }}
@@ -50,69 +51,58 @@
               <div class="hidden md:block text-xs text-stone-500">{{ cafe.city }}</div>
             </td>
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cafe.city }}</td>
-            <td data-label="" class="card-actions px-4 py-3 text-right">
-              <div class="hidden md:inline-flex items-center gap-1">
-                <a
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                  href="{{ cafe.map_url }}"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  title="Open in Google Maps"
-                >
-                  <span class="sr-only">Open {{ cafe.name }} in Google Maps</span>
-                  {% call icons::location("h-4 w-4") %}
+            <td data-label="" class="card-detail hidden">
+              <div class="flex items-center gap-4">
+                <a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+                  href="{{ cafe.map_url }}" target="_blank" rel="noreferrer noopener">
+                  {% call icons::location("h-4 w-4") %} View Map
                 </a>
                 {% if cafe.has_website %}
-                <a
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                  href="{{ cafe.website_url }}"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  title="Visit website"
-                >
-                  <span class="sr-only">Visit {{ cafe.name }} website</span>
-                  {% call icons::external_link("h-4 w-4") %}
+                <a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+                  href="{{ cafe.website_url }}" target="_blank" rel="noreferrer noopener">
+                  {% call icons::external_link("h-4 w-4") %} Homepage
                 </a>
-                {% else %}
-                <span
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-300 cursor-default"
-                  title="No website"
-                  aria-disabled="true"
-                >
-                  {% call icons::external_link("h-4 w-4") %}
-                </span>
                 {% endif %}
                 {% if is_authenticated %}
-                <button
-                  type="button"
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-500 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
-                  title="Delete cafe"
-                  data-on:click="confirm('Delete this cafe?') && @delete('/api/v1/cafes/{{ cafe.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cafe-list', mode: 'replace'}})"
-                >
-                  <span class="sr-only">Delete</span>
-                  {% call icons::delete("h-4 w-4") %}
+                <button type="button"
+                  class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-red-600"
+                  data-on:click="confirm('Delete this cafe?') && @delete('/api/v1/cafes/{{ cafe.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cafe-list', mode: 'replace'}})">
+                  {% call icons::delete("h-4 w-4") %} Delete
                 </button>
                 {% endif %}
               </div>
-              <details class="card-menu md:hidden">
-                <summary>{% call icons::ellipsis_vertical("h-5 w-5") %}</summary>
-                <div class="card-menu-items">
-                  <a href="{{ cafe.map_url }}" target="_blank" rel="noreferrer noopener">
-                    {% call icons::location("h-4 w-4") %} View on map
-                  </a>
-                  {% if cafe.has_website %}
-                  <a href="{{ cafe.website_url }}" target="_blank" rel="noreferrer noopener">
-                    {% call icons::external_link("h-4 w-4") %} Visit website
-                  </a>
-                  {% endif %}
-                  {% if is_authenticated %}
-                  <button type="button" class="menu-item-danger"
-                    data-on:click="this.closest('details').open = false; confirm('Delete this cafe?') && @delete('/api/v1/cafes/{{ cafe.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cafe-list', mode: 'replace'}})">
-                    {% call icons::delete("h-4 w-4") %} Delete
-                  </button>
-                  {% endif %}
-                </div>
-              </details>
+            </td>
+            <td data-label="" class="card-actions px-4 py-3 text-right">
+              <button type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-stone-400 transition hover:text-accent hover:bg-surface-alt"
+                onclick="const tr=this.closest('tr');const d=tr.querySelector('.card-detail');if(d)d.classList.toggle('hidden');const r=tr.nextElementSibling;if(r&&r.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand').classList.toggle('hidden');this.querySelector('.icon-collapse').classList.toggle('hidden');"
+                title="Actions">
+                <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
+                <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>
+              </button>
+            </td>
+          </tr>
+          <tr class="hidden detail-row">
+            <td colspan="4" class="bg-surface-alt px-4 py-2">
+              <div class="flex items-center gap-4">
+                <a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+                  href="{{ cafe.map_url }}" target="_blank" rel="noreferrer noopener">
+                  {% call icons::location("h-4 w-4") %} View Map
+                </a>
+                {% if cafe.has_website %}
+                <a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+                  href="{{ cafe.website_url }}" target="_blank" rel="noreferrer noopener">
+                  {% call icons::external_link("h-4 w-4") %} Homepage
+                </a>
+                {% endif %}
+                {% if is_authenticated %}
+                <button type="button"
+                  class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-red-600"
+                  data-on:click="confirm('Delete this cafe?') && @delete('/api/v1/cafes/{{ cafe.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cafe-list', mode: 'replace'}})">
+                  {% call icons::delete("h-4 w-4") %} Delete
+                </button>
+                {% endif %}
+              </div>
             </td>
           </tr>
           {% endfor %}

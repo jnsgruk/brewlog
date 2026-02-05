@@ -10,7 +10,8 @@ pub struct RoastView {
     pub region: String,
     pub producer: String,
     pub process: String,
-    pub created_at: String,
+    pub created_date: String,
+    pub created_time: String,
     pub created_at_sort_key: i64,
     pub tasting_notes: Vec<String>,
 }
@@ -64,7 +65,8 @@ impl RoastView {
                     .collect::<Vec<_>>()
             })
             .collect();
-        let created_at = created_at.format("%Y-%m-%d").to_string();
+        let created_date = created_at.format("%Y-%m-%d").to_string();
+        let created_time = created_at.format("%H:%M").to_string();
         let detail_path = format!("/roasters/{roaster_slug}/roasts/{slug}");
 
         Self {
@@ -77,7 +79,8 @@ impl RoastView {
             region,
             producer,
             process,
-            created_at,
+            created_date,
+            created_time,
             created_at_sort_key,
             tasting_notes,
         }

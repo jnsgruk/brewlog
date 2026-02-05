@@ -8,7 +8,8 @@ pub struct GearView {
     pub make: String,
     pub model: String,
     pub full_name: String,
-    pub created_at: String,
+    pub created_date: String,
+    pub created_time: String,
 }
 
 impl GearView {
@@ -20,7 +21,8 @@ impl GearView {
             make: gear.make.clone(),
             model: gear.model.clone(),
             full_name: format!("{} {}", gear.make, gear.model),
-            created_at: gear.created_at.format("%Y-%m-%d").to_string(),
+            created_date: gear.created_at.format("%Y-%m-%d").to_string(),
+            created_time: gear.created_at.format("%H:%M").to_string(),
         }
     }
 }

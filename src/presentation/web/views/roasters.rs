@@ -32,7 +32,8 @@ pub struct RoasterView {
     pub has_homepage: bool,
     pub homepage_url: String,
     pub homepage_label: String,
-    pub created_at: String,
+    pub created_date: String,
+    pub created_time: String,
     pub created_at_sort_key: i64,
 }
 
@@ -53,7 +54,8 @@ impl From<Roaster> for RoasterView {
         let detail_path = format!("/roasters/{slug}");
 
         let created_at_sort_key = created_at.timestamp();
-        let created_at_label = created_at.format("%Y-%m-%d").to_string();
+        let created_date = created_at.format("%Y-%m-%d").to_string();
+        let created_time = created_at.format("%H:%M").to_string();
 
         Self {
             detail_path,
@@ -64,7 +66,8 @@ impl From<Roaster> for RoasterView {
             has_homepage,
             homepage_url: homepage.clone(),
             homepage_label: homepage,
-            created_at: created_at_label,
+            created_date,
+            created_time,
             created_at_sort_key,
         }
     }

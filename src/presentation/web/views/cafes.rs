@@ -13,7 +13,8 @@ pub struct CafeView {
     pub has_website: bool,
     pub website_url: String,
     pub website_label: String,
-    pub created_at: String,
+    pub created_date: String,
+    pub created_time: String,
     pub created_at_sort_key: i64,
 }
 
@@ -38,7 +39,8 @@ impl From<Cafe> for CafeView {
         let map_url = format!("https://www.google.com/maps?q={latitude},{longitude}");
 
         let created_at_sort_key = created_at.timestamp();
-        let created_at_label = created_at.format("%Y-%m-%d").to_string();
+        let created_date = created_at.format("%Y-%m-%d").to_string();
+        let created_time = created_at.format("%H:%M").to_string();
 
         Self {
             detail_path,
@@ -52,7 +54,8 @@ impl From<Cafe> for CafeView {
             has_website,
             website_url: website.clone(),
             website_label: website,
-            created_at: created_at_label,
+            created_date,
+            created_time,
             created_at_sort_key,
         }
     }
