@@ -149,35 +149,35 @@ async fn scan_redirect() -> Redirect {
 async fn styles() -> impl IntoResponse {
     (
         [("content-type", "text/css; charset=utf-8")],
-        include_str!("../../../templates/styles.css"),
+        include_str!("../../../static/css/styles.css"),
     )
 }
 
 async fn webauthn_js() -> impl IntoResponse {
     (
         [("content-type", "application/javascript; charset=utf-8")],
-        include_str!("../../../templates/webauthn.js"),
+        include_str!("../../../static/js/webauthn.js"),
     )
 }
 
 async fn photo_capture_js() -> impl IntoResponse {
     (
         [("content-type", "application/javascript; charset=utf-8")],
-        include_str!("../../../templates/components/photo-capture.js"),
+        include_str!("../../../static/js/components/photo-capture.js"),
     )
 }
 
 async fn searchable_select_js() -> impl IntoResponse {
     (
         [("content-type", "application/javascript; charset=utf-8")],
-        include_str!("../../../templates/components/searchable-select.js"),
+        include_str!("../../../static/js/components/searchable-select.js"),
     )
 }
 
 async fn favicon() -> impl IntoResponse {
     (
         [("content-type", "image/x-icon")],
-        include_bytes!("../../../templates/favicon.ico").as_ref(),
+        include_bytes!("../../../static/favicon.ico").as_ref(),
     )
 }
 

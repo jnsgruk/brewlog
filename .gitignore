@@ -5,4 +5,4 @@ TODO.md
 SPEC.md
 backup.json
 .env
-templates/styles.css
+static/css/styles.css

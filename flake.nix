@@ -54,7 +54,7 @@
               buildInputs = [ pkgs.openssl ];
 
               preBuild = ''
-                tailwindcss -i templates/input.css -o templates/styles.css --minify
+                tailwindcss -i static/css/input.css -o static/css/styles.css --minify
               '';
 
               meta = {

@@ -20,13 +20,16 @@ fn git_hash() {
 }
 
 fn tailwind() {
-    // Rerun when any template file changes (Tailwind scans them for classes)
+    // Rerun when any template or static file changes
     for entry in walkdir("templates") {
+        println!("cargo:rerun-if-changed={entry}");
+    }
+    for entry in walkdir("static") {
         println!("cargo:rerun-if-changed={entry}");
     }
 
     let mut cmd = Command::new("tailwindcss");
-    cmd.args(["-i", "templates/input.css", "-o", "templates/styles.css"]);
+    cmd.args(["-i", "static/css/input.css", "-o", "static/css/styles.css"]);
 
     if std::env::var("PROFILE").as_deref() == Ok("release") {
         cmd.arg("--minify");

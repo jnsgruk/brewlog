@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@source "./";
+@source "../../templates/";
+@source "../../static/js/";
 
 /* ── Dark mode variant (selector-based) ────────────────────────── */
 
