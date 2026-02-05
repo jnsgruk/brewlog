@@ -50,6 +50,9 @@
               src = lib.cleanSource ./.;
               cargoLock.lockFile = ./Cargo.lock;
 
+              nativeBuildInputs = [ pkgs.pkg-config ];
+              buildInputs = [ pkgs.openssl ];
+
               meta = {
                 description = "Log your favourite roasters, roasts, brews and cafes!";
                 homepage = "https://github.com/jnsgruk/brewlog";
