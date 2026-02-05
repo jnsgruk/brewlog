@@ -369,7 +369,312 @@ async fn styles() -> impl IntoResponse {
 }
 ```
 
-There is no `tower-http` static file serving — all assets are embedded at compile time. There are no separate JavaScript files; all interactivity is handled via Datastar attributes and minimal inline JS.
+There is no `tower-http` static file serving — all assets are embedded at compile time. Web component JS files live in `templates/components/` and are served via explicit routes (e.g., `/components/photo-capture.js`, `/components/searchable-select.js`). Most interactivity is handled via Datastar attributes and minimal inline JS.
+
+### CSS Architecture
+
+The UI uses **Tailwind CSS v4** built via the standalone CLI (no Node.js required). The Nix flake provides `tailwindcss_4` in both the devShell and the package `preBuild`.
+
+**Source file**: `templates/input.css` — the single source of truth for all styles.
+**Generated file**: `templates/styles.css` — gitignored, built by Tailwind CLI.
+
+#### Dev workflow
+
+```bash
+tailwindcss -i templates/input.css -o templates/styles.css --watch  # terminal 1
+cargo watch -x run                                                    # terminal 2
+```
+
+After any template or CSS change, regenerate with:
+```bash
+tailwindcss -i templates/input.css -o templates/styles.css
+```
+
+#### Design Tokens
+
+Colors are defined as raw CSS custom properties in `:root` (light) and `[data-theme="dark"]` (dark), then mapped to Tailwind utilities via `@theme`:
+
+| Token | Light | Dark | Tailwind class |
+|-------|-------|------|---------------|
+| `--page` | `#fafaf9` (stone-50) | `#1c1917` | `bg-page` |
+| `--surface` | `#ffffff` | `#292524` | `bg-surface` |
+| `--surface-alt` | `#f5f5f4` (stone-100) | `#44403c` | `bg-surface-alt` |
+| `--border` | `#e7e5e4` (stone-200) | `#57534e` | default `border` |
+| `--accent` | `#c2410c` (orange-700) | `#ea580c` | `bg-accent`, `text-accent` |
+| `--accent-hover` | `#ea580c` | `#f97316` | `bg-accent-hover`, `hover:bg-accent-hover` |
+| `--accent-subtle` | `#fff7ed` (orange-50) | `rgba(234,88,12,0.1)` | `bg-accent-subtle` |
+| `--accent-text` | `#ffffff` | `#ffffff` | `text-accent-text` |
+
+A base layer rule sets the default border color so bare `border` / `divide-y` classes use the theme:
+
+```css
+@layer base {
+  *, ::after, ::before {
+    border-color: var(--border);
+  }
+}
+```
+
+Neutral text colors (`text-stone-800`, `text-stone-500`, etc.) are used directly — they are not tokenised since they're static in both themes.
+
+#### Dark Mode
+
+- `[data-theme="dark"]` attribute on `<html>` — set via a `<script>` in `<head>` that reads `localStorage` / `prefers-color-scheme` before body render (prevents flash)
+- Sun/moon toggle in nav saves preference to `localStorage`
+- Tailwind `@custom-variant dark (&:where([data-theme="dark"] *))` enables the `dark:` prefix as an escape hatch
+
+#### Card Styling
+
+Cards use `rounded-lg border bg-surface p-4` — no shadows. The flat design relies on borders and surface colour differentiation rather than elevation.
+
+#### Pills
+
+Three pill variants are defined in `input.css` as CSS component classes. Use these instead of ad-hoc `rounded-full` + colour utility combinations:
+
+| Class | Border | Text | Background | Use for |
+|-------|--------|------|------------|---------|
+| `.pill.pill-accent` | accent (40% opacity) | accent | accent-subtle | Tasting notes, highlighted tags |
+| `.pill.pill-muted` | default border | text-secondary | surface-alt | Categories, kind labels, neutral status |
+| `.pill.pill-success` | emerald | emerald | emerald bg | Positive status ("Open") |
+
+Always include the `.pill` base class alongside the variant:
+
+```html
+<span class="pill pill-muted">Grinder</span>
+<span class="pill pill-accent">Chocolate</span>
+<span class="pill pill-success">Open</span>
+```
+
+Extra utilities (e.g., `w-28 justify-center whitespace-nowrap`) can be added alongside the pill classes when layout requires it. Do not override the pill's colour/border/padding with utility classes.
+
+### UI Style Guide
+
+#### Typography Hierarchy
+
+| Level | Classes | Use |
+|-------|---------|-----|
+| Page title | `text-3xl font-semibold` | Top-level `<h1>` on each page |
+| Section title | `text-lg font-semibold text-stone-800` | `<h2>` / `<h3>` for form card titles |
+| Subsection title | `text-base font-semibold text-stone-800` | `<h3>` within cards (e.g. "Confirm cafe details") |
+| Form section label | `text-xs font-semibold text-stone-500 uppercase tracking-wide` | `<h4>` grouping related fields (e.g. "Coffee", "Grinder", "Water") |
+| Body / description | `text-sm text-stone-600` | Paragraph text below headings |
+| Muted secondary | `text-xs text-stone-500` | Subtext in option lists, metadata |
+| Accent title | `text-2xl font-semibold text-accent` | Login / register page headers |
+
+Page headers follow a consistent structure — title + constrained description:
+
+```html
+<header class="flex flex-col gap-2">
+  <h1 class="text-3xl font-semibold">Page Title</h1>
+  <p class="max-w-2xl text-sm text-stone-600">Short description of what the page does.</p>
+</header>
+```
+
+#### Buttons
+
+**Primary** — main actions (Save, Submit, Check In):
+```html
+<button class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+```
+Use `w-full` for full-width CTAs. Use `py-3` for larger touch targets on final submission buttons. Add `disabled:opacity-50` with `data-attr:disabled` for loading states.
+
+**Secondary** — cancel, back, alternative actions:
+```html
+<button class="rounded-md border px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-accent hover:text-stone-800">
+```
+
+**Text-only** — minimal actions in summary bars (Change, Back):
+```html
+<button class="text-xs text-stone-500 hover:text-stone-700">
+```
+
+**Icon-only** — delete, revoke actions in rows/cards:
+```html
+<button class="inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-stone-400 transition hover:text-red-600">
+```
+
+**Link-style** — inline actions with icon (Brew Again, View all):
+```html
+<a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
+```
+
+**Adjustment (+/-)** — numeric stepper buttons flanking an input:
+```html
+<div class="flex items-center gap-2">
+  <button type="button" class="btn-adjust" data-on:click="$_value = Math.max(0, $_value - 0.5)">-</button>
+  <input type="number" class="input-field flex-1 text-center" />
+  <button type="button" class="btn-adjust" data-on:click="$_value = $_value + 0.5">+</button>
+</div>
+```
+
+Submit buttons are always right-aligned: `<div class="flex items-center justify-end gap-2">`. When paired with a secondary button (Cancel/Back), the secondary comes first.
+
+#### Forms
+
+**Label + input pattern** — every form field wraps label text and input in a flex column:
+
+```html
+<label class="flex flex-col gap-1 text-sm">
+  <span class="text-stone-700">Field Name *</span>
+  <input type="text" name="field" required class="input-field" placeholder="Example" />
+</label>
+```
+
+Mark required fields with `*` in the label text. The `input-field` class is defined in `input.css` and handles border, padding, rounded corners, and focus ring.
+
+**Multi-column grids**: `<div class="grid gap-4 sm:grid-cols-2">` — stacks on mobile, 2 columns on `sm:`. For fields that should span both columns: `class="sm:col-span-2"`.
+
+**Form card wrapper**: `<div class="rounded-lg border bg-surface p-5">` with internal `flex flex-col gap-4` (or `gap-6` for forms with section headers).
+
+**Form section headers**: use `<h4>` with the form section label style to visually group related fields within a single form (e.g. "Coffee", "Grinder", "Water" sections in the brew form).
+
+**Checkbox pattern**:
+```html
+<label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+  <input type="checkbox" name="flag" value="true" class="accent-orange-700" />
+  <span class="font-semibold text-stone-800">Label text</span>
+</label>
+```
+
+#### Feedback States
+
+**Error text** — inline beneath form or section:
+```html
+<p data-show="$_error" data-text="$_error" style="display:none" class="text-sm text-red-600"></p>
+```
+
+**Alert boxes** — for persistent status messages:
+
+| Variant | Classes |
+|---------|---------|
+| Error | `rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800` |
+| Success | `rounded-md bg-green-100 border border-green-300 p-4 text-sm text-green-800` |
+| Warning | `rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800` |
+| Info (scan) | `rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800` |
+
+**Loading spinner** — shown while an async action is in progress:
+```html
+<div data-show="$_submitting" style="display:none" class="flex items-center gap-3 text-sm text-accent">
+  {% call icons::spinner("h-5 w-5") %}
+  Saving&hellip;
+</div>
+```
+
+The spinner icon includes `animate-spin text-accent` internally. Always pair with `data-show` bound to the in-progress signal, and include a descriptive `&hellip;`-suffixed label.
+
+#### Empty / Prerequisite States
+
+When a form requires a parent entity that doesn't exist yet (e.g. "roasts need a roaster"), show a static message instead of the form:
+
+```html
+{% if roaster_options.is_empty() %}
+<div class="text-sm text-stone-600">
+  <h3 class="text-lg font-semibold text-stone-800">Add a roaster first</h3>
+  <p class="mt-2">Roasts need a roaster. Add a roaster above to enable this form.</p>
+</div>
+{% else %}
+<!-- actual form -->
+{% endif %}
+```
+
+#### Selected Item Indicator
+
+When a user selects an item (cafe, roast) in a multi-step flow, show a summary bar with an option to change:
+
+```html
+<div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between"
+  data-show="$_step > 1 && $_cafeName" style="display: none">
+  <div class="flex items-center gap-2">
+    {% call icons::location("h-4 w-4 text-accent shrink-0") %}
+    <span class="font-medium text-stone-800" data-text="$_cafeName"></span>
+    <span class="text-xs text-stone-500" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
+  </div>
+  <button type="button" class="text-xs text-stone-500 hover:text-stone-700"
+    data-on:click="$_cafeName = ''; $_step = 1">Change</button>
+</div>
+```
+
+Icon + name + muted secondary text on the left, text-only "Change"/"Back" button on the right.
+
+#### Navigation Active State
+
+Each page template passes `nav_active` to the layout. Nav links use conditional classes:
+
+```html
+{% if nav_active == "data" %}
+  class="text-accent font-medium"
+{% else %}
+  class="text-stone-500 hover:text-stone-800 transition"
+{% endif %}
+```
+
+Desktop nav: `hidden md:flex items-center gap-6`. Mobile nav: toggled via `data-show` bound to a signal.
+
+#### Responsive Patterns
+
+- **Desktop-only**: `hidden md:flex` or `hidden md:block`
+- **Mobile-only**: `md:hidden`
+- Pagination controls use `hidden md:flex`; mobile uses infinite scroll
+- Desktop table combines related fields into one cell with `hidden md:block` subtext; mobile uses separate `md:hidden` cells with `data-label`
+
+#### Spacing Conventions
+
+| Context | Gap | Example |
+|---------|-----|---------|
+| Major form sections | `gap-6` | Between "Coffee", "Grinder", "Water" in brew form |
+| Related field groups | `gap-4` | Between inputs in a `grid sm:grid-cols-2` |
+| Label to input | `gap-1` | `flex flex-col gap-1` wrapping label + input |
+| Icon + text pairs | `gap-2` | Summary bars, button content |
+| Navigation links | `gap-6` | Desktop nav items |
+| Button groups | `gap-2` | Cancel + Save buttons |
+| Page sections | `gap-8` | `<main>` flex column (set in `base.html`) |
+
+### `<brew-photo-capture>` Web Component
+
+The `<brew-photo-capture>` custom element (defined in `templates/components/photo-capture.js`, served at `/components/photo-capture.js`) encapsulates the FileReader + hidden file input pattern used for photo-based AI extraction. It replaces 5 identical inline `onchange` handlers.
+
+**Attributes**:
+- `target-input` — ID of the hidden `<input>` that receives the data URL
+- `target-form` — ID of the `<form>` to submit after reading the photo
+
+**Usage**: Wrap the trigger button content in the element. Clicking anywhere inside opens the camera/file picker:
+
+```html
+<brew-photo-capture target-input="scan-image" target-form="scan-extract-form"
+  class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium cursor-pointer">
+  {% call icons::camera("h-4 w-4") %}
+  Take Photo
+</brew-photo-capture>
+```
+
+The component creates a hidden file input internally, reads the selected file as a data URL, sets the target input's value, and submits the target form — all without any inline JS in the template.
+
+### `<searchable-select>` Web Component
+
+The `<searchable-select>` custom element (defined in `templates/components/searchable-select.js`, served at `/components/searchable-select.js`) encapsulates the search-filter-select-clear pattern used for picking from a list of options. It replaces the repeated pattern of search input + button list + hidden input + selected display + clear button.
+
+**Attributes**:
+- `name` — Name for the hidden `<input>` included in form submission
+- `placeholder` — Placeholder text for the search input (default: "Type to search…")
+
+**Events**:
+- `change` — Fired when an option is selected. `detail: { value, display, data }` where `data` is a spread of the button's `dataset`
+- `clear` — Fired when the selection is cleared
+
+**Usage**: Place `<button>` elements as children with `value` and `data-display` attributes:
+
+```html
+<searchable-select name="roaster_id" placeholder="Type to search roasters…">
+  {% for roaster in roaster_options %}
+  <button type="button" value="{{ roaster.id }}" data-display="{{ roaster.name }}"
+    class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
+    <span class="font-medium text-stone-800">{{ roaster.name }}</span>
+  </button>
+  {% endfor %}
+</searchable-select>
+```
+
+The component creates the search input, hidden form input, selected-value display with clear button, and filter logic internally. On selection, the hidden input's value is set to the button's `value` and the display shows `data-display`. For plain HTML form POST (like the add page), no Datastar signals are needed — the hidden input submits the value directly.
 
 ### AI Extraction (Datastar-native)
 
@@ -429,13 +734,6 @@ Each extraction-enabled page uses this structure:
 
 ```html
 <section data-signals:_extracting="false" data-signals:_extract-error="''" data-signals:_submitting="false">
-  <!-- Hidden file input — only JS needed (FileReader API) -->
-  <input type="file" id="{id}-photo" accept="image/*" capture="environment" class="hidden"
-    onchange="if(this.files[0]){const r=new FileReader();r.onload=()=>{
-      document.getElementById('{id}-image').value=r.result;
-      document.getElementById('{id}-extract-form').requestSubmit()};
-      r.readAsDataURL(this.files[0]);this.value=''}" />
-
   <form id="{id}-extract-form"
     data-on:submit="$_extracting = true; $_extractError = ''; @post('{endpoint}', {contentType: 'form'})"
     data-on:datastar-fetch="if (!$_extracting) return;
@@ -444,7 +742,10 @@ Each extraction-enabled page uses this structure:
   >
     <input type="hidden" name="image" id="{id}-image" />
     <div data-show="!$_extracting">
-      <button type="button" onclick="document.getElementById('{id}-photo').click()">Take Photo</button>
+      <brew-photo-capture target-input="{id}-image" target-form="{id}-extract-form"
+        class="inline-flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer">
+        Take Photo
+      </brew-photo-capture>
       <input name="prompt" type="text" placeholder="Or describe..." />
       <button type="submit">Go</button>
     </div>
@@ -460,7 +761,7 @@ Each extraction-enabled page uses this structure:
 </section>
 ```
 
-The only inline JS is the `onchange` handler for FileReader (reading photos as data URLs) and `onclick` to trigger the hidden file input. Everything else is pure Datastar.
+Photo capture uses the `<brew-photo-capture>` web component (see above). Everything else is pure Datastar — no inline JS needed in templates.
 
 ### Foursquare Integration
 
@@ -524,14 +825,14 @@ List partials live in `templates/partials/` (e.g., `roaster_list.html`, `brew_li
 <div id="{entity}-list" class="mt-6" data-star-scope="{entity}">
   {% if items.is_empty() && !navigator.has_search() %}
   <div
-    class="rounded-lg border border-dashed border-amber-300 bg-amber-100/40 px-4 py-6 text-sm text-stone-600"
+    class="rounded-lg border border-dashed px-4 py-6 text-sm text-stone-600"
   >
     <p class="text-center">
       No {entities} recorded yet. Use the form above to add your first {entity}.
     </p>
   </div>
   {% else %}
-  <section class="rounded-lg border border-amber-300 bg-amber-100/80 shadow-sm"
+  <section class="rounded-lg border bg-surface"
     {% if items.has_next() %}data-infinite-scroll data-next-url="..." data-target="#{entity}-list"{% endif %}
   >
     {% call table::search_header(navigator, "#{entity}-list") %}
@@ -556,7 +857,7 @@ Required attributes and elements on every list partial:
 | Element | Requirement |
 |---------|-------------|
 | Outer `<div>` | `id="{entity}-list"`, `class="mt-6"`, `data-star-scope="{entity}"` |
-| Empty state | Conditional on `items.is_empty() && !navigator.has_search()`, dashed amber border |
+| Empty state | Conditional on `items.is_empty() && !navigator.has_search()`, dashed border |
 | Table wrapper | `<section>` (not `<div>`) |
 | Search header | `{% call table::search_header(...) %}` |
 | No-results msg | Inside the `<section>`, shown when search is active but returns nothing |
