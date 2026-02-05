@@ -2,7 +2,7 @@
 
 {% block head %}
 <script>
-function locateUser() {
+const locateUser = () => {
   const root = document.getElementById('checkin-root');
   const emit = (name, detail) =>
     root.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
@@ -27,7 +27,7 @@ function locateUser() {
     },
     { enableHighAccuracy: true, timeout: 15000 },
   );
-}
+};
 </script>
 {% endblock %}
 

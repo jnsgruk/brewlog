@@ -12,23 +12,23 @@
     ></script>
     {% block head %}{% endblock %}
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        var mobileQuery = window.matchMedia("(max-width: 767px)");
+      document.addEventListener("DOMContentLoaded", () => {
+        const mobileQuery = window.matchMedia("(max-width: 767px)");
         if (!mobileQuery.matches) return;
 
-        function setupInfiniteScroll() {
-          document.querySelectorAll("[data-infinite-scroll]").forEach(function (container) {
-            var sentinel = container.querySelector(".infinite-scroll-sentinel");
+        const setupInfiniteScroll = () => {
+          document.querySelectorAll("[data-infinite-scroll]").forEach((container) => {
+            const sentinel = container.querySelector(".infinite-scroll-sentinel");
             if (!sentinel || sentinel.dataset.observed) return;
             sentinel.dataset.observed = "true";
 
-            var observer = new IntersectionObserver(
-              function (entries) {
-                entries.forEach(function (entry) {
+            const observer = new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
                   if (!entry.isIntersecting) return;
 
-                  var nextUrl = container.getAttribute("data-next-url");
-                  var targetSelector = container.getAttribute("data-target");
+                  const nextUrl = container.getAttribute("data-next-url");
+                  const targetSelector = container.getAttribute("data-target");
                   if (!nextUrl || !targetSelector) {
                     observer.disconnect();
                     return;
@@ -40,27 +40,27 @@
                   fetch(nextUrl, {
                     headers: { "datastar-request": "true" },
                   })
-                    .then(function (res) { return res.text(); })
-                    .then(function (html) {
-                      var doc = new DOMParser().parseFromString(html, "text/html");
-                      var newTarget = doc.querySelector(targetSelector);
+                    .then((res) => res.text())
+                    .then((html) => {
+                      const doc = new DOMParser().parseFromString(html, "text/html");
+                      const newTarget = doc.querySelector(targetSelector);
                       if (!newTarget) return;
 
                       // Append new rows to existing tbody
-                      var existingTbody = container.querySelector("tbody");
-                      var newTbody = newTarget.querySelector("tbody");
+                      const existingTbody = container.querySelector("tbody");
+                      const newTbody = newTarget.querySelector("tbody");
                       if (existingTbody && newTbody) {
-                        Array.from(newTbody.children).forEach(function (row) {
+                        Array.from(newTbody.children).forEach((row) => {
                           existingTbody.appendChild(document.adoptNode(row));
                         });
                       }
 
                       // Check if there are more pages
-                      var newContainer = newTarget.querySelector("[data-infinite-scroll]");
-                      var newNextUrl = newContainer && newContainer.getAttribute("data-next-url");
+                      const newContainer = newTarget.querySelector("[data-infinite-scroll]");
+                      const newNextUrl = newContainer && newContainer.getAttribute("data-next-url");
                       if (newNextUrl) {
                         container.setAttribute("data-next-url", newNextUrl);
-                        var newSentinel = document.createElement("div");
+                        const newSentinel = document.createElement("div");
                         newSentinel.className = "infinite-scroll-sentinel h-4 md:hidden";
                         newSentinel.setAttribute("aria-hidden", "true");
                         container.appendChild(newSentinel);
@@ -77,11 +77,11 @@
 
             observer.observe(sentinel);
           });
-        }
+        };
 
         setupInfiniteScroll();
 
-        var bodyObserver = new MutationObserver(function () {
+        const bodyObserver = new MutationObserver(() => {
           setupInfiniteScroll();
         });
         bodyObserver.observe(document.body, { childList: true, subtree: true });

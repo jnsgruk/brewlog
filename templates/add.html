@@ -7,7 +7,7 @@
   let _searchTimeout = null;
   let _nearbyCafes = [];
 
-  function locateUser(btn) {
+  const locateUser = (btn) => {
     const errorEl = document.getElementById('nearby-error');
     const searchWrap = document.getElementById('nearby-search-wrap');
     errorEl.classList.add('hidden');
@@ -44,9 +44,9 @@
       },
       { enableHighAccuracy: true, timeout: 15000 }
     );
-  }
+  };
 
-  function onSearchInput(input) {
+  const onSearchInput = (input) => {
     clearTimeout(_searchTimeout);
     const resultsEl = document.getElementById('nearby-results');
 
@@ -59,9 +59,9 @@
     _searchTimeout = setTimeout(() => {
       searchNearby(input.value.trim());
     }, 350);
-  }
+  };
 
-  function toggleCitySearch(checkbox) {
+  const toggleCitySearch = (checkbox) => {
     const locateBtn = document.getElementById('locate-btn');
     const cityWrap = document.getElementById('city-search-wrap');
     const searchWrap = document.getElementById('nearby-search-wrap');
@@ -84,9 +84,9 @@
       resultsEl.classList.add('hidden');
       resultsEl.innerHTML = '';
     }
-  }
+  };
 
-  async function searchNearby(query) {
+  const searchNearby = async (query) => {
     const resultsEl = document.getElementById('nearby-results');
     const errorEl = document.getElementById('nearby-error');
     const spinnerEl = document.getElementById('nearby-spinner');
@@ -135,9 +135,9 @@
     } finally {
       spinnerEl.classList.add('hidden');
     }
-  }
+  };
 
-  function selectPlace(index) {
+  const selectPlace = (index) => {
     const cafe = _nearbyCafes[index];
     if (!cafe) return;
 
@@ -151,13 +151,13 @@
 
     document.getElementById('nearby-results').classList.add('hidden');
     document.getElementById('nearby-search').value = '';
-  }
+  };
 
-  function escapeHtml(text) {
+  const escapeHtml = (text) => {
     const el = document.createElement('span');
     el.textContent = text;
     return el.innerHTML;
-  }
+  };
 </script>
 {% endblock %}
 

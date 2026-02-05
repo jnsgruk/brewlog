@@ -81,24 +81,24 @@
 <div id="detail-panel"></div>
 
 <script>
-(function() {
-  var searchInput = document.getElementById('data-search');
+(() => {
+  const searchInput = document.getElementById('data-search');
   if (!searchInput) return;
 
-  var debounceTimer;
-  searchInput.addEventListener('input', function() {
+  let debounceTimer;
+  searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(function() {
-      var params = new URLSearchParams(window.location.search);
-      var activeTab = params.get('type') || 'brews';
-      var query = searchInput.value;
-      var url = '/data?type=' + activeTab + '&q=' + encodeURIComponent(query);
+    debounceTimer = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const activeTab = params.get('type') || 'brews';
+      const query = searchInput.value;
+      const url = `/data?type=${activeTab}&q=${encodeURIComponent(query)}`;
 
       history.pushState(null, '', url);
 
       fetch(url, { headers: { 'datastar-request': 'true' } })
-        .then(function(res) { return res.text(); })
-        .then(function(html) {
+        .then((res) => res.text())
+        .then((html) => {
           document.getElementById('data-content').innerHTML = html;
         });
     }, 300);
