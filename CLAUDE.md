@@ -593,11 +593,57 @@ Server-side via `q` query parameter. `ListQuery` extracts it, repos apply `LIKE`
 - **Method naming**: `order_clause()` for sort query builders (not `sort_clause`)
 - **Imports**: Group by `super::`, then `crate::`, macros imported explicitly
 - **SQL strings**: Use raw strings `r#"..."#` for multi-line queries
-- **Tests**: Integration tests in `tests/cli/` and `tests/server/`. External APIs mocked with `wiremock`
+- **Tests**: Integration tests in `tests/cli/` and `tests/server/`. External APIs mocked with `wiremock`. See [Test Macros](#test-macros) below
 - **Commits**: Conventional Commit format (`feat:`, `fix:`, `refactor:`, etc.)
 - **Commit authorship**: Never add "Co-Authored-By" trailers
 - **Commit signing**: Never use `--no-gpg-sign` — always allow default GPG signing
 - **Committing**: Never commit unless explicitly prompted — provide a draft commit message instead
+
+### Test Macros
+
+Repeated test patterns are generated via macros in `tests/server/test_macros.rs` and `tests/cli/test_macros.rs`. Use these instead of hand-writing boilerplate tests.
+
+**Server API tests** (`tests/server/test_macros.rs`):
+
+`define_crud_tests!` — generates nonexistent-GET-404, nonexistent-DELETE-404, empty-list-200, and optionally malformed-JSON-400 and missing-fields-400:
+
+```rust
+use crate::test_macros::define_crud_tests;
+define_crud_tests!(
+    entity: roaster, path: "/roasters", list_type: Roaster,
+    malformed_json: r#"{"name": "Test", "country": }"#,
+    missing_fields: r#"{"name": "Test Roasters"}"#
+);
+```
+
+`define_datastar_entity_tests!` — generates list-with-fragment, list-without-full-page, and delete-with-fragment tests. Requires a setup function that creates an entity and returns its ID as `String`:
+
+```rust
+use crate::test_macros::define_datastar_entity_tests;
+define_datastar_entity_tests!(
+    entity: roasters, type_param: "roasters", api_path: "/roasters",
+    list_element: r#"id="roaster-list""#, selector: "#roaster-list",
+    setup: create_roaster_entity
+);
+```
+
+**CLI tests** (`tests/cli/test_macros.rs`):
+
+`define_cli_auth_test!` — asserts a command fails without a token:
+
+```rust
+define_cli_auth_test!(test_add_roaster_requires_authentication,
+    &["roaster", "add", "--name", "Test", "--country", "UK"]);
+```
+
+`define_cli_list_test!` — asserts a list command succeeds without auth and returns a JSON array:
+
+```rust
+define_cli_list_test!(test_list_roasters_works_without_authentication,
+    &["roaster", "list"]);
+```
+
+**Helper generics**: `create_entity<P, R>()` in `tests/server/helpers.rs` (POST + auth + deserialize) and `create_entity_cli()` in `tests/cli/helpers.rs` (run + assert + parse ID) eliminate duplication in entity creation helpers.
 
 ## Communication Style
 
