@@ -87,7 +87,8 @@ jobs:
       - name: Upload container to ghcr.io
         run: |
           docker load < result
-          docker tag "jnsgruk/brewlog:$(git rev-parse --short HEAD)" "ghcr.io/jnsgruk/brewlog:$(git rev-parse --short HEAD)"
+          version=$(cat Cargo.toml | nix run nixpkgs#tomlq -- -r .package.version)
+          docker tag "brewlog:${version}" "ghcr.io/jnsgruk/brewlog:$(git rev-parse --short HEAD)"
           docker push "ghcr.io/jnsgruk/brewlog:$(git rev-parse --short HEAD)"
 
       - name: Deploy site
