@@ -2,7 +2,7 @@
 <h2 id="{{ month.anchor }}" class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-text" data-timeline-month>
   {{ month.heading }}
   <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
-    {% call icons::arrow_up("h-5 w-5") %}
+    {{ icons::arrow_up("h-5 w-5") }}
   </button>
 </h2>
 {% for event in month.events %}
@@ -33,7 +33,7 @@
         rel="noreferrer noopener"
         aria-label="Open external link"
       >
-        {% call icons::external_link("h-4 w-4") %}
+        {{ icons::external_link("h-4 w-4") }}
         <span class="sr-only">Open external link</span>
       </a>
       {% endif %}
@@ -59,7 +59,7 @@
           title="Brew again"
         >
           <span class="sr-only">Brew again</span>
-          {% call icons::refresh("h-4 w-4") %}
+          {{ icons::refresh("h-4 w-4") }}
         </button>
       </form>
       {% endif %}
@@ -74,7 +74,7 @@
         <dd class="text-right flex items-center justify-end gap-1.5">
           {{ detail.value }}
           <a href="{{ detail.link.as_ref().unwrap() }}" target="_blank" rel="noreferrer noopener" class="text-accent hover:text-accent-hover" aria-label="View on map">
-            {% call icons::map("h-4 w-4") %}
+            {{ icons::map("h-4 w-4") }}
           </a>
         </dd>
         {% else if let Some(url) = detail.link %}

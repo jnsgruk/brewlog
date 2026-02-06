@@ -6,8 +6,8 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0"
 async-trait = "0.1"
-axum = { version = "0.8", features = ["macros"] }
-askama = "0.12"
+axum = { version = "0.7", features = ["macros"] }
+askama = "0.15"
 base64 = "0.22"
 chrono = { version = "0.4", features = ["serde", "clock"] }
 clap = { version = "4.5", features = ["derive", "env"] }

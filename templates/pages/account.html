@@ -21,7 +21,7 @@
       {% for passkey in passkeys %}
       <div class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3">
         <div class="flex items-center gap-3 min-w-0">
-          {% call icons::key("h-4 w-4 text-accent shrink-0") %}
+          {{ icons::key("h-4 w-4 text-accent shrink-0") }}
           <div class="min-w-0">
             <span class="block text-sm font-semibold text-text">{{ passkey.name }}</span>
             <span class="block text-xs text-text-muted">
@@ -37,7 +37,7 @@
           onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
           aria-label="Delete passkey"
         >
-          {% call icons::delete("h-4 w-4") %}
+          {{ icons::delete("h-4 w-4") }}
         </button>
         {% endif %}
       </div>
@@ -80,7 +80,7 @@
         </button>
       </div>
       <div id="add-passkey-loading" class="mt-3 hidden flex items-center gap-3 text-sm text-accent">
-        {% call icons::spinner("h-5 w-5") %}
+        {{ icons::spinner("h-5 w-5") }}
         Follow the prompts from your browser or device...
       </div>
     </div>
@@ -132,7 +132,7 @@
           onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
           aria-label="Revoke token"
         >
-          {% call icons::delete("h-4 w-4") %}
+          {{ icons::delete("h-4 w-4") }}
         </button>
       </div>
       {% endfor %}
