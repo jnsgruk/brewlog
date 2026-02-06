@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   test:
-    name: Build/Test
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
@@ -27,10 +27,6 @@ jobs:
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
-
-      - name: Build brewlog
-        run: |
-          nix build -L .#brewlog
 
       - name: Run tests
         run: |
