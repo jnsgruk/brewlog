@@ -178,7 +178,7 @@ pub(crate) async fn register_finish(
     info!(user_id = %user_id, "passkey registered successfully");
 
     // Create session for the new user
-    create_session(&state, &cookies, user_id);
+    create_session(&state, &cookies, user_id).await;
 
     Ok(Json(AuthFinishResponse { redirect: None }))
 }
@@ -368,7 +368,7 @@ pub(crate) async fn auth_finish(
     }
 
     // Normal web login: create session
-    create_session(&state, &cookies, user_id);
+    create_session(&state, &cookies, user_id).await;
 
     info!(user_id = %user_id, "user authenticated via passkey");
 
@@ -482,7 +482,7 @@ pub(crate) async fn passkey_add_finish(
 
 // --- Helpers ---
 
-fn create_session(state: &AppState, cookies: &Cookies, user_id: crate::domain::ids::UserId) {
+async fn create_session(state: &AppState, cookies: &Cookies, user_id: crate::domain::ids::UserId) {
     let session_token = generate_session_token();
     let session_token_hash = hash_token(&session_token);
 
@@ -493,20 +493,18 @@ fn create_session(state: &AppState, cookies: &Cookies, user_id: crate::domain::i
         Utc::now() + Duration::days(30),
     );
 
-    // Store the session in a fire-and-forget spawn, set the cookie optimistically.
-    let session_repo = state.session_repo.clone();
-    tokio::spawn(async move {
-        if let Err(err) = session_repo.insert(new_session).await {
-            error!(error = %err, "failed to create session");
-        }
-    });
+    if let Err(err) = state.session_repo.insert(new_session).await {
+        error!(error = %err, "failed to create session");
+        return;
+    }
 
     let mut cookie = Cookie::new(SESSION_COOKIE_NAME, session_token);
     cookie.set_path("/");
     cookie.set_http_only(true);
     cookie.set_same_site(tower_cookies::cookie::SameSite::Lax);
 
-    if std::env::var("BREWLOG_SECURE_COOKIES").unwrap_or_default() == "true" {
+    let insecure = std::env::var("BREWLOG_INSECURE_COOKIES").unwrap_or_default() == "true";
+    if !insecure {
         cookie.set_secure(true);
     }
 
