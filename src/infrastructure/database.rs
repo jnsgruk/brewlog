@@ -33,6 +33,31 @@ impl Database {
             .await
             .context("failed to enable foreign keys for sqlite")?;
 
+        sqlx::query("PRAGMA journal_mode = WAL;")
+            .execute(&pool)
+            .await
+            .context("failed to enable WAL journal mode for sqlite")?;
+
+        sqlx::query("PRAGMA synchronous = NORMAL;")
+            .execute(&pool)
+            .await
+            .context("failed to set synchronous mode for sqlite")?;
+
+        sqlx::query("PRAGMA cache_size = -8000;")
+            .execute(&pool)
+            .await
+            .context("failed to set cache size for sqlite")?;
+
+        sqlx::query("PRAGMA temp_store = MEMORY;")
+            .execute(&pool)
+            .await
+            .context("failed to set temp_store for sqlite")?;
+
+        sqlx::query("PRAGMA busy_timeout = 5000;")
+            .execute(&pool)
+            .await
+            .context("failed to set busy_timeout for sqlite")?;
+
         let db = Self { pool };
         db.migrate().await?;
         Ok(db)

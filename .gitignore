@@ -2,6 +2,8 @@ target/
 result*
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 TODO.md
 backup.json
 *.env
