@@ -172,6 +172,7 @@ pub struct AddTemplate {
     pub cafe_options: Vec<CafeOptionView>,
     pub defaults: BrewDefaultsView,
     pub quick_note_options: Vec<QuickNoteView>,
+    pub pre_select_bag_id: Option<String>,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

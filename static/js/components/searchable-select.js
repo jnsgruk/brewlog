@@ -47,6 +47,17 @@ customElements.define("searchable-select", class extends HTMLElement {
     this.appendChild(searchWrap);
     this.appendChild(selectedWrap);
 
+    const initialValue = this.getAttribute("initial-value");
+    if (initialValue) {
+      const match = buttons.find((btn) => btn.value === initialValue);
+      if (match) {
+        hidden.value = match.value;
+        display.textContent = match.dataset.display;
+        searchWrap.classList.add("hidden");
+        selectedWrap.classList.remove("hidden");
+      }
+    }
+
     search.addEventListener("input", () => {
       const q = search.value.toLowerCase();
       options.classList.toggle("hidden", !q);

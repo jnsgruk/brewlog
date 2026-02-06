@@ -48,6 +48,7 @@ const ADD_TABS: &[Tab] = &[
 pub(crate) struct AddQuery {
     #[serde(rename = "type", default = "default_type")]
     entity_type: String,
+    bag_id: Option<String>,
 }
 
 fn default_type() -> String {
@@ -100,6 +101,7 @@ pub(crate) async fn add_page(
         cafe_options,
         defaults: brew_form.defaults,
         quick_note_options: brew_form.quick_note_options,
+        pre_select_bag_id: query.bag_id,
     };
 
     render_html(template).map(IntoResponse::into_response)
