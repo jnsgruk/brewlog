@@ -102,6 +102,35 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 
 SQLite is used for storage. Migrations run automatically on server startup.
 
+## Running with Docker
+
+The Nix flake includes a Docker image built with `dockerTools`:
+
+```bash
+nix build .#brewlog-container
+docker load < result
+```
+
+Create a `docker.env` file:
+
+```env
+BREWLOG_ADMIN_USERNAME=admin
+BREWLOG_ADMIN_PASSWORD=password
+BREWLOG_OPENROUTER_API_KEY=sk-or-...
+BREWLOG_OPENROUTER_MODEL=google/gemini-3-flash-preview
+BREWLOG_FOURSQUARE_API_KEY=fsq3...
+BREWLOG_RP_ID=localhost
+BREWLOG_BIND_ADDRESS=0.0.0.0:3000
+BREWLOG_RP_ORIGIN=http://localhost:4000
+```
+
+```bash
+mkdir data
+docker run --rm -p 4000:3000 --env-file docker.env -v $PWD/data:/data brewlog:0.1.0
+```
+
+The database is stored at `/data/brewlog.db` inside the container — mount a host directory to `/data` to persist it.
+
 ## Contributing
 
 ```bash

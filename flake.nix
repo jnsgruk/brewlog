@@ -50,7 +50,10 @@
               src = lib.cleanSource ./.;
               cargoLock.lockFile = ./Cargo.lock;
 
-              nativeBuildInputs = [ pkgs.pkg-config pkgs.tailwindcss_4 ];
+              nativeBuildInputs = [
+                pkgs.pkg-config
+                pkgs.tailwindcss_4
+              ];
               buildInputs = [ pkgs.openssl ];
 
               preBuild = ''
@@ -66,6 +69,32 @@
                 maintainers = with lib.maintainers; [ jnsgruk ];
               };
             };
+
+            brewlog-container = pkgs.dockerTools.buildImage {
+              name = "brewlog";
+              tag = version;
+              created = "now";
+              copyToRoot = pkgs.buildEnv {
+                name = "image-root";
+                paths = [
+                  self.packages.${system}.brewlog
+                  pkgs.cacert
+                ];
+                pathsToLink = [
+                  "/bin"
+                  "/etc/ssl/certs"
+                ];
+              };
+              config = {
+                Entrypoint = [
+                  "${lib.getExe self.packages.${system}.brewlog}"
+                  "serve"
+                  "--database-url"
+                  "sqlite:///data/brewlog.db"
+                ];
+                User = "1000:1000";
+              };
+            };
           };
 
           devShells = {
@@ -75,16 +104,17 @@
               NIX_CONFIG = "experimental-features = nix-command flakes";
               RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
 
-              buildInputs =
-                [ rust ]
-                ++ (with pkgs; [
-                  cargo-watch
-                  nil
-                  nixfmt
-                  sqlite
-                  sqlx-cli
-                  tailwindcss_4
-                ]);
+              buildInputs = [
+                rust
+              ]
+              ++ (with pkgs; [
+                cargo-watch
+                nil
+                nixfmt
+                sqlite
+                sqlx-cli
+                tailwindcss_4
+              ]);
             };
           };
         };
