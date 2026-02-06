@@ -33,7 +33,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
 tower = "0.4"
 tower-cookies = "0.10"
-tower-http = { version = "0.6", features = ["limit", "set-header", "trace"] }
+tower-http = { version = "0.6", features = ["compression-gzip", "limit", "set-header", "trace"] }
 slug = "0.1.6"
 url = "2"
 uuid = { version = "1", features = ["v4"] }

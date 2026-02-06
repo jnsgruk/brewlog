@@ -9,6 +9,7 @@ use axum::http::{HeaderValue, StatusCode};
 use axum::response::Html;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
+use tower_http::compression::CompressionLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
@@ -62,7 +63,8 @@ pub fn app_router(state: AppState) -> axum::Router {
                 .layer(SetResponseHeaderLayer::overriding(
                     axum::http::header::STRICT_TRANSPORT_SECURITY,
                     HeaderValue::from_static("max-age=63072000; includeSubDomains"),
-                )),
+                ))
+                .layer(CompressionLayer::new().gzip(true)),
         )
         .with_state(state)
 }

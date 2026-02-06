@@ -43,49 +43,70 @@ async fn scan_redirect() -> Redirect {
 
 async fn styles() -> impl IntoResponse {
     (
-        [("content-type", "text/css; charset=utf-8")],
+        [
+            ("content-type", "text/css; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_str!("../../../../static/css/styles.css"),
     )
 }
 
 async fn webauthn_js() -> impl IntoResponse {
     (
-        [("content-type", "application/javascript; charset=utf-8")],
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_str!("../../../../static/js/webauthn.js"),
     )
 }
 
 async fn photo_capture_js() -> impl IntoResponse {
     (
-        [("content-type", "application/javascript; charset=utf-8")],
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_str!("../../../../static/js/components/photo-capture.js"),
     )
 }
 
 async fn searchable_select_js() -> impl IntoResponse {
     (
-        [("content-type", "application/javascript; charset=utf-8")],
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_str!("../../../../static/js/components/searchable-select.js"),
     )
 }
 
 async fn favicon() -> impl IntoResponse {
     (
-        [("content-type", "image/x-icon")],
+        [
+            ("content-type", "image/x-icon"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_bytes!("../../../../static/favicon.ico").as_ref(),
     )
 }
 
 async fn favicon_light() -> impl IntoResponse {
     (
-        [("content-type", "image/svg+xml")],
+        [
+            ("content-type", "image/svg+xml"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_str!("../../../../static/favicon-light.svg"),
     )
 }
 
 async fn favicon_dark() -> impl IntoResponse {
     (
-        [("content-type", "image/svg+xml")],
+        [
+            ("content-type", "image/svg+xml"),
+            ("cache-control", "public, max-age=604800"),
+        ],
         include_str!("../../../../static/favicon-dark.svg"),
     )
 }
