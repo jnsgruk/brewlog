@@ -111,6 +111,14 @@ Only reset state on `finished` or `error`, never unconditionally.
 
 **8. Static assets need explicit routes.** All assets are embedded at compile time via `include_str!()`/`include_bytes!()` with explicit routes in `application/routes/mod.rs`. There is no `tower-http` static file serving.
 
+**9. CSP must be updated when adding external resources.** The `Content-Security-Policy` header is set in `application/routes/mod.rs`. If you add a new external script, stylesheet, font, or image source, update the corresponding CSP directive (`script-src`, `style-src`, `font-src`, `img-src`) or the browser will block it silently. Datastar requires `'unsafe-inline'` and `'unsafe-eval'` in `script-src`.
+
+**10. Cookie `Secure` flag is on by default.** Session cookies are marked `Secure` unless `BREWLOG_INSECURE_COOKIES=true` is set. Local HTTP development needs this env var in `.env`. Do not use the old `BREWLOG_SECURE_COOKIES` variable — it no longer exists.
+
+**11. URL fields must validate scheme server-side.** Any user-supplied URL field (e.g., roaster `homepage`) must reject non-`http(s)` schemes to prevent `javascript:` or `data:` XSS. Use the `is_valid_url_scheme()` helper in `domain/roasters.rs` as a reference pattern.
+
+**12. Datastar create handlers must check referer for fragment targets.** When a `@post` creates an entity and returns a list fragment (e.g., `#brew-list`), that fragment only exists on the entity's data page. If the same `@post` can fire from other pages (homepage, timeline), check the `Referer` header and return a reload-script response for pages that lack the target element. See `create_brew` in `application/routes/api/brews.rs`.
+
 ## Backend Patterns
 
 ### Repository Pattern
