@@ -12,6 +12,7 @@ use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
 use crate::application::server::AppState;
 use crate::domain::bags::NewBag;
 use crate::domain::errors::RepositoryError;
+use crate::domain::ids::RoastId;
 use crate::domain::roasters::NewRoaster;
 use crate::domain::roasts::NewRoast;
 use crate::infrastructure::ai::{self, ExtractionInput, Usage};
@@ -41,6 +42,9 @@ pub(crate) async fn extract_bag_scan(
         "extract-bag-scan",
         usage,
     );
+
+    // Try to match existing roaster/roast by slug
+    let (matched_roaster_id, matched_roast_id) = match_existing_entities(&state, &result).await;
 
     if is_datastar_request(&headers) {
         use serde_json::Value;
@@ -91,11 +95,58 @@ pub(crate) async fn extract_bag_scan(
             ),
             ("_tasting-notes", Value::String(tasting_notes)),
             ("_scan-extracted", Value::Bool(true)),
+            ("_matched-roaster-id", Value::String(matched_roaster_id)),
+            ("_matched-roast-id", Value::String(matched_roast_id)),
         ];
         crate::application::routes::support::render_signals_json(&signals).map_err(ApiError::from)
     } else {
         Ok(Json(result).into_response())
     }
+}
+
+/// Check if the extracted roaster/roast already exist by slug matching.
+/// Returns `(matched_roaster_id, matched_roast_id)` as strings (empty if no match).
+async fn match_existing_entities(
+    state: &AppState,
+    result: &ai::ExtractedBagScan,
+) -> (String, String) {
+    let roaster_name = result.roaster.name.as_deref().unwrap_or_default();
+    let roaster_country = result.roaster.country.as_deref().unwrap_or_default();
+    if roaster_name.is_empty() {
+        return (String::new(), String::new());
+    }
+
+    let temp_roaster = NewRoaster {
+        name: roaster_name.to_string(),
+        country: roaster_country.to_string(),
+        city: result.roaster.city.clone(),
+        homepage: None,
+    }
+    .normalize();
+    let roaster_slug = temp_roaster.slug();
+
+    let Ok(existing_roaster) = state.roaster_repo.get_by_slug(&roaster_slug).await else {
+        return (String::new(), String::new());
+    };
+
+    let matched_roaster_id = existing_roaster.id.into_inner().to_string();
+
+    let roast_name = result.roast.name.as_deref().unwrap_or_default();
+    if roast_name.is_empty() {
+        return (matched_roaster_id, String::new());
+    }
+
+    let roast_slug = slug::slugify(roast_name);
+    let matched_roast_id = match state
+        .roast_repo
+        .get_by_slug(existing_roaster.id, &roast_slug)
+        .await
+    {
+        Ok(r) => r.id.into_inner().to_string(),
+        Err(_) => String::new(),
+    };
+
+    (matched_roaster_id, matched_roast_id)
 }
 
 fn default_tasting_notes() -> TastingNotesInput {
@@ -130,6 +181,8 @@ pub(crate) struct BagScanSubmission {
     open_bag: Option<String>,
     #[serde(default)]
     bag_amount: Option<f64>,
+    #[serde(default)]
+    matched_roast_id: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -201,6 +254,11 @@ pub(crate) async fn submit_scan(
     payload: FlexiblePayload<BagScanSubmission>,
 ) -> Result<Response, ApiError> {
     let (mut submission, _) = payload.into_parts();
+
+    // If the roast already exists (matched during extraction), skip creation
+    if let Some(roast_id) = parse_matched_roast_id(submission.matched_roast_id.as_ref()) {
+        return submit_existing_roast(&state, &headers, roast_id, &submission).await;
+    }
 
     // Check for raw input (image/prompt triggers extraction first)
     let has_raw_input = submission.image.as_deref().is_some_and(|s| !s.is_empty())
@@ -321,5 +379,74 @@ pub(crate) async fn submit_scan(
         crate::application::routes::support::render_signals_json(&signals).map_err(ApiError::from)
     } else {
         Ok((StatusCode::CREATED, Json(ScanResult { redirect, roast_id })).into_response())
+    }
+}
+
+fn parse_matched_roast_id(value: Option<&String>) -> Option<RoastId> {
+    value
+        .map(String::as_str)
+        .filter(|s| !s.is_empty())
+        .and_then(|s| s.parse::<i64>().ok())
+        .map(RoastId::from)
+}
+
+/// Handle submission when the roast already exists — only create a bag if requested.
+async fn submit_existing_roast(
+    state: &AppState,
+    headers: &HeaderMap,
+    roast_id: RoastId,
+    submission: &BagScanSubmission,
+) -> Result<Response, ApiError> {
+    let roast_with_roaster = state
+        .roast_repo
+        .get_with_roaster(roast_id)
+        .await
+        .map_err(AppError::from)?;
+
+    let roast = &roast_with_roaster.roast;
+    let roaster_slug = &roast_with_roaster.roaster_slug;
+
+    let wants_bag = submission
+        .open_bag
+        .as_deref()
+        .is_some_and(|v| v == "true" || v == "on");
+    if wants_bag {
+        let amount = submission.bag_amount.unwrap_or(250.0);
+        let new_bag = NewBag {
+            roast_id: roast.id,
+            roast_date: None,
+            amount,
+        };
+        state
+            .bag_service
+            .create(new_bag)
+            .await
+            .map_err(AppError::from)?;
+        info!(roast_id = %roast.id, roast_name = %roast.name, "scan opened bag for existing roast");
+    }
+
+    let redirect = format!("/roasters/{}/roasts/{}", roaster_slug, roast.slug);
+    let roast_id_raw = roast.id.into_inner();
+
+    if is_datastar_request(headers) {
+        use serde_json::Value;
+        let signals = vec![
+            ("_roast-id", Value::String(roast_id_raw.to_string())),
+            ("_scan-success", Value::String(roast.name.clone())),
+            (
+                "_roaster-name",
+                Value::String(roast_with_roaster.roaster_name.clone()),
+            ),
+        ];
+        crate::application::routes::support::render_signals_json(&signals).map_err(ApiError::from)
+    } else {
+        Ok((
+            StatusCode::CREATED,
+            Json(ScanResult {
+                redirect,
+                roast_id: roast_id_raw,
+            }),
+        )
+            .into_response())
     }
 }

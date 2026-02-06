@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::helpers::{create_default_roaster, spawn_app_with_auth};
+use crate::helpers::{create_default_roast, create_default_roaster, spawn_app_with_auth};
 
 #[derive(Debug, Deserialize)]
 struct ScanResult {
@@ -219,4 +219,97 @@ async fn scan_requires_tasting_notes_for_manual_submission() {
         .expect("Failed to execute request");
 
     assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn scan_with_matched_roast_id_creates_bag_only() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    // Pre-create roaster and roast
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+
+    // Submit scan with matched_roast_id — should skip roaster/roast creation
+    let payload = serde_json::json!({
+        "matched_roast_id": roast.id.into_inner().to_string(),
+        "open_bag": "true",
+        "bag_amount": 250.0,
+    });
+
+    let response = client
+        .post(app.api_url("/scan"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&payload)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 201);
+
+    let result: ScanResult = response.json().await.expect("Failed to parse response");
+    assert_eq!(result.roast_id, roast.id.into_inner());
+    assert!(
+        result.redirect.contains(&roast.slug),
+        "Redirect should reference existing roast slug, got: {}",
+        result.redirect
+    );
+
+    // Verify no new roast was created (still just the one)
+    let roasts_response = client
+        .get(app.api_url("/roasts"))
+        .send()
+        .await
+        .expect("Failed to list roasts");
+    let roasts: Vec<serde_json::Value> = roasts_response
+        .json()
+        .await
+        .expect("Failed to parse roasts");
+    assert_eq!(roasts.len(), 1, "Should not create a new roast");
+
+    // Verify bag was created
+    let bags_response = client
+        .get(app.api_url("/bags"))
+        .send()
+        .await
+        .expect("Failed to list bags");
+    let bags: Vec<serde_json::Value> = bags_response.json().await.expect("Failed to parse bags");
+    assert_eq!(bags.len(), 1, "A bag should have been created");
+}
+
+#[tokio::test]
+async fn scan_with_matched_roast_id_no_bag_returns_existing() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    // Pre-create roaster and roast
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+
+    // Submit scan with matched_roast_id but no open_bag
+    let payload = serde_json::json!({
+        "matched_roast_id": roast.id.into_inner().to_string(),
+    });
+
+    let response = client
+        .post(app.api_url("/scan"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&payload)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 201);
+
+    let result: ScanResult = response.json().await.expect("Failed to parse response");
+    assert_eq!(result.roast_id, roast.id.into_inner());
+
+    // Verify no bag was created
+    let bags_response = client
+        .get(app.api_url("/bags"))
+        .send()
+        .await
+        .expect("Failed to list bags");
+    let bags: Vec<serde_json::Value> = bags_response.json().await.expect("Failed to parse bags");
+    assert_eq!(bags.len(), 0, "No bag should have been created");
 }
