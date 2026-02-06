@@ -33,6 +33,8 @@ pub(super) fn router() -> axum::Router<AppState> {
             get(searchable_select_js),
         )
         .route("/favicon.ico", get(favicon))
+        .route("/favicon-light.svg", get(favicon_light))
+        .route("/favicon-dark.svg", get(favicon_dark))
 }
 
 async fn scan_redirect() -> Redirect {
@@ -71,5 +73,19 @@ async fn favicon() -> impl IntoResponse {
     (
         [("content-type", "image/x-icon")],
         include_bytes!("../../../../static/favicon.ico").as_ref(),
+    )
+}
+
+async fn favicon_light() -> impl IntoResponse {
+    (
+        [("content-type", "image/svg+xml")],
+        include_str!("../../../../static/favicon-light.svg"),
+    )
+}
+
+async fn favicon_dark() -> impl IntoResponse {
+    (
+        [("content-type", "image/svg+xml")],
+        include_str!("../../../../static/favicon-dark.svg"),
     )
 }

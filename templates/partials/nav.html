@@ -66,8 +66,24 @@
         document.querySelectorAll(".theme-icon-dark").forEach((el) => {
             el.classList.toggle("hidden", !isDark);
         });
+        const favicon = document.getElementById("favicon");
+        if (favicon) {
+            favicon.href = isDark ? "/favicon-dark.svg" : "/favicon-light.svg";
+        }
     };
 
     // Set correct icon state on load
     updateThemeIcons();
+
+    // Follow OS theme changes when the user hasn't manually chosen
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+        if (localStorage.getItem("theme")) return;
+        const html = document.documentElement;
+        if (e.matches) {
+            html.setAttribute("data-theme", "dark");
+        } else {
+            html.removeAttribute("data-theme");
+        }
+        updateThemeIcons();
+    });
 </script>
