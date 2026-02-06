@@ -17,13 +17,13 @@
     <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
     <button type="submit"
       class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
-      {% call icons::plus_circle("h-4 w-4") %} Brew Again
+      {{ icons::plus_circle("h-4 w-4") }} Brew Again
     </button>
   </form>
   <button type="button"
     class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
     data-on:click="confirm('Delete this brew?') && @delete('/api/v1/brews/{{ brew.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#brew-list', mode: 'replace'}})">
-    {% call icons::delete("h-4 w-4") %} Delete
+    {{ icons::delete("h-4 w-4") }} Delete
   </button>
 </div>
 {% endmacro %}
@@ -45,13 +45,13 @@
   <section class="rounded-lg border bg-surface"
     {% if brews.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(brews.next_page().unwrap())|safe }}" data-target="#brew-list"{% endif %}
   >
-    {% call table::search_header(navigator, "#brew-list") %}
+    {{ table::search_header(navigator, "#brew-list") }}
 
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
         <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text">
           <tr>
-            {% call table::sortable_header("Added", "created-at", navigator, "#brew-list") %}
+            {{ table::sortable_header("Added", "created-at", navigator, "#brew-list") }}
             <th scope="col" class="px-4 py-3">Coffee</th>
             <th scope="col" class="px-4 py-3">Grind</th>
             <th scope="col" class="px-4 py-3">Recipe</th>
@@ -109,14 +109,14 @@
             </td>
             {% if is_authenticated %}
             <td data-label="" class="card-detail hidden">
-              {% call brew_actions(brew, navigator) %}
+              {{ brew_actions(brew, navigator) }}
             </td>
             <td data-label="" class="card-actions px-4 py-3 text-right">
               <button type="button"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
                 title="Actions">
-                <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
-                <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>
+                <span class="icon-expand">{{ icons::ellipsis_vertical("h-5 w-5") }}</span>
+                <span class="icon-collapse hidden">{{ icons::chevron_up("h-5 w-5") }}</span>
               </button>
             </td>
             {% endif %}
@@ -124,7 +124,7 @@
           {% if is_authenticated %}
           <tr class="hidden detail-row">
             <td colspan="7" class="bg-surface-alt px-4 py-2">
-              {% call brew_actions(brew, navigator) %}
+              {{ brew_actions(brew, navigator) }}
             </td>
           </tr>
           {% endif %}
@@ -139,7 +139,7 @@
     </div>
     {% endif %}
 
-    {% call table::pagination_header(brews, navigator, "#brew-list") %}
+    {{ table::pagination_header(brews, navigator, "#brew-list") }}
 
     {% if brews.has_next() %}
     <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>

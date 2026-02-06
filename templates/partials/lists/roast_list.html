@@ -18,14 +18,14 @@
   <section class="rounded-lg border bg-surface"
     {% if roasts.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(roasts.next_page().unwrap())|safe }}" data-target="#roast-list"{% endif %}
   >
-    {% call table::search_header(navigator, "#roast-list") %}
+    {{ table::search_header(navigator, "#roast-list") }}
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
         <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text">
           <tr>
-            {% call table::sortable_header("Added", "created-at", navigator, "#roast-list") %}
-            {% call table::sortable_header("Roast", "name", navigator, "#roast-list") %}
-            {% call table::sortable_header("Origin", "origin", navigator, "#roast-list") %}
+            {{ table::sortable_header("Added", "created-at", navigator, "#roast-list") }}
+            {{ table::sortable_header("Roast", "name", navigator, "#roast-list") }}
+            {{ table::sortable_header("Origin", "origin", navigator, "#roast-list") }}
             <th scope="col" class="px-4 py-3">Tasting Notes</th>
             {% if is_authenticated %}
             <th scope="col" class="actions-col px-4 py-3 text-right">Actions</th>
@@ -79,7 +79,7 @@
                 <button type="button"
                   class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
                   data-on:click="confirm('Delete this roast?') && @delete('/api/v1/roasts/{{ roast.full_id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})">
-                  {% call icons::delete("h-4 w-4") %} Delete
+                  {{ icons::delete("h-4 w-4") }} Delete
                 </button>
               </div>
             </td>
@@ -87,8 +87,8 @@
               <button type="button"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
                 title="Actions">
-                <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
-                <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>
+                <span class="icon-expand">{{ icons::ellipsis_vertical("h-5 w-5") }}</span>
+                <span class="icon-collapse hidden">{{ icons::chevron_up("h-5 w-5") }}</span>
               </button>
             </td>
             {% endif %}
@@ -100,7 +100,7 @@
                 <button type="button"
                   class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
                   data-on:click="confirm('Delete this roast?') && @delete('/api/v1/roasts/{{ roast.full_id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roast-list', mode: 'replace'}})">
-                  {% call icons::delete("h-4 w-4") %} Delete
+                  {{ icons::delete("h-4 w-4") }} Delete
                 </button>
               </div>
             </td>
@@ -113,7 +113,7 @@
     {% if roasts.items.is_empty() %}
     <div class="p-8 text-center text-text-muted">No roasts match your search.</div>
     {% endif %}
-    {% call table::pagination_header(roasts, navigator, "#roast-list") %}
+    {{ table::pagination_header(roasts, navigator, "#roast-list") }}
     {% if roasts.has_next() %}
     <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}

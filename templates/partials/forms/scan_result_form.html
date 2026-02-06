@@ -16,7 +16,7 @@
         <h3 class="text-base font-semibold text-text">Roaster</h3>
         <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            {% call icons::fire("h-4 w-4 text-accent shrink-0") %}
+            {{ icons::fire("h-4 w-4 text-accent shrink-0") }}
             <span class="font-medium text-text" data-text="$_roasterName"></span>
             <span class="text-xs text-text-muted" data-show="$_roasterCountry" data-text="$_roasterCountry" style="display:none"></span>
           </div>
@@ -53,7 +53,7 @@
         <h3 class="text-base font-semibold text-text">Roast</h3>
         <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            {% call icons::bag("h-4 w-4 text-accent shrink-0") %}
+            {{ icons::bag("h-4 w-4 text-accent shrink-0") }}
             <span class="font-medium text-text" data-text="$_roastName"></span>
             <span class="text-xs text-text-muted" data-show="$_origin" data-text="$_origin" style="display:none"></span>
           </div>
@@ -107,7 +107,7 @@
       </div>
       <p data-show="$_scanError" data-text="$_scanError" style="display:none" class="text-sm text-red-600"></p>
       <div data-show="$_scanSubmitting" style="display:none" class="flex items-center gap-3 text-sm text-accent">
-        {% call icons::spinner("h-5 w-5") %}
+        {{ icons::spinner("h-5 w-5") }}
         Saving&hellip;
       </div>
       <div data-show="!$_scanSubmitting" class="flex items-center justify-end gap-2">

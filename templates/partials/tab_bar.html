@@ -26,8 +26,8 @@
         <span data-show="{{ tab_signal_js }} === '{{ tab.key }}'">{{ tab.label }}</span>
         {% endfor %}
       </span>
-      <span data-show="!$_tabsOpen">{% call icons::chevron_down("h-5 w-5") %}</span>
-      <span data-show="$_tabsOpen" style="display:none">{% call icons::chevron_up("h-5 w-5") %}</span>
+      <span data-show="!$_tabsOpen">{{ icons::chevron_down("h-5 w-5") }}</span>
+      <span data-show="$_tabsOpen" style="display:none">{{ icons::chevron_up("h-5 w-5") }}</span>
     </button>
     <div class="flex flex-col border-t" data-show="$_tabsOpen" style="display:none">
       {% for tab in tabs %}

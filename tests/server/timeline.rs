@@ -258,7 +258,7 @@ async fn timeline_page_signals_more_results_when_over_page_size() {
 
     assert!(
         body.contains(
-            "data-next-url=\"/timeline?page=2&amp;page_size=5&amp;sort=occurred-at&amp;dir=desc\""
+            "data-next-url=\"/timeline?page=2&#38;page_size=5&#38;sort=occurred-at&#38;dir=desc\""
         ),
         "Expected loader next-page URL missing from timeline HTML:\n{}",
         body

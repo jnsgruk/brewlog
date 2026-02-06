@@ -57,7 +57,7 @@
       data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
-      {% call scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") %}
+      {{ scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") }}
     </form>
   </div>
 
@@ -128,7 +128,7 @@
             class="inline-flex h-8 w-8 items-center justify-center rounded-md text-accent transition hover:text-accent-hover hover:bg-surface-alt"
             title="Brew Again"
           >
-            {% call icons::refresh("h-4 w-4") %}
+            {{ icons::refresh("h-4 w-4") }}
           </button>
         </form>
         {% endif %}
@@ -148,7 +148,7 @@
   </div>
   <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for bag in open_bags %}
-    {% call bag_card::card(bag, is_authenticated) %}
+    {{ bag_card::card(bag, is_authenticated) }}
     {% endfor %}
   </div>
 </section>
@@ -182,37 +182,37 @@
   </div>
   <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-7">
     <a href="/data?type=brews" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::beaker("h-6 w-6 text-accent") %}
+      {{ icons::beaker("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.brews }}</span>
       <span class="text-xs text-text-muted">Brews</span>
     </a>
     <a href="/data?type=roasts" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::fire("h-6 w-6 text-accent") %}
+      {{ icons::fire("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasts }}</span>
       <span class="text-xs text-text-muted">Roasts</span>
     </a>
     <a href="/data?type=roasters" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::building("h-6 w-6 text-accent") %}
+      {{ icons::building("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasters }}</span>
       <span class="text-xs text-text-muted">Roasters</span>
     </a>
     <a href="/data?type=bags" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::bag("h-6 w-6 text-accent") %}
+      {{ icons::bag("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.bags }}</span>
       <span class="text-xs text-text-muted">Bags</span>
     </a>
     <a href="/data?type=cups" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::cup("h-6 w-6 text-accent") %}
+      {{ icons::cup("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cups }}</span>
       <span class="text-xs text-text-muted">Cups</span>
     </a>
     <a href="/data?type=cafes" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::location("h-6 w-6 text-accent") %}
+      {{ icons::location("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cafes }}</span>
       <span class="text-xs text-text-muted">Cafes</span>
     </a>
     <a href="/data?type=gear" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
-      {% call icons::wrench("h-6 w-6 text-accent") %}
+      {{ icons::wrench("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.gear }}</span>
       <span class="text-xs text-text-muted">Gear</span>
     </a>

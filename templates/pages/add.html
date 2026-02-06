@@ -2,7 +2,7 @@
 
 {% block head %}
 <script>
-  {% call location::location_search_js() %}
+  {{ location::location_search_js() }}
 </script>
 {% endblock %}
 
@@ -35,7 +35,7 @@
       data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
-      {% call scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") %}
+      {{ scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") }}
     </form>
   </div>
 
@@ -427,14 +427,14 @@
 
     <!-- Location search -->
     <div class="mt-4 border-b pb-4" data-show="!$_reviewingCafe">
-      {% call location::location_search("$_cafeError") %}
+      {{ location::location_search("$_cafeError") }}
       <p data-show="$_cafeError" data-text="$_cafeError" style="display:none" class="mt-2 text-sm text-red-600"></p>
     </div>
 
     <!-- Selected cafe indicator -->
     <div class="mt-4 border-b pb-4 flex items-center justify-between" data-show="$_reviewingCafe" style="display:none">
       <div class="flex items-center gap-2">
-        {% call icons::location("h-4 w-4 text-accent shrink-0") %}
+        {{ icons::location("h-4 w-4 text-accent shrink-0") }}
         <span class="text-sm font-medium text-text" data-text="$_cafeName"></span>
         <span class="text-xs text-text-muted" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
       </div>
