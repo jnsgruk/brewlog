@@ -111,7 +111,9 @@
               ]
               ++ (with pkgs; [
                 cargo-watch
+                clang
                 flyctl
+                lld
                 nil
                 nixfmt
                 openssl
