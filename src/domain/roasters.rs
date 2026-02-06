@@ -29,7 +29,8 @@ impl NewRoaster {
         self.name = self.name.trim().to_string();
         self.country = self.country.trim().to_string();
         self.city = normalize_optional_field(self.city);
-        self.homepage = normalize_optional_field(self.homepage);
+        self.homepage =
+            normalize_optional_field(self.homepage).filter(|url| is_valid_url_scheme(url));
         self
     }
 
@@ -51,6 +52,13 @@ fn normalize_optional_field(value: Option<String>) -> Option<String> {
             Some(trimmed.to_string())
         }
     })
+}
+
+/// Returns `true` if the URL starts with `http://` or `https://`.
+/// Rejects `javascript:`, `data:`, and other potentially dangerous schemes.
+fn is_valid_url_scheme(url: &str) -> bool {
+    let lower = url.trim().to_lowercase();
+    lower.starts_with("http://") || lower.starts_with("https://")
 }
 
 impl Roaster {
@@ -86,6 +94,23 @@ pub struct UpdateRoaster {
     pub country: Option<String>,
     pub city: Option<String>,
     pub homepage: Option<String>,
+}
+
+impl UpdateRoaster {
+    pub fn normalize(mut self) -> Self {
+        self.homepage = self
+            .homepage
+            .and_then(|h| {
+                let trimmed = h.trim().to_string();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed)
+                }
+            })
+            .filter(|url| is_valid_url_scheme(url));
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

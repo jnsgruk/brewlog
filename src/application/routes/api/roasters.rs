@@ -96,6 +96,7 @@ pub(crate) async fn update_roaster(
     Path(id): Path<RoasterId>,
     Json(payload): Json<UpdateRoaster>,
 ) -> Result<Json<Roaster>, ApiError> {
+    let payload = payload.normalize();
     let has_changes = payload.name.is_some()
         || payload.country.is_some()
         || payload.city.is_some()
