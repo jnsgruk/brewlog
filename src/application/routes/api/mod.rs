@@ -16,7 +16,7 @@ pub(crate) mod webauthn;
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};
 
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 
 #[allow(clippy::too_many_lines)]
 pub(super) fn router() -> axum::Router<AppState> {

@@ -14,7 +14,7 @@ macro_rules! define_get_handler {
     ($fn_name:ident, $id_type:ty, $entity_type:ty, $repo_field:ident) => {
         #[tracing::instrument(skip(state))]
         pub(crate) async fn $fn_name(
-            axum::extract::State(state): axum::extract::State<crate::application::server::AppState>,
+            axum::extract::State(state): axum::extract::State<crate::application::state::AppState>,
             axum::extract::Path(id): axum::extract::Path<$id_type>,
         ) -> Result<axum::Json<$entity_type>, crate::application::errors::ApiError> {
             let entity = state
@@ -44,7 +44,7 @@ macro_rules! define_enriched_get_handler {
     ($fn_name:ident, $id_type:ty, $entity_type:ty, $repo_field:ident, $method:ident) => {
         #[tracing::instrument(skip(state))]
         pub(crate) async fn $fn_name(
-            axum::extract::State(state): axum::extract::State<crate::application::server::AppState>,
+            axum::extract::State(state): axum::extract::State<crate::application::state::AppState>,
             axum::extract::Path(id): axum::extract::Path<$id_type>,
         ) -> Result<axum::Json<$entity_type>, crate::application::errors::ApiError> {
             let entity = state
@@ -80,7 +80,7 @@ macro_rules! define_delete_handler {
     ($fn_name:ident, $id_type:ty, $sort_key:ty, $repo_field:ident, $render_fragment:path) => {
         #[tracing::instrument(skip(state, _auth_user, headers, query))]
         pub(crate) async fn $fn_name(
-            axum::extract::State(state): axum::extract::State<crate::application::server::AppState>,
+            axum::extract::State(state): axum::extract::State<crate::application::state::AppState>,
             _auth_user: crate::application::auth::AuthenticatedUser,
             headers: axum::http::HeaderMap,
             axum::extract::Path(id): axum::extract::Path<$id_type>,
@@ -133,7 +133,7 @@ macro_rules! define_delete_handler {
 macro_rules! define_list_fragment_renderer {
     ($fn_name:ident, $sort_key:ty, $loader:ident, $template:ident { $field:ident }, $selector:literal) => {
         async fn $fn_name(
-            state: crate::application::server::AppState,
+            state: crate::application::state::AppState,
             request: crate::domain::listing::ListRequest<$sort_key>,
             search: Option<String>,
             is_authenticated: bool,

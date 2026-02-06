@@ -8,7 +8,7 @@ use crate::application::routes::render_html;
 use crate::application::routes::support::{
     load_cafe_options, load_roast_options, load_roaster_options,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::presentation::web::templates::{AddTemplate, Tab};
 
 use crate::application::routes::api::brews::load_brew_form_data;

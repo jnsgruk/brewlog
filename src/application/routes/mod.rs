@@ -13,7 +13,7 @@ use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 use tracing::Level;
 use tracing::error;
 
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 
 use crate::presentation::web::templates::render_template;
 

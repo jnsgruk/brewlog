@@ -13,7 +13,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::GearId;
 use crate::domain::listing::{ListRequest, SortDirection};

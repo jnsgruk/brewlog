@@ -7,7 +7,7 @@ use serde::Deserialize;
 use tracing::warn;
 
 use crate::application::errors::{ApiError, AppError};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::listing::{
     DEFAULT_PAGE_SIZE, ListRequest, Page, PageSize, SortDirection, SortKey,
 };

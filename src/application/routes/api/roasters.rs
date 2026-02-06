@@ -9,7 +9,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};

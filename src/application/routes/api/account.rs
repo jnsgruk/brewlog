@@ -6,7 +6,7 @@ use serde::Serialize;
 use tracing::error;
 
 use crate::application::auth::AuthenticatedUser;
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::ids::PasskeyCredentialId;
 
 #[derive(Serialize)]

@@ -4,7 +4,7 @@ use axum::response::{IntoResponse, Response};
 
 use crate::application::errors::{AppError, map_app_error};
 use crate::application::routes::render_html;
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::brews::{BrewFilter, BrewSortKey};
 use crate::domain::cafes::CafeSortKey;

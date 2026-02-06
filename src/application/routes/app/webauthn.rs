@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Response};
 use tracing::warn;
 
 use crate::application::routes::render_html;
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::infrastructure::auth::hash_token;
 
 // --- Templates ---

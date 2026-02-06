@@ -8,7 +8,7 @@ use tower_cookies::Cookies;
 use tracing::{error, warn};
 
 use crate::application::routes::render_html;
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 
 // --- View types ---
 

@@ -7,7 +7,7 @@ use serde::Deserialize;
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{FlexiblePayload, PayloadSource, is_datastar_request};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::cafes::NewCafe;
 use crate::domain::cups::NewCup;
 use crate::domain::ids::{CafeId, RoastId};

@@ -11,7 +11,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::bags::BagFilter;
 use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote};
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};

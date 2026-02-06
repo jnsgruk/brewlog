@@ -6,7 +6,7 @@ use axum::{
 use tower_cookies::Cookies;
 use tracing::warn;
 
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::users::User;
 use crate::infrastructure::auth::hash_token;
 

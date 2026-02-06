@@ -7,7 +7,7 @@ use serde::Deserialize;
 use crate::application::errors::{AppError, map_app_error};
 use crate::application::routes::render_html;
 use crate::application::routes::support::{is_datastar_request, normalize_request};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::listing::{ListRequest, PageSize, SortDirection, SortKey};
 use crate::domain::timeline::{TimelineEvent, TimelineSortKey};
 use crate::presentation::web::templates::{TimelineChunkTemplate, TimelineTemplate};

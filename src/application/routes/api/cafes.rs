@@ -10,7 +10,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, SortDirection};

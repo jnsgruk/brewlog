@@ -11,7 +11,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, is_datastar_request, render_signals_json,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::ids::{TokenId, UserId};
 use crate::domain::tokens::{NewToken, Token};
 use crate::infrastructure::auth::{generate_token, hash_token};

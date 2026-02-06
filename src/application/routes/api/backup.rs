@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Response};
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::infrastructure::backup::BackupData;
 
 /// GET /api/v1/backup — export all data as JSON (requires authentication)

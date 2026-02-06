@@ -12,7 +12,7 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};

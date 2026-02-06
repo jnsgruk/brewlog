@@ -9,7 +9,7 @@ use super::roasts::TastingNotesInput;
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::bags::NewBag;
 use crate::domain::errors::RepositoryError;
 use crate::domain::ids::RoastId;

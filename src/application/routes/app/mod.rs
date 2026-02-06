@@ -10,7 +10,7 @@ mod webauthn;
 use axum::response::{IntoResponse, Redirect};
 use axum::routing::{get, post};
 
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 
 pub(super) fn router() -> axum::Router<AppState> {
     axum::Router::new()

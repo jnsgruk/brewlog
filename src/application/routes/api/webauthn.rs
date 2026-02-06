@@ -9,7 +9,7 @@ use uuid::Uuid;
 use webauthn_rs::prelude::*;
 
 use crate::application::auth::AuthenticatedUser;
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::domain::passkey_credentials::NewPasskeyCredential;
 use crate::domain::sessions::NewSession;
 use crate::domain::tokens::NewToken;

@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Redirect, Response};
 use crate::application::errors::map_app_error;
 use crate::application::routes::render_html;
 use crate::application::routes::support::{load_cafe_options, load_roast_options};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::presentation::web::templates::CheckInTemplate;
 
 #[tracing::instrument(skip(state, cookies))]

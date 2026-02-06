@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::application::errors::{AppError, map_app_error};
 use crate::application::routes::render_html;
 use crate::application::routes::support::{ListQuery, is_datastar_request};
-use crate::application::server::AppState;
+use crate::application::state::AppState;
 use crate::presentation::web::templates::{
     BagListTemplate, BrewListTemplate, CafeListTemplate, CupListTemplate, DataTemplate,
     GearListTemplate, RoastListTemplate, RoasterListTemplate, Tab, render_template,
