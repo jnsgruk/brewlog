@@ -24,6 +24,7 @@ pub struct CupWithDetails {
     pub roaster_slug: String,
     pub cafe_name: String,
     pub cafe_slug: String,
+    pub cafe_city: String,
 }
 
 impl CupWithDetails {
@@ -96,7 +97,9 @@ impl CupFilter {
 pub enum CupSortKey {
     CreatedAt,
     CafeName,
+    CafeCity,
     RoastName,
+    RoasterName,
 }
 
 impl SortKey for CupSortKey {
@@ -108,7 +111,9 @@ impl SortKey for CupSortKey {
         match value {
             "created-at" => Some(CupSortKey::CreatedAt),
             "cafe" => Some(CupSortKey::CafeName),
+            "city" => Some(CupSortKey::CafeCity),
             "roast" => Some(CupSortKey::RoastName),
+            "roaster" => Some(CupSortKey::RoasterName),
             _ => None,
         }
     }
@@ -117,7 +122,9 @@ impl SortKey for CupSortKey {
         match self {
             CupSortKey::CreatedAt => "created-at",
             CupSortKey::CafeName => "cafe",
+            CupSortKey::CafeCity => "city",
             CupSortKey::RoastName => "roast",
+            CupSortKey::RoasterName => "roaster",
         }
     }
 

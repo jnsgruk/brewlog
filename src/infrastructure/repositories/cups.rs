@@ -15,7 +15,8 @@ const BASE_SELECT: &str = r"
         c.created_at, c.updated_at,
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug,
-        ca.name as cafe_name, ca.slug as cafe_slug
+        ca.name as cafe_name, ca.slug as cafe_slug,
+        ca.city as cafe_city
     FROM cups c
     JOIN roasts r ON c.roast_id = r.id
     JOIN roasters rr ON r.roaster_id = rr.id
@@ -43,8 +44,14 @@ impl SqlCupRepository {
             CupSortKey::CafeName => {
                 format!("LOWER(ca.name) {dir_sql}, c.created_at DESC")
             }
+            CupSortKey::CafeCity => {
+                format!("LOWER(ca.city) {dir_sql}, c.created_at DESC")
+            }
             CupSortKey::RoastName => {
                 format!("LOWER(r.name) {dir_sql}, c.created_at DESC")
+            }
+            CupSortKey::RoasterName => {
+                format!("LOWER(rr.name) {dir_sql}, c.created_at DESC")
             }
         }
     }
@@ -74,6 +81,7 @@ impl SqlCupRepository {
             roaster_slug: record.roaster_slug,
             cafe_name: record.cafe_name,
             cafe_slug: record.cafe_slug,
+            cafe_city: record.cafe_city,
         }
     }
 
@@ -219,4 +227,5 @@ struct CupWithDetailsRecord {
     roaster_slug: String,
     cafe_name: String,
     cafe_slug: String,
+    cafe_city: String,
 }

@@ -89,6 +89,7 @@ pub enum BagSortKey {
     UpdatedAt,
     Roaster,
     Roast,
+    Status,
     FinishedAt,
 }
 
@@ -104,6 +105,7 @@ impl SortKey for BagSortKey {
             "updated-at" => Some(BagSortKey::UpdatedAt),
             "roaster" => Some(BagSortKey::Roaster),
             "roast" => Some(BagSortKey::Roast),
+            "status" => Some(BagSortKey::Status),
             "finished-at" => Some(BagSortKey::FinishedAt),
             _ => None,
         }
@@ -116,13 +118,14 @@ impl SortKey for BagSortKey {
             BagSortKey::UpdatedAt => "updated-at",
             BagSortKey::Roaster => "roaster",
             BagSortKey::Roast => "roast",
+            BagSortKey::Status => "status",
             BagSortKey::FinishedAt => "finished-at",
         }
     }
 
     fn default_direction(self) -> SortDirection {
         match self {
-            BagSortKey::Roaster | BagSortKey::Roast => SortDirection::Asc,
+            BagSortKey::Roaster | BagSortKey::Roast | BagSortKey::Status => SortDirection::Asc,
             _ => SortDirection::Desc,
         }
     }

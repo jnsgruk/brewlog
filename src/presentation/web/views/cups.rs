@@ -9,6 +9,7 @@ pub struct CupView {
     pub roaster_slug: String,
     pub cafe_name: String,
     pub cafe_slug: String,
+    pub cafe_city: String,
     pub created_date: String,
     pub created_time: String,
 }
@@ -23,6 +24,7 @@ impl CupView {
             roaster_slug: cup.roaster_slug,
             cafe_name: cup.cafe_name,
             cafe_slug: cup.cafe_slug,
+            cafe_city: cup.cafe_city,
             created_date: cup.cup.created_at.format("%Y-%m-%d").to_string(),
             created_time: cup.cup.created_at.format("%H:%M").to_string(),
         }

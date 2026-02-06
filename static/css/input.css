@@ -548,14 +548,44 @@ a {
     border-bottom-width: 1px;
   }
 
+  /* Hide Actions column on desktop — whole row is clickable */
+  .responsive-table .actions-col,
+  .responsive-table td.card-actions {
+    display: none;
+  }
+
+  /* Pointer cursor on clickable rows */
+  .responsive-table tbody > tr[onclick] {
+    cursor: pointer;
+  }
+
   /* Hover: accent tint + left bar */
   .responsive-table tbody > tr:not(.detail-row):hover {
     background-color: var(--accent-subtle);
     box-shadow: inset 3px 0 0 var(--accent);
   }
 
+  /* Expanded row: persistent accent highlight */
+  .responsive-table tbody > tr.expanded {
+    background-color: var(--accent-subtle);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  /* Expanded row: remove bottom border so detail row merges */
+  .responsive-table tbody > tr.expanded {
+    border-bottom-width: 0;
+  }
+
+  /* Detail row: light grey bg + left accent bar, no top border */
+  .responsive-table tbody > tr.expanded + tr.detail-row {
+    background-color: var(--surface-alt);
+    box-shadow: inset 3px 0 0 var(--accent);
+    border-top-width: 0;
+  }
+
   /* Detail row: keep compact */
   .responsive-table .detail-row td {
+    background-color: transparent;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
   }

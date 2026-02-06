@@ -27,16 +27,18 @@
             {% call table::sortable_header("Roaster", "roaster", navigator, "#bag-list") %}
             {% call table::sortable_header("Roast", "roast", navigator, "#bag-list") %}
             <th scope="col" class="px-4 py-3">Weight</th>
-            <th scope="col" class="px-4 py-3">Status</th>
+            {% call table::sortable_header("Status", "status", navigator, "#bag-list") %}
             {% call table::sortable_header("Finished", "finished-at", navigator, "#bag-list") %}
             {% if is_authenticated %}
-            <th scope="col" class="px-4 py-3 text-right">Actions</th>
+            <th scope="col" class="actions-col px-4 py-3 text-right">Actions</th>
             {% endif %}
           </tr>
         </thead>
         <tbody class="divide-y/70">
           {% for bag in bags.items %}
-          <tr class="transition hover:bg-surface-alt">
+          <tr class="transition hover:bg-surface-alt"
+            {% if is_authenticated %}onclick="if(event.target.closest('.card-detail'))return;this.classList.toggle('expanded');this.querySelector('.card-detail')?.classList.toggle('hidden');const r=this.nextElementSibling;if(r?.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand')?.classList.toggle('hidden');this.querySelector('.icon-collapse')?.classList.toggle('hidden');"{% endif %}
+          >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
               <div>{{ bag.created_date }}</div>
               <div class="hidden md:block font-normal text-text-muted">{{ bag.created_time }}</div>
@@ -44,20 +46,24 @@
             <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap font-medium text-text-secondary">
               {{ bag.roaster_name }}
             </td>
-            <td data-label="Roast" class="card-title px-4 py-3 whitespace-nowrap">{{ bag.roast_name }}</td>
-            <td data-label="Weight" class="px-4 py-3 whitespace-nowrap">{{ bag.amount }}g</td>
-            <td data-label="Status" class="px-4 py-3 whitespace-nowrap">
+            <td data-label="Roast" class="card-title px-4 py-3 whitespace-nowrap">
+              {{ bag.roast_name }}
+            </td>
+            <td data-label="Weight" class="px-4 py-3 whitespace-nowrap text-xs font-medium text-text-secondary">{{ bag.amount }}g</td>
+            <td data-label="Status" class="mobile-hidden px-4 py-3 whitespace-nowrap md:text-center">
               {% if bag.closed %}
-              Closed
+              <span class="pill pill-warning">Closed</span>
               {% else %}
-              <span class="font-medium text-emerald-600">Open</span>
-              <div class="hidden md:block text-xs text-text-muted">{{ bag.remaining }}g left</div>
+              <span class="pill pill-success">Open</span>
+              <div class="text-xs text-text-muted">{{ bag.remaining }}g left</div>
               {% endif %}
             </td>
             {% if !bag.closed %}
             <td data-label="Remaining" class="px-4 py-3 whitespace-nowrap md:hidden">{{ bag.remaining }}g left</td>
             {% endif %}
-            <td data-label="Finished" class="px-4 py-3 whitespace-nowrap">{{ bag.finished_at }}</td>
+            <td data-label="Finished" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
+              <div>{{ bag.finished_date }}</div>
+            </td>
             {% if is_authenticated %}
             <td data-label="" class="card-detail hidden">
               <div class="flex items-center gap-4">
@@ -76,13 +82,21 @@
               </div>
             </td>
             <td data-label="" class="card-actions px-4 py-3 text-right">
-              <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
-                onclick="const tr=this.closest('tr');const d=tr.querySelector('.card-detail');if(d)d.classList.toggle('hidden');const r=tr.nextElementSibling;if(r&&r.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand').classList.toggle('hidden');this.querySelector('.icon-collapse').classList.toggle('hidden');"
-                title="Actions">
-                <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
-                <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>
-              </button>
+              <div class="inline-flex items-center gap-2">
+                <span class="md:hidden">
+                {% if bag.closed %}
+                <span class="pill pill-warning text-[0.625rem] py-0 px-1.5">Closed</span>
+                {% else %}
+                <span class="pill pill-success text-[0.625rem] py-0 px-1.5">Open</span>
+                {% endif %}
+                </span>
+                <button type="button"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
+                  title="Actions">
+                  <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
+                  <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>
+                </button>
+              </div>
             </td>
             {% endif %}
           </tr>

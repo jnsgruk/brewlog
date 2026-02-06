@@ -58,13 +58,15 @@
             <th scope="col" class="px-4 py-3">Brewer</th>
             <th scope="col" class="px-4 py-3">Notes</th>
             {% if is_authenticated %}
-            <th scope="col" class="px-4 py-3 text-right">Actions</th>
+            <th scope="col" class="actions-col px-4 py-3 text-right">Actions</th>
             {% endif %}
           </tr>
         </thead>
         <tbody class="divide-y/70">
           {% for brew in brews.items %}
-          <tr class="transition hover:bg-surface-alt">
+          <tr class="transition hover:bg-surface-alt"
+            {% if is_authenticated %}onclick="if(event.target.closest('.card-detail'))return;this.classList.toggle('expanded');this.querySelector('.card-detail')?.classList.toggle('hidden');const r=this.nextElementSibling;if(r?.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand')?.classList.toggle('hidden');this.querySelector('.icon-collapse')?.classList.toggle('hidden');"{% endif %}
+          >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
               <div>{{ brew.created_date }}</div>
               <div class="hidden md:block font-normal text-text-muted">{{ brew.created_time }}</div>
@@ -80,7 +82,7 @@
             </td>
             <td data-label="Grinder" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.grinder_name }}</td>
             <td data-label="Recipe" class="px-4 py-3 whitespace-nowrap">
-              <div>{{ brew.coffee_weight }} / {{ brew.water_volume }}</div>
+              <div>{{ brew.coffee_weight }} · {{ brew.water_volume }}</div>
               <div class="hidden md:block text-xs text-text-muted">{{ brew.ratio }} · {{ brew.water_temp }}</div>
             </td>
             <td data-label="Ratio" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.ratio }}</td>
@@ -94,11 +96,15 @@
             {% if let Some(fp_name) = brew.filter_paper_name %}
             <td data-label="Filter" class="px-4 py-3 whitespace-nowrap md:hidden">{{ fp_name }}</td>
             {% endif %}
-            <td data-label="Notes" class="px-4 py-3 text-xs text-text-muted">
-              {% if !brew.quick_notes_label.is_empty() %}
-              {{ brew.quick_notes_label }}
+            <td data-label="Notes" class="px-4 py-3">
+              {% if !brew.quick_notes.is_empty() %}
+              <div class="flex flex-wrap gap-1">
+                {% for qn in brew.quick_notes %}
+                <span class="{{ qn.pill_class }}">{{ qn.label }}</span>
+                {% endfor %}
+              </div>
               {% else %}
-              <span class="text-text-muted">&mdash;</span>
+              <span class="pill pill-muted">No Notes</span>
               {% endif %}
             </td>
             {% if is_authenticated %}
@@ -108,7 +114,6 @@
             <td data-label="" class="card-actions px-4 py-3 text-right">
               <button type="button"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
-                onclick="const tr=this.closest('tr');const d=tr.querySelector('.card-detail');if(d)d.classList.toggle('hidden');const r=tr.nextElementSibling;if(r&&r.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand').classList.toggle('hidden');this.querySelector('.icon-collapse').classList.toggle('hidden');"
                 title="Actions">
                 <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
                 <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>

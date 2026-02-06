@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::process::Command;
 
 fn main() {
@@ -18,12 +19,17 @@ fn git_hash() {
 }
 
 fn tailwind() {
+    println!("cargo:rerun-if-changed=static/css/input.css");
+    println!("cargo:rerun-if-changed=templates/");
+
     let mut cmd = Command::new("tailwindcss");
     cmd.args(["-i", "static/css/input.css", "-o", "static/css/styles.css"]);
 
     if std::env::var("PROFILE").as_deref() == Ok("release") {
         cmd.arg("--minify");
     }
+
+    let output = Path::new("static/css/styles.css");
 
     match cmd.status() {
         Ok(status) if status.success() => {}
@@ -36,5 +42,10 @@ fn tailwind() {
         Err(e) => {
             eprintln!("cargo:warning=failed to run tailwindcss: {e}");
         }
+    }
+
+    // Ensure the file exists so include_str!() doesn't break the build
+    if !output.exists() {
+        std::fs::write(output, "/* tailwindcss not available */").ok();
     }
 }

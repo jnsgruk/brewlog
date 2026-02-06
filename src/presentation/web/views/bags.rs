@@ -8,7 +8,7 @@ pub struct BagView {
     pub amount: String,
     pub remaining: String,
     pub closed: bool,
-    pub finished_at: String,
+    pub finished_date: String,
     pub created_date: String,
     pub created_time: String,
     pub roast_name: String,
@@ -26,10 +26,10 @@ impl BagView {
             amount: format!("{:.1}", bag.bag.amount),
             remaining: format!("{:.1}", bag.bag.remaining),
             closed: bag.bag.closed,
-            finished_at: bag
+            finished_date: bag
                 .bag
                 .finished_at
-                .map_or_else(|| "—".to_string(), |d| d.to_string()),
+                .map_or_else(|| "—".to_string(), |d| d.format("%Y-%m-%d").to_string()),
             created_date: bag.bag.created_at.format("%Y-%m-%d").to_string(),
             created_time: bag.bag.created_at.format("%H:%M").to_string(),
             roast_name: bag.roast_name,
