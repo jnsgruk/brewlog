@@ -54,12 +54,14 @@ where
         }
         PageSize::Limited(page_size) => {
             let limit = i64::from(page_size);
-            let mut page = request.page();
-            let offset = i64::from(page - 1).saturating_mul(limit);
-
             let total = fetch_count(pool, count_query, search).await?;
 
-            let mut records = fetch_records::<R>(
+            // Clamp page to valid range before fetching
+            let adjusted = (*request).ensure_page_within(total as u64);
+            let page = adjusted.page();
+            let offset = i64::from(page - 1).saturating_mul(limit);
+
+            let records = fetch_records::<R>(
                 pool,
                 base_query,
                 order_clause,
@@ -67,20 +69,6 @@ where
                 Some((limit, offset)),
             )
             .await?;
-
-            if page > 1 && records.is_empty() && total > 0 {
-                let last_page = ((total + limit - 1) / limit) as u32;
-                page = last_page.max(1);
-                let offset = i64::from(page - 1).saturating_mul(limit);
-                records = fetch_records::<R>(
-                    pool,
-                    base_query,
-                    order_clause,
-                    search,
-                    Some((limit, offset)),
-                )
-                .await?;
-            }
 
             let mut items = Vec::with_capacity(records.len());
             for record in records {
