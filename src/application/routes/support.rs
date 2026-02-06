@@ -1,5 +1,4 @@
 use askama::Template;
-use axum::async_trait;
 use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
 use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
 use axum::response::{Html, IntoResponse, Response};
@@ -165,7 +164,6 @@ fn parse_direction(value: &str) -> Option<SortDirection> {
     }
 }
 
-#[async_trait]
 impl<S, T> FromRequest<S> for FlexiblePayload<T>
 where
     S: Send + Sync,
