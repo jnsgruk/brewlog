@@ -51,11 +51,12 @@ impl SqlGearRepository {
         })
     }
 
-    fn build_where_clause(filter: &GearFilter) -> Option<String> {
-        filter
-            .category
-            .as_ref()
-            .map(|category| format!("category = '{}'", category.as_str()))
+    fn build_where_clause(filter: &GearFilter) -> Option<&'static str> {
+        filter.category.as_ref().map(|category| match category {
+            GearCategory::Grinder => "category = 'grinder'",
+            GearCategory::Brewer => "category = 'brewer'",
+            GearCategory::FilterPaper => "category = 'filter_paper'",
+        })
     }
 }
 
