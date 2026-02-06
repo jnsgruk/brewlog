@@ -1,5 +1,4 @@
 use axum::{
-    async_trait,
     extract::{FromRequestParts, Request},
     http::{StatusCode, header, request::Parts},
 };
@@ -16,7 +15,6 @@ const SESSION_COOKIE_NAME: &str = "brewlog_session";
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser(pub User);
 
-#[async_trait]
 impl FromRequestParts<AppState> for AuthenticatedUser {
     type Rejection = StatusCode;
 

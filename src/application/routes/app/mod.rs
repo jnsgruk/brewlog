@@ -18,7 +18,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/login", get(auth::login_page))
         .route("/logout", post(auth::logout))
         .route("/account", get(account::account_page))
-        .route("/register/:token", get(webauthn::register_page))
+        .route("/register/{token}", get(webauthn::register_page))
         .route("/auth/cli-callback", get(webauthn::cli_callback_page))
         .route("/data", get(data::data_page))
         .route("/add", get(add::add_page))

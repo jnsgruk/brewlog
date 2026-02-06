@@ -26,7 +26,7 @@ pub(super) fn router() -> axum::Router<AppState> {
             get(roasters::list_roasters).post(roasters::create_roaster),
         )
         .route(
-            "/roasters/:id",
+            "/roasters/{id}",
             get(roasters::get_roaster)
                 .put(roasters::update_roaster)
                 .delete(roasters::delete_roaster),
@@ -36,33 +36,33 @@ pub(super) fn router() -> axum::Router<AppState> {
             get(roasts::list_roasts).post(roasts::create_roast),
         )
         .route(
-            "/roasts/:id",
+            "/roasts/{id}",
             get(roasts::get_roast)
                 .put(roasts::update_roast)
                 .delete(roasts::delete_roast),
         )
         .route("/bags", get(bags::list_bags).post(bags::create_bag))
         .route(
-            "/bags/:id",
+            "/bags/{id}",
             get(bags::get_bag)
                 .put(bags::update_bag)
                 .delete(bags::delete_bag),
         )
         .route("/gear", get(gear::list_gear).post(gear::create_gear))
         .route(
-            "/gear/:id",
+            "/gear/{id}",
             get(gear::get_gear)
                 .put(gear::update_gear)
                 .delete(gear::delete_gear),
         )
         .route("/brews", get(brews::list_brews).post(brews::create_brew))
         .route(
-            "/brews/:id",
+            "/brews/{id}",
             get(brews::get_brew).delete(brews::delete_brew),
         )
         .route("/cafes", get(cafes::list_cafes).post(cafes::create_cafe))
         .route(
-            "/cafes/:id",
+            "/cafes/{id}",
             get(cafes::get_cafe)
                 .put(cafes::update_cafe)
                 .delete(cafes::delete_cafe),
@@ -74,15 +74,15 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/scan", post(scan::submit_scan))
         .route("/check-in", post(checkin::submit_checkin))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
-        .route("/cups/:id", get(cups::get_cup).delete(cups::delete_cup))
+        .route("/cups/{id}", get(cups::get_cup).delete(cups::delete_cup))
         .route(
             "/tokens",
             post(tokens::create_token).get(tokens::list_tokens),
         )
-        .route("/tokens/:id/revoke", post(tokens::revoke_token))
+        .route("/tokens/{id}/revoke", post(tokens::revoke_token))
         .route("/passkeys", get(account::list_passkeys))
         .route(
-            "/passkeys/:id",
+            "/passkeys/{id}",
             axum::routing::delete(account::delete_passkey),
         )
         .route("/backup", get(backup::export_backup))
