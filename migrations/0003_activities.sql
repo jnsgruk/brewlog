@@ -1,7 +1,7 @@
 -- Brew, cafe, and cup tables
 
 CREATE TABLE brews (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     bag_id INTEGER NOT NULL REFERENCES bags(id) ON DELETE CASCADE,
     coffee_weight REAL NOT NULL,
     grinder_id INTEGER NOT NULL REFERENCES gear(id) ON DELETE RESTRICT,
@@ -18,7 +18,7 @@ CREATE INDEX idx_brews_bag_id ON brews(bag_id);
 CREATE INDEX idx_brews_created_at ON brews(created_at DESC);
 
 CREATE TABLE cafes (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
     city TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE cafes (
 CREATE UNIQUE INDEX idx_cafes_slug ON cafes(slug);
 
 CREATE TABLE cups (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     roast_id INTEGER NOT NULL REFERENCES roasts(id) ON DELETE RESTRICT,
     cafe_id INTEGER NOT NULL REFERENCES cafes(id) ON DELETE RESTRICT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),

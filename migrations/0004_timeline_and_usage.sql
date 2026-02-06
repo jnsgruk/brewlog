@@ -1,7 +1,7 @@
 -- Timeline events and AI usage tracking
 
 CREATE TABLE timeline_events (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     entity_type TEXT NOT NULL CHECK (entity_type IN ('roaster', 'roast', 'bag', 'gear', 'brew', 'cafe', 'cup')),
     entity_id INTEGER NOT NULL,
     action TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE INDEX idx_timeline_events_entity ON timeline_events(entity_type, entity_i
 CREATE INDEX idx_timeline_events_occurred_at ON timeline_events(occurred_at DESC);
 
 CREATE TABLE ai_usage (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     model TEXT NOT NULL,
     endpoint TEXT NOT NULL,
