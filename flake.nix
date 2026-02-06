@@ -50,11 +50,12 @@
               src = lib.cleanSource ./.;
               cargoLock.lockFile = ./Cargo.lock;
 
-              nativeBuildInputs = [
-                pkgs.pkg-config
-                pkgs.tailwindcss_4
+              nativeBuildInputs = with pkgs; [
+                pkg-config
+                tailwindcss_4
               ];
-              buildInputs = [ pkgs.openssl ];
+
+              buildInputs = with pkgs; [ openssl ];
 
               preBuild = ''
                 tailwindcss -i static/css/input.css -o static/css/styles.css --minify
@@ -103,6 +104,7 @@
 
               NIX_CONFIG = "experimental-features = nix-command flakes";
               RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+              LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [ openssl ];
 
               buildInputs = [
                 rust
@@ -112,6 +114,8 @@
                 flyctl
                 nil
                 nixfmt
+                openssl
+                pkg-config
                 sqlite
                 sqlx-cli
                 tailwindcss_4
