@@ -29,11 +29,11 @@ jobs:
       - name: Check formatting
         run: nix develop -c cargo fmt --check
 
-      - name: Clippy
+      - name: Run clippy
         run: nix develop -c cargo clippy
 
   test:
-    name: Run Tests
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
