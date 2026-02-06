@@ -79,7 +79,7 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 | `BREWLOG_RP_ORIGIN`      | WebAuthn Relying Party origin (full URL)               | **required**          |
 | `BREWLOG_DATABASE_URL`   | Database connection string                             | `sqlite://brewlog.db` |
 | `BREWLOG_BIND_ADDRESS`   | Server bind address                                    | `127.0.0.1:3000`      |
-| `BREWLOG_SECURE_COOKIES` | Enable the `Secure` cookie flag (set `true` for HTTPS) | `false`               |
+| `BREWLOG_INSECURE_COOKIES` | Disable the `Secure` cookie flag (set `true` for local dev over HTTP) | `false` |
 | `RUST_LOG`               | Log level filter                                       | `info`                |
 | `RUST_LOG_FORMAT`        | Set to `json` for structured log output                | —                     |
 
@@ -114,14 +114,13 @@ docker load < result
 Create a `docker.env` file:
 
 ```env
-BREWLOG_ADMIN_USERNAME=admin
-BREWLOG_ADMIN_PASSWORD=password
 BREWLOG_OPENROUTER_API_KEY=sk-or-...
 BREWLOG_OPENROUTER_MODEL=google/gemini-3-flash-preview
 BREWLOG_FOURSQUARE_API_KEY=fsq3...
 BREWLOG_RP_ID=localhost
 BREWLOG_BIND_ADDRESS=0.0.0.0:3000
 BREWLOG_RP_ORIGIN=http://localhost:4000
+BREWLOG_INSECURE_COOKIES=true
 ```
 
 ```bash
