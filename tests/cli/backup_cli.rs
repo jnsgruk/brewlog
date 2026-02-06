@@ -1,4 +1,7 @@
 use super::helpers::{create_token, run_brewlog};
+use crate::test_macros::define_cli_auth_test;
+
+define_cli_auth_test!(backup_requires_auth, &["backup"]);
 
 #[test]
 fn backup_produces_valid_json() {
@@ -24,14 +27,4 @@ fn backup_produces_valid_json() {
     assert!(data["brews"].is_array());
     assert!(data["cafes"].is_array());
     assert!(data["timeline_events"].is_array());
-}
-
-#[test]
-fn backup_requires_auth() {
-    let output = run_brewlog(&["backup"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "backup command should fail without auth"
-    );
 }

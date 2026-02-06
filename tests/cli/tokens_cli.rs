@@ -1,16 +1,11 @@
-use crate::helpers::{create_token, run_brewlog, server_info};
+use crate::helpers::{create_token, run_brewlog};
+use crate::test_macros::define_cli_auth_test;
 
-#[test]
-fn test_list_tokens_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["token", "list"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "token list without auth should fail"
-    );
-}
+define_cli_auth_test!(test_list_tokens_requires_authentication, &["token", "list"]);
+define_cli_auth_test!(
+    test_revoke_token_requires_authentication,
+    &["token", "revoke", "--id", "1"]
+);
 
 #[test]
 fn test_list_tokens_with_authentication() {
@@ -27,18 +22,6 @@ fn test_list_tokens_with_authentication() {
     assert!(
         stdout.contains("test-list-tokens"),
         "Should list the created token"
-    );
-}
-
-#[test]
-fn test_revoke_token_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["token", "revoke", "--id", "1"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "token revoke without auth should fail"
     );
 }
 

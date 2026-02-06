@@ -209,32 +209,33 @@ pub fn run_brewlog(args: &[&str], env: &[(&str, &str)]) -> std::process::Output 
     cmd.output().expect("Failed to run brewlog command")
 }
 
-/// Helper to create a roaster and return its ID
-pub fn create_roaster(name: &str, token: &str) -> String {
-    let output = run_brewlog(
-        &["roaster", "add", "--name", name, "--country", "UK"],
-        &[("BREWLOG_TOKEN", token)],
-    );
-
+/// Generic helper: run a CLI command with auth, assert success, parse JSON, extract ID.
+fn create_entity_cli(args: &[&str], token: &str, label: &str) -> String {
+    let output = run_brewlog(args, &[("BREWLOG_TOKEN", token)]);
     if !output.status.success() {
         panic!(
-            "Failed to create roaster: {}",
+            "Failed to create {label}: {}",
             String::from_utf8_lossy(&output.stderr)
         );
     }
-
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let roaster: serde_json::Value =
-        serde_json::from_str(&stdout).expect("Should output valid JSON");
-    roaster["id"]
+    let value: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
+    value["id"]
         .as_i64()
-        .expect("roaster id should be numeric")
+        .unwrap_or_else(|| panic!("{label} id should be numeric"))
         .to_string()
 }
 
-/// Helper to create a roast and return its ID
+pub fn create_roaster(name: &str, token: &str) -> String {
+    create_entity_cli(
+        &["roaster", "add", "--name", name, "--country", "UK"],
+        token,
+        "roaster",
+    )
+}
+
 pub fn create_roast(roaster_id: &str, name: &str, token: &str) -> String {
-    let output = run_brewlog(
+    create_entity_cli(
         &[
             "roast",
             "add",
@@ -253,25 +254,11 @@ pub fn create_roast(roaster_id: &str, name: &str, token: &str) -> String {
             "--tasting-notes",
             "Blackcurrant",
         ],
-        &[("BREWLOG_TOKEN", token)],
-    );
-
-    if !output.status.success() {
-        panic!(
-            "Failed to create roast: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let roast: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
-    roast["id"]
-        .as_i64()
-        .expect("roast id should be numeric")
-        .to_string()
+        token,
+        "roast",
+    )
 }
 
-/// Helper to create a cafe and return its ID
 pub fn create_cafe(
     name: &str,
     city: &str,
@@ -280,7 +267,7 @@ pub fn create_cafe(
     longitude: &str,
     token: &str,
 ) -> String {
-    let output = run_brewlog(
+    create_entity_cli(
         &[
             "cafe",
             "add",
@@ -295,20 +282,32 @@ pub fn create_cafe(
             "--longitude",
             longitude,
         ],
-        &[("BREWLOG_TOKEN", token)],
-    );
+        token,
+        "cafe",
+    )
+}
 
-    if !output.status.success() {
-        panic!(
-            "Failed to create cafe: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
+pub fn create_bag(roast_id: &str, token: &str) -> String {
+    create_entity_cli(
+        &["bag", "add", "--roast-id", roast_id, "--amount", "250"],
+        token,
+        "bag",
+    )
+}
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let cafe: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
-    cafe["id"]
-        .as_i64()
-        .expect("cafe id should be numeric")
-        .to_string()
+pub fn create_gear(category: &str, make: &str, model: &str, token: &str) -> String {
+    create_entity_cli(
+        &[
+            "gear",
+            "add",
+            "--category",
+            category,
+            "--make",
+            make,
+            "--model",
+            model,
+        ],
+        token,
+        "gear",
+    )
 }

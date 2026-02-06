@@ -1,33 +1,43 @@
-use crate::helpers::{create_cafe, create_token, run_brewlog, server_info};
+use crate::helpers::{create_cafe, create_token, run_brewlog};
+use crate::test_macros::{define_cli_auth_test, define_cli_list_test};
 use serde_json::Value;
 
-#[test]
-fn test_add_cafe_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &[
-            "cafe",
-            "add",
-            "--name",
-            "Test Cafe",
-            "--city",
-            "London",
-            "--country",
-            "UK",
-            "--latitude",
-            "51.5074",
-            "--longitude",
-            "-0.1278",
-        ],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "cafe add without auth should fail"
-    );
-}
+define_cli_auth_test!(
+    test_add_cafe_requires_authentication,
+    &[
+        "cafe",
+        "add",
+        "--name",
+        "Test Cafe",
+        "--city",
+        "London",
+        "--country",
+        "UK",
+        "--latitude",
+        "51.5074",
+        "--longitude",
+        "-0.1278"
+    ]
+);
+define_cli_auth_test!(
+    test_delete_cafe_requires_authentication,
+    &["cafe", "delete", "--id", "some-id"]
+);
+define_cli_auth_test!(
+    test_update_cafe_requires_authentication,
+    &[
+        "cafe",
+        "update",
+        "--id",
+        "some-id",
+        "--name",
+        "Updated Name"
+    ]
+);
+define_cli_list_test!(
+    test_list_cafes_works_without_authentication,
+    &["cafe", "list"]
+);
 
 #[test]
 fn test_add_cafe_with_authentication() {
@@ -68,23 +78,6 @@ fn test_add_cafe_with_authentication() {
 }
 
 #[test]
-fn test_list_cafes_works_without_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["cafe", "list"], &[]);
-
-    assert!(
-        output.status.success(),
-        "cafe list should work without auth"
-    );
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let cafes: Value = serde_json::from_str(&stdout).expect("Should output valid JSON array");
-
-    assert!(cafes.is_array(), "Should return an array");
-}
-
-#[test]
 fn test_list_cafes_shows_added_cafe() {
     let token = create_token("test-list-cafes");
 
@@ -111,38 +104,4 @@ fn test_list_cafes_shows_added_cafe() {
         .iter()
         .any(|c| c["id"].as_i64().unwrap().to_string() == cafe_id);
     assert!(found, "Should find the added cafe in the list");
-}
-
-#[test]
-fn test_delete_cafe_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["cafe", "delete", "--id", "some-id"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "cafe delete without auth should fail"
-    );
-}
-
-#[test]
-fn test_update_cafe_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &[
-            "cafe",
-            "update",
-            "--id",
-            "some-id",
-            "--name",
-            "Updated Name",
-        ],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "cafe update without auth should fail"
-    );
 }

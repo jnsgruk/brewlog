@@ -1,29 +1,32 @@
-use crate::helpers::{create_token, run_brewlog, server_info};
+use crate::helpers::{create_token, run_brewlog};
+use crate::test_macros::{define_cli_auth_test, define_cli_list_test};
 use serde_json::Value;
 
-#[test]
-fn test_add_gear_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &[
-            "gear",
-            "add",
-            "--category",
-            "grinder",
-            "--make",
-            "Baratza",
-            "--model",
-            "Encore",
-        ],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "gear add without auth should fail"
-    );
-}
+define_cli_auth_test!(
+    test_add_gear_requires_authentication,
+    &[
+        "gear",
+        "add",
+        "--category",
+        "grinder",
+        "--make",
+        "Baratza",
+        "--model",
+        "Encore"
+    ]
+);
+define_cli_auth_test!(
+    test_update_gear_requires_authentication,
+    &["gear", "update", "--id", "123", "--make", "Updated"]
+);
+define_cli_auth_test!(
+    test_delete_gear_requires_authentication,
+    &["gear", "delete", "--id", "123"]
+);
+define_cli_list_test!(
+    test_list_gear_works_without_authentication,
+    &["gear", "list"]
+);
 
 #[test]
 fn test_add_gear_with_authentication() {
@@ -50,18 +53,6 @@ fn test_add_gear_with_authentication() {
     assert_eq!(gear["model"], "Encore");
     assert_eq!(gear["category"], "grinder");
     assert!(gear["id"].is_i64());
-}
-
-#[test]
-fn test_list_gear_works_without_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["gear", "list"], &[]);
-
-    assert!(
-        output.status.success(),
-        "gear list should work without auth"
-    );
 }
 
 #[test]
@@ -180,18 +171,6 @@ fn test_get_gear_by_id() {
 }
 
 #[test]
-fn test_update_gear_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["gear", "update", "--id", "123", "--make", "Updated"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "gear update without auth should fail"
-    );
-}
-
-#[test]
 fn test_update_gear_with_authentication() {
     let token = create_token("test-update-gear");
 
@@ -222,18 +201,6 @@ fn test_update_gear_with_authentication() {
     let updated_gear: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(updated_gear["make"], "Porlex");
     assert_eq!(updated_gear["model"], "Mini II");
-}
-
-#[test]
-fn test_delete_gear_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["gear", "delete", "--id", "123"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "gear delete without auth should fail"
-    );
 }
 
 #[test]

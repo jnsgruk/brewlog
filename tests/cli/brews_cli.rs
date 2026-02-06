@@ -1,55 +1,6 @@
-use crate::helpers::{create_roast, create_roaster, create_token, run_brewlog};
-
-fn create_bag(roast_id: &str, token: &str) -> String {
-    let output = run_brewlog(
-        &["bag", "add", "--roast-id", roast_id, "--amount", "250"],
-        &[("BREWLOG_TOKEN", token)],
-    );
-
-    if !output.status.success() {
-        panic!(
-            "Failed to create bag: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let bag: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
-    bag["id"]
-        .as_i64()
-        .expect("bag id should be numeric")
-        .to_string()
-}
-
-fn create_gear(category: &str, make: &str, model: &str, token: &str) -> String {
-    let output = run_brewlog(
-        &[
-            "gear",
-            "add",
-            "--category",
-            category,
-            "--make",
-            make,
-            "--model",
-            model,
-        ],
-        &[("BREWLOG_TOKEN", token)],
-    );
-
-    if !output.status.success() {
-        panic!(
-            "Failed to create gear: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let gear: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
-    gear["id"]
-        .as_i64()
-        .expect("gear id should be numeric")
-        .to_string()
-}
+use crate::helpers::{
+    create_bag, create_gear, create_roast, create_roaster, create_token, run_brewlog,
+};
 
 #[test]
 fn brew_add_creates_brew_via_api() {

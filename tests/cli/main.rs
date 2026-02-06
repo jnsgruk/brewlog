@@ -6,4 +6,5 @@ pub mod gear_cli;
 pub mod helpers;
 pub mod roasters_cli;
 pub mod roasts_cli;
+pub mod test_macros;
 pub mod tokens_cli;

@@ -1,27 +1,37 @@
-use crate::helpers::{create_roaster, create_token, run_brewlog, server_info};
+use crate::helpers::{create_roaster, create_token, run_brewlog};
+use crate::test_macros::{define_cli_auth_test, define_cli_list_test};
 use serde_json::Value;
 
-#[test]
-fn test_add_roaster_requires_authentication() {
-    let _ = server_info(); // Ensure server is started
-
-    let output = run_brewlog(
-        &[
-            "roaster",
-            "add",
-            "--name",
-            "Test Roasters",
-            "--country",
-            "UK",
-        ],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "roaster add without auth should fail"
-    );
-}
+define_cli_auth_test!(
+    test_add_roaster_requires_authentication,
+    &[
+        "roaster",
+        "add",
+        "--name",
+        "Test Roasters",
+        "--country",
+        "UK"
+    ]
+);
+define_cli_auth_test!(
+    test_delete_roaster_requires_authentication,
+    &["roaster", "delete", "--id", "some-id"]
+);
+define_cli_auth_test!(
+    test_update_roaster_requires_authentication,
+    &[
+        "roaster",
+        "update",
+        "--id",
+        "some-id",
+        "--name",
+        "Updated Name"
+    ]
+);
+define_cli_list_test!(
+    test_list_roasters_works_without_authentication,
+    &["roaster", "list"]
+);
 
 #[test]
 fn test_add_roaster_with_authentication() {
@@ -55,23 +65,6 @@ fn test_add_roaster_with_authentication() {
 }
 
 #[test]
-fn test_list_roasters_works_without_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["roaster", "list"], &[]);
-
-    assert!(
-        output.status.success(),
-        "roaster list should work without auth"
-    );
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let roasters: Value = serde_json::from_str(&stdout).expect("Should output valid JSON array");
-
-    assert!(roasters.is_array(), "Should return an array");
-}
-
-#[test]
 fn test_list_roasters_shows_added_roaster() {
     let token = create_token("test-list-roasters");
 
@@ -95,38 +88,4 @@ fn test_list_roasters_shows_added_roaster() {
         .iter()
         .any(|r| r["id"].as_i64().unwrap().to_string() == roaster_id);
     assert!(found, "Should find the added roaster in the list");
-}
-
-#[test]
-fn test_delete_roaster_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["roaster", "delete", "--id", "some-id"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "roaster delete without auth should fail"
-    );
-}
-
-#[test]
-fn test_update_roaster_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &[
-            "roaster",
-            "update",
-            "--id",
-            "some-id",
-            "--name",
-            "Updated Name",
-        ],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "roaster update without auth should fail"
-    );
 }

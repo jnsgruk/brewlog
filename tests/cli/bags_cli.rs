@@ -1,17 +1,23 @@
-use crate::helpers::{create_roast, create_roaster, create_token, run_brewlog, server_info};
+use crate::helpers::{create_roast, create_roaster, create_token, run_brewlog};
+use crate::test_macros::{define_cli_auth_test, define_cli_list_test};
 use serde_json::Value;
 
-#[test]
-fn test_add_bag_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &["bag", "add", "--roast-id", "123", "--amount", "250.0"],
-        &[],
-    );
-
-    assert!(!output.status.success(), "bag add without auth should fail");
-}
+define_cli_auth_test!(
+    test_add_bag_requires_authentication,
+    &["bag", "add", "--roast-id", "123", "--amount", "250.0"]
+);
+define_cli_auth_test!(
+    test_update_bag_requires_authentication,
+    &["bag", "update", "--id", "123", "--remaining", "100.0"]
+);
+define_cli_auth_test!(
+    test_delete_bag_requires_authentication,
+    &["bag", "delete", "--id", "123"]
+);
+define_cli_list_test!(
+    test_list_bags_works_without_authentication,
+    &["bag", "list"]
+);
 
 #[test]
 fn test_add_bag_with_authentication() {
@@ -42,21 +48,6 @@ fn test_add_bag_with_authentication() {
     assert_eq!(bag["amount"].as_f64(), Some(250.0));
     assert_eq!(bag["roast_date"], "2023-01-01");
     assert!(bag["id"].is_i64());
-}
-
-#[test]
-fn test_update_bag_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &["bag", "update", "--id", "123", "--remaining", "100.0"],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "bag update without auth should fail"
-    );
 }
 
 #[test]
@@ -94,14 +85,6 @@ fn test_update_bag_with_authentication() {
 
     assert_eq!(updated_bag["remaining"].as_f64(), Some(150.0));
     assert_eq!(updated_bag["closed"].as_bool(), Some(true));
-}
-
-#[test]
-fn test_list_bags_works_without_authentication() {
-    let _ = server_info();
-    // Listing without roast_id might return all or empty, but should succeed (200 OK)
-    let output = run_brewlog(&["bag", "list"], &[]);
-    assert!(output.status.success());
 }
 
 #[test]
@@ -214,13 +197,6 @@ fn test_list_bags_shows_open_and_closed_bags() {
             .any(|b| b["id"].as_i64() == Some(closed_bag_id)),
         "Closed bag should be listed"
     );
-}
-
-#[test]
-fn test_delete_bag_requires_authentication() {
-    let _ = server_info();
-    let output = run_brewlog(&["bag", "delete", "--id", "123"], &[]);
-    assert!(!output.status.success());
 }
 
 #[test]

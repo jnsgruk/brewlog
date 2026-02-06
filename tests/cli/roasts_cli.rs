@@ -1,35 +1,38 @@
-use crate::helpers::{create_roast, create_roaster, create_token, run_brewlog, server_info};
+use crate::helpers::{create_roast, create_roaster, create_token, run_brewlog};
+use crate::test_macros::{define_cli_auth_test, define_cli_list_test};
 use serde_json::Value;
 
-#[test]
-fn test_add_roast_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &[
-            "roast",
-            "add",
-            "--roaster-id",
-            "some-id",
-            "--name",
-            "Test Roast",
-            "--origin",
-            "Ethiopia",
-            "--region",
-            "Yirgacheffe",
-            "--producer",
-            "Local Coop",
-            "--process",
-            "Washed",
-        ],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "roast add without auth should fail"
-    );
-}
+define_cli_auth_test!(
+    test_add_roast_requires_authentication,
+    &[
+        "roast",
+        "add",
+        "--roaster-id",
+        "some-id",
+        "--name",
+        "Test Roast",
+        "--origin",
+        "Ethiopia",
+        "--region",
+        "Yirgacheffe",
+        "--producer",
+        "Local Coop",
+        "--process",
+        "Washed"
+    ]
+);
+define_cli_auth_test!(
+    test_update_roast_requires_authentication,
+    &["roast", "update", "--id", "123", "--name", "Updated"]
+);
+define_cli_auth_test!(
+    test_delete_roast_requires_authentication,
+    &["roast", "delete", "--id", "some-id"]
+);
+define_cli_list_test!(
+    test_list_roasts_works_without_authentication,
+    &["roast", "list"]
+);
 
 #[test]
 fn test_add_roast_with_authentication() {
@@ -76,23 +79,6 @@ fn test_add_roast_with_authentication() {
         roaster_id
     );
     assert!(roast["id"].is_i64(), "Should have an ID");
-}
-
-#[test]
-fn test_list_roasts_works_without_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["roast", "list"], &[]);
-
-    assert!(
-        output.status.success(),
-        "roast list should work without auth"
-    );
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let roasts: Value = serde_json::from_str(&stdout).expect("Should output valid JSON array");
-
-    assert!(roasts.is_array(), "Should return an array");
 }
 
 #[test]
@@ -157,21 +143,6 @@ fn test_list_roasts_shows_added_roast() {
 }
 
 #[test]
-fn test_update_roast_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(
-        &["roast", "update", "--id", "123", "--name", "Updated"],
-        &[],
-    );
-
-    assert!(
-        !output.status.success(),
-        "roast update without auth should fail"
-    );
-}
-
-#[test]
 fn test_update_roast_with_authentication() {
     let token = create_token("test-update-roast");
 
@@ -195,16 +166,4 @@ fn test_update_roast_with_authentication() {
     assert!(output.status.success());
     let updated_roast: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(updated_roast["name"], "Updated Name");
-}
-
-#[test]
-fn test_delete_roast_requires_authentication() {
-    let _ = server_info();
-
-    let output = run_brewlog(&["roast", "delete", "--id", "some-id"], &[]);
-
-    assert!(
-        !output.status.success(),
-        "roast delete without auth should fail"
-    );
 }
