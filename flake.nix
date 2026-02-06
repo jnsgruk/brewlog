@@ -109,6 +109,7 @@
               ]
               ++ (with pkgs; [
                 cargo-watch
+                flyctl
                 nil
                 nixfmt
                 sqlite

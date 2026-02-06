@@ -1,0 +1,37 @@
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+
+app = 'brewlog'
+primary_region = 'lhr'
+
+[build]
+
+[env]
+BREWLOG_OPENROUTER_MODEL = 'google/gemini-3-flash-preview'
+BREWLOG_RP_ID = 'coffee.jnsgr.uk'
+BREWLOG_BIND_ADDRESS = '0.0.0.0:3000'
+BREWLOG_RP_ORIGIN = 'https://coffee.jnsgr.uk'
+RUST_LOG_FORMAT = 'json'
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
+
+[[http_service.checks]]
+interval = '30s'
+timeout = '5s'
+grace_period = '10s'
+method = 'GET'
+path = '/health'
+
+[mounts]
+source = 'brewlog_data'
+destination = '/data'
+
+[[vm]]
+memory = '1gb'
+cpu_kind = 'shared'
+cpus = 1
