@@ -24,6 +24,18 @@
     <script defer src="/components/searchable-select.js"></script>
     {% block head %}{% endblock %}
     <script>
+      const toggleRow = (event) => {
+        if (event.target.closest('.card-detail')) return;
+        const row = event.currentTarget;
+        row.classList.toggle('expanded');
+        row.querySelector('.card-detail')?.classList.toggle('hidden');
+        const r = row.nextElementSibling;
+        if (r?.classList.contains('detail-row')) r.classList.toggle('hidden');
+        row.querySelector('.icon-expand')?.classList.toggle('hidden');
+        row.querySelector('.icon-collapse')?.classList.toggle('hidden');
+      };
+    </script>
+    <script>
       document.addEventListener("DOMContentLoaded", () => {
         const mobileQuery = window.matchMedia("(max-width: 767px)");
         if (!mobileQuery.matches) return;
