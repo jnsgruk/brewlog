@@ -48,12 +48,16 @@
     const toggleTheme = () => {
         const html = document.documentElement;
         const isDark = html.getAttribute("data-theme") === "dark";
+        const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
         if (isDark) {
             html.removeAttribute("data-theme");
-            localStorage.setItem("theme", "light");
+            // Only persist if this choice differs from OS preference
+            if (osDark) localStorage.setItem("theme", "light");
+            else localStorage.removeItem("theme");
         } else {
             html.setAttribute("data-theme", "dark");
-            localStorage.setItem("theme", "dark");
+            if (!osDark) localStorage.setItem("theme", "dark");
+            else localStorage.removeItem("theme");
         }
         updateThemeIcons();
     };
