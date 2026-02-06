@@ -70,8 +70,9 @@ src/
 │   ├── foursquare.rs # Foursquare Places API for nearby cafe search
 │   └── database.rs   # Database pool abstraction
 │
-├── application/      # HTTP server, routes, middleware
+├── application/      # HTTP server, routes, middleware, services
 │   ├── routes/       # Axum route handlers
+│   ├── services/     # Entity services (create + timeline orchestration)
 │   └── errors.rs     # HTTP error mapping
 │
 └── presentation/     # User interfaces
@@ -103,6 +104,49 @@ impl BagRecord {
     fn to_domain(self) -> Bag { ... }
 }
 ```
+
+### Service Layer
+
+Entity services in `application/services/` encapsulate "create entity + record timeline event" as a single operation. Repositories are pure data access with no side effects; services add the timeline side effect on top.
+
+**When to use services vs repos:**
+- **Services** — for `create()` (and `finish()` for bags). These record a timeline event after the insert.
+- **Repos** — for `get()`, `list()`, `update()`, `delete()`. No side effects needed.
+
+`AppState` holds both repos and services. Route handlers call `state.xxx_service.create()` for creation and `state.xxx_repo.get()` / `.list()` / etc. for reads and updates.
+
+#### `define_simple_service!` macro
+
+For entities whose `to_timeline_event()` needs only `&self` (no cross-entity lookups), the macro in `services/mod.rs` generates the struct, constructor, and `create` method:
+
+```rust
+define_simple_service!(RoasterService, RoasterRepository, Roaster, NewRoaster, "roaster");
+```
+
+This covers: `RoasterService`, `CafeService`, `GearService`.
+
+#### Custom services
+
+Entities needing enrichment or related-entity lookups are written by hand:
+
+| Service | Extra repos | Why |
+|---------|-------------|-----|
+| `RoastService` | `roaster_repo` | Needs roaster name/slug for timeline |
+| `BagService` | `roast_repo`, `roaster_repo` | `create()` + `finish()`, needs roast+roaster for timeline |
+| `BrewService` | — | `create()` enriches via `get_with_details()` for timeline + response |
+| `CupService` | — | `create()` enriches via `get_with_details()` for timeline |
+
+#### Timeline events
+
+Each entity type has a `to_timeline_event()` method (or standalone function) in its domain file that builds a `NewTimelineEvent`. Services call these methods and insert the result via `timeline_repo` with fire-and-forget error handling:
+
+```rust
+if let Err(err) = self.timeline_repo.insert(entity.to_timeline_event()).await {
+    warn!(error = %err, id = %entity.id, "failed to record timeline event");
+}
+```
+
+Timeline events are display-only (cosmetic, not data integrity), so they are not in the same transaction as the entity insert.
 
 ### Typed IDs
 

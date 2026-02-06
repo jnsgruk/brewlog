@@ -66,8 +66,8 @@ pub(crate) async fn create_cafe(
     let (new_cafe, source) = payload.into_parts();
     let new_cafe = new_cafe.normalize();
     let cafe = state
-        .cafe_repo
-        .insert(new_cafe)
+        .cafe_service
+        .create(new_cafe)
         .await
         .map_err(AppError::from)?;
 

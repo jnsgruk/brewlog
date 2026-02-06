@@ -8,7 +8,6 @@ use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::CafeRepository;
-use crate::domain::timeline::TimelineEventDetail;
 use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
@@ -62,52 +61,11 @@ impl SqlCafeRepository {
             updated_at,
         }
     }
-
-    fn details_for_cafe(cafe: &Cafe) -> Result<String, RepositoryError> {
-        let website_value = cafe
-            .website
-            .as_ref()
-            .filter(|value| !value.is_empty())
-            .cloned()
-            .unwrap_or_else(|| "—".to_string());
-
-        let details = vec![
-            TimelineEventDetail {
-                label: "City".to_string(),
-                value: cafe.city.clone(),
-            },
-            TimelineEventDetail {
-                label: "Country".to_string(),
-                value: cafe.country.clone(),
-            },
-            TimelineEventDetail {
-                label: "Website".to_string(),
-                value: website_value,
-            },
-            TimelineEventDetail {
-                label: "Position".to_string(),
-                value: format!(
-                    "https://www.google.com/maps?q={},{}",
-                    cafe.latitude, cafe.longitude
-                ),
-            },
-        ];
-
-        serde_json::to_string(&details).map_err(|err| {
-            RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
-        })
-    }
 }
 
 #[async_trait]
 impl CafeRepository for SqlCafeRepository {
     async fn insert(&self, new_cafe: NewCafe) -> Result<Cafe, RepositoryError> {
-        let mut tx = self
-            .pool
-            .begin()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
         let new_cafe = new_cafe.normalize();
         let slug = new_cafe.slug();
         let now = Utc::now();
@@ -125,7 +83,7 @@ impl CafeRepository for SqlCafeRepository {
             .bind(new_cafe.website.as_deref())
             .bind(now)
             .bind(now)
-            .fetch_one(&mut *tx)
+            .fetch_one(&self.pool)
             .await
             .map_err(|err| {
                 if let sqlx::Error::Database(db_err) = &err
@@ -138,31 +96,7 @@ impl CafeRepository for SqlCafeRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        let cafe = Self::into_domain(record);
-        let details_json = Self::details_for_cafe(&cafe)?;
-
-        query(
-                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            )
-            .bind("cafe")
-            .bind(i64::from(cafe.id))
-            .bind("added")
-            .bind(cafe.created_at)
-            .bind(&cafe.name)
-            .bind(details_json)
-            .bind::<Option<&str>>(None)
-            .bind(&cafe.slug)
-            .bind::<Option<&str>>(None)
-            .bind::<Option<&str>>(None)
-            .execute(&mut *tx)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        tx.commit()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(cafe)
+        Ok(Self::into_domain(record))
     }
 
     async fn get(&self, id: CafeId) -> Result<Cafe, RepositoryError> {

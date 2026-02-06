@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use super::ids::{BagId, RoastId};
 use super::listing::{SortDirection, SortKey};
+use crate::domain::roasters::Roaster;
+use crate::domain::roasts::Roast;
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bag {
@@ -122,5 +125,34 @@ impl SortKey for BagSortKey {
             BagSortKey::Roaster | BagSortKey::Roast => SortDirection::Asc,
             _ => SortDirection::Desc,
         }
+    }
+}
+
+pub fn bag_timeline_event(
+    bag: &Bag,
+    action: &str,
+    roast: &Roast,
+    roaster: &Roaster,
+) -> NewTimelineEvent {
+    NewTimelineEvent {
+        entity_type: "bag".to_string(),
+        entity_id: bag.id.into_inner(),
+        action: action.to_string(),
+        occurred_at: Utc::now(),
+        title: roast.name.clone(),
+        details: vec![
+            TimelineEventDetail {
+                label: "Roaster".to_string(),
+                value: roaster.name.clone(),
+            },
+            TimelineEventDetail {
+                label: "Amount".to_string(),
+                value: format!("{}g", bag.amount),
+            },
+        ],
+        tasting_notes: vec![],
+        slug: Some(roast.slug.clone()),
+        roaster_slug: Some(roaster.slug.clone()),
+        brew_data: None,
     }
 }

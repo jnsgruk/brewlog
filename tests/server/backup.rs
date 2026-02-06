@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use brewlog::application::services::{CafeService, GearService, RoastService, RoasterService};
 use brewlog::domain::bags::{Bag, BagFilter, BagSortKey, NewBag};
 use brewlog::domain::brews::{Brew, BrewFilter, BrewSortKey, NewBrew};
 use brewlog::domain::cafes::{Cafe, CafeSortKey, NewCafe};
@@ -33,6 +34,10 @@ struct TestDb {
     cafe_repo: Arc<dyn CafeRepository>,
     timeline_repo: Arc<dyn TimelineEventRepository>,
     backup_service: BackupService,
+    roaster_service: RoasterService,
+    roast_service: RoastService,
+    gear_service: GearService,
+    cafe_service: CafeService,
 }
 
 async fn create_test_db() -> TestDb {
@@ -42,15 +47,39 @@ async fn create_test_db() -> TestDb {
 
     let pool = database.clone_pool();
 
+    let roaster_repo: Arc<dyn RoasterRepository> =
+        Arc::new(SqlRoasterRepository::new(pool.clone()));
+    let roast_repo: Arc<dyn RoastRepository> = Arc::new(SqlRoastRepository::new(pool.clone()));
+    let bag_repo: Arc<dyn BagRepository> = Arc::new(SqlBagRepository::new(pool.clone()));
+    let gear_repo: Arc<dyn GearRepository> = Arc::new(SqlGearRepository::new(pool.clone()));
+    let brew_repo: Arc<dyn BrewRepository> = Arc::new(SqlBrewRepository::new(pool.clone()));
+    let cafe_repo: Arc<dyn CafeRepository> = Arc::new(SqlCafeRepository::new(pool.clone()));
+    let timeline_repo: Arc<dyn TimelineEventRepository> =
+        Arc::new(SqlTimelineEventRepository::new(pool.clone()));
+
+    let roaster_service =
+        RoasterService::new(Arc::clone(&roaster_repo), Arc::clone(&timeline_repo));
+    let roast_service = RoastService::new(
+        Arc::clone(&roast_repo),
+        Arc::clone(&roaster_repo),
+        Arc::clone(&timeline_repo),
+    );
+    let gear_service = GearService::new(Arc::clone(&gear_repo), Arc::clone(&timeline_repo));
+    let cafe_service = CafeService::new(Arc::clone(&cafe_repo), Arc::clone(&timeline_repo));
+
     TestDb {
-        roaster_repo: Arc::new(SqlRoasterRepository::new(pool.clone())),
-        roast_repo: Arc::new(SqlRoastRepository::new(pool.clone())),
-        bag_repo: Arc::new(SqlBagRepository::new(pool.clone())),
-        gear_repo: Arc::new(SqlGearRepository::new(pool.clone())),
-        brew_repo: Arc::new(SqlBrewRepository::new(pool.clone())),
-        cafe_repo: Arc::new(SqlCafeRepository::new(pool.clone())),
-        timeline_repo: Arc::new(SqlTimelineEventRepository::new(pool.clone())),
+        roaster_repo,
+        roast_repo,
+        bag_repo,
+        gear_repo,
+        brew_repo,
+        cafe_repo,
+        timeline_repo,
         backup_service: BackupService::new(pool),
+        roaster_service,
+        roast_service,
+        gear_service,
+        cafe_service,
     }
 }
 
@@ -116,10 +145,10 @@ async fn list_all_timeline_events(repo: &dyn TimelineEventRepository) -> Vec<Tim
 
 /// Populate a database with representative test data and return the key entities.
 async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Gear, Brew, Cafe) {
-    // Create roaster
+    // Create roaster (via service to generate timeline event)
     let roaster = db
-        .roaster_repo
-        .insert(NewRoaster {
+        .roaster_service
+        .create(NewRoaster {
             name: "Square Mile".to_string(),
             country: "UK".to_string(),
             city: Some("London".to_string()),
@@ -128,10 +157,10 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
         .await
         .expect("failed to create roaster");
 
-    // Create roast
+    // Create roast (via service to generate timeline event)
     let roast = db
-        .roast_repo
-        .insert(NewRoast {
+        .roast_service
+        .create(NewRoast {
             roaster_id: roaster.id,
             name: "Red Brick".to_string(),
             origin: "Brazil".to_string(),
@@ -158,10 +187,10 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
         .await
         .expect("failed to create bag");
 
-    // Create gear
+    // Create gear (via service to generate timeline events)
     let grinder = db
-        .gear_repo
-        .insert(NewGear {
+        .gear_service
+        .create(NewGear {
             category: GearCategory::Grinder,
             make: "Comandante".to_string(),
             model: "C40 MK4".to_string(),
@@ -170,8 +199,8 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
         .expect("failed to create grinder");
 
     let brewer = db
-        .gear_repo
-        .insert(NewGear {
+        .gear_service
+        .create(NewGear {
             category: GearCategory::Brewer,
             make: "Hario".to_string(),
             model: "V60 02".to_string(),
@@ -180,8 +209,8 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
         .expect("failed to create brewer");
 
     let filter_paper = db
-        .gear_repo
-        .insert(NewGear {
+        .gear_service
+        .create(NewGear {
             category: GearCategory::FilterPaper,
             make: "Hario".to_string(),
             model: "V60 Tabbed 02".to_string(),
@@ -218,10 +247,10 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
         "bag remaining should be 235 after brew"
     );
 
-    // Create cafe
+    // Create cafe (via service to generate timeline event)
     let cafe = db
-        .cafe_repo
-        .insert(NewCafe {
+        .cafe_service
+        .create(NewCafe {
             name: "Prufrock".to_string(),
             city: "London".to_string(),
             country: "UK".to_string(),

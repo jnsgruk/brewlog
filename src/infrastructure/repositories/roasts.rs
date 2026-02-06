@@ -9,8 +9,7 @@ use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoastRepository;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster, UpdateRoast};
-use crate::domain::timeline::TimelineEventDetail;
-use crate::infrastructure::database::{DatabasePool, DatabaseTransaction};
+use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
 pub struct SqlRoastRepository {
@@ -50,79 +49,6 @@ impl SqlRoastRepository {
             })
         }
     }
-
-    async fn insert_timeline_event(
-        tx: &mut DatabaseTransaction<'_>,
-        roast: &Roast,
-    ) -> Result<(), RepositoryError> {
-        let roaster_info: Option<(String, String)> =
-            query_as("SELECT name, slug FROM roasters WHERE id = ?")
-                .bind(i64::from(roast.roaster_id))
-                .fetch_optional(&mut **tx)
-                .await
-                .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        let (roaster_label, roaster_slug) = roaster_info.map_or_else(
-            || ("Unknown roaster".to_string(), None),
-            |(name, slug)| (name, Some(slug)),
-        );
-
-        let details = vec![
-            TimelineEventDetail {
-                label: "Roaster".to_string(),
-                value: roaster_label,
-            },
-            TimelineEventDetail {
-                label: "Origin".to_string(),
-                value: roast.origin.clone().unwrap_or_else(|| "—".to_string()),
-            },
-            TimelineEventDetail {
-                label: "Region".to_string(),
-                value: roast.region.clone().unwrap_or_else(|| "—".to_string()),
-            },
-            TimelineEventDetail {
-                label: "Producer".to_string(),
-                value: roast.producer.clone().unwrap_or_else(|| "—".to_string()),
-            },
-            TimelineEventDetail {
-                label: "Process".to_string(),
-                value: roast.process.clone().unwrap_or_else(|| "—".to_string()),
-            },
-        ];
-
-        let details_json = to_string(&details).map_err(|err| {
-            RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
-        })?;
-
-        let tasting_notes_json = if roast.tasting_notes.is_empty() {
-            None
-        } else {
-            Some(to_string(&roast.tasting_notes).map_err(|err| {
-                RepositoryError::unexpected(format!(
-                    "failed to encode timeline event tasting notes: {err}"
-                ))
-            })?)
-        };
-
-        query(
-                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            )
-            .bind("roast")
-            .bind(i64::from(roast.id))
-            .bind("added")
-            .bind(roast.created_at)
-            .bind(&roast.name)
-            .bind(details_json)
-            .bind(tasting_notes_json.as_deref())
-            .bind(&roast.slug)
-            .bind(roaster_slug.as_deref())
-            .bind::<Option<&str>>(None)
-            .execute(&mut **tx)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(())
-    }
 }
 
 fn empty_to_none(s: String) -> Option<String> {
@@ -132,12 +58,6 @@ fn empty_to_none(s: String) -> Option<String> {
 #[async_trait]
 impl RoastRepository for SqlRoastRepository {
     async fn insert(&self, new_roast: NewRoast) -> Result<Roast, RepositoryError> {
-        let mut tx = self
-            .pool
-            .begin()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
         let slug = new_roast.slug();
         let NewRoast {
             roaster_id,
@@ -170,7 +90,7 @@ impl RoastRepository for SqlRoastRepository {
             .bind(process_value.as_deref())
             .bind(notes_json.as_deref())
             .bind(created_at)
-            .fetch_one(&mut *tx)
+            .fetch_one(&self.pool)
             .await
             .map_err(|err| {
                 if let sqlx::Error::Database(db_err) = &err
@@ -183,15 +103,7 @@ impl RoastRepository for SqlRoastRepository {
                 map_insert_error(err, "unknown roaster reference")
             })?;
 
-        let roast = record.into_roast()?;
-
-        Self::insert_timeline_event(&mut tx, &roast).await?;
-
-        tx.commit()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(roast)
+        record.into_roast()
     }
 
     async fn get(&self, id: RoastId) -> Result<Roast, RepositoryError> {

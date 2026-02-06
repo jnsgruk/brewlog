@@ -2,10 +2,14 @@ use std::sync::Arc;
 
 use brewlog::application::routes::app_router;
 use brewlog::application::server::AppState;
+use brewlog::application::services::{
+    BagService, BrewService, CafeService, CupService, GearService, RoastService, RoasterService,
+};
 use brewlog::domain::cafes::{Cafe, NewCafe};
 use brewlog::domain::repositories::{
-    CafeRepository, PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository,
-    RoasterRepository, SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    BagRepository, BrewRepository, CafeRepository, CupRepository, GearRepository,
+    PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository, RoasterRepository,
+    SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::NewUser;
@@ -158,6 +162,39 @@ async fn spawn_app_inner(
 
     let session_repo_clone: Arc<dyn SessionRepository> = session_repo.clone();
 
+    // Create services
+    let roaster_service = RoasterService::new(
+        roaster_repo.clone() as Arc<dyn RoasterRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+    let roast_service = RoastService::new(
+        roast_repo.clone() as Arc<dyn RoastRepository>,
+        roaster_repo.clone() as Arc<dyn RoasterRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+    let bag_service = BagService::new(
+        bag_repo.clone() as Arc<dyn BagRepository>,
+        roast_repo.clone() as Arc<dyn RoastRepository>,
+        roaster_repo.clone() as Arc<dyn RoasterRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+    let brew_service = BrewService::new(
+        brew_repo.clone() as Arc<dyn BrewRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+    let gear_service = GearService::new(
+        gear_repo.clone() as Arc<dyn GearRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+    let cafe_service = CafeService::new(
+        cafe_repo.clone() as Arc<dyn CafeRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+    let cup_service = CupService::new(
+        cup_repo.clone() as Arc<dyn CupRepository>,
+        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
+    );
+
     // Create application state
     let state = AppState {
         roaster_repo: roaster_repo.clone(),
@@ -187,6 +224,13 @@ async fn spawn_app_inner(
         openrouter_api_key: String::new(),
         openrouter_model: "openrouter/free".to_string(),
         backup_service,
+        roaster_service,
+        roast_service,
+        bag_service,
+        brew_service,
+        gear_service,
+        cafe_service,
+        cup_service,
     };
 
     // Create router

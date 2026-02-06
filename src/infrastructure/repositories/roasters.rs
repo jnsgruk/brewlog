@@ -8,7 +8,6 @@ use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoasterRepository;
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
-use crate::domain::timeline::TimelineEventDetail;
 use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
@@ -56,50 +55,11 @@ impl SqlRoasterRepository {
             created_at,
         }
     }
-
-    fn details_for_roaster(roaster: &Roaster) -> Result<String, RepositoryError> {
-        let homepage_value = roaster
-            .homepage
-            .as_ref()
-            .filter(|value| !value.is_empty())
-            .cloned()
-            .unwrap_or_else(|| "—".to_string());
-
-        let details = vec![
-            TimelineEventDetail {
-                label: "Country".to_string(),
-                value: roaster.country.clone(),
-            },
-            TimelineEventDetail {
-                label: "City".to_string(),
-                value: roaster
-                    .city
-                    .as_ref()
-                    .filter(|value| !value.is_empty())
-                    .cloned()
-                    .unwrap_or_else(|| "—".to_string()),
-            },
-            TimelineEventDetail {
-                label: "Homepage".to_string(),
-                value: homepage_value,
-            },
-        ];
-
-        serde_json::to_string(&details).map_err(|err| {
-            RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
-        })
-    }
 }
 
 #[async_trait]
 impl RoasterRepository for SqlRoasterRepository {
     async fn insert(&self, new_roaster: NewRoaster) -> Result<Roaster, RepositoryError> {
-        let mut tx = self
-            .pool
-            .begin()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
         let new_roaster = new_roaster.normalize();
         let slug = new_roaster.slug();
         let created_at = Utc::now();
@@ -114,7 +74,7 @@ impl RoasterRepository for SqlRoasterRepository {
             .bind(new_roaster.city.as_deref())
             .bind(new_roaster.homepage.as_deref())
             .bind(created_at)
-            .fetch_one(&mut *tx)
+            .fetch_one(&self.pool)
             .await
             .map_err(|err| {
                 if let sqlx::Error::Database(db_err) = &err
@@ -127,31 +87,7 @@ impl RoasterRepository for SqlRoasterRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        let roaster = Self::into_domain(record);
-        let details_json = Self::details_for_roaster(&roaster)?;
-
-        query(
-                "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            )
-            .bind("roaster")
-            .bind(i64::from(roaster.id))
-            .bind("added")
-            .bind(roaster.created_at)
-            .bind(&roaster.name)
-            .bind(details_json)
-            .bind::<Option<&str>>(None)
-            .bind(&roaster.slug) // slug = roaster's own slug
-            .bind::<Option<&str>>(None) // roaster_slug not applicable for roaster events
-            .bind::<Option<&str>>(None) // brew_data_json not applicable
-            .execute(&mut *tx)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        tx.commit()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(roaster)
+        Ok(Self::into_domain(record))
     }
 
     async fn get(&self, id: RoasterId) -> Result<Roaster, RepositoryError> {

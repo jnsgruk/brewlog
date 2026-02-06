@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ids::GearId;
 use super::listing::{SortDirection, SortKey};
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -54,6 +55,36 @@ pub struct Gear {
     pub model: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl Gear {
+    pub fn to_timeline_event(&self) -> NewTimelineEvent {
+        NewTimelineEvent {
+            entity_type: "gear".to_string(),
+            entity_id: self.id.into_inner(),
+            action: "added".to_string(),
+            occurred_at: Utc::now(),
+            title: format!("{} {}", self.make, self.model),
+            details: vec![
+                TimelineEventDetail {
+                    label: "Category".to_string(),
+                    value: self.category.display_label().to_string(),
+                },
+                TimelineEventDetail {
+                    label: "Make".to_string(),
+                    value: self.make.clone(),
+                },
+                TimelineEventDetail {
+                    label: "Model".to_string(),
+                    value: self.model.clone(),
+                },
+            ],
+            tasting_notes: vec![],
+            slug: None,
+            roaster_slug: None,
+            brew_data: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

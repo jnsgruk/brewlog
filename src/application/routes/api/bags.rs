@@ -3,7 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
-use tracing::{info, warn};
+use tracing::info;
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
@@ -15,7 +15,6 @@ use crate::application::server::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 use crate::presentation::web::templates::BagListTemplate;
 use crate::presentation::web::views::{BagView, ListNavigator, Paginated};
 
@@ -63,51 +62,13 @@ pub(crate) async fn create_bag(
     let (submission, source) = payload.into_parts();
     let new_bag = submission.into_new_bag().map_err(ApiError::from)?;
 
-    let roast = state
-        .roast_repo
-        .get(new_bag.roast_id)
-        .await
-        .map_err(|err| ApiError::from(AppError::from(err)))?;
-
-    let roaster = state
-        .roaster_repo
-        .get(roast.roaster_id)
-        .await
-        .map_err(|err| ApiError::from(AppError::from(err)))?;
-
     let bag = state
-        .bag_repo
-        .insert(new_bag)
+        .bag_service
+        .create(new_bag)
         .await
         .map_err(AppError::from)?;
 
-    info!(bag_id = %bag.id, roast = %roast.name, "bag created");
-
-    // Add timeline event
-    let event = NewTimelineEvent {
-        entity_type: "bag".to_string(),
-        entity_id: bag.id.into_inner(),
-        action: "added".to_string(),
-        occurred_at: chrono::Utc::now(),
-        title: roast.name.clone(),
-        details: vec![
-            TimelineEventDetail {
-                label: "Roaster".to_string(),
-                value: roaster.name.clone(),
-            },
-            TimelineEventDetail {
-                label: "Amount".to_string(),
-                value: format!("{}g", bag.amount),
-            },
-        ],
-        tasting_notes: vec![],
-        slug: Some(roast.slug.clone()),
-        roaster_slug: Some(roaster.slug.clone()),
-        brew_data: None,
-    };
-    if let Err(err) = state.timeline_repo.insert(event).await {
-        warn!(error = %err, entity_type = "bag", "failed to record timeline event");
-    }
+    info!(bag_id = %bag.id, "bag created");
 
     if is_datastar_request(&headers) {
         render_bag_list_fragment(state, request, search, true)
@@ -168,57 +129,27 @@ pub(crate) async fn update_bag(
         |Json(p)| p,
     );
 
-    let mut update = UpdateBag {
+    let update = UpdateBag {
         remaining: body_update.remaining.or(update_params.remaining),
         closed: body_update.closed.or(update_params.closed),
         finished_at: body_update.finished_at.or(update_params.finished_at),
     };
 
-    if let Some(true) = update.closed
-        && update.finished_at.is_none()
-    {
-        update.finished_at = Some(chrono::Utc::now().date_naive());
-    }
-
-    let bag = state
-        .bag_repo
-        .update(id, update.clone())
-        .await
-        .map_err(AppError::from)?;
+    let bag = if let Some(true) = update.closed {
+        state
+            .bag_service
+            .finish(id, update.clone())
+            .await
+            .map_err(AppError::from)?
+    } else {
+        state
+            .bag_repo
+            .update(id, update.clone())
+            .await
+            .map_err(AppError::from)?
+    };
 
     info!(%id, closed = ?update.closed, "bag updated");
-
-    if let Some(true) = update.closed {
-        // Fetch roast and roaster for timeline event
-        if let Ok(roast) = state.roast_repo.get(bag.roast_id).await
-            && let Ok(roaster) = state.roaster_repo.get(roast.roaster_id).await
-        {
-            let event = NewTimelineEvent {
-                entity_type: "bag".to_string(),
-                entity_id: bag.id.into_inner(),
-                action: "finished".to_string(),
-                occurred_at: chrono::Utc::now(),
-                title: roast.name.clone(),
-                details: vec![
-                    TimelineEventDetail {
-                        label: "Roaster".to_string(),
-                        value: roaster.name.clone(),
-                    },
-                    TimelineEventDetail {
-                        label: "Amount".to_string(),
-                        value: format!("{}g", bag.amount),
-                    },
-                ],
-                tasting_notes: vec![],
-                slug: Some(roast.slug.clone()),
-                roaster_slug: Some(roaster.slug.clone()),
-                brew_data: None,
-            };
-            if let Err(err) = state.timeline_repo.insert(event).await {
-                warn!(error = %err, entity_type = "bag", "failed to record timeline event");
-            }
-        }
-    }
 
     if is_datastar_request(&headers) {
         render_bag_list_fragment(state, request, search, true)

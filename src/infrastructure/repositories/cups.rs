@@ -7,7 +7,6 @@ use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup};
 use crate::domain::ids::{CafeId, CupId, RoastId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::CupRepository;
-use crate::domain::timeline::TimelineEventDetail;
 use crate::infrastructure::database::DatabasePool;
 
 const BASE_SELECT: &str = r"
@@ -95,85 +94,22 @@ impl SqlCupRepository {
             Some(conditions.join(" AND "))
         }
     }
-
-    fn details_for_cup(cup_with_details: &CupWithDetails) -> Result<String, RepositoryError> {
-        let details = vec![
-            TimelineEventDetail {
-                label: "Coffee".to_string(),
-                value: cup_with_details.roast_name.clone(),
-            },
-            TimelineEventDetail {
-                label: "Roaster".to_string(),
-                value: cup_with_details.roaster_name.clone(),
-            },
-            TimelineEventDetail {
-                label: "Cafe".to_string(),
-                value: cup_with_details.cafe_name.clone(),
-            },
-        ];
-
-        serde_json::to_string(&details).map_err(|err| {
-            RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
-        })
-    }
 }
 
 #[async_trait]
 impl CupRepository for SqlCupRepository {
     async fn insert(&self, new_cup: NewCup) -> Result<Cup, RepositoryError> {
-        let mut tx = self
-            .pool
-            .begin()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
         let record = query_as::<_, CupRecord>(
             "INSERT INTO cups (roast_id, cafe_id) VALUES (?, ?) \
              RETURNING id, roast_id, cafe_id, created_at, updated_at",
         )
         .bind(new_cup.roast_id.into_inner())
         .bind(new_cup.cafe_id.into_inner())
-        .fetch_one(&mut *tx)
+        .fetch_one(&self.pool)
         .await
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        let cup = Self::to_domain(record);
-
-        // Fetch enriched details for the timeline event
-        let details_record =
-            query_as::<_, CupWithDetailsRecord>(&format!("{BASE_SELECT} WHERE c.id = ?"))
-                .bind(cup.id.into_inner())
-                .fetch_one(&mut *tx)
-                .await
-                .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        let cup_with_details = Self::to_domain_with_details(details_record);
-        let details_json = Self::details_for_cup(&cup_with_details)?;
-
-        let title = cup_with_details.roast_name.clone();
-
-        query(
-            "INSERT INTO timeline_events (entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        )
-        .bind("cup")
-        .bind(i64::from(cup.id))
-        .bind("added")
-        .bind(cup.created_at)
-        .bind(&title)
-        .bind(details_json)
-        .bind::<Option<&str>>(None)
-        .bind(&cup_with_details.roast_slug)
-        .bind(&cup_with_details.roaster_slug)
-        .bind::<Option<&str>>(None)
-        .execute(&mut *tx)
-        .await
-        .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        tx.commit()
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        Ok(cup)
+        Ok(Self::to_domain(record))
     }
 
     async fn get(&self, id: CupId) -> Result<Cup, RepositoryError> {

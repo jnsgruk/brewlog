@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ids::{CafeId, CupId, RoastId};
 use super::listing::{SortDirection, SortKey};
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Cup {
@@ -23,6 +24,36 @@ pub struct CupWithDetails {
     pub roaster_slug: String,
     pub cafe_name: String,
     pub cafe_slug: String,
+}
+
+impl CupWithDetails {
+    pub fn to_timeline_event(&self) -> NewTimelineEvent {
+        NewTimelineEvent {
+            entity_type: "cup".to_string(),
+            entity_id: self.cup.id.into_inner(),
+            action: "added".to_string(),
+            occurred_at: Utc::now(),
+            title: self.roast_name.clone(),
+            details: vec![
+                TimelineEventDetail {
+                    label: "Coffee".to_string(),
+                    value: self.roast_name.clone(),
+                },
+                TimelineEventDetail {
+                    label: "Roaster".to_string(),
+                    value: self.roaster_name.clone(),
+                },
+                TimelineEventDetail {
+                    label: "Cafe".to_string(),
+                    value: self.cafe_name.clone(),
+                },
+            ],
+            tasting_notes: vec![],
+            slug: Some(self.roast_slug.clone()),
+            roaster_slug: Some(self.roaster_slug.clone()),
+            brew_data: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

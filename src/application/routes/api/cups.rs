@@ -56,8 +56,8 @@ pub(crate) async fn create_cup(
     let (new_cup, source) = payload.into_parts();
 
     let cup = state
-        .cup_repo
-        .insert(new_cup)
+        .cup_service
+        .create(new_cup)
         .await
         .map_err(AppError::from)?;
 

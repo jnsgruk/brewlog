@@ -3,7 +3,7 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
-use tracing::{info, warn};
+use tracing::info;
 
 use super::roasts::TastingNotesInput;
 use crate::application::auth::AuthenticatedUser;
@@ -14,7 +14,6 @@ use crate::domain::bags::NewBag;
 use crate::domain::errors::RepositoryError;
 use crate::domain::roasters::NewRoaster;
 use crate::domain::roasts::NewRoast;
-use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 use crate::infrastructure::ai::{self, ExtractionInput, Usage};
 
 #[tracing::instrument(skip(state, auth_user, headers, payload))]
@@ -233,8 +232,8 @@ pub(crate) async fn submit_scan(
     let roaster = match state.roaster_repo.get_by_slug(&slug).await {
         Ok(existing) => existing,
         Err(RepositoryError::NotFound) => state
-            .roaster_repo
-            .insert(new_roaster)
+            .roaster_service
+            .create(new_roaster)
             .await
             .map_err(AppError::from)?,
         Err(err) => return Err(AppError::from(err).into()),
@@ -283,8 +282,8 @@ pub(crate) async fn submit_scan(
     };
 
     let roast = state
-        .roast_repo
-        .insert(new_roast)
+        .roast_service
+        .create(new_roast)
         .await
         .map_err(AppError::from)?;
 
@@ -302,36 +301,11 @@ pub(crate) async fn submit_scan(
             roast_date: None,
             amount,
         };
-        let bag = state
-            .bag_repo
-            .insert(new_bag)
+        state
+            .bag_service
+            .create(new_bag)
             .await
             .map_err(AppError::from)?;
-
-        let event = NewTimelineEvent {
-            entity_type: "bag".to_string(),
-            entity_id: bag.id.into_inner(),
-            action: "added".to_string(),
-            occurred_at: chrono::Utc::now(),
-            title: roast.name.clone(),
-            details: vec![
-                TimelineEventDetail {
-                    label: "Roaster".to_string(),
-                    value: roaster.name.clone(),
-                },
-                TimelineEventDetail {
-                    label: "Amount".to_string(),
-                    value: format!("{}g", bag.amount),
-                },
-            ],
-            tasting_notes: vec![],
-            slug: Some(roast.slug.clone()),
-            roaster_slug: Some(roaster.slug.clone()),
-            brew_data: None,
-        };
-        if let Err(err) = state.timeline_repo.insert(event).await {
-            warn!(error = %err, entity_type = "bag", "failed to record timeline event");
-        }
     }
 
     let redirect = format!("/roasters/{}/roasts/{}", roaster.slug, roast.slug);

@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{SortDirection, SortKey};
+use crate::domain::roasters::Roaster;
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Roast {
@@ -94,5 +96,36 @@ impl SortKey for RoastSortKey {
             RoastSortKey::CreatedAt => SortDirection::Desc,
             _ => SortDirection::Asc,
         }
+    }
+}
+
+pub fn roast_timeline_event(roast: &Roast, roaster: &Roaster) -> NewTimelineEvent {
+    let mut details = vec![TimelineEventDetail {
+        label: "Roaster".to_string(),
+        value: roaster.name.clone(),
+    }];
+    if let Some(ref origin) = roast.origin {
+        details.push(TimelineEventDetail {
+            label: "Origin".to_string(),
+            value: origin.clone(),
+        });
+    }
+    if !roast.tasting_notes.is_empty() {
+        details.push(TimelineEventDetail {
+            label: "Tasting Notes".to_string(),
+            value: roast.tasting_notes.join(", "),
+        });
+    }
+    NewTimelineEvent {
+        entity_type: "roast".to_string(),
+        entity_id: roast.id.into_inner(),
+        action: "added".to_string(),
+        occurred_at: Utc::now(),
+        title: roast.name.clone(),
+        details,
+        tasting_notes: roast.tasting_notes.clone(),
+        slug: Some(roast.slug.clone()),
+        roaster_slug: Some(roaster.slug.clone()),
+        brew_data: None,
     }
 }

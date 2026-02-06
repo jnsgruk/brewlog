@@ -3,7 +3,7 @@ use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::{Deserialize, Deserializer};
-use tracing::{info, warn};
+use tracing::info;
 
 use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
@@ -17,7 +17,6 @@ use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, Qu
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, PageSize, SortDirection};
-use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
 use crate::presentation::web::templates::BrewListTemplate;
 use crate::presentation::web::views::{
     BagOptionView, BrewDefaultsView, BrewView, GearOptionView, ListNavigator, Paginated,
@@ -234,29 +233,13 @@ pub(crate) async fn create_brew(
     let (submission, source) = payload.into_parts();
     let new_brew = submission.into_new_brew().map_err(ApiError::from)?;
 
-    let brew = state
-        .brew_repo
-        .insert(new_brew)
-        .await
-        .map_err(AppError::from)?;
-
-    info!(brew_id = %brew.id, "brew created");
-
-    // Fetch enriched brew details for timeline event
     let enriched = state
-        .brew_repo
-        .get_with_details(brew.id)
+        .brew_service
+        .create(new_brew)
         .await
         .map_err(AppError::from)?;
 
-    // Add timeline event
-    if let Err(err) = state
-        .timeline_repo
-        .insert(brew_timeline_event(&enriched))
-        .await
-    {
-        warn!(error = %err, entity_type = "brew", "failed to record timeline event");
-    }
+    info!(brew_id = %enriched.brew.id, "brew created");
 
     if is_datastar_request(&headers) {
         // Check if request came from timeline - return a script that redirects
@@ -287,96 +270,6 @@ pub(crate) async fn create_brew(
         Ok(Redirect::to(&target).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(enriched)).into_response())
-    }
-}
-
-fn brew_timeline_event(enriched: &BrewWithDetails) -> NewTimelineEvent {
-    let ratio = if enriched.brew.coffee_weight > 0.0 {
-        format!(
-            "1:{:.1}",
-            f64::from(enriched.brew.water_volume) / enriched.brew.coffee_weight
-        )
-    } else {
-        "N/A".to_string()
-    };
-
-    let mut details = vec![
-        TimelineEventDetail {
-            label: "Roaster".to_string(),
-            value: enriched.roaster_name.clone(),
-        },
-        TimelineEventDetail {
-            label: "Coffee".to_string(),
-            value: format!("{:.1}g", enriched.brew.coffee_weight),
-        },
-        TimelineEventDetail {
-            label: "Water".to_string(),
-            value: format!(
-                "{}ml @ {:.1}\u{00B0}C",
-                enriched.brew.water_volume, enriched.brew.water_temp
-            ),
-        },
-        TimelineEventDetail {
-            label: "Grinder".to_string(),
-            value: format!(
-                "{} @ {:.1}",
-                enriched.grinder_name, enriched.brew.grind_setting
-            ),
-        },
-        TimelineEventDetail {
-            label: "Brewer".to_string(),
-            value: enriched.brewer_name.clone(),
-        },
-    ];
-
-    if let Some(ref fp_name) = enriched.filter_paper_name {
-        details.push(TimelineEventDetail {
-            label: "Filter".to_string(),
-            value: fp_name.clone(),
-        });
-    }
-
-    details.push(TimelineEventDetail {
-        label: "Ratio".to_string(),
-        value: ratio,
-    });
-
-    if !enriched.brew.quick_notes.is_empty() {
-        let labels: Vec<&str> = enriched
-            .brew
-            .quick_notes
-            .iter()
-            .map(|n| n.label())
-            .collect();
-        details.push(TimelineEventDetail {
-            label: "Notes".to_string(),
-            value: labels.join(", "),
-        });
-    }
-
-    NewTimelineEvent {
-        entity_type: "brew".to_string(),
-        entity_id: enriched.brew.id.into_inner(),
-        action: "brewed".to_string(),
-        occurred_at: chrono::Utc::now(),
-        title: enriched.roast_name.clone(),
-        details,
-        tasting_notes: vec![],
-        slug: Some(enriched.roast_slug.clone()),
-        roaster_slug: Some(enriched.roaster_slug.clone()),
-        brew_data: Some(TimelineBrewData {
-            bag_id: enriched.brew.bag_id.into_inner(),
-            grinder_id: enriched.brew.grinder_id.into_inner(),
-            brewer_id: enriched.brew.brewer_id.into_inner(),
-            filter_paper_id: enriched
-                .brew
-                .filter_paper_id
-                .map(crate::domain::ids::GearId::into_inner),
-            coffee_weight: enriched.brew.coffee_weight,
-            grind_setting: enriched.brew.grind_setting,
-            water_volume: enriched.brew.water_volume,
-            water_temp: enriched.brew.water_temp,
-        }),
     }
 }
 

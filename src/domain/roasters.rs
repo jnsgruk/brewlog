@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{SortDirection, SortKey};
+use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Roaster {
@@ -50,6 +51,33 @@ fn normalize_optional_field(value: Option<String>) -> Option<String> {
             Some(trimmed.to_string())
         }
     })
+}
+
+impl Roaster {
+    pub fn to_timeline_event(&self) -> NewTimelineEvent {
+        let mut details = vec![TimelineEventDetail {
+            label: "Country".to_string(),
+            value: self.country.clone(),
+        }];
+        if let Some(ref city) = self.city {
+            details.push(TimelineEventDetail {
+                label: "City".to_string(),
+                value: city.clone(),
+            });
+        }
+        NewTimelineEvent {
+            entity_type: "roaster".to_string(),
+            entity_id: self.id.into_inner(),
+            action: "added".to_string(),
+            occurred_at: Utc::now(),
+            title: self.name.clone(),
+            details,
+            tasting_notes: vec![],
+            slug: Some(self.slug.clone()),
+            roaster_slug: Some(self.slug.clone()),
+            brew_data: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

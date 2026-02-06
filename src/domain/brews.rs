@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ids::{BagId, BrewId, GearId};
 use super::listing::{SortDirection, SortKey};
+use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum QuickNote {
@@ -92,6 +93,87 @@ pub struct BrewWithDetails {
     pub grinder_name: String,
     pub brewer_name: String,
     pub filter_paper_name: Option<String>,
+}
+
+impl BrewWithDetails {
+    pub fn to_timeline_event(&self) -> NewTimelineEvent {
+        let ratio = if self.brew.coffee_weight > 0.0 {
+            format!(
+                "1:{:.1}",
+                f64::from(self.brew.water_volume) / self.brew.coffee_weight
+            )
+        } else {
+            "N/A".to_string()
+        };
+
+        let mut details = vec![
+            TimelineEventDetail {
+                label: "Roaster".to_string(),
+                value: self.roaster_name.clone(),
+            },
+            TimelineEventDetail {
+                label: "Coffee".to_string(),
+                value: format!("{:.1}g", self.brew.coffee_weight),
+            },
+            TimelineEventDetail {
+                label: "Water".to_string(),
+                value: format!(
+                    "{}ml @ {:.1}\u{00B0}C",
+                    self.brew.water_volume, self.brew.water_temp
+                ),
+            },
+            TimelineEventDetail {
+                label: "Grinder".to_string(),
+                value: format!("{} @ {:.1}", self.grinder_name, self.brew.grind_setting),
+            },
+            TimelineEventDetail {
+                label: "Brewer".to_string(),
+                value: self.brewer_name.clone(),
+            },
+        ];
+
+        if let Some(ref fp_name) = self.filter_paper_name {
+            details.push(TimelineEventDetail {
+                label: "Filter".to_string(),
+                value: fp_name.clone(),
+            });
+        }
+
+        details.push(TimelineEventDetail {
+            label: "Ratio".to_string(),
+            value: ratio,
+        });
+
+        if !self.brew.quick_notes.is_empty() {
+            let labels: Vec<&str> = self.brew.quick_notes.iter().map(|n| n.label()).collect();
+            details.push(TimelineEventDetail {
+                label: "Notes".to_string(),
+                value: labels.join(", "),
+            });
+        }
+
+        NewTimelineEvent {
+            entity_type: "brew".to_string(),
+            entity_id: self.brew.id.into_inner(),
+            action: "brewed".to_string(),
+            occurred_at: Utc::now(),
+            title: self.roast_name.clone(),
+            details,
+            tasting_notes: vec![],
+            slug: Some(self.roast_slug.clone()),
+            roaster_slug: Some(self.roaster_slug.clone()),
+            brew_data: Some(TimelineBrewData {
+                bag_id: self.brew.bag_id.into_inner(),
+                grinder_id: self.brew.grinder_id.into_inner(),
+                brewer_id: self.brew.brewer_id.into_inner(),
+                filter_paper_id: self.brew.filter_paper_id.map(GearId::into_inner),
+                coffee_weight: self.brew.coffee_weight,
+                grind_setting: self.brew.grind_setting,
+                water_volume: self.brew.water_volume,
+                water_temp: self.brew.water_temp,
+            }),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

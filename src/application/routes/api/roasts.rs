@@ -65,8 +65,8 @@ pub(crate) async fn create_roast(
         .map_err(|err| ApiError::from(AppError::from(err)))?;
 
     let roast = state
-        .roast_repo
-        .insert(new_roast)
+        .roast_service
+        .create(new_roast)
         .await
         .map_err(AppError::from)?;
 

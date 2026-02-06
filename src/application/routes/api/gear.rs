@@ -5,7 +5,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
-use tracing::{info, warn};
+use tracing::info;
 
 use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
@@ -17,7 +17,6 @@ use crate::application::server::AppState;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::GearId;
 use crate::domain::listing::{ListRequest, SortDirection};
-use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 use crate::presentation::web::templates::GearListTemplate;
 use crate::presentation::web::views::{GearView, ListNavigator, Paginated};
 
@@ -59,42 +58,12 @@ pub(crate) async fn create_gear(
     let new_gear = submission.into_new_gear().map_err(ApiError::from)?;
 
     let gear = state
-        .gear_repo
-        .insert(new_gear)
+        .gear_service
+        .create(new_gear)
         .await
         .map_err(AppError::from)?;
 
     info!(gear_id = %gear.id, make = %gear.make, model = %gear.model, "gear created");
-
-    // Add timeline event
-    let event = NewTimelineEvent {
-        entity_type: "gear".to_string(),
-        entity_id: gear.id.into_inner(),
-        action: "added".to_string(),
-        occurred_at: chrono::Utc::now(),
-        title: format!("{} {}", gear.make, gear.model),
-        details: vec![
-            TimelineEventDetail {
-                label: "Category".to_string(),
-                value: gear.category.display_label().to_string(),
-            },
-            TimelineEventDetail {
-                label: "Make".to_string(),
-                value: gear.make.clone(),
-            },
-            TimelineEventDetail {
-                label: "Model".to_string(),
-                value: gear.model.clone(),
-            },
-        ],
-        tasting_notes: vec![],
-        slug: None,         // Gear has no slug
-        roaster_slug: None, // Gear is not related to roasters
-        brew_data: None,
-    };
-    if let Err(err) = state.timeline_repo.insert(event).await {
-        warn!(error = %err, entity_type = "gear", "failed to record timeline event");
-    }
 
     if is_datastar_request(&headers) {
         render_gear_list_fragment(state, request, search, true)

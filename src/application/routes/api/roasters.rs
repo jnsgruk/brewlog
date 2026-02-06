@@ -67,8 +67,8 @@ pub(crate) async fn create_roaster(
     let (new_roaster, source) = payload.into_parts();
     let new_roaster = new_roaster.normalize();
     let roaster = state
-        .roaster_repo
-        .insert(new_roaster)
+        .roaster_service
+        .create(new_roaster)
         .await
         .map_err(AppError::from)?;
 

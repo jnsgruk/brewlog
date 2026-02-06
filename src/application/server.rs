@@ -10,6 +10,9 @@ use tracing::info;
 use webauthn_rs::prelude::*;
 
 use crate::application::routes::app_router;
+use crate::application::services::{
+    BagService, BrewService, CafeService, CupService, GearService, RoastService, RoasterService,
+};
 use crate::domain::registration_tokens::NewRegistrationToken;
 use crate::domain::repositories::{
     AiUsageRepository, BagRepository, BrewRepository, CafeRepository, CupRepository,
@@ -70,8 +73,16 @@ pub struct AppState {
     pub openrouter_api_key: String,
     pub openrouter_model: String,
     pub backup_service: Arc<BackupService>,
+    pub roaster_service: RoasterService,
+    pub roast_service: RoastService,
+    pub bag_service: BagService,
+    pub brew_service: BrewService,
+    pub gear_service: GearService,
+    pub cafe_service: CafeService,
+    pub cup_service: CupService,
 }
 
+#[allow(clippy::too_many_lines)]
 pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     let database = Database::connect(&config.database_url)
         .await
@@ -86,14 +97,20 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
             .context("failed to build WebAuthn instance")?,
     );
 
-    let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
-    let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
-    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
-    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
-    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
-    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
-    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
-    let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
+    let roaster_repo: Arc<dyn RoasterRepository> =
+        Arc::new(SqlRoasterRepository::new(database.clone_pool()));
+    let roast_repo: Arc<dyn RoastRepository> =
+        Arc::new(SqlRoastRepository::new(database.clone_pool()));
+    let bag_repo: Arc<dyn BagRepository> = Arc::new(SqlBagRepository::new(database.clone_pool()));
+    let gear_repo: Arc<dyn GearRepository> =
+        Arc::new(SqlGearRepository::new(database.clone_pool()));
+    let brew_repo: Arc<dyn BrewRepository> =
+        Arc::new(SqlBrewRepository::new(database.clone_pool()));
+    let cafe_repo: Arc<dyn CafeRepository> =
+        Arc::new(SqlCafeRepository::new(database.clone_pool()));
+    let cup_repo: Arc<dyn CupRepository> = Arc::new(SqlCupRepository::new(database.clone_pool()));
+    let timeline_repo: Arc<dyn TimelineEventRepository> =
+        Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
     let user_repo: Arc<dyn UserRepository> =
         Arc::new(SqlUserRepository::new(database.clone_pool()));
     let token_repo: Arc<dyn TokenRepository> =
@@ -109,6 +126,24 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
 
     let backup_service = Arc::new(BackupService::new(database.clone_pool()));
     let challenge_store = Arc::new(ChallengeStore::new());
+
+    let roaster_service =
+        RoasterService::new(Arc::clone(&roaster_repo), Arc::clone(&timeline_repo));
+    let roast_service = RoastService::new(
+        Arc::clone(&roast_repo),
+        Arc::clone(&roaster_repo),
+        Arc::clone(&timeline_repo),
+    );
+    let bag_service = BagService::new(
+        Arc::clone(&bag_repo),
+        Arc::clone(&roast_repo),
+        Arc::clone(&roaster_repo),
+        Arc::clone(&timeline_repo),
+    );
+    let brew_service = BrewService::new(Arc::clone(&brew_repo), Arc::clone(&timeline_repo));
+    let gear_service = GearService::new(Arc::clone(&gear_repo), Arc::clone(&timeline_repo));
+    let cafe_service = CafeService::new(Arc::clone(&cafe_repo), Arc::clone(&timeline_repo));
+    let cup_service = CupService::new(Arc::clone(&cup_repo), Arc::clone(&timeline_repo));
 
     // Bootstrap: if no users exist, generate a one-time registration token
     bootstrap_registration(&registration_token_repo, &user_repo, &config.rp_origin).await?;
@@ -137,6 +172,13 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         openrouter_api_key: config.openrouter_api_key,
         openrouter_model: config.openrouter_model,
         backup_service,
+        roaster_service,
+        roast_service,
+        bag_service,
+        brew_service,
+        gear_service,
+        cafe_service,
+        cup_service,
     };
 
     let listener = TcpListener::bind(config.bind_address)
