@@ -51,6 +51,11 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
         },
     );
 
+    // Clean up expired sessions on startup
+    if let Err(err) = state.session_repo.delete_expired().await {
+        tracing::warn!(error = %err, "failed to clean up expired sessions on startup");
+    }
+
     // Bootstrap: if no users exist, generate a one-time registration token
     bootstrap_registration(
         &state.registration_token_repo,
