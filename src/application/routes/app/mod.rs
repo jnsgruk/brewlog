@@ -32,7 +32,6 @@ pub(super) fn router() -> axum::Router<AppState> {
             "/components/searchable-select.js",
             get(searchable_select_js),
         )
-        .route("/favicon.ico", get(favicon))
         .route("/favicon-light.svg", get(favicon_light))
         .route("/favicon-dark.svg", get(favicon_dark))
 }
@@ -78,16 +77,6 @@ async fn searchable_select_js() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/js/components/searchable-select.js"),
-    )
-}
-
-async fn favicon() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "image/x-icon"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_bytes!("../../../../static/favicon.ico").as_ref(),
     )
 }
 
