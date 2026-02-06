@@ -1,0 +1,78 @@
+name: Deploy Brewlog
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build/Test brewlog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix cache
+        uses: nix-community/cache-nix-action@main
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+
+      - name: Build brewlog
+        run: |
+          nix build -L .#brewlog
+
+      - name: Run tests
+        run: |
+          nix develop --command cargo test -- --show-output
+
+  deploy:
+    name: Deploy brewlog
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix cache
+        uses: nix-community/cache-nix-action@main
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build container
+        run: |
+          nix build -L .#jnsgruk-container
+
+      - name: Upload container to ghcr.io
+        run: |
+          docker load < result
+          docker tag "jnsgruk/brewlog:$(git rev-parse --short HEAD)" "ghcr.io/jnsgruk/brewlog:$(git rev-parse --short HEAD)"
+          docker push "ghcr.io/jnsgruk/brewlog:$(git rev-parse --short HEAD)"
+
+      - name: Deploy site
+        run: |
+          nix run nixpkgs#flyctl -- deploy -i "ghcr.io/jnsgruk/brewlog:$(git rev-parse --short HEAD)"
+        env:
+          FLY_ACCESS_TOKEN: ${{ secrets.FLY_API_TOKEN }}
