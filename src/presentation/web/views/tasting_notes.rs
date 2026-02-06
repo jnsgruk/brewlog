@@ -247,6 +247,7 @@ const EXACT_MATCHES: &[(&str, NoteCategory)] = &[
     ("yoghurt", Vegetal),
     ("yogurt", Vegetal),
     ("cream", Vegetal),
+    ("creamy", Vegetal),
 ];
 
 // ── Substring fallback ───────────────────────────────────────────────
