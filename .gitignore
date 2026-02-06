@@ -4,5 +4,5 @@ result*
 *.db-journal
 TODO.md
 backup.json
-.env
+*.env
 static/css/styles.css
