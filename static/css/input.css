@@ -503,4 +503,67 @@ a {
   .timeline-item + .timeline-item {
     margin-top: -4rem;
   }
+
+  /* ── Spacious flat tables ─────────────────────────────────────── */
+
+  /* Strip card wrapper */
+  section:has(.responsive-table) {
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  /* Search header: remove border, tighten spacing */
+  section:has(.responsive-table) > div:first-child:has(input[type="search"]) {
+    border-bottom: none;
+    padding-top: 0;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Flat thead: typography-only distinction */
+  .responsive-table thead {
+    background-color: transparent;
+  }
+
+  /* Remove thead/tbody divider from divide-y on <table> */
+  .responsive-table {
+    border-color: transparent;
+  }
+
+  /* Spacious cells */
+  .responsive-table th,
+  .responsive-table td {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Row background: lift rows off the page */
+  .responsive-table tbody > tr {
+    background-color: var(--surface);
+    border-color: var(--border);
+    border-top-width: 1px;
+  }
+
+  .responsive-table tbody > tr:last-child {
+    border-bottom-width: 1px;
+  }
+
+  /* Hover: accent tint + left bar */
+  .responsive-table tbody > tr:not(.detail-row):hover {
+    background-color: var(--accent-subtle);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  /* Detail row: keep compact */
+  .responsive-table .detail-row td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Pagination floats below as footer */
+  section:has(.responsive-table) .pagination-controls {
+    border-top: none;
+    padding-top: 0.75rem;
+    padding-bottom: 0;
+  }
 }

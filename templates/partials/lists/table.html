@@ -24,7 +24,7 @@
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="inline-flex items-center gap-1 rounded-full border px-3 py-1 font-semibold transition hover:text-accent hover:border-accent disabled:cursor-not-allowed disabled:opacity-40"
+            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
             {% if items.has_previous() %}
             data-on:click="history.pushState(null, '', '{{ navigator.page_href(items.previous_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(items.previous_page().unwrap())|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
             {% else %}
@@ -43,7 +43,7 @@
           {% endif %}
           <button
             type="button"
-            class="inline-flex items-center gap-1 rounded-full border px-3 py-1 font-semibold transition hover:text-accent hover:border-accent disabled:cursor-not-allowed disabled:opacity-40"
+            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
             {% if items.has_next() %}
             data-on:click="history.pushState(null, '', '{{ navigator.page_href(items.next_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(items.next_page().unwrap())|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
             {% else %}
