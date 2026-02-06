@@ -68,7 +68,13 @@ impl SqlBrewRepository {
             None
         } else {
             let labels: Vec<&str> = notes.iter().map(|n| n.label()).collect();
-            serde_json::to_string(&labels).ok()
+            match serde_json::to_string(&labels) {
+                Ok(json) => Some(json),
+                Err(err) => {
+                    tracing::warn!(error = %err, "failed to encode quick notes as JSON");
+                    None
+                }
+            }
         }
     }
 
