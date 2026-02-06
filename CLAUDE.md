@@ -109,7 +109,7 @@ Only reset state on `finished` or `error`, never unconditionally.
 
 **7. Use token-based text classes, never hardcoded `text-stone-*`.** Always use `text-text`, `text-text-secondary`, `text-text-muted` which adapt between light and dark themes.
 
-**8. Static assets need explicit routes.** All assets are embedded at compile time via `include_str!()`/`include_bytes!()` with explicit routes in `application/routes/mod.rs`. There is no `tower-http` static file serving.
+**8. Static assets need explicit routes and cache headers.** All assets are embedded at compile time via `include_str!()`/`include_bytes!()` with explicit routes in `application/routes/app/mod.rs`. There is no `tower-http` static file serving. Every static asset handler must return a `cache-control: public, max-age=604800` header alongside `content-type`.
 
 **9. CSP must be updated when adding external resources.** The `Content-Security-Policy` header is set in `application/routes/mod.rs`. If you add a new external script, stylesheet, font, or image source, update the corresponding CSP directive (`script-src`, `style-src`, `font-src`, `img-src`) or the browser will block it silently. Datastar requires `'unsafe-inline'` and `'unsafe-eval'` in `script-src`.
 
@@ -120,6 +120,25 @@ Only reset state on `finished` or `error`, never unconditionally.
 **12. Datastar create handlers must check referer for fragment targets.** When a `@post` creates an entity and returns a list fragment (e.g., `#brew-list`), that fragment only exists on the entity's data page. If the same `@post` can fire from other pages (homepage, timeline), check the `Referer` header and return a reload-script response for pages that lack the target element. See `create_brew` in `application/routes/api/brews.rs`.
 
 ## Backend Patterns
+
+### SQLite Configuration
+
+`infrastructure/database.rs` configures SQLite pragmas at connection time:
+
+| Pragma | Value | Purpose |
+|--------|-------|---------|
+| `foreign_keys` | `ON` | Enforce FK constraints |
+| `journal_mode` | `WAL` | Concurrent reads during writes |
+| `synchronous` | `NORMAL` | Faster writes (safe with WAL) |
+| `cache_size` | `-8000` | 8 MB page cache |
+| `temp_store` | `MEMORY` | Temp tables in RAM |
+| `busy_timeout` | `5000` | Wait up to 5s on lock contention |
+
+When adding new pragmas, add them after the existing ones in `Database::connect()`. Connection pool is capped at 5 — appropriate for SQLite's single-writer model.
+
+### HTTP Middleware Stack
+
+The middleware stack in `application/routes/mod.rs` applies layers in this order (outermost first): request tracing, cookie parsing, body size limit, security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `CSP`, `HSTS`), and gzip compression. When adding new middleware, place it in the `ServiceBuilder` chain at the appropriate position.
 
 ### Repository Pattern
 
