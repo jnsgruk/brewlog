@@ -445,6 +445,18 @@ a {
     display: none;
   }
 
+  /* Progress bar: full-width above footer */
+  .responsive-table td.card-progress {
+    order: 98;
+    display: block;
+    margin: 0.25rem 0 0 !important;
+    padding: 0 !important;
+  }
+
+  .responsive-table td.card-progress::before {
+    display: none;
+  }
+
   .pagination-controls {
     display: none;
   }

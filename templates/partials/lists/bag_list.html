@@ -26,7 +26,6 @@
             {% call table::sortable_header("Added", "created-at", navigator, "#bag-list") %}
             {% call table::sortable_header("Roaster", "roaster", navigator, "#bag-list") %}
             {% call table::sortable_header("Roast", "roast", navigator, "#bag-list") %}
-            <th scope="col" class="px-4 py-3">Weight</th>
             {% call table::sortable_header("Status", "status", navigator, "#bag-list") %}
             {% call table::sortable_header("Finished", "finished-at", navigator, "#bag-list") %}
             {% if is_authenticated %}
@@ -49,21 +48,34 @@
             <td data-label="Roast" class="card-title px-4 py-3 whitespace-nowrap">
               {{ bag.roast_name }}
             </td>
-            <td data-label="Weight" class="px-4 py-3 whitespace-nowrap text-xs font-medium text-text-secondary">{{ bag.amount }}g</td>
-            <td data-label="Status" class="mobile-hidden px-4 py-3 whitespace-nowrap md:text-center">
+            <td data-label="Status" class="mobile-hidden px-4 py-3 whitespace-nowrap">
               {% if bag.closed %}
               <span class="pill pill-warning">Closed</span>
               {% else %}
-              <span class="pill pill-success">Open</span>
-              <div class="text-xs text-text-muted">{{ bag.remaining }}g left</div>
+              <div class="w-14">
+                <div class="h-1.5 rounded-full bg-surface-alt overflow-hidden">
+                  <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
+                </div>
+                <div class="mt-0.5 text-text-muted" style="font-variant: small-caps; font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
+              </div>
               {% endif %}
             </td>
             {% if !bag.closed %}
-            <td data-label="Remaining" class="px-4 py-3 whitespace-nowrap md:hidden">{{ bag.remaining }}g left</td>
+            <td data-label="" class="card-progress md:hidden">
+              <div class="h-1.5 rounded-full bg-surface-alt overflow-hidden">
+                <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
+              </div>
+              <div class="mt-0.5 text-right text-text-muted" style="font-variant: small-caps; font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
+            </td>
             {% endif %}
-            <td data-label="Finished" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
+            <td data-label="Finished" class="mobile-hidden whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
               <div>{{ bag.finished_date }}</div>
             </td>
+            {% if bag.closed %}
+            <td data-label="Finished" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary md:hidden">
+              <div>{{ bag.finished_date }}</div>
+            </td>
+            {% endif %}
             {% if is_authenticated %}
             <td data-label="" class="card-detail hidden">
               <div class="flex items-center gap-4">
@@ -86,8 +98,6 @@
                 <span class="md:hidden">
                 {% if bag.closed %}
                 <span class="pill pill-warning text-[0.625rem] py-0 px-1.5">Closed</span>
-                {% else %}
-                <span class="pill pill-success text-[0.625rem] py-0 px-1.5">Open</span>
                 {% endif %}
                 </span>
                 <button type="button"
@@ -102,7 +112,7 @@
           </tr>
           {% if is_authenticated %}
           <tr class="hidden detail-row">
-            <td colspan="7" class="bg-surface-alt px-4 py-2">
+            <td colspan="6" class="bg-surface-alt px-4 py-2">
               <div class="flex items-center gap-4">
                 {% if !bag.closed %}
                 <button type="button"

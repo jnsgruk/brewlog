@@ -42,7 +42,9 @@ impl SqlBagRepository {
             BagSortKey::UpdatedAt => format!("b.updated_at {dir_sql}, b.id DESC"),
             BagSortKey::Roaster => format!("LOWER(rr.name) {dir_sql}, b.created_at DESC"),
             BagSortKey::Roast => format!("LOWER(r.name) {dir_sql}, b.created_at DESC"),
-            BagSortKey::Status => format!("b.closed {dir_sql}, b.created_at DESC"),
+            BagSortKey::Status => format!(
+                "CASE WHEN b.closed THEN 10000 ELSE b.remaining END {dir_sql}, b.created_at DESC"
+            ),
             BagSortKey::FinishedAt => format!("b.finished_at {dir_sql}, b.created_at DESC"),
         }
     }

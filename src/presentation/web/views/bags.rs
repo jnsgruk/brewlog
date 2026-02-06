@@ -15,10 +15,17 @@ pub struct BagView {
     pub roaster_name: String,
     pub roast_slug: String,
     pub roaster_slug: String,
+    pub used_percent: u8,
 }
 
 impl BagView {
     pub fn from_domain(bag: BagWithRoast) -> Self {
+        let used_percent = if bag.bag.amount > 0.0 {
+            (((bag.bag.amount - bag.bag.remaining) / bag.bag.amount) * 100.0).clamp(0.0, 100.0)
+                as u8
+        } else {
+            0
+        };
         Self {
             id: bag.bag.id.to_string(),
             roast_id: bag.bag.roast_id.to_string(),
@@ -36,6 +43,7 @@ impl BagView {
             roaster_name: bag.roaster_name,
             roast_slug: bag.roast_slug,
             roaster_slug: bag.roaster_slug,
+            used_percent,
         }
     }
 }
