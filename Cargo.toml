@@ -3,11 +3,6 @@ name = "brewlog"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-default = ["sqlite"]
-sqlite = ["sqlx/sqlite"]
-postgres = ["sqlx/postgres"]
-
 [dependencies]
 anyhow = "1.0"
 async-trait = "0.1"
@@ -29,7 +24,7 @@ sqlx = { version = "0.7", default-features = false, features = [
     "tls-rustls",
     "macros",
     "chrono",
-    "any",
+    "sqlite",
     "migrate",
 ] }
 thiserror = "1.0"

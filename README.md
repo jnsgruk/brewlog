@@ -9,7 +9,7 @@ CLI client.
 - **CLI client** for terminal-based workflows
 - **AI extraction** — scan a coffee bag label or type a description to auto-fill forms (via [OpenRouter](https://openrouter.ai/))
 - **Nearby cafe search** powered by [Foursquare Places](https://docs.foursquare.com/developer/reference/place-search)
-- **SQLite** (default) or **PostgreSQL** (compile-time feature flag)
+- **SQLite** database
 - **Passkey authentication** — no passwords, WebAuthn only
 
 ## Quick Start
@@ -19,8 +19,6 @@ CLI client.
 ```bash
 cargo install --git https://github.com/jnsgruk/brewlog.git
 
-# For PostgreSQL instead of SQLite:
-# cargo install --git https://github.com/jnsgruk/brewlog.git --no-default-features --features postgres
 ```
 
 ### Configure
@@ -102,14 +100,7 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 
 ### Database
 
-SQLite is the default. PostgreSQL is supported via a compile-time feature flag:
-
-```bash
-cargo build --release                                          # SQLite
-cargo build --release --features postgres --no-default-features  # PostgreSQL
-```
-
-Migrations run automatically on server startup.
+SQLite is used for storage. Migrations run automatically on server startup.
 
 ## Contributing
 

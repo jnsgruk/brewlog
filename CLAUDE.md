@@ -7,7 +7,7 @@ Brewlog is a self-hosted coffee logging platform built in Rust. It provides:
 - HTTP server with web UI (Axum + Askama templates + Datastar)
 - REST API for programmatic access
 - CLI client for command-line operations
-- SQLite/PostgreSQL database support (feature-flagged)
+- SQLite database
 
 ## Build & Test Commands
 
