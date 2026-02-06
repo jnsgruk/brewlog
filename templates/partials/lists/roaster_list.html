@@ -18,15 +18,15 @@
   <section class="rounded-lg border bg-surface"
     {% if roasters.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(roasters.next_page().unwrap())|safe }}" data-target="#roaster-list"{% endif %}
   >
-    {% call table::search_header(navigator, "#roaster-list") %}
+    {{ table::search_header(navigator, "#roaster-list") }}
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
         <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text">
           <tr>
-            {% call table::sortable_header("Added", "created-at", navigator, "#roaster-list") %}
-            {% call table::sortable_header("Name", "name", navigator, "#roaster-list") %}
-            {% call table::sortable_header("Country", "country", navigator, "#roaster-list") %}
-            {% call table::sortable_header("City", "city", navigator, "#roaster-list") %}
+            {{ table::sortable_header("Added", "created-at", navigator, "#roaster-list") }}
+            {{ table::sortable_header("Name", "name", navigator, "#roaster-list") }}
+            {{ table::sortable_header("Country", "country", navigator, "#roaster-list") }}
+            {{ table::sortable_header("City", "city", navigator, "#roaster-list") }}
             <th scope="col" class="actions-col px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -60,14 +60,14 @@
                 {% if roaster.has_homepage %}
                 <a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
                   href="{{ roaster.homepage_url }}" target="_blank" rel="noreferrer noopener">
-                  {% call icons::external_link("h-4 w-4") %} Homepage
+                  {{ icons::external_link("h-4 w-4") }} Homepage
                 </a>
                 {% endif %}
                 {% if is_authenticated %}
                 <button type="button"
                   class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
                   data-on:click="confirm('Delete this roaster?') && @delete('/api/v1/roasters/{{ roaster.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})">
-                  {% call icons::delete("h-4 w-4") %} Delete
+                  {{ icons::delete("h-4 w-4") }} Delete
                 </button>
                 {% endif %}
               </div>
@@ -78,8 +78,8 @@
               <button type="button"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
                 title="Actions">
-                <span class="icon-expand">{% call icons::ellipsis_vertical("h-5 w-5") %}</span>
-                <span class="icon-collapse hidden">{% call icons::chevron_up("h-5 w-5") %}</span>
+                <span class="icon-expand">{{ icons::ellipsis_vertical("h-5 w-5") }}</span>
+                <span class="icon-collapse hidden">{{ icons::chevron_up("h-5 w-5") }}</span>
               </button>
               {% endif %}
             </td>
@@ -91,14 +91,14 @@
                 {% if roaster.has_homepage %}
                 <a class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
                   href="{{ roaster.homepage_url }}" target="_blank" rel="noreferrer noopener">
-                  {% call icons::external_link("h-4 w-4") %} Homepage
+                  {{ icons::external_link("h-4 w-4") }} Homepage
                 </a>
                 {% endif %}
                 {% if is_authenticated %}
                 <button type="button"
                   class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
                   data-on:click="confirm('Delete this roaster?') && @delete('/api/v1/roasters/{{ roaster.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#roaster-list', mode: 'replace'}})">
-                  {% call icons::delete("h-4 w-4") %} Delete
+                  {{ icons::delete("h-4 w-4") }} Delete
                 </button>
                 {% endif %}
               </div>
@@ -112,7 +112,7 @@
     {% if roasters.items.is_empty() %}
     <div class="p-8 text-center text-text-muted">No roasters match your search.</div>
     {% endif %}
-    {% call table::pagination_header(roasters, navigator, "#roaster-list") %}
+    {{ table::pagination_header(roasters, navigator, "#roaster-list") }}
     {% if roasters.has_next() %}
     <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}

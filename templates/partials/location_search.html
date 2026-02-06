@@ -43,8 +43,8 @@ const locateUser = (triggerEl) => {
       data-attr:disabled="$_locating || $_locationFound"
       aria-label="Use my location"
     >
-      <span data-show="!$_locating">{% call icons::location("h-5 w-5") %}</span>
-      <span data-show="$_locating" style="display: none">{% call icons::spinner("h-5 w-5") %}</span>
+      <span data-show="!$_locating">{{ icons::location("h-5 w-5") }}</span>
+      <span data-show="$_locating" style="display: none">{{ icons::spinner("h-5 w-5") }}</span>
     </button>
     <input type="text" data-bind:_city-name
       class="input-field w-full text-sm"

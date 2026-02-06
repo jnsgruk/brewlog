@@ -12,7 +12,7 @@
   {% if is_authenticated %}
   <div class="mt-3 pt-3 border-t flex gap-3">
     <a href="/add?type=brew&bag_id={{ bag.id }}" class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
-      {% call icons::plus_circle("h-4 w-4") %}
+      {{ icons::plus_circle("h-4 w-4") }}
       Brew
     </a>
     <button
@@ -20,7 +20,7 @@
       class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-text"
       onclick="closeBag('{{ bag.id }}', document.getElementById('bag-card-{{ bag.id }}'))"
     >
-      {% call icons::x_circle("h-4 w-4") %}
+      {{ icons::x_circle("h-4 w-4") }}
       Close
     </button>
   </div>
