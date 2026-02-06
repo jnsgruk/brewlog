@@ -8,8 +8,11 @@ use serde_json::{from_str, to_string};
 use crate::domain::bags::Bag;
 use crate::domain::brews::{Brew, QuickNote};
 use crate::domain::cafes::Cafe;
+use crate::domain::cups::Cup;
 use crate::domain::gear::{Gear, GearCategory};
-use crate::domain::ids::{BagId, BrewId, CafeId, GearId, RoastId, RoasterId, TimelineEventId};
+use crate::domain::ids::{
+    BagId, BrewId, CafeId, CupId, GearId, RoastId, RoasterId, TimelineEventId,
+};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 use crate::domain::timeline::TimelineEvent;
@@ -50,6 +53,8 @@ pub struct BackupData {
     pub brews: Vec<Brew>,
     #[serde(default)]
     pub cafes: Vec<Cafe>,
+    #[serde(default)]
+    pub cups: Vec<Cup>,
     pub timeline_events: Vec<TimelineEvent>,
 }
 
@@ -69,10 +74,11 @@ impl BackupService {
         let bags = self.export_bags().await?;
         let brews = self.export_brews().await?;
         let cafes = self.export_cafes().await?;
+        let cups = self.export_cups().await?;
         let timeline_events = self.export_timeline_events().await?;
 
         Ok(BackupData {
-            version: 1,
+            version: 2,
             created_at: Utc::now(),
             roasters,
             gear,
@@ -80,6 +86,7 @@ impl BackupService {
             bags,
             brews,
             cafes,
+            cups,
             timeline_events,
         })
     }
@@ -99,6 +106,7 @@ impl BackupService {
         self.restore_bags(&mut tx, &data.bags).await?;
         self.restore_brews(&mut tx, &data.brews).await?;
         self.restore_cafes(&mut tx, &data.cafes).await?;
+        self.restore_cups(&mut tx, &data.cups).await?;
         self.restore_timeline_events(&mut tx, &data.timeline_events)
             .await?;
 
@@ -184,6 +192,17 @@ impl BackupService {
         Ok(records.into_iter().map(CafeRecord::into_domain).collect())
     }
 
+    async fn export_cups(&self) -> anyhow::Result<Vec<Cup>> {
+        let records = sqlx::query_as::<_, CupRecord>(
+            "SELECT id, roast_id, cafe_id, created_at, updated_at FROM cups ORDER BY id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export cups")?;
+
+        Ok(records.into_iter().map(CupRecord::into_domain).collect())
+    }
+
     async fn export_timeline_events(&self) -> anyhow::Result<Vec<TimelineEvent>> {
         let records = sqlx::query_as::<_, TimelineEventRecord>(
             "SELECT id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json FROM timeline_events ORDER BY id",
@@ -208,6 +227,7 @@ impl BackupService {
             "gear",
             "brews",
             "cafes",
+            "cups",
             "timeline_events",
         ];
 
@@ -344,8 +364,15 @@ impl BackupService {
         brews: &[Brew],
     ) -> anyhow::Result<()> {
         for brew in brews {
+            let quick_notes_json = if brew.quick_notes.is_empty() {
+                None
+            } else {
+                let values: Vec<&str> = brew.quick_notes.iter().map(|n| n.form_value()).collect();
+                Some(to_string(&values).context("failed to encode quick notes for restore")?)
+            };
+
             sqlx::query(
-                "INSERT INTO brews (id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO brews (id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(i64::from(brew.id))
             .bind(i64::from(brew.bag_id))
@@ -356,6 +383,7 @@ impl BackupService {
             .bind(brew.filter_paper_id.map(i64::from))
             .bind(brew.water_volume)
             .bind(brew.water_temp)
+            .bind(quick_notes_json.as_deref())
             .bind(brew.created_at)
             .bind(brew.updated_at)
             .execute(&mut **tx)
@@ -388,6 +416,28 @@ impl BackupService {
             .execute(&mut **tx)
             .await
             .context("failed to restore cafe")?;
+        }
+
+        Ok(())
+    }
+
+    async fn restore_cups(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        cups: &[Cup],
+    ) -> anyhow::Result<()> {
+        for cup in cups {
+            sqlx::query(
+                "INSERT INTO cups (id, roast_id, cafe_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            )
+            .bind(i64::from(cup.id))
+            .bind(i64::from(cup.roast_id))
+            .bind(i64::from(cup.cafe_id))
+            .bind(cup.created_at)
+            .bind(cup.updated_at)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore cup")?;
         }
 
         Ok(())
@@ -618,6 +668,27 @@ impl CafeRecord {
             latitude: self.latitude,
             longitude: self.longitude,
             website: self.website,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct CupRecord {
+    id: i64,
+    roast_id: i64,
+    cafe_id: i64,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+}
+
+impl CupRecord {
+    fn into_domain(self) -> Cup {
+        Cup {
+            id: CupId::from(self.id),
+            roast_id: RoastId::from(self.roast_id),
+            cafe_id: CafeId::from(self.cafe_id),
             created_at: self.created_at,
             updated_at: self.updated_at,
         }
