@@ -2,7 +2,7 @@
 <nav class="relative border-b pb-4 text-sm" data-signals:_nav-open="false">
     <div class="flex items-center justify-between">
         <div class="font-semibold uppercase tracking-[0.25em] text-accent"><a href="/">B{rew}log</a></div>
-        <div class="flex items-center gap-1">
+        <div class="relative flex items-center gap-1">
             <a class="rounded-md p-1.5 transition {% if nav_active == "home" %}text-accent{% else %}text-text-muted hover:text-text-secondary{% endif %}" href="/" title="Home" aria-label="Home">
                 {% call icons::home("h-5 w-5") %}
             </a>
@@ -14,34 +14,35 @@
                 <span data-show="!$_navOpen">{% call icons::hamburger("h-5 w-5") %}</span>
                 <span data-show="$_navOpen" style="display:none">{% call icons::close("h-5 w-5") %}</span>
             </button>
+            <!-- Backdrop (click outside to close) -->
+            <div class="fixed inset-0 z-40" data-show="$_navOpen" data-on:click="$_navOpen = false" style="display:none"></div>
+            <!-- Dropdown menu -->
+            <div class="absolute right-0 top-full z-50 mt-2 flex flex-col gap-1 rounded-lg border bg-surface p-3 whitespace-nowrap" data-show="$_navOpen" style="display:none">
+                <a class="rounded-md px-4 py-2.5 transition flex items-center justify-end gap-4 {% if nav_active == "data" %}text-accent font-medium{% else %}text-text-muted hover:text-text hover:bg-surface-alt{% endif %}" href="/data">
+                    Data {% call icons::squares("h-4 w-4 shrink-0") %}
+                </a>
+                <a class="rounded-md px-4 py-2.5 transition flex items-center justify-end gap-4 {% if nav_active == "timeline" %}text-accent font-medium{% else %}text-text-muted hover:text-text hover:bg-surface-alt{% endif %}" href="/timeline">
+                    Timeline {% call icons::timeline("h-4 w-4 shrink-0") %}
+                </a>
+                {% if is_authenticated %}
+                <a class="rounded-md px-4 py-2.5 transition flex items-center justify-end gap-4 {% if nav_active == "checkin" %}text-accent font-medium{% else %}text-text-muted hover:text-text hover:bg-surface-alt{% endif %}" href="/check-in">
+                    Check In {% call icons::checkin("h-4 w-4 shrink-0") %}
+                </a>
+                <a class="rounded-md px-4 py-2.5 transition flex items-center justify-end gap-4 {% if nav_active == "account" %}text-accent font-medium{% else %}text-text-muted hover:text-text hover:bg-surface-alt{% endif %}" href="/account">
+                    Admin {% call icons::cog("h-4 w-4 shrink-0") %}
+                </a>
+                <form method="post" action="/logout">
+                    <button type="submit" class="w-full rounded-md px-4 py-2.5 transition flex items-center justify-end gap-4 text-text-muted hover:text-text hover:bg-surface-alt">
+                        Sign Out {% call icons::logout("h-4 w-4 shrink-0") %}
+                    </button>
+                </form>
+                {% else %}
+                <a class="rounded-md px-4 py-2.5 transition flex items-center justify-end gap-4 text-text-muted hover:text-text hover:bg-surface-alt" href="/login">
+                    Login {% call icons::user("h-4 w-4 shrink-0") %}
+                </a>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    <!-- Menu -->
-    <div class="flex flex-col gap-2 pt-3 mt-3 border-t md:items-end" data-show="$_navOpen" style="display:none">
-        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "data" %}text-accent font-medium{% else %}text-text-muted hover:text-text{% endif %}" href="/data">
-            Data {% call icons::database("h-4 w-4") %}
-        </a>
-        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "timeline" %}text-accent font-medium{% else %}text-text-muted hover:text-text{% endif %}" href="/timeline">
-            Timeline {% call icons::timeline("h-4 w-4") %}
-        </a>
-        {% if is_authenticated %}
-        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "checkin" %}text-accent font-medium{% else %}text-text-muted hover:text-text{% endif %}" href="/check-in">
-            Check In {% call icons::checkin("h-4 w-4") %}
-        </a>
-        <a class="py-1 transition inline-flex items-center gap-1.5 {% if nav_active == "account" %}text-accent font-medium{% else %}text-text-muted hover:text-text{% endif %}" href="/account">
-            Admin {% call icons::cog("h-4 w-4") %}
-        </a>
-        <form method="post" action="/logout" class="flex md:justify-end">
-            <button type="submit" class="py-1 transition inline-flex items-center gap-1.5 text-text-muted hover:text-text">
-                Sign Out {% call icons::logout("h-4 w-4") %}
-            </button>
-        </form>
-        {% else %}
-        <a class="py-1 transition inline-flex items-center gap-1.5 text-text-muted hover:text-text" href="/login">
-            Login {% call icons::user("h-4 w-4") %}
-        </a>
-        {% endif %}
-    </div>
 </nav>
 <script>
     const toggleTheme = () => {
