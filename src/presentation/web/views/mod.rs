@@ -5,6 +5,7 @@ mod cups;
 mod gear;
 mod roasters;
 mod roasts;
+pub mod tasting_notes;
 mod timeline;
 
 pub use bags::{BagOptionView, BagView};
@@ -14,6 +15,7 @@ pub use cups::CupView;
 pub use gear::{GearOptionView, GearView};
 pub use roasters::{RoasterOptionView, RoasterView};
 pub use roasts::{RoastOptionView, RoastView};
+pub use tasting_notes::TastingNoteView;
 pub use timeline::{
     TimelineBrewDataView, TimelineEventDetailView, TimelineEventView, TimelineMonthView,
 };

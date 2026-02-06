@@ -168,6 +168,107 @@ a {
   background-color: rgba(5, 150, 105, 0.1);
 }
 
+/* Tasting-note colour categories (SCA wheel) */
+
+.pill-floral {
+  border-color: rgba(236, 72, 153, 0.3);
+  color: #9d174d;
+  background-color: #fdf2f8;
+}
+
+.pill-fruity {
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #991b1b;
+  background-color: #fef2f2;
+}
+
+.pill-citrus {
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #92400e;
+  background-color: #fffbeb;
+}
+
+.pill-sweet {
+  border-color: rgba(234, 88, 12, 0.3);
+  color: #9a3412;
+  background-color: #fff7ed;
+}
+
+.pill-nutty {
+  border-color: rgba(161, 98, 7, 0.3);
+  color: #713f12;
+  background-color: #fefce8;
+}
+
+.pill-spice {
+  border-color: rgba(190, 18, 60, 0.3);
+  color: #9f1239;
+  background-color: #fff1f2;
+}
+
+.pill-roasted {
+  border-color: rgba(120, 113, 108, 0.3);
+  color: #44403c;
+  background-color: #f5f5f4;
+}
+
+.pill-sour {
+  border-color: rgba(101, 163, 13, 0.3);
+  color: #3f6212;
+  background-color: #f7fee7;
+}
+
+.pill-vegetal {
+  border-color: rgba(5, 150, 105, 0.3);
+  color: #065f46;
+  background-color: #ecfdf5;
+}
+
+[data-theme="dark"] .pill-floral {
+  color: #f9a8d4;
+  background-color: rgba(236, 72, 153, 0.1);
+}
+
+[data-theme="dark"] .pill-fruity {
+  color: #fca5a5;
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+[data-theme="dark"] .pill-citrus {
+  color: #fcd34d;
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+[data-theme="dark"] .pill-sweet {
+  color: #fdba74;
+  background-color: rgba(234, 88, 12, 0.1);
+}
+
+[data-theme="dark"] .pill-nutty {
+  color: #fde68a;
+  background-color: rgba(161, 98, 7, 0.1);
+}
+
+[data-theme="dark"] .pill-spice {
+  color: #fda4af;
+  background-color: rgba(190, 18, 60, 0.1);
+}
+
+[data-theme="dark"] .pill-roasted {
+  color: #a8a29e;
+  background-color: rgba(120, 113, 108, 0.1);
+}
+
+[data-theme="dark"] .pill-sour {
+  color: #bef264;
+  background-color: rgba(101, 163, 13, 0.1);
+}
+
+[data-theme="dark"] .pill-vegetal {
+  color: #6ee7b7;
+  background-color: rgba(5, 150, 105, 0.1);
+}
+
 /* ── Tabs ──────────────────────────────────────────────────────── */
 
 .tab {

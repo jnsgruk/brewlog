@@ -88,7 +88,11 @@
       {% if !notes.is_empty() %}
       <div class="flex justify-between gap-2">
         <dt class="shrink-0 font-medium text-text-muted">Tasting Notes</dt>
-        <dd class="text-right">{{ notes.join(", ") }}</dd>
+        <dd class="flex flex-wrap gap-1 justify-end">
+          {% for note in notes %}
+          <span class="{{ note.pill_class }}">{{ note.label }}</span>
+          {% endfor %}
+        </dd>
       </div>
       {% endif %}
       {% endif %}

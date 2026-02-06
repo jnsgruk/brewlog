@@ -1,5 +1,7 @@
 use crate::domain::roasts::{Roast, RoastWithRoaster};
 
+use super::tasting_notes::{self, TastingNoteView};
+
 pub struct RoastView {
     pub id: String,
     pub full_id: String,
@@ -13,7 +15,7 @@ pub struct RoastView {
     pub created_date: String,
     pub created_time: String,
     pub created_at_sort_key: i64,
-    pub tasting_notes: Vec<String>,
+    pub tasting_notes: Vec<TastingNoteView>,
 }
 
 impl RoastView {
@@ -64,6 +66,7 @@ impl RoastView {
                     .filter(|segment| !segment.is_empty())
                     .collect::<Vec<_>>()
             })
+            .map(|note| tasting_notes::categorize(&note))
             .collect();
         let created_date = created_at.format("%Y-%m-%d").to_string();
         let created_time = created_at.format("%H:%M").to_string();

@@ -1,6 +1,7 @@
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
 use super::relative_date;
+use super::tasting_notes::{self, TastingNoteView};
 
 /// Returns `true` if the value is empty or just an em-dash placeholder.
 fn is_blank(value: &str) -> bool {
@@ -54,7 +55,7 @@ pub struct TimelineEventView {
     pub external_link: Option<String>,
     pub details: Vec<TimelineEventDetailView>,
     pub subtitle: Option<String>,
-    pub tasting_notes: Option<Vec<String>>,
+    pub tasting_notes: Option<Vec<TastingNoteView>>,
     pub brew_data: Option<TimelineBrewDataView>,
 }
 
@@ -112,6 +113,7 @@ impl TimelineEventView {
                         .filter(|segment| !segment.is_empty())
                         .collect::<Vec<_>>()
                 })
+                .map(|note| tasting_notes::categorize(&note))
                 .collect::<Vec<_>>();
             Some(notes)
         } else {
