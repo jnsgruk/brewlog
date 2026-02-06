@@ -51,18 +51,20 @@
               cargoLock.lockFile = ./Cargo.lock;
 
               nativeBuildInputs = with pkgs; [
+                clang
+                lld
                 pkg-config
                 tailwindcss_4
               ];
 
-              buildInputs = with pkgs; [ openssl ];
+              buildInputs = with pkgs; [
+                openssl
+              ];
 
-              preBuild = ''
-                tailwindcss -i static/css/input.css -o static/css/styles.css --minify
-              '';
+              env.LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.openssl ];
 
               meta = {
-                description = "Log your favourite roasters, roasts, brews and cafes!";
+                description = "Log your favourite roasters, roasts, brews and cafes";
                 homepage = "https://github.com/jnsgruk/brewlog";
                 license = lib.licenses.asl20;
                 mainProgram = "brewlog";
