@@ -51,6 +51,7 @@
               cargoLock.lockFile = ./Cargo.lock;
 
               nativeBuildInputs = with pkgs; [
+                autoPatchelfHook
                 clang
                 lld
                 pkg-config
@@ -59,6 +60,7 @@
 
               buildInputs = with pkgs; [
                 openssl
+                stdenv.cc.cc.lib
               ];
 
               env.LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.openssl ];
@@ -106,7 +108,6 @@
 
               NIX_CONFIG = "experimental-features = nix-command flakes";
               RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
-              LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [ openssl ];
 
               buildInputs = [
                 rust
