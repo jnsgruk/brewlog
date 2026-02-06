@@ -236,6 +236,7 @@ pub trait PasskeyCredentialRepository: Send + Sync {
         &self,
         user_id: UserId,
     ) -> Result<Vec<PasskeyCredential>, RepositoryError>;
+    async fn list_all(&self) -> Result<Vec<PasskeyCredential>, RepositoryError>;
     async fn update_credential_json(
         &self,
         id: PasskeyCredentialId,

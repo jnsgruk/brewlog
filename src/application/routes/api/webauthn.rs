@@ -190,30 +190,19 @@ pub(crate) async fn auth_start(
     State(state): State<AppState>,
     Query(query): Query<AuthStartQuery>,
 ) -> Result<Json<AuthStartResponse>, StatusCode> {
-    // Load all passkey credentials from all users
-    let users = state.user_repo.list_all().await.map_err(|err| {
-        error!(error = %err, "failed to list users for auth start");
+    // Load all passkey credentials in a single query
+    let credentials = state.passkey_repo.list_all().await.map_err(|err| {
+        error!(error = %err, "failed to list all passkey credentials");
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
 
     let mut all_passkeys: Vec<Passkey> = Vec::new();
-    for user in &users {
-        let credentials = state
-            .passkey_repo
-            .list_by_user(user.id)
-            .await
-            .map_err(|err| {
-                error!(error = %err, user_id = %user.id, "failed to list passkeys for user");
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?;
-
-        for cred in credentials {
-            let passkey: Passkey = serde_json::from_str(&cred.credential_json).map_err(|err| {
-                error!(error = %err, "failed to deserialize passkey credential");
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?;
-            all_passkeys.push(passkey);
-        }
+    for cred in credentials {
+        let passkey: Passkey = serde_json::from_str(&cred.credential_json).map_err(|err| {
+            error!(error = %err, credential_id = %cred.id, "failed to deserialize passkey credential");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+        all_passkeys.push(passkey);
     }
 
     if all_passkeys.is_empty() {
@@ -276,8 +265,8 @@ pub(crate) async fn auth_finish(
 
     // Find the user who owns this credential
     let credential_id = auth_result.cred_id();
-    let users = state.user_repo.list_all().await.map_err(|err| {
-        error!(error = %err, "failed to list users for credential lookup");
+    let credentials = state.passkey_repo.list_all().await.map_err(|err| {
+        error!(error = %err, "failed to list passkey credentials for credential lookup");
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
 
@@ -285,28 +274,17 @@ pub(crate) async fn auth_finish(
     let mut found_cred_id = None;
     let mut found_passkey: Option<Passkey> = None;
 
-    'outer: for user in &users {
-        let credentials = state
-            .passkey_repo
-            .list_by_user(user.id)
-            .await
+    for cred in &credentials {
+        let passkey: Passkey = serde_json::from_str(&cred.credential_json)
             .map_err(|err| {
-                error!(error = %err, user_id = %user.id, "failed to list passkeys for user");
+                error!(error = %err, credential_id = %cred.id, "failed to deserialize passkey credential");
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
-
-        for cred in &credentials {
-            let passkey: Passkey = serde_json::from_str(&cred.credential_json)
-                .map_err(|err| {
-                    error!(error = %err, credential_id = %cred.id, "failed to deserialize passkey credential");
-                    StatusCode::INTERNAL_SERVER_ERROR
-                })?;
-            if passkey.cred_id() == credential_id {
-                found_user_id = Some(user.id);
-                found_cred_id = Some(cred.id);
-                found_passkey = Some(passkey);
-                break 'outer;
-            }
+        if passkey.cred_id() == credential_id {
+            found_user_id = Some(cred.user_id);
+            found_cred_id = Some(cred.id);
+            found_passkey = Some(passkey);
+            break;
         }
     }
 
@@ -413,7 +391,13 @@ pub(crate) async fn passkey_add_start(
 
     let exclude_credentials = existing
         .iter()
-        .filter_map(|c| serde_json::from_str::<Passkey>(&c.credential_json).ok())
+        .filter_map(|c| {
+            serde_json::from_str::<Passkey>(&c.credential_json)
+                .map_err(|err| {
+                    warn!(error = %err, credential_id = %c.id, "failed to deserialize passkey credential for exclude list");
+                })
+                .ok()
+        })
         .map(|p| p.cred_id().clone())
         .collect::<Vec<_>>();
 

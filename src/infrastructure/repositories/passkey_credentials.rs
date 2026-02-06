@@ -107,6 +107,25 @@ impl PasskeyCredentialRepository for SqlPasskeyCredentialRepository {
         Ok(records.into_iter().map(Self::to_domain).collect())
     }
 
+    async fn list_all(&self) -> Result<Vec<PasskeyCredential>, RepositoryError> {
+        let sql = r"
+            SELECT id, user_id, credential_json, name, created_at, last_used_at
+            FROM passkey_credentials
+            ORDER BY created_at ASC
+        ";
+
+        let records = query_as::<_, PasskeyCredentialRecord>(sql)
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|err| {
+                RepositoryError::unexpected(format!(
+                    "failed to list all passkey credentials: {err}"
+                ))
+            })?;
+
+        Ok(records.into_iter().map(Self::to_domain).collect())
+    }
+
     async fn update_credential_json(
         &self,
         id: PasskeyCredentialId,
