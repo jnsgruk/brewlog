@@ -294,7 +294,7 @@ async fn backup_and_restore_round_trip() {
         .await
         .expect("failed to export backup");
 
-    assert_eq!(backup_data.version, 1);
+    assert_eq!(backup_data.version, 2);
     assert_eq!(backup_data.roasters.len(), 1);
     assert_eq!(backup_data.roasts.len(), 1);
     assert_eq!(backup_data.bags.len(), 1);
@@ -308,7 +308,7 @@ async fn backup_and_restore_round_trip() {
     let restored_data: BackupData =
         serde_json::from_str(&json).expect("failed to deserialize backup");
 
-    assert_eq!(restored_data.version, 1);
+    assert_eq!(restored_data.version, 2);
     assert_eq!(restored_data.roasters.len(), 1);
     assert_eq!(restored_data.roasts.len(), 1);
     assert_eq!(restored_data.bags.len(), 1);
@@ -449,6 +449,7 @@ async fn restore_to_non_empty_database_fails() {
         bags: vec![],
         brews: vec![],
         cafes: vec![],
+        cups: vec![],
         timeline_events: vec![],
     };
 
@@ -472,7 +473,7 @@ async fn backup_empty_database() {
         .await
         .expect("failed to export empty database");
 
-    assert_eq!(backup_data.version, 1);
+    assert_eq!(backup_data.version, 2);
     assert!(backup_data.roasters.is_empty());
     assert!(backup_data.roasts.is_empty());
     assert!(backup_data.bags.is_empty());
@@ -484,7 +485,7 @@ async fn backup_empty_database() {
     // Should serialize to valid JSON
     let json = serde_json::to_string_pretty(&backup_data).expect("failed to serialize");
     let parsed: BackupData = serde_json::from_str(&json).expect("failed to deserialize");
-    assert_eq!(parsed.version, 1);
+    assert_eq!(parsed.version, 2);
 }
 
 // --- API-level tests ---
@@ -521,7 +522,7 @@ async fn backup_export_returns_data() {
     assert_eq!(response.status(), reqwest::StatusCode::OK);
 
     let data: BackupData = response.json().await.expect("failed to parse backup data");
-    assert_eq!(data.version, 1);
+    assert_eq!(data.version, 2);
     assert_eq!(data.roasters.len(), 1);
     assert_eq!(data.roasters[0].name, "Test Roasters");
 }
@@ -540,6 +541,7 @@ async fn backup_restore_requires_auth() {
         bags: vec![],
         brews: vec![],
         cafes: vec![],
+        cups: vec![],
         timeline_events: vec![],
     };
 
@@ -570,6 +572,7 @@ async fn backup_restore_non_empty_db_returns_conflict() {
         bags: vec![],
         brews: vec![],
         cafes: vec![],
+        cups: vec![],
         timeline_events: vec![],
     };
 

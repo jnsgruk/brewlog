@@ -56,7 +56,7 @@ jobs:
 
       - name: Build container
         run: |
-          nix build -L .#jnsgruk-container
+          nix build -L .#brewlog-container
 
       - name: Upload container to ghcr.io
         run: |

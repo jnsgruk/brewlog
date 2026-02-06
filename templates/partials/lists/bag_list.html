@@ -36,7 +36,7 @@
         <tbody class="divide-y/70">
           {% for bag in bags.items %}
           <tr class="transition hover:bg-surface-alt"
-            {% if is_authenticated %}onclick="if(event.target.closest('.card-detail'))return;this.classList.toggle('expanded');this.querySelector('.card-detail')?.classList.toggle('hidden');const r=this.nextElementSibling;if(r?.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand')?.classList.toggle('hidden');this.querySelector('.icon-collapse')?.classList.toggle('hidden');"{% endif %}
+            {% if is_authenticated %}onclick="toggleRow(event)"{% endif %}
           >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
               <div>{{ bag.created_date }}</div>

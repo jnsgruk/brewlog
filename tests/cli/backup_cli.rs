@@ -19,12 +19,13 @@ fn backup_produces_valid_json() {
     let data: serde_json::Value =
         serde_json::from_str(&stdout).expect("backup output is not valid JSON");
 
-    assert_eq!(data["version"], 1);
+    assert_eq!(data["version"], 2);
     assert!(data["roasters"].is_array());
     assert!(data["roasts"].is_array());
     assert!(data["bags"].is_array());
     assert!(data["gear"].is_array());
     assert!(data["brews"].is_array());
     assert!(data["cafes"].is_array());
+    assert!(data["cups"].is_array());
     assert!(data["timeline_events"].is_array());
 }

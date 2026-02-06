@@ -138,7 +138,11 @@ impl AppState {
             ai_usage_repo,
             webauthn: config.webauthn,
             challenge_store: Arc::new(ChallengeStore::new()),
-            http_client: reqwest::Client::new(),
+            #[allow(clippy::expect_used)]
+            http_client: reqwest::ClientBuilder::new()
+                .timeout(std::time::Duration::from_secs(30))
+                .build()
+                .expect("failed to build HTTP client"),
             foursquare_url: config.foursquare_url,
             foursquare_api_key: config.foursquare_api_key,
             openrouter_url: config.openrouter_url,

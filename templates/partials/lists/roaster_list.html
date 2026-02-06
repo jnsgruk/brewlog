@@ -39,7 +39,7 @@
             data-sort-country="{{ roaster.country }}"
             data-sort-city="{{ roaster.city }}"
             class="transition hover:bg-surface-alt"
-            {% if roaster.has_homepage || is_authenticated %}onclick="if(event.target.closest('.card-detail'))return;this.classList.toggle('expanded');this.querySelector('.card-detail')?.classList.toggle('hidden');const r=this.nextElementSibling;if(r?.classList.contains('detail-row'))r.classList.toggle('hidden');this.querySelector('.icon-expand')?.classList.toggle('hidden');this.querySelector('.icon-collapse')?.classList.toggle('hidden');"{% endif %}
+            {% if roaster.has_homepage || is_authenticated %}onclick="toggleRow(event)"{% endif %}
           >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
               <div>{{ roaster.created_date }}</div>
