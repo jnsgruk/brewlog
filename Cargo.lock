@@ -404,6 +404,7 @@ dependencies = [
  "isocountry",
  "once_cell",
  "open",
+ "paste",
  "portpicker",
  "rand 0.8.5",
  "reqwest",

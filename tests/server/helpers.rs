@@ -11,6 +11,7 @@ use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::NewUser;
 use brewlog::infrastructure::database::Database;
 use reqwest::Client;
+use serde::{Serialize, de::DeserializeOwned};
 use tokio::net::TcpListener;
 use tokio::task::AbortHandle;
 use webauthn_rs::prelude::*;
@@ -188,11 +189,16 @@ async fn add_auth_to_app(mut app: TestApp) -> TestApp {
     app
 }
 
-pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> Roaster {
+/// Generic helper: POST a JSON payload and deserialize the response.
+/// Automatically attaches the auth token if the test app has one.
+pub async fn create_entity<P: Serialize, R: DeserializeOwned>(
+    app: &TestApp,
+    path: &str,
+    payload: &P,
+) -> R {
     let client = Client::new();
-    let mut request = client.post(app.api_url("/roasters")).json(&payload);
+    let mut request = client.post(app.api_url(path)).json(payload);
 
-    // Add auth token if available
     if let Some(token) = &app.auth_token {
         request = request.bearer_auth(token);
     }
@@ -200,34 +206,23 @@ pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> 
     let response = request
         .send()
         .await
-        .expect("failed to create roaster via API");
+        .unwrap_or_else(|e| panic!("failed to create entity at {path}: {e}"));
 
     response
         .json()
         .await
-        .expect("failed to deserialize roaster from response")
+        .unwrap_or_else(|e| panic!("failed to deserialize entity from {path}: {e}"))
+}
+
+pub async fn create_roaster_with_payload(app: &TestApp, payload: NewRoaster) -> Roaster {
+    create_entity(app, "/roasters", &payload).await
 }
 
 pub async fn create_roast_with_payload(
     app: &TestApp,
     payload: brewlog::domain::roasts::NewRoast,
 ) -> brewlog::domain::roasts::Roast {
-    let client = Client::new();
-    let mut request = client.post(app.api_url("/roasts")).json(&payload);
-
-    if let Some(token) = &app.auth_token {
-        request = request.bearer_auth(token);
-    }
-
-    let response = request
-        .send()
-        .await
-        .expect("failed to create roast via API");
-
-    response
-        .json()
-        .await
-        .expect("failed to deserialize roast from response")
+    create_entity(app, "/roasts", &payload).await
 }
 
 pub async fn create_default_roaster(app: &TestApp) -> Roaster {
@@ -270,25 +265,16 @@ pub async fn create_default_bag(
     app: &TestApp,
     roast_id: brewlog::domain::ids::RoastId,
 ) -> brewlog::domain::bags::Bag {
-    let client = Client::new();
-    let new_bag = brewlog::domain::bags::NewBag {
-        roast_id,
-        roast_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 1, 1).unwrap()),
-        amount: 250.0,
-    };
-
-    let mut request = client.post(app.api_url("/bags")).json(&new_bag);
-
-    if let Some(token) = &app.auth_token {
-        request = request.bearer_auth(token);
-    }
-
-    let response = request.send().await.expect("failed to create bag via API");
-
-    response
-        .json()
-        .await
-        .expect("failed to deserialize bag from response")
+    create_entity(
+        app,
+        "/bags",
+        &brewlog::domain::bags::NewBag {
+            roast_id,
+            roast_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 1, 1).unwrap()),
+            amount: 250.0,
+        },
+    )
+    .await
 }
 
 /// Asserts that the response has valid Datastar fragment headers
@@ -352,31 +338,22 @@ pub async fn create_default_gear(
     make: &str,
     model: &str,
 ) -> brewlog::domain::gear::Gear {
-    let client = Client::new();
     let gear_category = match category {
         "grinder" => brewlog::domain::gear::GearCategory::Grinder,
         "brewer" => brewlog::domain::gear::GearCategory::Brewer,
         "filter_paper" => brewlog::domain::gear::GearCategory::FilterPaper,
         _ => panic!("Unknown gear category: {}", category),
     };
-    let new_gear = brewlog::domain::gear::NewGear {
-        category: gear_category,
-        make: make.to_string(),
-        model: model.to_string(),
-    };
-
-    let mut request = client.post(app.api_url("/gear")).json(&new_gear);
-
-    if let Some(token) = &app.auth_token {
-        request = request.bearer_auth(token);
-    }
-
-    let response = request.send().await.expect("failed to create gear via API");
-
-    response
-        .json()
-        .await
-        .expect("failed to deserialize gear from response")
+    create_entity(
+        app,
+        "/gear",
+        &brewlog::domain::gear::NewGear {
+            category: gear_category,
+            make: make.to_string(),
+            model: model.to_string(),
+        },
+    )
+    .await
 }
 
 pub async fn create_default_cafe(app: &TestApp) -> Cafe {
@@ -395,19 +372,7 @@ pub async fn create_default_cafe(app: &TestApp) -> Cafe {
 }
 
 pub async fn create_cafe_with_payload(app: &TestApp, payload: NewCafe) -> Cafe {
-    let client = Client::new();
-    let mut request = client.post(app.api_url("/cafes")).json(&payload);
-
-    if let Some(token) = &app.auth_token {
-        request = request.bearer_auth(token);
-    }
-
-    let response = request.send().await.expect("failed to create cafe via API");
-
-    response
-        .json()
-        .await
-        .expect("failed to deserialize cafe from response")
+    create_entity(app, "/cafes", &payload).await
 }
 
 /// Creates a session for the authenticated user and returns the raw session token

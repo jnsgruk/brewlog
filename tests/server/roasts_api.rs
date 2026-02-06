@@ -1,6 +1,14 @@
 use crate::helpers::{create_default_roaster, create_roaster_with_name, spawn_app_with_auth};
+use crate::test_macros::define_crud_tests;
 use brewlog::domain::ids::RoasterId;
 use brewlog::domain::roasts::{NewRoast, Roast, RoastWithRoaster};
+
+define_crud_tests!(
+    entity: roast,
+    path: "/roasts",
+    list_type: RoastWithRoaster,
+    malformed_json: r#"{"name": "Test", "roaster_id": }"#
+);
 
 #[tokio::test]
 async fn creating_a_roast_returns_a_201_for_valid_data() {
@@ -157,43 +165,6 @@ async fn getting_a_roast_returns_a_200_for_valid_id() {
     let roast: Roast = response.json().await.expect("Failed to parse response");
     assert_eq!(roast.id, created_roast.id);
     assert_eq!(roast.name, "Kenyan AA");
-}
-
-#[tokio::test]
-async fn getting_a_nonexistent_roast_returns_a_404() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .get(app.api_url("/roasts/999999"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 404);
-}
-
-#[tokio::test]
-async fn listing_roasts_returns_a_200_with_empty_list() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .get(app.api_url("/roasts"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 200);
-
-    let roasts: Vec<RoastWithRoaster> = response.json().await.expect("Failed to parse response");
-    assert_eq!(roasts.len(), 0);
 }
 
 #[tokio::test]
@@ -367,24 +338,6 @@ async fn deleting_a_roast_returns_a_204_for_valid_id() {
 }
 
 #[tokio::test]
-async fn deleting_a_nonexistent_roast_returns_a_404() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .delete(app.api_url("/roasts/999999"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 404);
-}
-
-#[tokio::test]
 async fn creating_a_roast_with_empty_name_returns_a_400() {
     // Arrange
     let app = spawn_app_with_auth().await;
@@ -471,26 +424,6 @@ async fn creating_a_roast_with_empty_tasting_notes_returns_a_400() {
             }}"#,
             i64::from(roaster_id)
         ))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 400);
-}
-
-#[tokio::test]
-async fn creating_a_roast_with_malformed_json_returns_a_400() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .post(app.api_url("/roasts"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .header("content-type", "application/json")
-        .body(r#"{"name": "Test", "roaster_id": }"#) // Invalid JSON
         .send()
         .await
         .expect("Failed to execute request");

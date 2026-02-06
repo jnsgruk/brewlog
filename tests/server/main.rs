@@ -14,4 +14,5 @@ pub mod pages;
 pub mod roasters_api;
 pub mod roasts_api;
 pub mod scan_api;
+pub mod test_macros;
 pub mod timeline;

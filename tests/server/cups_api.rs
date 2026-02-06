@@ -1,8 +1,15 @@
 use crate::helpers::{
     create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_auth,
 };
+use crate::test_macros::define_crud_tests;
 use brewlog::domain::cups::{Cup, CupWithDetails, NewCup};
 use brewlog::domain::ids::{CafeId, RoastId};
+
+define_crud_tests!(
+    entity: cup,
+    path: "/cups",
+    list_type: CupWithDetails
+);
 
 #[tokio::test]
 async fn creating_a_cup_returns_a_201_for_valid_data() {
@@ -51,23 +58,6 @@ async fn creating_a_cup_requires_authentication() {
         .expect("Failed to execute request");
 
     assert_eq!(response.status(), 401);
-}
-
-#[tokio::test]
-async fn listing_cups_returns_a_200_with_empty_list() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .get(app.api_url("/cups"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 200);
-
-    let cups: Vec<CupWithDetails> = response.json().await.expect("Failed to parse response");
-    assert_eq!(cups.len(), 0);
 }
 
 #[tokio::test]
@@ -149,20 +139,6 @@ async fn getting_a_cup_returns_a_200_with_details() {
 }
 
 #[tokio::test]
-async fn getting_a_nonexistent_cup_returns_a_404() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .get(app.api_url("/cups/999999"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 404);
-}
-
-#[tokio::test]
 async fn deleting_a_cup_returns_a_204_for_valid_id() {
     let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
@@ -206,19 +182,4 @@ async fn deleting_a_cup_returns_a_204_for_valid_id() {
         .expect("Failed to execute request");
 
     assert_eq!(get_response.status(), 404);
-}
-
-#[tokio::test]
-async fn deleting_a_nonexistent_cup_returns_a_404() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .delete(app.api_url("/cups/999999"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 404);
 }

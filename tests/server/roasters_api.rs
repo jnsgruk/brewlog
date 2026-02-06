@@ -1,5 +1,14 @@
 use crate::helpers::spawn_app_with_auth;
+use crate::test_macros::define_crud_tests;
 use brewlog::domain::roasters::{NewRoaster, Roaster, UpdateRoaster};
+
+define_crud_tests!(
+    entity: roaster,
+    path: "/roasters",
+    list_type: Roaster,
+    malformed_json: r#"{"name": "Test", "country": }"#,
+    missing_fields: r#"{"name": "Test Roasters"}"#
+);
 
 #[tokio::test]
 async fn creating_a_roaster_returns_a_201_for_valid_data() {
@@ -108,43 +117,6 @@ async fn getting_a_roaster_returns_a_200_for_valid_id() {
     let roaster: Roaster = response.json().await.expect("Failed to parse response");
     assert_eq!(roaster.id, created_roaster.id);
     assert_eq!(roaster.name, "Fetchable Roasters");
-}
-
-#[tokio::test]
-async fn getting_a_nonexistent_roaster_returns_a_404() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .get(app.api_url("/roasters/999999"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 404);
-}
-
-#[tokio::test]
-async fn listing_roasters_returns_a_200_with_empty_list() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .get(app.api_url("/roasters"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 200);
-
-    let roasters: Vec<Roaster> = response.json().await.expect("Failed to parse response");
-    assert_eq!(roasters.len(), 0);
 }
 
 #[tokio::test]
@@ -373,24 +345,6 @@ async fn deleting_a_roaster_returns_a_204_for_valid_id() {
 }
 
 #[tokio::test]
-async fn deleting_a_nonexistent_roaster_returns_a_404() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .delete(app.api_url("/roasters/999999"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 404);
-}
-
-#[tokio::test]
 async fn creating_a_roaster_with_empty_name_returns_a_201_after_normalization() {
     // Arrange
     let app = spawn_app_with_auth().await;
@@ -415,44 +369,4 @@ async fn creating_a_roaster_with_empty_name_returns_a_201_after_normalization() 
 
     // Assert - The API accepts this but normalizes to empty string
     assert_eq!(response.status(), 201);
-}
-
-#[tokio::test]
-async fn creating_a_roaster_with_malformed_json_returns_a_400() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act
-    let response = client
-        .post(app.api_url("/roasters"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .header("content-type", "application/json")
-        .body(r#"{"name": "Test", "country": }"#) // Invalid JSON
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 400);
-}
-
-#[tokio::test]
-async fn creating_a_roaster_with_missing_required_fields_returns_a_400() {
-    // Arrange
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    // Act - Missing 'country' field
-    let response = client
-        .post(app.api_url("/roasters"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .header("content-type", "application/json")
-        .body(r#"{"name": "Test Roasters"}"#)
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    // Assert
-    assert_eq!(response.status(), 400);
 }

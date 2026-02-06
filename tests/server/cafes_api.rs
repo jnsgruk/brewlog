@@ -1,5 +1,14 @@
 use crate::helpers::{create_default_cafe, spawn_app_with_auth};
+use crate::test_macros::define_crud_tests;
 use brewlog::domain::cafes::{Cafe, NewCafe, UpdateCafe};
+
+define_crud_tests!(
+    entity: cafe,
+    path: "/cafes",
+    list_type: Cafe,
+    malformed_json: r#"{"name": "Test", "city": }"#,
+    missing_fields: r#"{"name": "Test Cafe"}"#
+);
 
 #[tokio::test]
 async fn creating_a_cafe_returns_a_201_for_valid_data() {
@@ -97,57 +106,6 @@ async fn creating_a_cafe_requires_authentication() {
 }
 
 #[tokio::test]
-async fn creating_a_cafe_with_missing_required_fields_returns_a_400() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(app.api_url("/cafes"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .header("content-type", "application/json")
-        .body(r#"{"name": "Test Cafe"}"#)
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 400);
-}
-
-#[tokio::test]
-async fn creating_a_cafe_with_malformed_json_returns_a_400() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .post(app.api_url("/cafes"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .header("content-type", "application/json")
-        .body(r#"{"name": "Test", "city": }"#)
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 400);
-}
-
-#[tokio::test]
-async fn listing_cafes_returns_a_200_with_empty_list() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .get(app.api_url("/cafes"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 200);
-
-    let cafes: Vec<Cafe> = response.json().await.expect("Failed to parse response");
-    assert_eq!(cafes.len(), 0);
-}
-
-#[tokio::test]
 async fn listing_cafes_returns_a_200_with_multiple_cafes() {
     let app = spawn_app_with_auth().await;
     let client = reqwest::Client::new();
@@ -215,20 +173,6 @@ async fn getting_a_cafe_returns_a_200_for_valid_id() {
     let fetched: Cafe = response.json().await.expect("Failed to parse response");
     assert_eq!(fetched.id, cafe.id);
     assert_eq!(fetched.name, "Blue Bottle");
-}
-
-#[tokio::test]
-async fn getting_a_nonexistent_cafe_returns_a_404() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .get(app.api_url("/cafes/999999"))
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 404);
 }
 
 #[tokio::test]
@@ -336,19 +280,4 @@ async fn deleting_a_cafe_returns_a_204_for_valid_id() {
         .expect("Failed to execute request");
 
     assert_eq!(get_response.status(), 404);
-}
-
-#[tokio::test]
-async fn deleting_a_nonexistent_cafe_returns_a_404() {
-    let app = spawn_app_with_auth().await;
-    let client = reqwest::Client::new();
-
-    let response = client
-        .delete(app.api_url("/cafes/999999"))
-        .bearer_auth(app.auth_token.as_ref().unwrap())
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert_eq!(response.status(), 404);
 }
