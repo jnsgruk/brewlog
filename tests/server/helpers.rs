@@ -1,34 +1,15 @@
 use std::sync::Arc;
 
 use brewlog::application::routes::app_router;
-use brewlog::application::server::AppState;
-use brewlog::application::services::{
-    BagService, BrewService, CafeService, CupService, GearService, RoastService, RoasterService,
-};
+use brewlog::application::state::{AppState, AppStateConfig};
 use brewlog::domain::cafes::{Cafe, NewCafe};
 use brewlog::domain::repositories::{
-    BagRepository, BrewRepository, CafeRepository, CupRepository, GearRepository,
-    PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository, RoasterRepository,
-    SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    CafeRepository, RoastRepository, RoasterRepository, SessionRepository, TimelineEventRepository,
+    TokenRepository, UserRepository,
 };
 use brewlog::domain::roasters::{NewRoaster, Roaster};
 use brewlog::domain::users::NewUser;
-use brewlog::infrastructure::backup::BackupService;
 use brewlog::infrastructure::database::Database;
-use brewlog::infrastructure::repositories::bags::SqlBagRepository;
-use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
-use brewlog::infrastructure::repositories::cafes::SqlCafeRepository;
-use brewlog::infrastructure::repositories::cups::SqlCupRepository;
-use brewlog::infrastructure::repositories::gear::SqlGearRepository;
-use brewlog::infrastructure::repositories::passkey_credentials::SqlPasskeyCredentialRepository;
-use brewlog::infrastructure::repositories::registration_tokens::SqlRegistrationTokenRepository;
-use brewlog::infrastructure::repositories::roasters::SqlRoasterRepository;
-use brewlog::infrastructure::repositories::roasts::SqlRoastRepository;
-use brewlog::infrastructure::repositories::sessions::SqlSessionRepository;
-use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
-use brewlog::infrastructure::repositories::tokens::SqlTokenRepository;
-use brewlog::infrastructure::repositories::users::SqlUserRepository;
-use brewlog::infrastructure::webauthn::ChallengeStore;
 use reqwest::Client;
 use tokio::net::TcpListener;
 use tokio::task::AbortHandle;
@@ -83,160 +64,42 @@ fn test_webauthn() -> Arc<Webauthn> {
 }
 
 pub async fn spawn_app() -> TestApp {
-    // Use in-memory SQLite database for testing
     let database = Database::connect("sqlite::memory:")
         .await
         .expect("Failed to connect to in-memory database");
 
-    // Run migrations
-    database
-        .migrate()
-        .await
-        .expect("Failed to migrate database");
-
-    // Create repositories
-    let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
-    let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
-    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
-    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
-    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
-    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
-    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
-    let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
-    let user_repo: Arc<dyn UserRepository> =
-        Arc::new(SqlUserRepository::new(database.clone_pool()));
-    let token_repo: Arc<dyn TokenRepository> =
-        Arc::new(SqlTokenRepository::new(database.clone_pool()));
-    let session_repo: Arc<dyn SessionRepository> =
-        Arc::new(SqlSessionRepository::new(database.clone_pool()));
-    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
-        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
-    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
-        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
-
-    spawn_app_inner(
-        database,
-        roaster_repo,
-        roast_repo,
-        bag_repo,
-        gear_repo,
-        brew_repo,
-        cafe_repo,
-        cup_repo,
-        timeline_repo,
-        user_repo,
-        token_repo,
-        session_repo,
-        passkey_repo,
-        registration_token_repo,
-        brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
-        String::new(),
-        brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
-        None,
-    )
-    .await
+    spawn_app_inner(database, test_state_config(), None).await
 }
 
-#[allow(clippy::too_many_arguments)]
-async fn spawn_app_inner(
-    _database: Database,
-    roaster_repo: Arc<SqlRoasterRepository>,
-    roast_repo: Arc<SqlRoastRepository>,
-    bag_repo: Arc<SqlBagRepository>,
-    gear_repo: Arc<SqlGearRepository>,
-    brew_repo: Arc<SqlBrewRepository>,
-    cafe_repo: Arc<SqlCafeRepository>,
-    cup_repo: Arc<SqlCupRepository>,
-    timeline_repo: Arc<SqlTimelineEventRepository>,
-    user_repo: Arc<dyn UserRepository>,
-    token_repo: Arc<dyn TokenRepository>,
-    session_repo: Arc<dyn SessionRepository>,
-    passkey_repo: Arc<dyn PasskeyCredentialRepository>,
-    registration_token_repo: Arc<dyn RegistrationTokenRepository>,
-    foursquare_url: String,
-    foursquare_api_key: String,
-    openrouter_url: String,
-    mock_server: Option<wiremock::MockServer>,
-) -> TestApp {
-    let backup_service = Arc::new(BackupService::new(_database.clone_pool()));
-
-    let session_repo_clone: Arc<dyn SessionRepository> = session_repo.clone();
-
-    // Create services
-    let roaster_service = RoasterService::new(
-        roaster_repo.clone() as Arc<dyn RoasterRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-    let roast_service = RoastService::new(
-        roast_repo.clone() as Arc<dyn RoastRepository>,
-        roaster_repo.clone() as Arc<dyn RoasterRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-    let bag_service = BagService::new(
-        bag_repo.clone() as Arc<dyn BagRepository>,
-        roast_repo.clone() as Arc<dyn RoastRepository>,
-        roaster_repo.clone() as Arc<dyn RoasterRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-    let brew_service = BrewService::new(
-        brew_repo.clone() as Arc<dyn BrewRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-    let gear_service = GearService::new(
-        gear_repo.clone() as Arc<dyn GearRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-    let cafe_service = CafeService::new(
-        cafe_repo.clone() as Arc<dyn CafeRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-    let cup_service = CupService::new(
-        cup_repo.clone() as Arc<dyn CupRepository>,
-        timeline_repo.clone() as Arc<dyn TimelineEventRepository>,
-    );
-
-    // Create application state
-    let state = AppState {
-        roaster_repo: roaster_repo.clone(),
-        roast_repo: roast_repo.clone(),
-        bag_repo: bag_repo.clone(),
-        gear_repo: gear_repo.clone(),
-        brew_repo: brew_repo.clone(),
-        cafe_repo: cafe_repo.clone(),
-        cup_repo: cup_repo.clone(),
-        timeline_repo: timeline_repo.clone(),
-        user_repo: user_repo.clone(),
-        token_repo: token_repo.clone(),
-        session_repo,
-        passkey_repo,
-        registration_token_repo,
-        ai_usage_repo: Arc::new(
-            brewlog::infrastructure::repositories::ai_usage::SqlAiUsageRepository::new(
-                _database.clone_pool(),
-            ),
-        ),
+fn test_state_config() -> AppStateConfig {
+    AppStateConfig {
         webauthn: test_webauthn(),
-        challenge_store: Arc::new(ChallengeStore::new()),
-        http_client: reqwest::Client::new(),
-        foursquare_url,
-        foursquare_api_key,
-        openrouter_url,
+        foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
+        foursquare_api_key: String::new(),
+        openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
         openrouter_api_key: String::new(),
         openrouter_model: "openrouter/free".to_string(),
-        backup_service,
-        roaster_service,
-        roast_service,
-        bag_service,
-        brew_service,
-        gear_service,
-        cafe_service,
-        cup_service,
-    };
+    }
+}
 
-    // Create router
+async fn spawn_app_inner(
+    database: Database,
+    config: AppStateConfig,
+    mock_server: Option<wiremock::MockServer>,
+) -> TestApp {
+    let state = AppState::from_database(&database, config);
+
+    // Clone repos we need for TestApp before consuming state in the router
+    let roaster_repo = state.roaster_repo.clone();
+    let roast_repo = state.roast_repo.clone();
+    let cafe_repo = state.cafe_repo.clone();
+    let timeline_repo = state.timeline_repo.clone();
+    let user_repo = state.user_repo.clone();
+    let token_repo = state.token_repo.clone();
+    let session_repo = state.session_repo.clone();
+
     let app = app_router(state);
 
-    // Bind to a random port
     let listener = TcpListener::bind("127.0.0.1:0")
         .await
         .expect("Failed to bind to random port");
@@ -244,7 +107,6 @@ async fn spawn_app_inner(
     let local_addr = listener.local_addr().expect("Failed to get local address");
     let address = format!("http://{}", local_addr);
 
-    // Spawn the server in a background task
     let server_handle = tokio::spawn(async move {
         axum::serve(listener, app)
             .await
@@ -260,7 +122,7 @@ async fn spawn_app_inner(
         timeline_repo,
         user_repo: Some(user_repo),
         token_repo: Some(token_repo),
-        session_repo: Some(session_repo_clone),
+        session_repo: Some(session_repo),
         auth_token: None,
         mock_server,
         server_handle,
@@ -280,48 +142,13 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
         .await
         .expect("Failed to connect to in-memory database");
 
-    database
-        .migrate()
-        .await
-        .expect("Failed to migrate database");
-
-    let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
-    let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
-    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
-    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
-    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
-    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
-    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
-    let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
-    let user_repo: Arc<dyn UserRepository> =
-        Arc::new(SqlUserRepository::new(database.clone_pool()));
-    let token_repo: Arc<dyn TokenRepository> =
-        Arc::new(SqlTokenRepository::new(database.clone_pool()));
-    let session_repo: Arc<dyn SessionRepository> =
-        Arc::new(SqlSessionRepository::new(database.clone_pool()));
-    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
-        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
-    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
-        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
-
     let app = spawn_app_inner(
         database,
-        roaster_repo,
-        roast_repo,
-        bag_repo,
-        gear_repo,
-        brew_repo,
-        cafe_repo,
-        cup_repo,
-        timeline_repo,
-        user_repo,
-        token_repo,
-        session_repo,
-        passkey_repo,
-        registration_token_repo,
-        foursquare_url,
-        "test-api-key".to_string(),
-        brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
+        AppStateConfig {
+            foursquare_url,
+            foursquare_api_key: "test-api-key".to_string(),
+            ..test_state_config()
+        },
         Some(mock_server),
     )
     .await;
@@ -628,48 +455,12 @@ pub async fn spawn_app_with_openrouter_mock() -> TestApp {
         .await
         .expect("Failed to connect to in-memory database");
 
-    database
-        .migrate()
-        .await
-        .expect("Failed to migrate database");
-
-    let roaster_repo = Arc::new(SqlRoasterRepository::new(database.clone_pool()));
-    let roast_repo = Arc::new(SqlRoastRepository::new(database.clone_pool()));
-    let bag_repo = Arc::new(SqlBagRepository::new(database.clone_pool()));
-    let gear_repo = Arc::new(SqlGearRepository::new(database.clone_pool()));
-    let brew_repo = Arc::new(SqlBrewRepository::new(database.clone_pool()));
-    let cafe_repo = Arc::new(SqlCafeRepository::new(database.clone_pool()));
-    let cup_repo = Arc::new(SqlCupRepository::new(database.clone_pool()));
-    let timeline_repo = Arc::new(SqlTimelineEventRepository::new(database.clone_pool()));
-    let user_repo: Arc<dyn UserRepository> =
-        Arc::new(SqlUserRepository::new(database.clone_pool()));
-    let token_repo: Arc<dyn TokenRepository> =
-        Arc::new(SqlTokenRepository::new(database.clone_pool()));
-    let session_repo: Arc<dyn SessionRepository> =
-        Arc::new(SqlSessionRepository::new(database.clone_pool()));
-    let passkey_repo: Arc<dyn PasskeyCredentialRepository> =
-        Arc::new(SqlPasskeyCredentialRepository::new(database.clone_pool()));
-    let registration_token_repo: Arc<dyn RegistrationTokenRepository> =
-        Arc::new(SqlRegistrationTokenRepository::new(database.clone_pool()));
-
     let app = spawn_app_inner(
         database,
-        roaster_repo,
-        roast_repo,
-        bag_repo,
-        gear_repo,
-        brew_repo,
-        cafe_repo,
-        cup_repo,
-        timeline_repo,
-        user_repo,
-        token_repo,
-        session_repo,
-        passkey_repo,
-        registration_token_repo,
-        brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
-        String::new(),
-        openrouter_url,
+        AppStateConfig {
+            openrouter_url,
+            ..test_state_config()
+        },
         Some(mock_server),
     )
     .await;
