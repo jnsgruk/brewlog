@@ -242,13 +242,18 @@ pub(crate) async fn create_brew(
     info!(brew_id = %enriched.brew.id, "brew created");
 
     if is_datastar_request(&headers) {
-        // Check if request came from timeline - return a script that redirects
-        let from_timeline = headers
+        // If the request came from a page that has #brew-list, return the updated fragment.
+        // Otherwise (homepage, timeline, etc.), trigger a page reload instead.
+        let from_brew_page = headers
             .get("referer")
             .and_then(|v| v.to_str().ok())
-            .is_some_and(|r| r.contains("/timeline"));
+            .is_some_and(|r| r.contains("type=brews"));
 
-        if from_timeline {
+        if from_brew_page {
+            render_brew_list_fragment(state, request, search, true)
+                .await
+                .map_err(ApiError::from)
+        } else {
             use axum::http::header::HeaderValue;
             let mut response =
                 axum::response::Html("<script>window.location.reload()</script>").into_response();
@@ -259,10 +264,6 @@ pub(crate) async fn create_brew(
                 .headers_mut()
                 .insert("datastar-mode", HeaderValue::from_static("append"));
             Ok(response)
-        } else {
-            render_brew_list_fragment(state, request, search, true)
-                .await
-                .map_err(ApiError::from)
         }
     } else if matches!(source, PayloadSource::Form) {
         let target =
