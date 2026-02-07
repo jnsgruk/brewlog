@@ -1,6 +1,5 @@
 {% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import
-"partials/brew_card.html" as brew_card %} {% import "partials/icons.html" as icons %} {% import
-"partials/scan_input.html" as scan %} {% block title %}Brewlog{% endblock %} {% block head %} {% if
+"partials/brew_card.html" as brew_card %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog{% endblock %} {% block head %} {% if
 is_authenticated %}
 <script>
   const closeBag = async (bagId, cardEl) => {
@@ -48,16 +47,43 @@ is_authenticated %}
   data-signals:_matched-roaster-id="''"
   data-signals:_matched-roast-id="''"
 >
-  <!-- Input: photo or text (shown when not yet extracted) -->
-  <div data-show="!$_scanExtracted" class="rounded-lg border bg-surface p-5">
-    <form
-      id="scan-extract-form"
-      data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
-      data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
-    >
-      {{ scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError",
-      "Describe a coffee bag…", "Waiting for response…") }}
-    </form>
+  <!-- Quick actions (shown when not yet extracted) -->
+  <div data-show="!$_scanExtracted">
+    <div data-show="!$_extracting" class="grid grid-cols-3 gap-4">
+      <input type="hidden" name="image" id="scan-image" form="scan-extract-form" />
+      <form id="scan-extract-form"
+        data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
+        data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
+        class="hidden"></form>
+      <brew-photo-capture target-input="scan-image" target-form="scan-extract-form"
+        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border px-4 py-3 text-accent transition hover:bg-surface-alt cursor-pointer"
+        aria-label="Scan Bag"
+      >
+        {{ icons::camera("h-5 w-5") }}
+        <span class="text-xs font-bold" style="font-variant: small-caps">Scan</span>
+      </brew-photo-capture>
+      <a href="/check-in"
+        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border px-4 py-3 text-accent transition hover:bg-surface-alt"
+        title="Check in at a cafe"
+        aria-label="Check in at a cafe"
+      >
+        {{ icons::location("h-5 w-5") }}
+        <span class="text-xs font-bold" style="font-variant: small-caps">Check In</span>
+      </a>
+      <a href="/add"
+        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border px-4 py-3 text-accent transition hover:bg-surface-alt"
+        title="Add manually"
+        aria-label="Add manually"
+      >
+        {{ icons::plus("h-5 w-5") }}
+        <span class="text-xs font-bold" style="font-variant: small-caps">Add</span>
+      </a>
+    </div>
+    <div data-show="$_extracting" style="display:none" class="flex items-center justify-center gap-3 text-sm text-accent">
+      {{ icons::spinner("h-5 w-5") }}
+      Waiting for response&hellip;
+    </div>
+    <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600 text-center"></p>
   </div>
 
   <!-- Form: pre-filled roaster + roast (shown after extraction) -->
@@ -150,7 +176,7 @@ is_authenticated %}
     >
       {{ icons::beaker("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.brews }}</span>
-      <span class="text-xs text-text-muted">Brews</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Brews</span>
     </a>
     <a
       href="/data?type=roasts"
@@ -158,7 +184,7 @@ is_authenticated %}
     >
       {{ icons::fire("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasts }}</span>
-      <span class="text-xs text-text-muted">Roasts</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Roasts</span>
     </a>
     <a
       href="/data?type=roasters"
@@ -166,7 +192,7 @@ is_authenticated %}
     >
       {{ icons::building("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasters }}</span>
-      <span class="text-xs text-text-muted">Roasters</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Roasters</span>
     </a>
     <a
       href="/data?type=bags"
@@ -174,7 +200,7 @@ is_authenticated %}
     >
       {{ icons::bag("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.bags }}</span>
-      <span class="text-xs text-text-muted">Bags</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Bags</span>
     </a>
     <a
       href="/data?type=cups"
@@ -182,7 +208,7 @@ is_authenticated %}
     >
       {{ icons::cup("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cups }}</span>
-      <span class="text-xs text-text-muted">Cups</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Cups</span>
     </a>
     <a
       href="/data?type=cafes"
@@ -190,7 +216,7 @@ is_authenticated %}
     >
       {{ icons::location("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cafes }}</span>
-      <span class="text-xs text-text-muted">Cafes</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Cafes</span>
     </a>
     <a
       href="/data?type=gear"
@@ -198,7 +224,7 @@ is_authenticated %}
     >
       {{ icons::wrench("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.gear }}</span>
-      <span class="text-xs text-text-muted">Gear</span>
+      <span class="text-xs text-text-muted" style="font-variant: small-caps">Gear</span>
     </a>
   </div>
 </section>
