@@ -15,12 +15,19 @@ if [[ -z "${BREWLOG_TOKEN:-}" ]]; then
   exit 1
 fi
 
+# ============================================================================
+# Roasters & Roasts - 15 roasters with 2 roasts each, spread over 6 months
+# ============================================================================
+
+# Month 1 (Aug 2025): First roasters discovered
+
 # Tim Wendelboe (Norway)
 ./target/debug/brewlog roaster add \
   --name "Tim Wendelboe" \
   --country "Norway" \
   --city "Oslo" \
-  --homepage "https://timwendelboe.no"
+  --homepage "https://timwendelboe.no" \
+  --created-at "2025-08-03T08:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
@@ -29,7 +36,8 @@ fi
   --region "Sidamo" \
   --producer "Ben Saïd" \
   --process "Natural" \
-  --tasting-notes "Bergamot, Apricot, Floral"
+  --tasting-notes "Bergamot, Apricot, Floral" \
+  --created-at "2025-08-03T08:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Tim Wendelboe") | .id')" \
@@ -38,145 +46,16 @@ fi
   --region "El Pital, Huila" \
   --producer "Elias Roa" \
   --process "Washed" \
-  --tasting-notes "Red Apple, Vanilla, Caramel"
-
-
-# Coffee Collective (Denmark)
-./target/debug/brewlog roaster add \
-  --name "Coffee Collective" \
-  --country "Denmark" \
-  --city "Copenhagen" \
-  --homepage "https://coffeecollective.dk"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
-  --name "Daterra Sweet Collection" \
-  --origin "Brazil" \
-  --region "Cerrado" \
-  --producer "Daterra" \
-  --process "Pulped Natural" \
-  --tasting-notes "Hazelnut, Milk Chocolate, Yellow Fruit"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
-  --name "Kieni" \
-  --origin "Kenya" \
-  --region "Nyeri" \
-  --producer "Kieni Factory" \
-  --process "Washed" \
-  --tasting-notes "Currant, Black Tea, Grape"
-
-
-# Drop Coffee (Sweden)
-./target/debug/brewlog roaster add \
-  --name "Drop Coffee" \
-  --country "Sweden" \
-  --city "Stockholm" \
-  --homepage "https://dropcoffee.com"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
-  --name "La Linda" \
-  --origin "Bolivia" \
-  --region "Caranavi" \
-  --producer "Pedro Rodriguez" \
-  --process "Washed" \
-  --tasting-notes "Red Apple, Caramel, Floral"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
-  --name "El Sunzita" \
-  --origin "El Salvador" \
-  --region "Ahuachapan" \
-  --producer "Jorge Raul Rivera" \
-  --process "Natural" \
-  --tasting-notes "Strawberry, Mango, Dark Chocolate"
-
-
-# La Cabra (Denmark)
-./target/debug/brewlog roaster add \
-  --name "La Cabra" \
-  --country "Denmark" \
-  --city "Aarhus" \
-  --homepage "https://www.lacabra.dk"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
-  --name "Halo Beriti" \
-  --origin "Ethiopia" \
-  --region "Yirgacheffe" \
-  --producer "Halo Beriti Cooperative" \
-  --process "Washed" \
-  --tasting-notes "Jasmine, Lemon, Stone Fruit"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
-  --name "Cerro Azul" \
-  --origin "Colombia" \
-  --region "Valle del Cauca" \
-  --producer "Granja La Esperanza" \
-  --process "Washed" \
-  --tasting-notes "Blueberry, Plum, Grapefruit"
-
-
-# April Coffee (Denmark)
-./target/debug/brewlog roaster add \
-  --name "April Coffee" \
-  --country "Denmark" \
-  --city "Copenhagen" \
-  --homepage "https://aprilcoffeeroasters.com"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
-  --name "El Salvador Pacamara" \
-  --origin "El Salvador" \
-  --region "Santa Ana" \
-  --producer "Ernesto Menendez" \
-  --process "Honey" \
-  --tasting-notes "Grapefruit, Sugar Cane, Plum"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
-  --name "Guji Highland" \
-  --origin "Ethiopia" \
-  --region "Guji" \
-  --producer "Andualem Abebe" \
-  --process "Natural" \
-  --tasting-notes "Peach, Strawberry, Cream"
-
-
-# Assembly Coffee (UK)
-./target/debug/brewlog roaster add \
-  --name "Assembly Coffee" \
-  --country "United Kingdom" \
-  --city "London" \
-  --homepage "https://assemblycoffee.co.uk"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
-  --name "Kochere" \
-  --origin "Ethiopia" \
-  --region "Yirgacheffe" \
-  --producer "Kochere Region Growers" \
-  --process "Washed" \
-  --tasting-notes "Peach, Lemon, Jasmine"
-
-./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
-  --name "La Laja" \
-  --origin "Mexico" \
-  --region "Veracruz" \
-  --producer "La Laja Estate" \
-  --process "Natural" \
-  --tasting-notes "Cherry, Milk Chocolate, Praline"
-
+  --tasting-notes "Red Apple, Vanilla, Caramel" \
+  --created-at "2025-08-03T08:05:00Z"
 
 # Square Mile (UK)
 ./target/debug/brewlog roaster add \
   --name "Square Mile Coffee" \
   --country "United Kingdom" \
   --city "London" \
-  --homepage "https://squaremilecoffee.com"
+  --homepage "https://squaremilecoffee.com" \
+  --created-at "2025-08-08T12:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
@@ -185,7 +64,8 @@ fi
   --region "Multiple Origins" \
   --producer "Various" \
   --process "Washed, Natural" \
-  --tasting-notes "Berry, Chocolate, Citrus"
+  --tasting-notes "Berry, Chocolate, Citrus" \
+  --created-at "2025-08-08T12:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
@@ -194,41 +74,74 @@ fi
   --region "Kirinyaga" \
   --producer "Kamwangi Factory" \
   --process "Washed" \
-  --tasting-notes "Blackcurrant, Rhubarb, Blood Orange"
+  --tasting-notes "Blackcurrant, Rhubarb, Blood Orange" \
+  --created-at "2025-08-08T12:05:00Z"
 
+# Month 2 (Sep 2025): More exploration
 
-# Dak Coffee Roasters (Netherlands)
+# Coffee Collective (Denmark)
 ./target/debug/brewlog roaster add \
-  --name "Dak Coffee Roasters" \
-  --country "Netherlands" \
-  --city "Amsterdam" \
-  --homepage "https://www.dakcoffeeroasters.com"
+  --name "Coffee Collective" \
+  --country "Denmark" \
+  --city "Copenhagen" \
+  --homepage "https://coffeecollective.dk" \
+  --created-at "2025-09-05T10:00:00Z"
 
 ./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
-  --name "El Paraiso 92 Anaerobic" \
-  --origin "Colombia" \
-  --region "Cauca" \
-  --producer "Diego Bermudez" \
-  --process "Thermal Shock Anaerobic" \
-  --tasting-notes "Passionfruit, Raspberry, Yogurt"
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
+  --name "Daterra Sweet Collection" \
+  --origin "Brazil" \
+  --region "Cerrado" \
+  --producer "Daterra" \
+  --process "Pulped Natural" \
+  --tasting-notes "Hazelnut, Milk Chocolate, Yellow Fruit" \
+  --created-at "2025-09-05T10:05:00Z"
 
 ./target/debug/brewlog roast add \
-  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
-  --name "Oreti SL28" \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Coffee Collective") | .id')" \
+  --name "Kieni" \
   --origin "Kenya" \
-  --region "Kirinyaga" \
-  --producer "Oreti Estate" \
+  --region "Nyeri" \
+  --producer "Kieni Factory" \
   --process "Washed" \
-  --tasting-notes "Grapefruit, Blackcurrant, Plum"
+  --tasting-notes "Currant, Black Tea, Grape" \
+  --created-at "2025-09-05T10:05:00Z"
 
+# Assembly Coffee (UK)
+./target/debug/brewlog roaster add \
+  --name "Assembly Coffee" \
+  --country "United Kingdom" \
+  --city "London" \
+  --homepage "https://assemblycoffee.co.uk" \
+  --created-at "2025-09-15T14:00:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
+  --name "Kochere" \
+  --origin "Ethiopia" \
+  --region "Yirgacheffe" \
+  --producer "Kochere Region Growers" \
+  --process "Washed" \
+  --tasting-notes "Peach, Lemon, Jasmine" \
+  --created-at "2025-09-15T14:05:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Assembly Coffee") | .id')" \
+  --name "La Laja" \
+  --origin "Mexico" \
+  --region "Veracruz" \
+  --producer "La Laja Estate" \
+  --process "Natural" \
+  --tasting-notes "Cherry, Milk Chocolate, Praline" \
+  --created-at "2025-09-15T14:05:00Z"
 
 # Bonanza Coffee (Germany)
 ./target/debug/brewlog roaster add \
   --name "Bonanza Coffee" \
   --country "Germany" \
   --city "Berlin" \
-  --homepage "https://www.bonanzacoffee.de"
+  --homepage "https://www.bonanzacoffee.de" \
+  --created-at "2025-09-25T09:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
@@ -237,7 +150,8 @@ fi
   --region "Nyeri" \
   --producer "Gatomboya Cooperative" \
   --process "Washed" \
-  --tasting-notes "Blackcurrant, Lime, Tomato"
+  --tasting-notes "Blackcurrant, Lime, Tomato" \
+  --created-at "2025-09-25T09:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bonanza Coffee") | .id')" \
@@ -246,15 +160,132 @@ fi
   --region "Usulután" \
   --producer "Gilberto Baraona" \
   --process "Honey" \
-  --tasting-notes "Maple, Fudge, Green Apple"
+  --tasting-notes "Maple, Fudge, Green Apple" \
+  --created-at "2025-09-25T09:05:00Z"
 
+# Month 3 (Oct 2025): Nordic deep dive
+
+# Drop Coffee (Sweden)
+./target/debug/brewlog roaster add \
+  --name "Drop Coffee" \
+  --country "Sweden" \
+  --city "Stockholm" \
+  --homepage "https://dropcoffee.com" \
+  --created-at "2025-10-05T11:00:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
+  --name "La Linda" \
+  --origin "Bolivia" \
+  --region "Caranavi" \
+  --producer "Pedro Rodriguez" \
+  --process "Washed" \
+  --tasting-notes "Red Apple, Caramel, Floral" \
+  --created-at "2025-10-05T11:05:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Drop Coffee") | .id')" \
+  --name "El Sunzita" \
+  --origin "El Salvador" \
+  --region "Ahuachapan" \
+  --producer "Jorge Raul Rivera" \
+  --process "Natural" \
+  --tasting-notes "Strawberry, Mango, Dark Chocolate" \
+  --created-at "2025-10-05T11:05:00Z"
+
+# La Cabra (Denmark)
+./target/debug/brewlog roaster add \
+  --name "La Cabra" \
+  --country "Denmark" \
+  --city "Aarhus" \
+  --homepage "https://www.lacabra.dk" \
+  --created-at "2025-10-15T13:00:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
+  --name "Halo Beriti" \
+  --origin "Ethiopia" \
+  --region "Yirgacheffe" \
+  --producer "Halo Beriti Cooperative" \
+  --process "Washed" \
+  --tasting-notes "Jasmine, Lemon, Stone Fruit" \
+  --created-at "2025-10-15T13:05:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="La Cabra") | .id')" \
+  --name "Cerro Azul" \
+  --origin "Colombia" \
+  --region "Valle del Cauca" \
+  --producer "Granja La Esperanza" \
+  --process "Washed" \
+  --tasting-notes "Blueberry, Plum, Grapefruit" \
+  --created-at "2025-10-15T13:05:00Z"
+
+# April Coffee (Denmark)
+./target/debug/brewlog roaster add \
+  --name "April Coffee" \
+  --country "Denmark" \
+  --city "Copenhagen" \
+  --homepage "https://aprilcoffeeroasters.com" \
+  --created-at "2025-10-28T16:00:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
+  --name "El Salvador Pacamara" \
+  --origin "El Salvador" \
+  --region "Santa Ana" \
+  --producer "Ernesto Menendez" \
+  --process "Honey" \
+  --tasting-notes "Grapefruit, Sugar Cane, Plum" \
+  --created-at "2025-10-28T16:05:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="April Coffee") | .id')" \
+  --name "Guji Highland" \
+  --origin "Ethiopia" \
+  --region "Guji" \
+  --producer "Andualem Abebe" \
+  --process "Natural" \
+  --tasting-notes "Peach, Strawberry, Cream" \
+  --created-at "2025-10-28T16:05:00Z"
+
+# Month 4 (Nov 2025): European expansion
+
+# Dak Coffee Roasters (Netherlands)
+./target/debug/brewlog roaster add \
+  --name "Dak Coffee Roasters" \
+  --country "Netherlands" \
+  --city "Amsterdam" \
+  --homepage "https://www.dakcoffeeroasters.com" \
+  --created-at "2025-11-02T10:00:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
+  --name "El Paraiso 92 Anaerobic" \
+  --origin "Colombia" \
+  --region "Cauca" \
+  --producer "Diego Bermudez" \
+  --process "Thermal Shock Anaerobic" \
+  --tasting-notes "Passionfruit, Raspberry, Yogurt" \
+  --created-at "2025-11-02T10:05:00Z"
+
+./target/debug/brewlog roast add \
+  --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dak Coffee Roasters") | .id')" \
+  --name "Oreti SL28" \
+  --origin "Kenya" \
+  --region "Kirinyaga" \
+  --producer "Oreti Estate" \
+  --process "Washed" \
+  --tasting-notes "Grapefruit, Blackcurrant, Plum" \
+  --created-at "2025-11-02T10:05:00Z"
 
 # Friedhats (Netherlands)
 ./target/debug/brewlog roaster add \
   --name "Friedhats" \
   --country "Netherlands" \
   --city "Amsterdam" \
-  --homepage "https://friedhats.com"
+  --homepage "https://friedhats.com" \
+  --created-at "2025-11-12T15:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Friedhats") | .id')" \
@@ -263,7 +294,8 @@ fi
   --region "Guji" \
   --producer "Smallholders" \
   --process "Natural" \
-  --tasting-notes "Peach, Raspberry, Rosehip"
+  --tasting-notes "Peach, Raspberry, Rosehip" \
+  --created-at "2025-11-12T15:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Friedhats") | .id')" \
@@ -272,15 +304,16 @@ fi
   --region "Boquete" \
   --producer "Hacienda La Esmeralda" \
   --process "Washed" \
-  --tasting-notes "Jasmine, Bergamot, Papaya"
-
+  --tasting-notes "Jasmine, Bergamot, Papaya" \
+  --created-at "2025-11-12T15:05:00Z"
 
 # Origin Coffee (UK)
 ./target/debug/brewlog roaster add \
   --name "Origin Coffee" \
   --country "United Kingdom" \
   --city "Porthleven" \
-  --homepage "https://origincoffee.co.uk"
+  --homepage "https://origincoffee.co.uk" \
+  --created-at "2025-11-22T09:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
@@ -289,7 +322,8 @@ fi
   --region "Tolima" \
   --producer "San Fermin Smallholders" \
   --process "Washed" \
-  --tasting-notes "Red Grape, Caramel, Blood Orange"
+  --tasting-notes "Red Grape, Caramel, Blood Orange" \
+  --created-at "2025-11-22T09:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Origin Coffee") | .id')" \
@@ -298,15 +332,18 @@ fi
   --region "Yirgacheffe" \
   --producer "Aricha Washing Station" \
   --process "Washed" \
-  --tasting-notes "Honey, Peach, Black Tea"
+  --tasting-notes "Honey, Peach, Black Tea" \
+  --created-at "2025-11-22T09:05:00Z"
 
+# Month 5 (Dec 2025): Holiday discoveries
 
 # Dark Arts Coffee (UK)
 ./target/debug/brewlog roaster add \
   --name "Dark Arts Coffee" \
   --country "United Kingdom" \
   --city "London" \
-  --homepage "https://www.darkartscoffee.co.uk"
+  --homepage "https://www.darkartscoffee.co.uk" \
+  --created-at "2025-12-05T11:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
@@ -315,7 +352,8 @@ fi
   --region "Minas Gerais" \
   --producer "Carmo de Minas" \
   --process "Swiss Water Decaf" \
-  --tasting-notes "Cocoa, Cherry, Almond"
+  --tasting-notes "Cocoa, Cherry, Almond" \
+  --created-at "2025-12-05T11:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Dark Arts Coffee") | .id')" \
@@ -324,15 +362,16 @@ fi
   --region "Huehuetenango" \
   --producer "Various Smallholders" \
   --process "Washed" \
-  --tasting-notes "Toffee, Green Apple, Plum"
-
+  --tasting-notes "Toffee, Green Apple, Plum" \
+  --created-at "2025-12-05T11:05:00Z"
 
 # KAWA Coffee (France)
 ./target/debug/brewlog roaster add \
   --name "KAWA Coffee" \
   --country "France" \
   --city "Paris" \
-  --homepage "https://www.kawa.coffee"
+  --homepage "https://www.kawa.coffee" \
+  --created-at "2025-12-15T14:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
@@ -341,7 +380,8 @@ fi
   --region "Cauca" \
   --producer "Granja La Esperanza" \
   --process "Natural" \
-  --tasting-notes "Strawberry, Cinnamon, Grape"
+  --tasting-notes "Strawberry, Cinnamon, Grape" \
+  --created-at "2025-12-15T14:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="KAWA Coffee") | .id')" \
@@ -350,15 +390,16 @@ fi
   --region "Sidama" \
   --producer "Arbegona Washing Station" \
   --process "Washed" \
-  --tasting-notes "Violet, Apricot, Lemon"
-
+  --tasting-notes "Violet, Apricot, Lemon" \
+  --created-at "2025-12-15T14:05:00Z"
 
 # Stow Coffee (Slovenia)
 ./target/debug/brewlog roaster add \
   --name "Stow Coffee" \
   --country "Slovenia" \
   --city "Ljubljana" \
-  --homepage "https://www.stowcoffee.com"
+  --homepage "https://www.stowcoffee.com" \
+  --created-at "2025-12-28T10:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
@@ -367,7 +408,8 @@ fi
   --region "Santa Barbara" \
   --producer "Benjamin Paz" \
   --process "Honey" \
-  --tasting-notes "Red Currant, Honeydew, Cocoa"
+  --tasting-notes "Red Currant, Honeydew, Cocoa" \
+  --created-at "2025-12-28T10:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Stow Coffee") | .id')" \
@@ -376,15 +418,18 @@ fi
   --region "Guji" \
   --producer "Tesfaye Bekele" \
   --process "Natural" \
-  --tasting-notes "Blackberry, Vanilla, Jasmine"
+  --tasting-notes "Blackberry, Vanilla, Jasmine" \
+  --created-at "2025-12-28T10:05:00Z"
 
+# Month 6 (Jan 2026): New year additions
 
 # Bows Coffee (Canada)
 ./target/debug/brewlog roaster add \
   --name "Bows Coffee" \
   --country "Canada" \
   --city "Victoria" \
-  --homepage "https://bowscoffee.com"
+  --homepage "https://bowscoffee.com" \
+  --created-at "2026-01-08T12:00:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \
@@ -393,7 +438,8 @@ fi
   --region "Tarrazú" \
   --producer "Doña Olga Jiménez" \
   --process "White Honey" \
-  --tasting-notes "Mandarin, Honeycomb, Almond"
+  --tasting-notes "Mandarin, Honeycomb, Almond" \
+  --created-at "2026-01-08T12:05:00Z"
 
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Bows Coffee") | .id')" \
@@ -402,350 +448,403 @@ fi
   --region "Huye" \
   --producer "Simbi Co-op" \
   --process "Washed" \
-  --tasting-notes "Black Tea, Orange, Cane Sugar"
+  --tasting-notes "Black Tea, Orange, Cane Sugar" \
+  --created-at "2026-01-08T12:05:00Z"
 
 # ============================================================================
 # Cafes - 10 cafes across London, Madrid, Berlin, Munich, and Bristol
 # ============================================================================
 
-# London - Monmouth Coffee (Borough Market)
+# London - Monmouth Coffee (Borough Market) — Aug 2025
 ./target/debug/brewlog cafe add \
   --name "Monmouth Coffee" \
   --city "London" \
   --country "United Kingdom" \
   --latitude 51.5055 \
   --longitude -0.0910 \
-  --website "https://www.monmouthcoffee.co.uk"
+  --website "https://www.monmouthcoffee.co.uk" \
+  --created-at "2025-08-12T11:00:00Z"
 
-# London - Prufrock Coffee
+# London - Prufrock Coffee — Aug 2025
 ./target/debug/brewlog cafe add \
   --name "Prufrock Coffee" \
   --city "London" \
   --country "United Kingdom" \
   --latitude 51.5246 \
   --longitude -0.1098 \
-  --website "https://www.prufrockcoffee.com"
+  --website "https://www.prufrockcoffee.com" \
+  --created-at "2025-08-20T14:30:00Z"
 
-# Madrid - Hola Coffee
-./target/debug/brewlog cafe add \
-  --name "Hola Coffee" \
-  --city "Madrid" \
-  --country "Spain" \
-  --latitude 40.4285 \
-  --longitude -3.7025 \
-  --website "https://www.holacoffee.es"
-
-# Madrid - Toma Café
-./target/debug/brewlog cafe add \
-  --name "Toma Café" \
-  --city "Madrid" \
-  --country "Spain" \
-  --latitude 40.4260 \
-  --longitude -3.7075
-
-# Berlin - The Barn
+# Berlin - The Barn — Sep 2025
 ./target/debug/brewlog cafe add \
   --name "The Barn" \
   --city "Berlin" \
   --country "Germany" \
   --latitude 52.5298 \
   --longitude 13.4020 \
-  --website "https://thebarn.de"
+  --website "https://thebarn.de" \
+  --created-at "2025-09-08T10:00:00Z"
 
-# Berlin - Companion Coffee
+# Berlin - Companion Coffee — Sep 2025
 ./target/debug/brewlog cafe add \
   --name "Companion Coffee" \
   --city "Berlin" \
   --country "Germany" \
   --latitude 52.4952 \
   --longitude 13.4188 \
-  --website "https://www.companion.coffee"
+  --website "https://www.companion.coffee" \
+  --created-at "2025-09-10T15:00:00Z"
 
-# Munich - Man Versus Machine
+# Munich - Man Versus Machine — Oct 2025
 ./target/debug/brewlog cafe add \
   --name "Man Versus Machine" \
   --city "Munich" \
   --country "Germany" \
   --latitude 48.1310 \
   --longitude 11.5690 \
-  --website "https://www.mvsmcoffee.de"
+  --website "https://www.mvsmcoffee.de" \
+  --created-at "2025-10-07T09:30:00Z"
 
-# Munich - Vits der Kaffee
+# Munich - Vits der Kaffee — Oct 2025
 ./target/debug/brewlog cafe add \
   --name "Vits der Kaffee" \
   --city "Munich" \
   --country "Germany" \
   --latitude 48.1353 \
   --longitude 11.5741 \
-  --website "https://www.vfrischekaffee.de"
+  --website "https://www.vfrischekaffee.de" \
+  --created-at "2025-10-09T11:00:00Z"
 
-# Bristol - Full Court Press
+# Madrid - Hola Coffee — Nov 2025
+./target/debug/brewlog cafe add \
+  --name "Hola Coffee" \
+  --city "Madrid" \
+  --country "Spain" \
+  --latitude 40.4285 \
+  --longitude -3.7025 \
+  --website "https://www.holacoffee.es" \
+  --created-at "2025-11-05T12:00:00Z"
+
+# Madrid - Toma Café — Nov 2025
+./target/debug/brewlog cafe add \
+  --name "Toma Café" \
+  --city "Madrid" \
+  --country "Spain" \
+  --latitude 40.4260 \
+  --longitude -3.7075 \
+  --created-at "2025-11-07T10:30:00Z"
+
+# Bristol - Full Court Press — Jan 2026
 ./target/debug/brewlog cafe add \
   --name "Full Court Press" \
   --city "Bristol" \
   --country "United Kingdom" \
   --latitude 51.4543 \
   --longitude -2.5930 \
-  --website "https://www.fullcourtpress.coffee"
+  --website "https://www.fullcourtpress.coffee" \
+  --created-at "2026-01-11T10:00:00Z"
 
-# Bristol - Small Street Espresso
+# Bristol - Small Street Espresso — Jan 2026
 ./target/debug/brewlog cafe add \
   --name "Small Street Espresso" \
   --city "Bristol" \
   --country "United Kingdom" \
   --latitude 51.4540 \
-  --longitude -2.5955
+  --longitude -2.5955 \
+  --created-at "2026-01-11T14:00:00Z"
 
 # ============================================================================
-# Cups - 1 to 3 cups per cafe, pairing roasts with cafes visited
+# Cups - 1 to 3 cups per cafe, dated around cafe visits
 # ============================================================================
 
-# Monmouth Coffee (London) - 2 cups
+# Monmouth Coffee (London, Aug 2025) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
+  --created-at "2025-08-12T11:30:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kamwangi") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Monmouth Coffee") | .id')" \
+  --created-at "2025-08-12T12:15:00Z"
 
-# Prufrock Coffee (London) - 3 cups
+# Prufrock Coffee (London, Aug 2025) - 3 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
+  --created-at "2025-08-20T14:45:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Laja") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
+  --created-at "2025-08-20T15:30:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Prufrock Coffee") | .id')" \
+  --created-at "2025-08-25T10:00:00Z"
 
-# Hola Coffee (Madrid) - 2 cups
-./target/debug/brewlog cup add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Cerro Azul") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')"
-
-./target/debug/brewlog cup add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')"
-
-# Toma Café (Madrid) - 1 cup
-./target/debug/brewlog cup add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Toma Café") | .id')"
-
-# The Barn (Berlin) - 3 cups
+# The Barn (Berlin, Sep 2025) - 3 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
+  --created-at "2025-09-08T10:30:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Los Pirineos") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
+  --created-at "2025-09-08T15:00:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="The Barn") | .id')" \
+  --created-at "2025-09-09T09:30:00Z"
 
-# Companion Coffee (Berlin) - 2 cups
+# Companion Coffee (Berlin, Sep 2025) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
+  --created-at "2025-09-10T15:30:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Oreti SL28") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Companion Coffee") | .id')" \
+  --created-at "2025-09-10T16:15:00Z"
 
-# Man Versus Machine (Munich) - 2 cups
+# Man Versus Machine (Munich, Oct 2025) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
+  --created-at "2025-10-07T10:00:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Esmeralda Geisha") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Man Versus Machine") | .id')" \
+  --created-at "2025-10-07T14:30:00Z"
 
-# Vits der Kaffee (Munich) - 1 cup
+# Vits der Kaffee (Munich, Oct 2025) - 1 cup
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="San Fermin") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Vits der Kaffee") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Vits der Kaffee") | .id')" \
+  --created-at "2025-10-09T11:30:00Z"
 
-# Full Court Press (Bristol) - 2 cups
+# Hola Coffee (Madrid, Nov 2025) - 2 cups
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Cerro Azul") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
+  --created-at "2025-11-05T12:30:00Z"
+
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Hola Coffee") | .id')" \
+  --created-at "2025-11-06T10:00:00Z"
+
+# Toma Café (Madrid, Nov 2025) - 1 cup
+./target/debug/brewlog cup add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Toma Café") | .id')" \
+  --created-at "2025-11-07T11:00:00Z"
+
+# Full Court Press (Bristol, Jan 2026) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
+  --created-at "2026-01-11T10:30:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Death to Decaf") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Full Court Press") | .id')" \
+  --created-at "2026-01-11T11:15:00Z"
 
-# Small Street Espresso (Bristol) - 2 cups
+# Small Street Espresso (Bristol, Jan 2026) - 2 cups
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Simbi") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
+  --created-at "2026-01-11T14:30:00Z"
 
 ./target/debug/brewlog cup add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Chumeca") | .id')" \
-  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')"
+  --cafe-id "$(./target/debug/brewlog cafe list | jq -r '.[] | select(.name=="Small Street Espresso") | .id')" \
+  --created-at "2026-01-11T15:00:00Z"
 
 # ============================================================================
-# Bags - Various bags from different roasters with amounts ranging 100g-500g
+# Bags - Various bags from different roasters, spread over months 2-6
+# Roast dates are slightly before created_at (bag bought after roasting)
 # ============================================================================
 
-# Tim Wendelboe - Ben Saïd Natural (250g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
-  --roast-date "2026-01-15" \
-  --amount 250
-
-# Tim Wendelboe - Finca Tamana Washed (350g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
-  --roast-date "2026-01-18" \
-  --amount 350
-
-# Coffee Collective - Daterra Sweet Collection (200g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
-  --roast-date "2026-01-10" \
-  --amount 200
-
-# Drop Coffee - La Linda (500g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Linda") | .id')" \
-  --roast-date "2026-01-20" \
-  --amount 500
-
-# La Cabra - Halo Beriti (150g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
-  --roast-date "2026-01-12" \
-  --amount 150
-
-# April Coffee - Guji Highland (300g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
-  --roast-date "2026-01-22" \
-  --amount 300
-
-# Assembly Coffee - Kochere (250g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
-  --roast-date "2026-01-08" \
-  --amount 250
-
-# Square Mile Coffee - Red Brick Espresso (400g)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
-  --roast-date "2026-01-25" \
-  --amount 400
-
-# Dak Coffee Roasters - El Paraiso 92 Anaerobic (100g - small competition lot)
-./target/debug/brewlog bag add \
-  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
-  --roast-date "2026-01-28" \
-  --amount 100
-
-# Bonanza Coffee - Gatomboya (175g)
+# Bonanza Coffee - Gatomboya (175g) — Sep 2025, finished Oct
 ./target/debug/brewlog bag add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Gatomboya") | .id')" \
-  --roast-date "2026-01-05" \
-  --amount 175
+  --roast-date "2025-09-20" \
+  --amount 175 \
+  --created-at "2025-09-28T10:00:00Z"
 
-# Stow Coffee - Suke Quto (225g)
+# Assembly Coffee - Kochere (250g) — early Oct, finished mid-Oct
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Kochere") | .id')" \
+  --roast-date "2025-09-25" \
+  --amount 250 \
+  --created-at "2025-10-02T11:00:00Z"
+
+# Coffee Collective - Daterra Sweet Collection (200g) — Oct, finished Nov
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Daterra Sweet Collection") | .id')" \
+  --roast-date "2025-10-05" \
+  --amount 200 \
+  --created-at "2025-10-10T14:00:00Z"
+
+# La Cabra - Halo Beriti (150g) — late Oct, finished Nov
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Halo Beriti") | .id')" \
+  --roast-date "2025-10-18" \
+  --amount 150 \
+  --created-at "2025-10-25T09:00:00Z"
+
+# Tim Wendelboe - Ben Saïd Natural (250g) — Nov, still open
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Ben Saïd Natural") | .id')" \
+  --roast-date "2025-11-10" \
+  --amount 250 \
+  --created-at "2025-11-15T10:00:00Z"
+
+# Tim Wendelboe - Finca Tamana Washed (350g) — Nov, still open
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Finca Tamana Washed") | .id')" \
+  --roast-date "2025-11-15" \
+  --amount 350 \
+  --created-at "2025-11-20T13:00:00Z"
+
+# Drop Coffee - La Linda (500g) — Dec, still open
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="La Linda") | .id')" \
+  --roast-date "2025-12-05" \
+  --amount 500 \
+  --created-at "2025-12-10T11:00:00Z"
+
+# April Coffee - Guji Highland (300g) — Dec, still open
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Guji Highland") | .id')" \
+  --roast-date "2025-12-12" \
+  --amount 300 \
+  --created-at "2025-12-18T14:00:00Z"
+
+# Square Mile Coffee - Red Brick Espresso (400g) — late Dec, still open
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Red Brick Espresso") | .id')" \
+  --roast-date "2025-12-22" \
+  --amount 400 \
+  --created-at "2025-12-28T09:00:00Z"
+
+# Dak Coffee Roasters - El Paraiso 92 Anaerobic (100g) — Jan 2026, still open
+./target/debug/brewlog bag add \
+  --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="El Paraiso 92 Anaerobic") | .id')" \
+  --roast-date "2026-01-05" \
+  --amount 100 \
+  --created-at "2026-01-10T10:00:00Z"
+
+# Stow Coffee - Suke Quto (225g) — Jan 2026, still open
 ./target/debug/brewlog bag add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Suke Quto") | .id')" \
-  --roast-date "2026-01-30" \
-  --amount 225
+  --roast-date "2026-01-10" \
+  --amount 225 \
+  --created-at "2026-01-15T12:00:00Z"
 
-# Bows Coffee - Simbi (450g)
+# Bows Coffee - Simbi (450g) — late Jan 2026, still open
 ./target/debug/brewlog bag add \
   --roast-id "$(./target/debug/brewlog roast list | jq -r '.[] | select(.name=="Simbi") | .id')" \
-  --roast-date "2026-01-14" \
-  --amount 450
+  --roast-date "2026-01-18" \
+  --amount 450 \
+  --created-at "2026-01-22T15:00:00Z"
 
 # ============================================================================
-# Finished Bags - Mark 4 older bags as finished
+# Finished Bags - Mark 4 oldest bags as finished
 # ============================================================================
 
-# Finish Gatomboya bag (oldest - Jan 5)
+# Finish Gatomboya bag (Sep → Oct 2025)
 ./target/debug/brewlog bag update \
   --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Gatomboya") | .id')" \
   --closed true \
-  --finished-at "2026-01-20"
+  --finished-at "2025-10-15"
 
-# Finish Kochere bag (Jan 8)
+# Finish Kochere bag (Oct 2025)
 ./target/debug/brewlog bag update \
   --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Kochere") | .id')" \
   --closed true \
-  --finished-at "2026-01-22"
+  --finished-at "2025-10-20"
 
-# Finish Daterra Sweet Collection bag (Jan 10)
+# Finish Daterra Sweet Collection bag (Oct → Nov 2025)
 ./target/debug/brewlog bag update \
   --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Daterra Sweet Collection") | .id')" \
   --closed true \
-  --finished-at "2026-01-25"
+  --finished-at "2025-11-05"
 
-# Finish Halo Beriti bag (Jan 12)
+# Finish Halo Beriti bag (Oct → Nov 2025)
 ./target/debug/brewlog bag update \
   --id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Halo Beriti") | .id')" \
   --closed true \
-  --finished-at "2026-01-28"
+  --finished-at "2025-11-12"
 
 # ============================================================================
 # Gear - 2 grinders, 3 brewers, and 3 filter papers
+# Equipment added early (months 1-2), with upgrades in months 3-4
 # ============================================================================
 
 # Grinders
 ./target/debug/brewlog gear add \
   --category "grinder" \
   --make "Comandante" \
-  --model "C40 MK4"
+  --model "C40 MK4" \
+  --created-at "2025-08-05T10:00:00Z"
 
 ./target/debug/brewlog gear add \
   --category "grinder" \
   --make "1Zpresso" \
-  --model "J-Max"
+  --model "J-Max" \
+  --created-at "2025-09-20T11:00:00Z"
 
 # Brewers
 ./target/debug/brewlog gear add \
   --category "brewer" \
   --make "Hario" \
-  --model "V60 02"
+  --model "V60 02" \
+  --created-at "2025-08-10T14:30:00Z"
 
 ./target/debug/brewlog gear add \
   --category "brewer" \
   --make "AeroPress" \
-  --model "Original"
+  --model "Original" \
+  --created-at "2025-08-15T09:00:00Z"
 
 ./target/debug/brewlog gear add \
   --category "brewer" \
   --make "Fellow" \
-  --model "Stagg XF"
+  --model "Stagg XF" \
+  --created-at "2025-10-12T16:00:00Z"
 
 # Filter Papers
 ./target/debug/brewlog gear add \
   --category "filter_paper" \
   --make "Hario" \
-  --model "V60 Tabbed 02"
+  --model "V60 Tabbed 02" \
+  --created-at "2025-08-10T14:45:00Z"
 
 ./target/debug/brewlog gear add \
   --category "filter_paper" \
   --make "Sibarist" \
-  --model "FAST Specialty 02"
+  --model "FAST Specialty 02" \
+  --created-at "2025-10-01T09:00:00Z"
 
 ./target/debug/brewlog gear add \
   --category "filter_paper" \
   --make "Fellow" \
-  --model "Stagg XF Filters"
+  --model "Stagg XF Filters" \
+  --created-at "2025-10-12T16:15:00Z"
 
 # ============================================================================
 # Brews - Sample brews using open bags with realistic ratios (1:15 to 1:17)
 # ============================================================================
 
-# Standard V60 brew - Ben Saïd Natural with Comandante (ratio 1:16.7)
+# Standard V60 brew - Ben Saïd Natural with Comandante (ratio 1:16.7) — mid Nov
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Ben Saïd Natural") | .id')" \
   --coffee-weight 15.0 \
@@ -755,9 +854,10 @@ fi
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 Tabbed 02") | .id')" \
   --water-volume 250 \
   --water-temp 92.0 \
-  --quick-notes good
+  --quick-notes good \
+  --created-at "2025-11-18T08:30:00Z"
 
-# AeroPress brew - Finca Tamana with J-Max (ratio 1:15)
+# AeroPress brew - Finca Tamana with J-Max (ratio 1:15) — late Nov
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Finca Tamana Washed") | .id')" \
   --coffee-weight 17.0 \
@@ -765,9 +865,10 @@ fi
   --grind-setting 20.0 \
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Original") | .id')" \
   --water-volume 255 \
-  --water-temp 88.0
+  --water-temp 88.0 \
+  --created-at "2025-11-25T09:00:00Z"
 
-# Double V60 brew - La Linda with Comandante (ratio 1:16.7)
+# Double V60 brew - La Linda with Comandante (ratio 1:16.7) — mid Dec
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="La Linda") | .id')" \
   --coffee-weight 30.0 \
@@ -776,9 +877,10 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="FAST Specialty 02") | .id')" \
   --water-volume 500 \
-  --water-temp 91.0
+  --water-temp 91.0 \
+  --created-at "2025-12-15T10:00:00Z"
 
-# Stagg XF brew - Guji Highland with J-Max (ratio 1:16.7)
+# Stagg XF brew - Guji Highland with J-Max (ratio 1:16.7) — late Dec
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Guji Highland") | .id')" \
   --coffee-weight 18.0 \
@@ -788,9 +890,10 @@ fi
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF Filters") | .id')" \
   --water-volume 300 \
   --water-temp 93.0 \
-  --quick-notes too-fast,under-extracted
+  --quick-notes too-fast,under-extracted \
+  --created-at "2025-12-22T08:00:00Z"
 
-# Light V60 brew - Red Brick Espresso with Comandante (ratio 1:16.7)
+# Light V60 brew - Red Brick Espresso with Comandante (ratio 1:16.7) — early Jan
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Red Brick Espresso") | .id')" \
   --coffee-weight 12.0 \
@@ -799,9 +902,10 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 02") | .id')" \
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 Tabbed 02") | .id')" \
   --water-volume 200 \
-  --water-temp 94.0
+  --water-temp 94.0 \
+  --created-at "2026-01-02T09:30:00Z"
 
-# AeroPress inverted - El Paraiso Anaerobic with J-Max (ratio 1:15)
+# AeroPress inverted - El Paraiso Anaerobic with J-Max (ratio 1:15) — mid Jan
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="El Paraiso 92 Anaerobic") | .id')" \
   --coffee-weight 15.0 \
@@ -810,9 +914,10 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Original") | .id')" \
   --water-volume 225 \
   --water-temp 85.0 \
-  --quick-notes too-hot,over-extracted
+  --quick-notes too-hot,over-extracted \
+  --created-at "2026-01-12T08:15:00Z"
 
-# V60 brew - Suke Quto with J-Max (ratio 1:16)
+# V60 brew - Suke Quto with J-Max (ratio 1:16) — late Jan
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Suke Quto") | .id')" \
   --coffee-weight 20.0 \
@@ -822,9 +927,10 @@ fi
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="FAST Specialty 02") | .id')" \
   --water-volume 320 \
   --water-temp 92.0 \
-  --quick-notes good
+  --quick-notes good \
+  --created-at "2026-01-20T09:00:00Z"
 
-# Stagg XF brew - Simbi with Comandante (ratio 1:16)
+# Stagg XF brew - Simbi with Comandante (ratio 1:16) — late Jan
 ./target/debug/brewlog brew add \
   --bag-id "$(./target/debug/brewlog bag list | jq -r '.[] | select(.roast_name=="Simbi") | .id')" \
   --coffee-weight 16.0 \
@@ -833,894 +939,27 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF") | .id')" \
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF Filters") | .id')" \
   --water-volume 256 \
-  --water-temp 90.0
+  --water-temp 90.0 \
+  --created-at "2026-01-28T08:45:00Z"
 
 # ============================================================================
-# Timestamp Distribution - Spread data over the last 6 months
+# Enrich cafe timeline events with Position links
+# (The Rust to_timeline_event() only includes City and Country)
 # ============================================================================
 
 DB_FILE="${DATABASE_URL:-brewlog.db}"
-# Strip sqlite:// prefix if present
 DB_FILE="${DB_FILE#sqlite://}"
-
-echo "Distributing timestamps over the last 6 months..."
 
 sqlite3 "$DB_FILE" <<'ENDSQL'
 .timeout 5000
--- Today is approximately 2026-02-02
--- Spread data from 2025-08-01 to 2026-02-02 (6 months)
-
--- ============================================================================
--- GEAR: Added early (months 1-2) - you buy equipment before brewing
--- ============================================================================
-UPDATE gear SET
-  created_at = datetime('2025-08-05 10:00:00'),
-  updated_at = datetime('2025-08-05 10:00:00')
-WHERE model = 'C40 MK4';  -- Comandante grinder
-
-UPDATE gear SET
-  created_at = datetime('2025-08-10 14:30:00'),
-  updated_at = datetime('2025-08-10 14:30:00')
-WHERE model = 'V60 02';  -- Hario V60
-
-UPDATE gear SET
-  created_at = datetime('2025-08-15 09:00:00'),
-  updated_at = datetime('2025-08-15 09:00:00')
-WHERE model = 'Original';  -- AeroPress
-
-UPDATE gear SET
-  created_at = datetime('2025-09-20 11:00:00'),
-  updated_at = datetime('2025-09-20 11:00:00')
-WHERE model = 'J-Max';  -- 1Zpresso grinder (second grinder)
-
-UPDATE gear SET
-  created_at = datetime('2025-10-12 16:00:00'),
-  updated_at = datetime('2025-10-12 16:00:00')
-WHERE model = 'Stagg XF';  -- Fellow dripper (upgrade)
-
-UPDATE gear SET
-  created_at = datetime('2025-08-10 14:45:00'),
-  updated_at = datetime('2025-08-10 14:45:00')
-WHERE model = 'V60 Tabbed 02';  -- Hario filter papers (bought with V60)
-
-UPDATE gear SET
-  created_at = datetime('2025-10-01 09:00:00'),
-  updated_at = datetime('2025-10-01 09:00:00')
-WHERE model = 'FAST Specialty 02';  -- Sibarist upgrade papers
-
-UPDATE gear SET
-  created_at = datetime('2025-10-12 16:15:00'),
-  updated_at = datetime('2025-10-12 16:15:00')
-WHERE model = 'Stagg XF Filters';  -- Fellow filters (bought with Stagg XF)
-
--- ============================================================================
--- ROASTERS & ROASTS: Discovered over months 1-6
--- Order: Early favorites first, newer discoveries later
--- ============================================================================
-
--- Month 1 (Aug 2025): First roasters discovered
-UPDATE roasters SET created_at = datetime('2025-08-03 08:00:00')
-WHERE name = 'Tim Wendelboe';
-UPDATE roasts SET created_at = datetime('2025-08-03 08:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Tim Wendelboe');
-
-UPDATE roasters SET created_at = datetime('2025-08-08 12:00:00')
-WHERE name = 'Square Mile Coffee';
-UPDATE roasts SET created_at = datetime('2025-08-08 12:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Square Mile Coffee');
-
--- Month 2 (Sep 2025): More exploration
-UPDATE roasters SET created_at = datetime('2025-09-05 10:00:00')
-WHERE name = 'Coffee Collective';
-UPDATE roasts SET created_at = datetime('2025-09-05 10:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Coffee Collective');
-
-UPDATE roasters SET created_at = datetime('2025-09-15 14:00:00')
-WHERE name = 'Assembly Coffee';
-UPDATE roasts SET created_at = datetime('2025-09-15 14:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Assembly Coffee');
-
-UPDATE roasters SET created_at = datetime('2025-09-25 09:00:00')
-WHERE name = 'Bonanza Coffee';
-UPDATE roasts SET created_at = datetime('2025-09-25 09:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bonanza Coffee');
-
--- Month 3 (Oct 2025): Nordic deep dive
-UPDATE roasters SET created_at = datetime('2025-10-05 11:00:00')
-WHERE name = 'Drop Coffee';
-UPDATE roasts SET created_at = datetime('2025-10-05 11:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Drop Coffee');
-
-UPDATE roasters SET created_at = datetime('2025-10-15 13:00:00')
-WHERE name = 'La Cabra';
-UPDATE roasts SET created_at = datetime('2025-10-15 13:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'La Cabra');
-
-UPDATE roasters SET created_at = datetime('2025-10-28 16:00:00')
-WHERE name = 'April Coffee';
-UPDATE roasts SET created_at = datetime('2025-10-28 16:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'April Coffee');
-
--- Month 4 (Nov 2025): European expansion
-UPDATE roasters SET created_at = datetime('2025-11-02 10:00:00')
-WHERE name = 'Dak Coffee Roasters';
-UPDATE roasts SET created_at = datetime('2025-11-02 10:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dak Coffee Roasters');
-
-UPDATE roasters SET created_at = datetime('2025-11-12 15:00:00')
-WHERE name = 'Friedhats';
-UPDATE roasts SET created_at = datetime('2025-11-12 15:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Friedhats');
-
-UPDATE roasters SET created_at = datetime('2025-11-22 09:00:00')
-WHERE name = 'Origin Coffee';
-UPDATE roasts SET created_at = datetime('2025-11-22 09:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Origin Coffee');
-
--- Month 5 (Dec 2025): Holiday discoveries
-UPDATE roasters SET created_at = datetime('2025-12-05 11:00:00')
-WHERE name = 'Dark Arts Coffee';
-UPDATE roasts SET created_at = datetime('2025-12-05 11:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dark Arts Coffee');
-
-UPDATE roasters SET created_at = datetime('2025-12-15 14:00:00')
-WHERE name = 'KAWA Coffee';
-UPDATE roasts SET created_at = datetime('2025-12-15 14:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'KAWA Coffee');
-
-UPDATE roasters SET created_at = datetime('2025-12-28 10:00:00')
-WHERE name = 'Stow Coffee';
-UPDATE roasts SET created_at = datetime('2025-12-28 10:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Stow Coffee');
-
--- Month 6 (Jan 2026): New year additions
-UPDATE roasters SET created_at = datetime('2026-01-08 12:00:00')
-WHERE name = 'Bows Coffee';
-UPDATE roasts SET created_at = datetime('2026-01-08 12:05:00')
-WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee');
-
--- ============================================================================
--- CAFES: Visited over months 1-6, spread across 5 cities
--- ============================================================================
-
--- Month 1 (Aug 2025): First London cafes
-UPDATE cafes SET
-  created_at = datetime('2025-08-12 11:00:00'),
-  updated_at = datetime('2025-08-12 11:00:00')
-WHERE name = 'Monmouth Coffee';
-
-UPDATE cafes SET
-  created_at = datetime('2025-08-20 14:30:00'),
-  updated_at = datetime('2025-08-20 14:30:00')
-WHERE name = 'Prufrock Coffee';
-
--- Month 2 (Sep 2025): Berlin trip
-UPDATE cafes SET
-  created_at = datetime('2025-09-08 10:00:00'),
-  updated_at = datetime('2025-09-08 10:00:00')
-WHERE name = 'The Barn';
-
-UPDATE cafes SET
-  created_at = datetime('2025-09-10 15:00:00'),
-  updated_at = datetime('2025-09-10 15:00:00')
-WHERE name = 'Companion Coffee';
-
--- Month 3 (Oct 2025): Munich visit
-UPDATE cafes SET
-  created_at = datetime('2025-10-07 09:30:00'),
-  updated_at = datetime('2025-10-07 09:30:00')
-WHERE name = 'Man Versus Machine';
-
-UPDATE cafes SET
-  created_at = datetime('2025-10-09 11:00:00'),
-  updated_at = datetime('2025-10-09 11:00:00')
-WHERE name = 'Vits der Kaffee';
-
--- Month 4 (Nov 2025): Madrid trip
-UPDATE cafes SET
-  created_at = datetime('2025-11-05 12:00:00'),
-  updated_at = datetime('2025-11-05 12:00:00')
-WHERE name = 'Hola Coffee';
-
-UPDATE cafes SET
-  created_at = datetime('2025-11-07 10:30:00'),
-  updated_at = datetime('2025-11-07 10:30:00')
-WHERE name = 'Toma Café';
-
--- Month 6 (Jan 2026): Bristol day trip
-UPDATE cafes SET
-  created_at = datetime('2026-01-11 10:00:00'),
-  updated_at = datetime('2026-01-11 10:00:00')
-WHERE name = 'Full Court Press';
-
-UPDATE cafes SET
-  created_at = datetime('2026-01-11 14:00:00'),
-  updated_at = datetime('2026-01-11 14:00:00')
-WHERE name = 'Small Street Espresso';
-
--- ============================================================================
--- CUPS: Spread to match cafe visit dates
--- Each cup is dated around the time the cafe was visited
--- ============================================================================
-
--- Monmouth Coffee (London, Aug 2025) - 2 cups
-UPDATE cups SET
-  created_at = datetime('2025-08-12 11:30:00'),
-  updated_at = datetime('2025-08-12 11:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso');
-
-UPDATE cups SET
-  created_at = datetime('2025-08-12 12:15:00'),
-  updated_at = datetime('2025-08-12 12:15:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Kamwangi');
-
--- Prufrock Coffee (London, Aug 2025) - 3 cups
-UPDATE cups SET
-  created_at = datetime('2025-08-20 14:45:00'),
-  updated_at = datetime('2025-08-20 14:45:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Kochere');
-
-UPDATE cups SET
-  created_at = datetime('2025-08-20 15:30:00'),
-  updated_at = datetime('2025-08-20 15:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'La Laja');
-
-UPDATE cups SET
-  created_at = datetime('2025-08-25 10:00:00'),
-  updated_at = datetime('2025-08-25 10:00:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural');
-
--- The Barn (Berlin, Sep 2025) - 3 cups
-UPDATE cups SET
-  created_at = datetime('2025-09-08 10:30:00'),
-  updated_at = datetime('2025-09-08 10:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya');
-
-UPDATE cups SET
-  created_at = datetime('2025-09-08 15:00:00'),
-  updated_at = datetime('2025-09-08 15:00:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Los Pirineos');
-
-UPDATE cups SET
-  created_at = datetime('2025-09-09 09:30:00'),
-  updated_at = datetime('2025-09-09 09:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti');
-
--- Companion Coffee (Berlin, Sep 2025) - 2 cups
-UPDATE cups SET
-  created_at = datetime('2025-09-10 15:30:00'),
-  updated_at = datetime('2025-09-10 15:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic');
-
-UPDATE cups SET
-  created_at = datetime('2025-09-10 16:15:00'),
-  updated_at = datetime('2025-09-10 16:15:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Oreti SL28');
-
--- Man Versus Machine (Munich, Oct 2025) - 2 cups
-UPDATE cups SET
-  created_at = datetime('2025-10-07 10:00:00'),
-  updated_at = datetime('2025-10-07 10:00:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed');
-
-UPDATE cups SET
-  created_at = datetime('2025-10-07 14:30:00'),
-  updated_at = datetime('2025-10-07 14:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'La Esmeralda Geisha');
-
--- Vits der Kaffee (Munich, Oct 2025) - 1 cup
-UPDATE cups SET
-  created_at = datetime('2025-10-09 11:30:00'),
-  updated_at = datetime('2025-10-09 11:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Vits der Kaffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'San Fermin');
-
--- Hola Coffee (Madrid, Nov 2025) - 2 cups
-UPDATE cups SET
-  created_at = datetime('2025-11-05 12:30:00'),
-  updated_at = datetime('2025-11-05 12:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Cerro Azul');
-
-UPDATE cups SET
-  created_at = datetime('2025-11-06 10:00:00'),
-  updated_at = datetime('2025-11-06 10:00:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland');
-
--- Toma Café (Madrid, Nov 2025) - 1 cup
-UPDATE cups SET
-  created_at = datetime('2025-11-07 11:00:00'),
-  updated_at = datetime('2025-11-07 11:00:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Toma Café')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection');
-
--- Full Court Press (Bristol, Jan 2026) - 2 cups
-UPDATE cups SET
-  created_at = datetime('2026-01-11 10:30:00'),
-  updated_at = datetime('2026-01-11 10:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto');
-
-UPDATE cups SET
-  created_at = datetime('2026-01-11 11:15:00'),
-  updated_at = datetime('2026-01-11 11:15:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Death to Decaf');
-
--- Small Street Espresso (Bristol, Jan 2026) - 2 cups
-UPDATE cups SET
-  created_at = datetime('2026-01-11 14:30:00'),
-  updated_at = datetime('2026-01-11 14:30:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'Simbi');
-
-UPDATE cups SET
-  created_at = datetime('2026-01-11 15:00:00'),
-  updated_at = datetime('2026-01-11 15:00:00')
-WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
-  AND roast_id = (SELECT id FROM roasts WHERE name = 'La Chumeca');
-
--- ============================================================================
--- BAGS: Purchased after roasts exist, spread over months 2-6
--- Roast dates should be slightly before created_at (bag bought after roasting)
--- ============================================================================
-
--- Gatomboya (Bonanza) - Sep 2025, finished in Oct
-UPDATE bags SET
-  created_at = datetime('2025-09-28 10:00:00'),
-  updated_at = datetime('2025-10-15 09:00:00'),
-  roast_date = '2025-09-20',
-  finished_at = '2025-10-15'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya');
-
--- Kochere (Assembly) - early Oct, finished mid-Oct
-UPDATE bags SET
-  created_at = datetime('2025-10-02 11:00:00'),
-  updated_at = datetime('2025-10-20 14:00:00'),
-  roast_date = '2025-09-25',
-  finished_at = '2025-10-20'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Kochere');
-
--- Daterra Sweet Collection (Coffee Collective) - Oct, finished Nov
-UPDATE bags SET
-  created_at = datetime('2025-10-10 14:00:00'),
-  updated_at = datetime('2025-11-05 10:00:00'),
-  roast_date = '2025-10-05',
-  finished_at = '2025-11-05'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection');
-
--- Halo Beriti (La Cabra) - late Oct, finished Nov
-UPDATE bags SET
-  created_at = datetime('2025-10-25 09:00:00'),
-  updated_at = datetime('2025-11-12 16:00:00'),
-  roast_date = '2025-10-18',
-  finished_at = '2025-11-12'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti');
-
--- Ben Saïd Natural (Tim Wendelboe) - Nov, still open
-UPDATE bags SET
-  created_at = datetime('2025-11-15 10:00:00'),
-  updated_at = datetime('2025-11-15 10:00:00'),
-  roast_date = '2025-11-10'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural');
-
--- Finca Tamana Washed (Tim Wendelboe) - Nov, still open
-UPDATE bags SET
-  created_at = datetime('2025-11-20 13:00:00'),
-  updated_at = datetime('2025-11-20 13:00:00'),
-  roast_date = '2025-11-15'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed');
-
--- La Linda (Drop Coffee) - Dec, still open
-UPDATE bags SET
-  created_at = datetime('2025-12-10 11:00:00'),
-  updated_at = datetime('2025-12-10 11:00:00'),
-  roast_date = '2025-12-05'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'La Linda');
-
--- Guji Highland (April Coffee) - Dec, still open
-UPDATE bags SET
-  created_at = datetime('2025-12-18 14:00:00'),
-  updated_at = datetime('2025-12-18 14:00:00'),
-  roast_date = '2025-12-12'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland');
-
--- Red Brick Espresso (Square Mile) - late Dec, still open
-UPDATE bags SET
-  created_at = datetime('2025-12-28 09:00:00'),
-  updated_at = datetime('2025-12-28 09:00:00'),
-  roast_date = '2025-12-22'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso');
-
--- El Paraiso 92 Anaerobic (Dak) - Jan 2026, still open
-UPDATE bags SET
-  created_at = datetime('2026-01-10 10:00:00'),
-  updated_at = datetime('2026-01-10 10:00:00'),
-  roast_date = '2026-01-05'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic');
-
--- Suke Quto (Stow) - Jan 2026, still open
-UPDATE bags SET
-  created_at = datetime('2026-01-15 12:00:00'),
-  updated_at = datetime('2026-01-15 12:00:00'),
-  roast_date = '2026-01-10'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto');
-
--- Simbi (Bows Coffee) - late Jan 2026, still open
-UPDATE bags SET
-  created_at = datetime('2026-01-22 15:00:00'),
-  updated_at = datetime('2026-01-22 15:00:00'),
-  roast_date = '2026-01-18'
-WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Simbi');
-
--- ============================================================================
--- BREWS: Created after bags exist, spread over recent months
--- ============================================================================
-
--- Brew 1: Ben Saïd Natural V60 - mid Nov
-UPDATE brews SET
-  created_at = datetime('2025-11-18 08:30:00'),
-  updated_at = datetime('2025-11-18 08:30:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural'))
-  AND water_volume = 250;
-
--- Brew 2: Finca Tamana AeroPress - late Nov
-UPDATE brews SET
-  created_at = datetime('2025-11-25 09:00:00'),
-  updated_at = datetime('2025-11-25 09:00:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed'))
-  AND water_volume = 255;
-
--- Brew 3: La Linda double V60 - mid Dec
-UPDATE brews SET
-  created_at = datetime('2025-12-15 10:00:00'),
-  updated_at = datetime('2025-12-15 10:00:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'La Linda'))
-  AND water_volume = 500;
-
--- Brew 4: Guji Highland Stagg XF - late Dec
-UPDATE brews SET
-  created_at = datetime('2025-12-22 08:00:00'),
-  updated_at = datetime('2025-12-22 08:00:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland'))
-  AND water_volume = 300;
-
--- Brew 5: Red Brick V60 - early Jan
-UPDATE brews SET
-  created_at = datetime('2026-01-02 09:30:00'),
-  updated_at = datetime('2026-01-02 09:30:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso'))
-  AND water_volume = 200;
-
--- Brew 6: El Paraiso AeroPress - mid Jan
-UPDATE brews SET
-  created_at = datetime('2026-01-12 08:15:00'),
-  updated_at = datetime('2026-01-12 08:15:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic'))
-  AND water_volume = 225;
-
--- Brew 7: Suke Quto V60 - late Jan
-UPDATE brews SET
-  created_at = datetime('2026-01-20 09:00:00'),
-  updated_at = datetime('2026-01-20 09:00:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto'))
-  AND water_volume = 320;
-
--- Brew 8: Simbi Stagg XF - recent (late Jan)
-UPDATE brews SET
-  created_at = datetime('2026-01-28 08:45:00'),
-  updated_at = datetime('2026-01-28 08:45:00')
-WHERE bag_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Simbi'))
-  AND water_volume = 256;
-
--- ============================================================================
--- TIMELINE_EVENTS: Update to match entity creation times
--- ============================================================================
-
--- Gear timeline events
-UPDATE timeline_events SET occurred_at = datetime('2025-08-05 10:00:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'C40 MK4');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-10 14:30:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'V60 02');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-15 09:00:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Original');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-20 11:00:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'J-Max');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-12 16:00:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Stagg XF');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-10 14:45:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'V60 Tabbed 02');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-01 09:00:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'FAST Specialty 02');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-12 16:15:00')
-WHERE entity_type = 'gear' AND entity_id = (SELECT id FROM gear WHERE model = 'Stagg XF Filters');
-
--- Roaster timeline events
-UPDATE timeline_events SET occurred_at = datetime('2025-08-03 08:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Tim Wendelboe');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-08 12:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Square Mile Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-05 10:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Coffee Collective');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-15 14:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Assembly Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-25 09:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Bonanza Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-05 11:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Drop Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-15 13:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'La Cabra');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-28 16:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'April Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-02 10:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Dak Coffee Roasters');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-12 15:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Friedhats');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-22 09:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Origin Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-05 11:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Dark Arts Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-15 14:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'KAWA Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-28 10:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Stow Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-08 12:00:00')
-WHERE entity_type = 'roaster' AND entity_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee');
-
--- Roast timeline events (match roaster times + 5 min)
-UPDATE timeline_events SET occurred_at = datetime('2025-08-03 08:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Tim Wendelboe'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-08 12:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Square Mile Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-05 10:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Coffee Collective'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-15 14:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Assembly Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-25 09:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bonanza Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-05 11:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Drop Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-15 13:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'La Cabra'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-28 16:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'April Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-02 10:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dak Coffee Roasters'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-12 15:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Friedhats'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-22 09:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Origin Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-05 11:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Dark Arts Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-15 14:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'KAWA Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-28 10:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Stow Coffee'));
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-08 12:05:00')
-WHERE entity_type = 'roast' AND entity_id IN (SELECT id FROM roasts WHERE roaster_id = (SELECT id FROM roasters WHERE name = 'Bows Coffee'));
-
--- Cafe timeline events (match cafe created_at)
-UPDATE timeline_events SET occurred_at = datetime('2025-08-12 11:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-20 14:30:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-08 10:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'The Barn');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-10 15:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-07 09:30:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-09 11:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Vits der Kaffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-05 12:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee');
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-07 10:30:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Toma Café');
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-11 10:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Full Court Press');
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-11 14:00:00')
-WHERE entity_type = 'cafe' AND entity_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso');
-
--- Rebuild cafe timeline details_json to include Position field
 UPDATE timeline_events SET details_json = (
   SELECT '[{"label":"City","value":"' || c.city || '"},{"label":"Country","value":"' || c.country || '"},{"label":"Website","value":"' || COALESCE(NULLIF(c.website, ''), '—') || '"},{"label":"Position","value":"https://www.google.com/maps?q=' || c.latitude || ',' || c.longitude || '"}]'
   FROM cafes c WHERE c.id = timeline_events.entity_id
 )
 WHERE entity_type = 'cafe';
-
--- Bag timeline events (match bag created_at)
-UPDATE timeline_events SET occurred_at = datetime('2025-09-28 10:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-02 11:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Kochere'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-10 14:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-25 09:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-15 10:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-20 13:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-10 11:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'La Linda'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-18 14:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland'));
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-28 09:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso'));
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-10 10:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic'));
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-15 12:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto'));
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-22 15:00:00')
-WHERE entity_type = 'bag' AND entity_id = (SELECT id FROM bags WHERE roast_id = (SELECT id FROM roasts WHERE name = 'Simbi'));
-
--- Brew timeline events (match brew created_at)
-UPDATE timeline_events SET occurred_at = datetime('2025-11-18 08:30:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'Ben Saïd Natural' AND b.water_volume = 250
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-25 09:00:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'Finca Tamana Washed' AND b.water_volume = 255
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-15 10:00:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'La Linda' AND b.water_volume = 500
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-12-22 08:00:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'Guji Highland' AND b.water_volume = 300
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-02 09:30:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'Red Brick Espresso' AND b.water_volume = 200
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-12 08:15:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'El Paraiso 92 Anaerobic' AND b.water_volume = 225
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-20 09:00:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'Suke Quto' AND b.water_volume = 320
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-28 08:45:00')
-WHERE entity_type = 'brew' AND entity_id = (
-  SELECT b.id FROM brews b
-  JOIN bags ba ON b.bag_id = ba.id
-  JOIN roasts r ON ba.roast_id = r.id
-  WHERE r.name = 'Simbi' AND b.water_volume = 256
-);
-
--- Cup timeline events (match cup created_at)
--- Monmouth Coffee cups
-UPDATE timeline_events SET occurred_at = datetime('2025-08-12 11:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Red Brick Espresso')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-12 12:15:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Monmouth Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Kamwangi')
-);
-
--- Prufrock Coffee cups
-UPDATE timeline_events SET occurred_at = datetime('2025-08-20 14:45:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Kochere')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-20 15:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'La Laja')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-08-25 10:00:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Prufrock Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Ben Saïd Natural')
-);
-
--- The Barn cups
-UPDATE timeline_events SET occurred_at = datetime('2025-09-08 10:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Gatomboya')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-08 15:00:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Los Pirineos')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-09 09:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'The Barn')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Halo Beriti')
-);
-
--- Companion Coffee cups
-UPDATE timeline_events SET occurred_at = datetime('2025-09-10 15:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'El Paraiso 92 Anaerobic')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-09-10 16:15:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Companion Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Oreti SL28')
-);
-
--- Man Versus Machine cups
-UPDATE timeline_events SET occurred_at = datetime('2025-10-07 10:00:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Finca Tamana Washed')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-10-07 14:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Man Versus Machine')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'La Esmeralda Geisha')
-);
-
--- Vits der Kaffee cup
-UPDATE timeline_events SET occurred_at = datetime('2025-10-09 11:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Vits der Kaffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'San Fermin')
-);
-
--- Hola Coffee cups
-UPDATE timeline_events SET occurred_at = datetime('2025-11-05 12:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Cerro Azul')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2025-11-06 10:00:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Hola Coffee')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Guji Highland')
-);
-
--- Toma Café cup
-UPDATE timeline_events SET occurred_at = datetime('2025-11-07 11:00:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Toma Café')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Daterra Sweet Collection')
-);
-
--- Full Court Press cups
-UPDATE timeline_events SET occurred_at = datetime('2026-01-11 10:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Suke Quto')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-11 11:15:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Full Court Press')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Death to Decaf')
-);
-
--- Small Street Espresso cups
-UPDATE timeline_events SET occurred_at = datetime('2026-01-11 14:30:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'Simbi')
-);
-
-UPDATE timeline_events SET occurred_at = datetime('2026-01-11 15:00:00')
-WHERE entity_type = 'cup' AND entity_id = (
-  SELECT id FROM cups WHERE cafe_id = (SELECT id FROM cafes WHERE name = 'Small Street Espresso')
-    AND roast_id = (SELECT id FROM roasts WHERE name = 'La Chumeca')
-);
-
 ENDSQL
 
 echo
-echo "Bootstrapped database with distributed timestamps"
+echo "Bootstrapped database with timestamps set via --created-at"
 echo
 echo "Set token $BREWLOG_TOKEN to use the data added here."
