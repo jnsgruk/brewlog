@@ -23,6 +23,7 @@ async fn creating_a_cup_returns_a_201_for_valid_data() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
+        created_at: None,
     };
 
     let response = client
@@ -48,6 +49,7 @@ async fn creating_a_cup_requires_authentication() {
     let new_cup = NewCup {
         roast_id: RoastId::new(1),
         cafe_id: CafeId::new(1),
+        created_at: None,
     };
 
     let response = client
@@ -72,6 +74,7 @@ async fn listing_cups_returns_a_200_with_enriched_data() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
+        created_at: None,
     };
 
     client
@@ -109,6 +112,7 @@ async fn getting_a_cup_returns_a_200_with_details() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
+        created_at: None,
     };
 
     let create_response = client
@@ -150,6 +154,7 @@ async fn deleting_a_cup_returns_a_204_for_valid_id() {
     let new_cup = NewCup {
         roast_id: roast.id,
         cafe_id: cafe.id,
+        created_at: None,
     };
 
     let create_response = client

@@ -108,6 +108,7 @@ async fn roasters_create_with_datastar_header_returns_fragment() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
+        created_at: None,
     };
 
     let response = client
@@ -140,6 +141,7 @@ async fn roasters_create_without_datastar_header_returns_json() {
         country: "UK".to_string(),
         city: None,
         homepage: None,
+        created_at: None,
     };
 
     let response = client
@@ -193,6 +195,7 @@ async fn roasts_create_with_datastar_header_returns_fragment() {
         producer: "Test Farm".to_string(),
         tasting_notes: vec!["Blueberry".to_string()],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     let response = client
@@ -302,6 +305,7 @@ async fn bags_update_with_datastar_header_returns_fragment() {
         remaining: Some(100.0),
         closed: None,
         finished_at: None,
+        created_at: None,
     };
 
     let response = client
@@ -332,6 +336,7 @@ async fn bags_update_without_datastar_header_returns_json() {
         remaining: Some(100.0),
         closed: None,
         finished_at: None,
+        created_at: None,
     };
 
     let response = client
@@ -476,6 +481,7 @@ async fn gear_update_with_datastar_header_returns_fragment() {
     let update = brewlog::domain::gear::UpdateGear {
         make: Some("Updated Make".to_string()),
         model: None,
+        created_at: None,
     };
 
     let response = client
@@ -518,6 +524,7 @@ async fn gear_update_without_datastar_header_returns_json() {
     let update = brewlog::domain::gear::UpdateGear {
         make: Some("JSON Updated".to_string()),
         model: None,
+        created_at: None,
     };
 
     let response = client
@@ -552,6 +559,7 @@ async fn cafes_create_with_datastar_header_returns_fragment() {
         latitude: 51.5074,
         longitude: -0.1278,
         website: None,
+        created_at: None,
     };
 
     let response = client

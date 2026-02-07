@@ -29,6 +29,7 @@ async fn creating_a_roast_returns_a_201_for_valid_data() {
             "Citrus".to_string(),
         ],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     // Act
@@ -68,6 +69,7 @@ async fn creating_a_roast_persists_the_data() {
         producer: "Farm Co-op".to_string(),
         tasting_notes: vec!["Caramel".to_string(), "Nuts".to_string()],
         process: "Natural".to_string(),
+        created_at: None,
     };
 
     // Act
@@ -107,6 +109,7 @@ async fn creating_a_roast_with_nonexistent_roaster_returns_a_404() {
         producer: "Unknown Producer".to_string(),
         tasting_notes: vec!["Bitter".to_string()],
         process: "Unknown".to_string(),
+        created_at: None,
     };
 
     // Act
@@ -137,6 +140,7 @@ async fn getting_a_roast_returns_a_200_for_valid_id() {
         producer: "Estate".to_string(),
         tasting_notes: vec!["Blackcurrant".to_string()],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     let create_response = client
@@ -183,6 +187,7 @@ async fn listing_roasts_returns_a_200_with_multiple_roasts() {
         producer: "Farm A".to_string(),
         tasting_notes: vec!["Chocolate".to_string()],
         process: "Natural".to_string(),
+        created_at: None,
     };
 
     let roast2 = NewRoast {
@@ -193,6 +198,7 @@ async fn listing_roasts_returns_a_200_with_multiple_roasts() {
         producer: "Farm B".to_string(),
         tasting_notes: vec!["Caramel".to_string()],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     client
@@ -243,6 +249,7 @@ async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
         producer: "Farm A".to_string(),
         tasting_notes: vec!["Chocolate".to_string()],
         process: "Natural".to_string(),
+        created_at: None,
     };
 
     let roast2 = NewRoast {
@@ -253,6 +260,7 @@ async fn listing_roasts_by_roaster_returns_a_200_with_filtered_list() {
         producer: "Farm B".to_string(),
         tasting_notes: vec!["Caramel".to_string()],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     client
@@ -301,6 +309,7 @@ async fn deleting_a_roast_returns_a_204_for_valid_id() {
         producer: "Temporary Co-op".to_string(),
         tasting_notes: vec!["Fleeting".to_string()],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     let create_response = client

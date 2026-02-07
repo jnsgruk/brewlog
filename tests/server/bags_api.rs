@@ -16,6 +16,7 @@ async fn creating_a_bag_returns_a_201_for_valid_data() {
         roast_id: roast.id,
         roast_date: Some(NaiveDate::from_ymd_opt(2023, 1, 1).unwrap()),
         amount: 250.0,
+        created_at: None,
     };
 
     // Act
@@ -78,6 +79,7 @@ async fn listing_bags_returns_200_and_correct_data() {
         roast_id: roast.id,
         roast_date: None,
         amount: 500.0,
+        created_at: None,
     };
 
     client
@@ -116,6 +118,7 @@ async fn getting_a_bag_returns_200_for_valid_id() {
         roast_id: roast.id,
         roast_date: None,
         amount: 250.0,
+        created_at: None,
     };
 
     let create_response = client
@@ -156,6 +159,7 @@ async fn updating_a_bag_returns_200_and_updates_data() {
         roast_id: roast.id,
         roast_date: None,
         amount: 250.0,
+        created_at: None,
     };
 
     let create_response = client
@@ -175,6 +179,7 @@ async fn updating_a_bag_returns_200_and_updates_data() {
         remaining: Some(100.0),
         closed: Some(true),
         finished_at: Some(NaiveDate::from_ymd_opt(2023, 2, 1).unwrap()),
+        created_at: None,
     };
 
     // Act
@@ -209,6 +214,7 @@ async fn deleting_a_bag_returns_204() {
         roast_id: roast.id,
         roast_date: None,
         amount: 250.0,
+        created_at: None,
     };
 
     let create_response = client
@@ -257,6 +263,7 @@ async fn closing_a_bag_automatically_sets_finished_at() {
         roast_id: roast.id,
         roast_date: None,
         amount: 250.0,
+        created_at: None,
     };
 
     let create_response = client

@@ -20,6 +20,7 @@ async fn create_roast(app: &crate::helpers::TestApp, roaster_id: RoasterId, name
         producer: "Chelbesa Cooperative".to_string(),
         tasting_notes: vec!["Blueberry".to_string(), "Jasmine".to_string()],
         process: "Washed".to_string(),
+        created_at: None,
     };
 
     let response = client
@@ -45,6 +46,7 @@ async fn seed_timeline_with_roasts(
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
+            created_at: None,
         },
     )
     .await;
@@ -97,6 +99,7 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
+            created_at: None,
         },
     )
     .await;
@@ -138,6 +141,7 @@ async fn creating_a_roast_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
+            created_at: None,
         },
     )
     .await
@@ -182,6 +186,7 @@ async fn creating_a_bag_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
+            created_at: None,
         },
     )
     .await
@@ -342,6 +347,7 @@ async fn closing_a_bag_surfaces_on_the_timeline() {
             country: "UK".to_string(),
             city: Some("Bristol".to_string()),
             homepage: Some("https://example.com".to_string()),
+            created_at: None,
         },
     )
     .await
@@ -475,6 +481,7 @@ async fn creating_a_cafe_surfaces_on_the_timeline() {
             latitude: 51.4545,
             longitude: -2.5879,
             website: Some("https://example.com".to_string()),
+            created_at: None,
         },
     )
     .await;
@@ -627,6 +634,7 @@ async fn creating_a_brew_surfaces_on_the_timeline() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        created_at: None,
     };
 
     let response = client

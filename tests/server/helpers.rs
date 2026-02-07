@@ -243,6 +243,7 @@ pub async fn create_default_roast(
             producer: "Coop".to_string(),
             tasting_notes: vec!["Blueberry".to_string()],
             process: "Washed".to_string(),
+            created_at: None,
         },
     )
     .await
@@ -256,6 +257,7 @@ pub async fn create_roaster_with_name(app: &TestApp, name: &str) -> Roaster {
             country: "UK".to_string(),
             city: None,
             homepage: None,
+            created_at: None,
         },
     )
     .await
@@ -272,6 +274,7 @@ pub async fn create_default_bag(
             roast_id,
             roast_date: Some(chrono::NaiveDate::from_ymd_opt(2023, 1, 1).unwrap()),
             amount: 250.0,
+            created_at: None,
         },
     )
     .await
@@ -351,6 +354,7 @@ pub async fn create_default_gear(
             category: gear_category,
             make: make.to_string(),
             model: model.to_string(),
+            created_at: None,
         },
     )
     .await
@@ -366,6 +370,7 @@ pub async fn create_default_cafe(app: &TestApp) -> Cafe {
             latitude: 37.7749,
             longitude: -122.4194,
             website: Some("https://bluebottlecoffee.com".to_string()),
+            created_at: None,
         },
     )
     .await

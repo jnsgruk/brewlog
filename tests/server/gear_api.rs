@@ -282,6 +282,7 @@ async fn updating_gear_returns_updated_data() {
     let update = UpdateGear {
         make: Some("Comandante".to_string()),
         model: Some("C40".to_string()),
+        created_at: None,
     };
 
     let response = client
@@ -310,6 +311,7 @@ async fn updating_gear_without_auth_returns_401() {
     let update = UpdateGear {
         make: Some("Updated".to_string()),
         model: None,
+        created_at: None,
     };
 
     // Act

@@ -153,6 +153,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             country: "UK".to_string(),
             city: Some("London".to_string()),
             homepage: Some("https://shop.squaremilecoffee.com".to_string()),
+            created_at: None,
         })
         .await
         .expect("failed to create roaster");
@@ -172,6 +173,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
                 "Caramel".to_string(),
             ],
             process: "Natural".to_string(),
+            created_at: None,
         })
         .await
         .expect("failed to create roast");
@@ -183,6 +185,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             roast_id: roast.id,
             roast_date: Some(chrono::NaiveDate::from_ymd_opt(2025, 1, 15).unwrap()),
             amount: 250.0,
+            created_at: None,
         })
         .await
         .expect("failed to create bag");
@@ -194,6 +197,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             category: GearCategory::Grinder,
             make: "Comandante".to_string(),
             model: "C40 MK4".to_string(),
+            created_at: None,
         })
         .await
         .expect("failed to create grinder");
@@ -204,6 +208,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             category: GearCategory::Brewer,
             make: "Hario".to_string(),
             model: "V60 02".to_string(),
+            created_at: None,
         })
         .await
         .expect("failed to create brewer");
@@ -214,6 +219,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             category: GearCategory::FilterPaper,
             make: "Hario".to_string(),
             model: "V60 Tabbed 02".to_string(),
+            created_at: None,
         })
         .await
         .expect("failed to create filter paper");
@@ -231,6 +237,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             water_volume: 250,
             water_temp: 93.5,
             quick_notes: Vec::new(),
+            created_at: None,
         })
         .await
         .expect("failed to create brew");
@@ -257,6 +264,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             latitude: 51.5246,
             longitude: -0.1098,
             website: Some("https://prufrockcoffee.com".to_string()),
+            created_at: None,
         })
         .await
         .expect("failed to create cafe");
@@ -435,6 +443,7 @@ async fn restore_to_non_empty_database_fails() {
             country: "UK".to_string(),
             city: None,
             homepage: None,
+            created_at: None,
         })
         .await
         .expect("failed to create roaster");
