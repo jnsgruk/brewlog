@@ -26,6 +26,7 @@ async fn creating_a_brew_returns_201_for_valid_data() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -74,6 +75,7 @@ async fn creating_a_brew_with_filter_paper_returns_201() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -114,6 +116,7 @@ async fn creating_a_brew_deducts_from_bag_remaining() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -158,6 +161,7 @@ async fn creating_a_brew_fails_if_insufficient_coffee_in_bag() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -226,6 +230,7 @@ async fn listing_brews_returns_200_and_enriched_data() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -281,6 +286,7 @@ async fn listing_brews_without_filter_paper_returns_none() {
         water_volume: 255,
         water_temp: 88.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -331,6 +337,7 @@ async fn listing_brews_with_bag_filter_returns_filtered_results() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -353,6 +360,7 @@ async fn listing_brews_with_bag_filter_returns_filtered_results() {
         water_volume: 255,
         water_temp: 88.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -400,6 +408,7 @@ async fn getting_a_brew_returns_200_for_valid_id() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 
@@ -451,6 +460,7 @@ async fn deleting_a_brew_returns_204() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 

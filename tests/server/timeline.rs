@@ -634,6 +634,7 @@ async fn creating_a_brew_surfaces_on_the_timeline() {
         water_volume: 250,
         water_temp: 92.0,
         quick_notes: Vec::new(),
+        brew_time: None,
         created_at: None,
     };
 

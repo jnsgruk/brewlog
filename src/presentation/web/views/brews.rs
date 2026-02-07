@@ -1,4 +1,4 @@
-use crate::domain::brews::{Brew, BrewWithDetails, QuickNote};
+use crate::domain::brews::{Brew, BrewWithDetails, QuickNote, format_brew_time};
 
 use super::relative_date;
 
@@ -43,6 +43,7 @@ pub struct BrewView {
     pub water_volume: String,
     pub water_temp: String,
     pub ratio: String,
+    pub brew_time: Option<String>,
     pub quick_notes: Vec<QuickNoteView>,
     pub quick_notes_label: String,
     pub quick_notes_raw: String,
@@ -54,6 +55,7 @@ pub struct BrewView {
     pub grind_setting_raw: f64,
     pub water_volume_raw: i32,
     pub water_temp_raw: f64,
+    pub brew_time_raw: Option<i32>,
 }
 
 impl BrewView {
@@ -110,6 +112,7 @@ impl BrewView {
             water_volume: format!("{}ml", brew.brew.water_volume),
             water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
             ratio,
+            brew_time: brew.brew.brew_time.map(format_brew_time),
             quick_notes,
             quick_notes_label,
             quick_notes_raw,
@@ -120,6 +123,7 @@ impl BrewView {
             grind_setting_raw: brew.brew.grind_setting,
             water_volume_raw: brew.brew.water_volume,
             water_temp_raw: brew.brew.water_temp,
+            brew_time_raw: brew.brew.brew_time,
         }
     }
 }
@@ -133,6 +137,7 @@ pub struct BrewDefaultsView {
     pub grind_setting: f64,
     pub water_volume: i32,
     pub water_temp: f64,
+    pub brew_time: Option<i32>,
 }
 
 impl Default for BrewDefaultsView {
@@ -147,6 +152,7 @@ impl Default for BrewDefaultsView {
             grind_setting: 6.0,
             water_volume: 250,
             water_temp: 91.0,
+            brew_time: Some(120),
         }
     }
 }
@@ -166,6 +172,7 @@ impl From<Brew> for BrewDefaultsView {
             grind_setting: brew.grind_setting,
             water_volume: brew.water_volume,
             water_temp: brew.water_temp,
+            brew_time: brew.brew_time,
         }
     }
 }

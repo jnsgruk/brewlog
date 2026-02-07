@@ -11,6 +11,7 @@ CREATE TABLE brews (
     water_volume INTEGER NOT NULL,
     water_temp REAL NOT NULL,
     quick_notes TEXT,
+    brew_time INTEGER,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

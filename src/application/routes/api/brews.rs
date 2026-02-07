@@ -190,6 +190,8 @@ pub(crate) struct NewBrewSubmission {
     #[serde(default, deserialize_with = "deserialize_quick_notes")]
     quick_notes: Vec<QuickNote>,
     #[serde(default)]
+    brew_time: Option<i32>,
+    #[serde(default)]
     created_at: Option<DateTime<Utc>>,
 }
 
@@ -209,6 +211,11 @@ impl NewBrewSubmission {
                 "water temperature must be between 0 and 100",
             ));
         }
+        if let Some(bt) = self.brew_time
+            && bt <= 0
+        {
+            return Err(AppError::validation("brew time must be positive"));
+        }
 
         Ok(NewBrew {
             bag_id: self.bag_id,
@@ -220,6 +227,7 @@ impl NewBrewSubmission {
             water_volume: self.water_volume,
             water_temp: self.water_temp,
             quick_notes: self.quick_notes,
+            brew_time: self.brew_time,
             created_at: self.created_at,
         })
     }

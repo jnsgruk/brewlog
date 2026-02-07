@@ -40,6 +40,7 @@ pub struct TimelineBrewDataView {
     pub grind_setting: f64,
     pub water_volume: i32,
     pub water_temp: f64,
+    pub brew_time: Option<i32>,
 }
 
 #[derive(Clone)]
@@ -131,6 +132,7 @@ impl TimelineEventView {
             grind_setting: bd.grind_setting,
             water_volume: bd.water_volume,
             water_temp: bd.water_temp,
+            brew_time: bd.brew_time,
         });
 
         Self {

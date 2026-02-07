@@ -67,6 +67,10 @@ pub struct AddBrewCommand {
     #[arg(long, value_delimiter = ',')]
     pub quick_notes: Vec<String>,
 
+    /// Brew time in seconds (e.g., 150 for 2:30)
+    #[arg(long)]
+    pub brew_time: Option<i32>,
+
     /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
     #[arg(long)]
     pub created_at: Option<String>,
@@ -95,6 +99,7 @@ pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result
             command.water_volume,
             command.water_temp,
             quick_notes,
+            command.brew_time,
             created_at,
         )
         .await?;

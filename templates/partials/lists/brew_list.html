@@ -15,6 +15,9 @@
     <input type="hidden" name="water_volume" value="{{ brew.water_volume_raw }}" />
     <input type="hidden" name="water_temp" value="{{ brew.water_temp_raw }}" />
     <input type="hidden" name="quick_notes" value="{{ brew.quick_notes_raw }}" />
+    {% if let Some(bt) = brew.brew_time_raw %}
+    <input type="hidden" name="brew_time" value="{{ bt }}" />
+    {% endif %}
     <button type="submit"
       class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover">
       {{ icons::plus_circle("h-4 w-4") }} Brew Again
@@ -83,9 +86,11 @@
             <td data-label="Grinder" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.grinder_name }}</td>
             <td data-label="Recipe" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.coffee_weight }} · {{ brew.water_volume }}</div>
-              <div class="hidden md:block text-xs text-text-muted">{{ brew.ratio }} · {{ brew.water_temp }}</div>
+              <div class="hidden md:block text-xs text-text-muted">{% if let Some(bt) = brew.brew_time %}{{ bt }} · {% endif %}{{ brew.water_temp }}</div>
             </td>
-            <td data-label="Ratio" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.ratio }}</td>
+            {% if let Some(bt) = brew.brew_time %}
+            <td data-label="Brew Time" class="px-4 py-3 whitespace-nowrap md:hidden">{{ bt }}</td>
+            {% endif %}
             <td data-label="Temp" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.water_temp }}</td>
             <td data-label="Brewer" class="px-4 py-3 whitespace-nowrap">
               <div>{{ brew.brewer_name }}</div>

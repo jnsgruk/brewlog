@@ -78,8 +78,14 @@ pub struct Brew {
     pub water_volume: i32,
     pub water_temp: f64,
     pub quick_notes: Vec<QuickNote>,
+    pub brew_time: Option<i32>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+/// Format seconds as "M:SS" (e.g., 150 -> "2:30").
+pub fn format_brew_time(seconds: i32) -> String {
+    format!("{}:{:02}", seconds / 60, seconds % 60)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,13 +130,27 @@ impl BrewWithDetails {
             },
             TimelineEventDetail {
                 label: "Grinder".to_string(),
-                value: format!("{} \u{00B7} {:.1}", self.grinder_name, self.brew.grind_setting),
+                value: format!(
+                    "{} \u{00B7} {:.1}",
+                    self.grinder_name, self.brew.grind_setting
+                ),
             },
             TimelineEventDetail {
                 label: "Brewer".to_string(),
                 value: self.brewer_name.clone(),
             },
         ];
+
+        if let Some(bt) = self.brew.brew_time {
+            // Insert after Water (index 2) so it appears right beneath it
+            details.insert(
+                3,
+                TimelineEventDetail {
+                    label: "Brew Time".to_string(),
+                    value: format_brew_time(bt),
+                },
+            );
+        }
 
         if let Some(ref fp_name) = self.filter_paper_name {
             details.push(TimelineEventDetail {
@@ -171,6 +191,7 @@ impl BrewWithDetails {
                 grind_setting: self.brew.grind_setting,
                 water_volume: self.brew.water_volume,
                 water_temp: self.brew.water_temp,
+                brew_time: self.brew.brew_time,
             }),
         }
     }
@@ -187,6 +208,8 @@ pub struct NewBrew {
     pub water_volume: i32,
     pub water_temp: f64,
     pub quick_notes: Vec<QuickNote>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brew_time: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<DateTime<Utc>>,
 }

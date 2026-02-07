@@ -27,6 +27,7 @@ impl<'a> BrewsClient<'a> {
         water_volume: i32,
         water_temp: f64,
         quick_notes: Vec<QuickNote>,
+        brew_time: Option<i32>,
         created_at: Option<DateTime<Utc>>,
     ) -> Result<BrewWithDetails> {
         let url = self.inner.endpoint("api/v1/brews")?;
@@ -45,6 +46,9 @@ impl<'a> BrewsClient<'a> {
         if !quick_notes.is_empty() {
             let labels: Vec<&str> = quick_notes.iter().map(|n| n.label()).collect();
             payload["quick_notes"] = serde_json::json!(labels);
+        }
+        if let Some(bt) = brew_time {
+            payload["brew_time"] = serde_json::json!(bt);
         }
         if let Some(ts) = created_at {
             payload["created_at"] = serde_json::json!(ts);

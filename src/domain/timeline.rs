@@ -21,6 +21,7 @@ pub struct TimelineBrewData {
     pub grind_setting: f64,
     pub water_volume: i32,
     pub water_temp: f64,
+    pub brew_time: Option<i32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

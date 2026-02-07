@@ -855,6 +855,7 @@ fi
   --water-volume 250 \
   --water-temp 92.0 \
   --quick-notes good \
+  --brew-time 135 \
   --created-at "2025-11-18T08:30:00Z"
 
 # AeroPress brew - Finca Tamana with J-Max (ratio 1:15) — late Nov
@@ -866,6 +867,7 @@ fi
   --brewer-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Original") | .id')" \
   --water-volume 255 \
   --water-temp 88.0 \
+  --brew-time 105 \
   --created-at "2025-11-25T09:00:00Z"
 
 # Double V60 brew - La Linda with Comandante (ratio 1:16.7) — mid Dec
@@ -878,6 +880,7 @@ fi
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="FAST Specialty 02") | .id')" \
   --water-volume 500 \
   --water-temp 91.0 \
+  --brew-time 165 \
   --created-at "2025-12-15T10:00:00Z"
 
 # Stagg XF brew - Guji Highland with J-Max (ratio 1:16.7) — late Dec
@@ -891,6 +894,7 @@ fi
   --water-volume 300 \
   --water-temp 93.0 \
   --quick-notes too-fast,under-extracted \
+  --brew-time 110 \
   --created-at "2025-12-22T08:00:00Z"
 
 # Light V60 brew - Red Brick Espresso with Comandante (ratio 1:16.7) — early Jan
@@ -903,6 +907,7 @@ fi
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="V60 Tabbed 02") | .id')" \
   --water-volume 200 \
   --water-temp 94.0 \
+  --brew-time 150 \
   --created-at "2026-01-02T09:30:00Z"
 
 # AeroPress inverted - El Paraiso Anaerobic with J-Max (ratio 1:15) — mid Jan
@@ -915,6 +920,7 @@ fi
   --water-volume 225 \
   --water-temp 85.0 \
   --quick-notes too-hot,over-extracted \
+  --brew-time 120 \
   --created-at "2026-01-12T08:15:00Z"
 
 # V60 brew - Suke Quto with J-Max (ratio 1:16) — late Jan
@@ -928,6 +934,7 @@ fi
   --water-volume 320 \
   --water-temp 92.0 \
   --quick-notes good \
+  --brew-time 140 \
   --created-at "2026-01-20T09:00:00Z"
 
 # Stagg XF brew - Simbi with Comandante (ratio 1:16) — late Jan
@@ -940,6 +947,7 @@ fi
   --filter-paper-id "$(./target/debug/brewlog gear list | jq -r '.[] | select(.model=="Stagg XF Filters") | .id')" \
   --water-volume 256 \
   --water-temp 90.0 \
+  --brew-time 130 \
   --created-at "2026-01-28T08:45:00Z"
 
 # ============================================================================

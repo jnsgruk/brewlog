@@ -210,7 +210,7 @@ impl BackupService {
 
     async fn export_brews(&self) -> anyhow::Result<Vec<Brew>> {
         let records = sqlx::query_as::<_, BrewRecord>(
-            "SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at FROM brews ORDER BY id",
+            "SELECT id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, brew_time, created_at, updated_at FROM brews ORDER BY id",
         )
         .fetch_all(&self.pool)
         .await
@@ -410,7 +410,7 @@ impl BackupService {
             };
 
             sqlx::query(
-                "INSERT INTO brews (id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO brews (id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, brew_time, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(i64::from(brew.id))
             .bind(i64::from(brew.bag_id))
@@ -422,6 +422,7 @@ impl BackupService {
             .bind(brew.water_volume)
             .bind(brew.water_temp)
             .bind(quick_notes_json.as_deref())
+            .bind(brew.brew_time)
             .bind(brew.created_at)
             .bind(brew.updated_at)
             .execute(&mut **tx)
@@ -650,6 +651,7 @@ struct BrewRecord {
     water_volume: i32,
     water_temp: f64,
     quick_notes: Option<String>,
+    brew_time: Option<i32>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -675,6 +677,7 @@ impl BrewRecord {
             water_volume: self.water_volume,
             water_temp: self.water_temp,
             quick_notes,
+            brew_time: self.brew_time,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }

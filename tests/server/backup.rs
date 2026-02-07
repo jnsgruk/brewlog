@@ -237,6 +237,7 @@ async fn populate_test_data(db: &TestDb) -> (Roaster, Roast, Bag, Gear, Gear, Ge
             water_volume: 250,
             water_temp: 93.5,
             quick_notes: Vec::new(),
+            brew_time: None,
             created_at: None,
         })
         .await
