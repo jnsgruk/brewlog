@@ -47,14 +47,14 @@ const locateUser = (triggerEl) => {
       <span data-show="$_locating" style="display: none">{{ icons::spinner("h-5 w-5") }}</span>
     </button>
     <input type="text" data-bind:_city-name
-      class="input-field w-full text-sm"
+      class="input-field w-full"
       data-attr:placeholder="$_locationFound ? 'Using your location (' + $_userLat.toFixed(2) + ', ' + $_userLng.toFixed(2) + ')' : 'Name of city or area'"
       data-attr:disabled="$_locationFound"
       data-on:input__debounce.350ms="$_cityName.length >= 2 && $_cafeSearch.length >= 2 && @get('/api/v1/nearby-cafes?near=' + encodeURIComponent($_cityName) + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
     />
   </div>
   <input type="text" data-bind:_cafe-search
-    class="input-field w-full text-sm"
+    class="input-field w-full"
     placeholder="Search for a cafe&hellip;"
     data-on:input__debounce.350ms="if ($_locationFound) { @get('/api/v1/nearby-cafes?lat=' + $_userLat + '&lng=' + $_userLng + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}}) } else { $_cityName.length >= 2 && $_cafeSearch.length >= 2 && @get('/api/v1/nearby-cafes?near=' + encodeURIComponent($_cityName) + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}}) }"
   />
