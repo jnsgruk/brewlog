@@ -41,6 +41,12 @@ customElements.define("searchable-select", class extends HTMLElement {
     selectedWrap.appendChild(display);
     selectedWrap.appendChild(clear);
 
+    // Block native change events from child inputs so only our
+    // CustomEvent (which carries evt.detail) reaches data-on:change.
+    this.addEventListener("change", (e) => {
+      if (!(e instanceof CustomEvent)) e.stopImmediatePropagation();
+    }, true);
+
     this.textContent = "";
     this.style.display = "block";
     this.appendChild(hidden);
