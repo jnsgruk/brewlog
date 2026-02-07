@@ -12,8 +12,8 @@
   </button>
   {% endif %}
   <div class="flex-1 pr-5">
-    <span class="block font-semibold text-text">{{ bag.roast_name }}</span>
-    <p class="mt-1 text-sm text-text-muted">{{ bag.roaster_name }}</p>
+    <span class="block font-semibold text-text truncate">{{ bag.roast_name }}</span>
+    <p class="mt-1 text-sm text-text-muted truncate">{{ bag.roaster_name }}</p>
   </div>
   {% if is_authenticated %}
   <div class="mb-4 flex items-center">

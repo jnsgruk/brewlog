@@ -34,6 +34,7 @@ pub struct BrewView {
     pub coffee_weight: String,
     pub grinder_id: i64,
     pub grinder_name: String,
+    pub grinder_model: String,
     pub grind_setting: String,
     pub brewer_id: i64,
     pub brewer_name: String,
@@ -93,6 +94,10 @@ impl BrewView {
             roaster_slug: brew.roaster_slug,
             coffee_weight: format!("{:.1}g", brew.brew.coffee_weight),
             grinder_id: brew.brew.grinder_id.into_inner(),
+            grinder_model: brew
+                .grinder_name
+                .split_once(' ')
+                .map_or_else(|| brew.grinder_name.clone(), |(_, model)| model.to_string()),
             grinder_name: brew.grinder_name,
             grind_setting: format!("{:.1}", brew.brew.grind_setting),
             brewer_id: brew.brew.brewer_id.into_inner(),

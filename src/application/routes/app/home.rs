@@ -57,16 +57,12 @@ fn count_request<K: SortKey>() -> ListRequest<K> {
 async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
     let recent_brews_req = ListRequest::new(
         1,
-        PageSize::limited(3),
+        PageSize::limited(10),
         BrewSortKey::CreatedAt,
         SortDirection::Desc,
     );
-    let open_bags_req = ListRequest::new(
-        1,
-        PageSize::All,
-        BagSortKey::UpdatedAt,
-        SortDirection::Desc,
-    );
+    let open_bags_req =
+        ListRequest::new(1, PageSize::All, BagSortKey::UpdatedAt, SortDirection::Desc);
     let recent_events_req = ListRequest::new(
         1,
         PageSize::limited(5),
