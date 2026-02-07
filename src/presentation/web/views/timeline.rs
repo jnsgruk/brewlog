@@ -46,6 +46,7 @@ pub struct TimelineBrewDataView {
 #[derive(Clone)]
 pub struct TimelineEventView {
     pub id: String,
+    pub entity_type: String,
     pub kind_label: &'static str,
     pub date_label: String,
     pub relative_date_label: String,
@@ -137,6 +138,7 @@ impl TimelineEventView {
 
         Self {
             id: id.to_string(),
+            entity_type,
             kind_label,
             date_label: occurred_at.format("%B %d, %Y").to_string(),
             relative_date_label: relative_date(occurred_at),
@@ -164,6 +166,7 @@ impl TimelineEventView {
         let picks: &[&str] = match entity_type {
             "brew" => &["Roaster", "Brewer"],
             "roast" => &["Roaster", "Origin"],
+            "roaster" => &["City", "Country"],
             "cafe" => &["City", "Country"],
             "cup" => &["Roaster", "Cafe"],
             _ => &[],

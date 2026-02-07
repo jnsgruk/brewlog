@@ -192,14 +192,14 @@ is_authenticated %}
     {% for event in recent_events %}
     <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <span class="pill pill-muted w-28 shrink-0 justify-center whitespace-nowrap"
-          >{{ event.kind_label }}</span
-        >
+        <span class="text-text-muted shrink-0">
+          {% if event.entity_type == "brew" %}{{ icons::beaker("h-5 w-5") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-5 w-5") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-5 w-5") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-5 w-5") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-5 w-5") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-5 w-5") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-5 w-5") }}{% else %}{{ icons::beaker("h-5 w-5") }}{% endif %}
+        </span>
         <p class="min-w-0 truncate text-sm">
           <a href="{{ event.link }}" class="font-medium text-text hover:text-accent"
             >{{ event.title }}</a
           >{% if let Some(sub) = event.subtitle %}
-          <span class="text-xs text-text-muted italic">· {{ sub }}</span>{% endif %}
+          <span class="text-xs text-text-muted">· {{ sub }}</span>{% endif %}
         </p>
       </div>
       <time class="text-xs text-text-muted whitespace-nowrap shrink-0"
@@ -214,7 +214,7 @@ is_authenticated %}
       {% for _ in 0..3 %}
       <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <div class="h-5 w-28 shrink-0 rounded-full bg-surface-alt"></div>
+          <div class="h-5 w-5 shrink-0 rounded-full bg-surface-alt"></div>
           <div class="h-4 w-40 rounded bg-surface-alt"></div>
         </div>
         <div class="h-3 w-16 shrink-0 rounded bg-surface-alt"></div>
@@ -246,7 +246,7 @@ is_authenticated %}
       href="/data?type=roasts"
       class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
     >
-      {{ icons::fire("h-6 w-6 text-accent") }}
+      {{ icons::coffee_bean("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.roasts }}</span>
       <span class="text-sm font-medium text-accent">Roasts</span>
     </a>
@@ -254,7 +254,7 @@ is_authenticated %}
       href="/data?type=roasters"
       class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
     >
-      {{ icons::building("h-6 w-6 text-accent") }}
+      {{ icons::fire("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.roasters }}</span>
       <span class="text-sm font-medium text-accent">Roasters</span>
     </a>
@@ -286,7 +286,7 @@ is_authenticated %}
       href="/data?type=gear"
       class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
     >
-      {{ icons::wrench("h-6 w-6 text-accent") }}
+      {{ icons::grinder("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.gear }}</span>
       <span class="text-sm font-medium text-accent">Gear</span>
     </a>
