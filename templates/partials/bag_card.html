@@ -1,36 +1,35 @@
 {% import "partials/icons.html" as icons %}
 {% macro card(bag, is_authenticated) %}
-<div id="bag-card-{{ bag.id }}" class="relative w-[45vw] md:w-[200px] h-[222px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col">
-  {% if is_authenticated %}
-  <button
-    type="button"
-    class="absolute top-4 right-3 inline-flex h-6 w-6 items-center justify-center rounded-md text-text-muted transition hover:text-red-600 hover:bg-surface-alt"
-    title="Close Bag"
-    onclick="closeBag('{{ bag.id }}', document.getElementById('bag-card-{{ bag.id }}'))"
-  >
-    {{ icons::x_mark("h-4.5 w-4.5") }}
-  </button>
-  {% endif %}
-  <div class="flex-1 pr-5">
+<div id="bag-card-{{ bag.id }}" class="relative w-[45vw] md:w-[200px] h-[200px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col">
+  <div class="flex-1">
     <span class="block font-semibold text-text truncate">{{ bag.roast_name }}</span>
     <p class="mt-1 text-sm text-text-muted truncate">{{ bag.roaster_name }}</p>
   </div>
-  {% if is_authenticated %}
-  <div class="mb-4 flex items-center">
-    <a href="/add?type=brew&bag_id={{ bag.id }}"
-      class="inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt">
-      {{ icons::cup("h-4 w-4") }}
-      Brew
-    </a>
-  </div>
-  {% endif %}
   <div class="flex flex-col items-center">
     <div class="w-full">
       <div class="h-2 rounded-full bg-surface-alt overflow-hidden">
         <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
       </div>
-      <p class="mt-1 text-text-muted" style="font-variant: small-caps; font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</p>
+      <p class="mt-1 text-text-muted" style="font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</p>
     </div>
   </div>
+  {% if is_authenticated %}
+  <div class="mt-3 flex items-center gap-2">
+    <a href="/add?type=brew&bag_id={{ bag.id }}"
+      class="flex-1 inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt">
+      {{ icons::cup("h-4 w-4") }}
+      Brew
+    </a>
+    <button
+      type="button"
+      class="flex-1 inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
+      title="Close Bag"
+      onclick="closeBag('{{ bag.id }}', document.getElementById('bag-card-{{ bag.id }}'))"
+    >
+      {{ icons::x_mark("h-4 w-4") }}
+      Close
+    </button>
+  </div>
+  {% endif %}
 </div>
 {% endmacro %}

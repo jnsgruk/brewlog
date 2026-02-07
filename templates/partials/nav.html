@@ -1,7 +1,7 @@
 {% import "partials/icons.html" as icons %}
 <nav class="border-b pb-4 text-sm">
     <div class="flex items-center justify-between">
-        <div class="font-semibold uppercase tracking-[0.25em] text-accent"><a href="/">B{rew}log</a></div>
+        <div class="font-semibold uppercase tracking-[0.25em] text-accent"><a href="/" class="-m-2 inline-block p-2">B{rew}log</a></div>
         <div class="flex items-center gap-1">
             {% if is_authenticated %}
             <a class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary" href="/add" title="Add" aria-label="Add">
@@ -9,8 +9,8 @@
             </a>
             {% endif %}
             <button type="button" class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary" title="Toggle theme" aria-label="Toggle theme" onclick="toggleTheme()">
-                <span class="theme-icon-light">{{ icons::sun("h-5 w-5") }}</span>
-                <span class="theme-icon-dark hidden">{{ icons::moon("h-5 w-5") }}</span>
+                <span class="theme-icon-light">{{ icons::moon("h-5 w-5") }}</span>
+                <span class="theme-icon-dark hidden">{{ icons::sun("h-5 w-5") }}</span>
             </button>
             {% if is_authenticated %}
             <a class="rounded-md p-1.5 transition {% if nav_active == "account" %}text-accent{% else %}text-text-muted hover:text-text-secondary{% endif %}" href="/account" title="Account" aria-label="Account">

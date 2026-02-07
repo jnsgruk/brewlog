@@ -1,33 +1,25 @@
 {% import "partials/icons.html" as icons %}
 {% macro card(brew, is_authenticated) %}
-<div class="relative w-[45vw] md:w-[200px] h-[280px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col">
-  {% if is_authenticated %}
-  <a
-    href="{{ brew.brew_again_url() }}"
-    class="absolute top-4 right-3 inline-flex h-6 w-6 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
-    title="Brew Again"
-  >
-    {{ icons::refresh("h-4.5 w-4.5") }}
-  </a>
-  {% endif %}
-  <div class="h-[4.5rem] overflow-hidden pr-5">
+<div class="relative w-[45vw] md:w-[200px] h-[279px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col">
+  <div class="h-[4.5rem] overflow-hidden">
     <span class="block font-semibold text-text truncate">{{ brew.roast_name }}</span>
     <p class="mt-0.5 text-sm text-text-muted truncate">{{ brew.roaster_name }}</p>
   </div>
-  <div class="mt-2 flex-1 space-y-1 text-text-secondary" style="font-size: 0.8125rem">
+  <div class="mt-1 flex-1 space-y-1 text-text-secondary" style="font-size: 0.8125rem">
     <p>{{ brew.coffee_weight }} &middot; {{ brew.water_volume }}{% if let Some(bt) = brew.brew_time %} &middot; {{ bt }}{% endif %}</p>
     <p>{{ brew.grinder_model }} &middot; {{ brew.grind_setting }}</p>
     <p>{{ brew.brewer_name }}</p>
     {% if let Some(fp) = brew.filter_paper_name %}<p>{{ fp }}</p>{% endif %}
+    {% if !brew.quick_notes.is_empty() %}<p class="truncate">{{ brew.quick_notes_label }}</p>{% endif %}
   </div>
-  <div class="flex flex-wrap gap-1">
-    {% if !brew.quick_notes.is_empty() %}
-    {% for qn in brew.quick_notes %}
-    <span class="{{ qn.pill_class }}" style="font-size: 0.65rem">{{ qn.label }}</span>
-    {% endfor %}
-    {% else %}
-    <span class="pill pill-muted" style="font-size: 0.65rem">No Notes</span>
-    {% endif %}
+  {% if is_authenticated %}
+  <div class="mt-3">
+    <a href="{{ brew.brew_again_url() }}"
+      class="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt">
+      {{ icons::cup("h-4 w-4") }}
+      Brew Again
+    </a>
   </div>
+  {% endif %}
 </div>
 {% endmacro %}

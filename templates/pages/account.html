@@ -74,7 +74,7 @@
         <button
           type="button"
           data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
-          class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-text-muted transition hover:text-text"
+          class="shrink-0 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
         >
           Cancel
         </button>
@@ -175,7 +175,7 @@
           <button
             type="button"
             data-on:click="$_showTokenForm = false; $_tokenError = ''"
-            class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-text-muted transition hover:text-text"
+            class="shrink-0 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
           >
             Cancel
           </button>
@@ -239,14 +239,14 @@
       </a>
       <button
         type="button"
-        class="rounded-md border bg-surface-alt px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt hover:text-text"
+        class="rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
         onclick="document.getElementById('restore-file-input').click()"
       >
         Restore from Backup
       </button>
       <button
         type="button"
-        class="rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:border-red-800"
+        class="rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
         onclick="resetDatabase()"
       >
         Reset Database
@@ -294,7 +294,7 @@
     </div>
     <div>
       <form method="post" action="/logout">
-        <button type="submit" class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:border-accent hover:text-text">
+        <button type="submit" class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt">
           {{ icons::logout("h-4 w-4") }}
           Sign Out
         </button>
