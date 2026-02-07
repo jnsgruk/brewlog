@@ -22,7 +22,7 @@
 
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text">
+        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text" style="font-variant: small-caps">
           <tr>
             {{ table::sortable_header("Added", "created-at", navigator, "#gear-list") }}
             {{ table::sortable_header("Category", "category", navigator, "#gear-list") }}
@@ -38,9 +38,9 @@
           <tr class="transition hover:bg-surface-alt"
             {% if is_authenticated %}onclick="toggleRow(event)"{% endif %}
           >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
+            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
               <div>{{ item.created_date }}</div>
-              <div class="hidden md:block font-normal text-text-muted">{{ item.created_time }}</div>
+              <div class="hidden md:block text-xs font-normal text-text-muted">{{ item.created_time }}</div>
             </td>
             <td data-label="" class="card-title px-4 py-3 whitespace-nowrap md:hidden">{{ item.make }} {{ item.model }}</td>
             <td data-label="Category" class="px-4 py-3 whitespace-nowrap">

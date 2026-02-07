@@ -24,7 +24,7 @@
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold text-accent transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
             {% if items.has_previous() %}
             data-on:click="history.pushState(null, '', '{{ navigator.page_href(items.previous_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(items.previous_page().unwrap())|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
             {% else %}
@@ -32,7 +32,7 @@
             {% endif %}
           >
             <span aria-hidden="true">←</span>
-            <span>Previous</span>
+            <span>Prev</span>
           </button>
           {% if items.is_showing_all() %}
           <span class="font-semibold text-text">Showing all results</span>
@@ -43,7 +43,7 @@
           {% endif %}
           <button
             type="button"
-            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold text-accent transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
             {% if items.has_next() %}
             data-on:click="history.pushState(null, '', '{{ navigator.page_href(items.next_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(items.next_page().unwrap())|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
             {% else %}
@@ -57,7 +57,7 @@
         <label class="flex items-center gap-2 text-xs font-semibold text-text-secondary">
           <span>Rows</span>
           <select
-            class="rounded-md border bg-surface px-2 py-1 text-xs font-semibold text-text transition hover:border-accent"
+            class="rounded-md border bg-surface px-2 py-1 text-xs font-semibold text-accent transition hover:border-accent"
             data-on:change="history.pushState(null, '', evt.target.selectedOptions[0].dataset.url); @get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
           >
             <option value="5" data-href="{{ navigator.fragment_rows_href("5")|safe }}" data-url="{{ navigator.rows_href("5")|safe }}" {% if items.is_page_size(5) %}selected{% endif %}>5</option>

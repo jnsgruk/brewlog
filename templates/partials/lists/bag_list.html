@@ -21,7 +21,7 @@
     {{ table::search_header(navigator, "#bag-list") }}
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text">
+        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text" style="font-variant: small-caps">
           <tr>
             {{ table::sortable_header("Added", "created-at", navigator, "#bag-list") }}
             {{ table::sortable_header("Roaster", "roaster", navigator, "#bag-list") }}
@@ -38,9 +38,9 @@
           <tr class="transition hover:bg-surface-alt"
             {% if is_authenticated %}onclick="toggleRow(event)"{% endif %}
           >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
+            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
               <div>{{ bag.created_date }}</div>
-              <div class="hidden md:block font-normal text-text-muted">{{ bag.created_time }}</div>
+              <div class="hidden md:block text-xs font-normal text-text-muted">{{ bag.created_time }}</div>
             </td>
             <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap font-medium text-text-secondary">
               {{ bag.roaster_name }}
@@ -68,11 +68,11 @@
               <div class="mt-0.5 text-right text-text-muted" style="font-variant: small-caps; font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
             </td>
             {% endif %}
-            <td data-label="Finished" class="mobile-hidden whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary">
+            <td data-label="Finished" class="mobile-hidden whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
               <div>{{ bag.finished_date }}</div>
             </td>
             {% if bag.closed %}
-            <td data-label="Finished" class="whitespace-nowrap px-4 py-3 text-xs font-medium text-text-secondary md:hidden">
+            <td data-label="Finished" class="whitespace-nowrap px-4 py-3 font-medium text-text-secondary md:hidden">
               <div>{{ bag.finished_date }}</div>
             </td>
             {% endif %}
