@@ -1,33 +1,29 @@
-{% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import "partials/icons.html" as icons %} {% import "partials/scan_input.html" as scan %} {% block title %}Brewlog{% endblock %}
-
-{% block head %}
-{% if is_authenticated %}
+{% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import
+"partials/icons.html" as icons %} {% import "partials/scan_input.html" as scan %} {% block title
+%}Brewlog{% endblock %} {% block head %} {% if is_authenticated %}
 <script>
   const closeBag = async (bagId, cardEl) => {
-    if (!confirm('Close this bag? This will mark it as finished.')) return;
+    if (!confirm("Close this bag? This will mark it as finished.")) return
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0]
       const resp = await fetch(`/api/v1/bags/${bagId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ closed: true, remaining: 0.0, finished_at: today }),
-      });
-      if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-      cardEl.remove();
-      const grid = document.getElementById('open-bags-grid');
+      })
+      if (!resp.ok) throw new Error(`Server returned ${resp.status}`)
+      cardEl.remove()
+      const grid = document.getElementById("open-bags-grid")
       if (grid && grid.children.length === 0) {
-        document.getElementById('open-bags-section')?.remove();
+        document.getElementById("open-bags-section")?.remove()
       }
     } catch (e) {
-      alert(`Failed to close bag: ${e.message}`);
+      alert(`Failed to close bag: ${e.message}`)
     }
-  };
+  }
 </script>
-{% endif %}
-{% endblock %}
-
-{% block content %}
+{% endif %} {% endblock %} {% block content %}
 <!-- Scan Bag -->
 {% if is_authenticated %}
 <section
@@ -53,11 +49,13 @@
 >
   <!-- Input: photo or text (shown when not yet extracted) -->
   <div data-show="!$_scanExtracted" class="rounded-lg border bg-surface p-5">
-    <form id="scan-extract-form"
+    <form
+      id="scan-extract-form"
       data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
-      {{ scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError", "Describe the coffee bag…", "Waiting for response…") }}
+      {{ scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError",
+      "Describe a coffee bag to fetch details automatically…", "Waiting for response…") }}
     </form>
   </div>
 
@@ -79,7 +77,9 @@
 <section data-signals:_brewing="false">
   <div class="flex items-center justify-between mb-3">
     <h2 class="text-lg font-semibold text-text">Recent Brews</h2>
-    <a href="/data?type=brews" class="text-sm text-accent hover:text-accent-hover font-medium">View all brews &rarr;</a>
+    <a href="/data?type=brews" class="text-sm text-accent hover:text-accent-hover font-medium"
+      >View all brews &rarr;</a
+    >
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start gap-4">
     {% for brew in recent_brews %}
@@ -89,20 +89,31 @@
           <span class="block truncate font-semibold text-text">{{ brew.roast_name }}</span>
           <p class="truncate text-sm text-text-muted">{{ brew.roaster_name }}</p>
         </div>
-        <time class="text-xs text-text-muted whitespace-nowrap shrink-0">{{ brew.relative_date_label }}</time>
+        <time class="text-xs text-text-muted whitespace-nowrap shrink-0"
+          >{{ brew.relative_date_label }}</time
+        >
       </div>
       <div class="mt-2 space-y-0.5 text-sm">
-        <p class="truncate"><span class="font-medium text-text">{{ brew.coffee_weight }} · {{ brew.water_volume }} · {{ brew.water_temp }}</span> <span class="text-text-muted">· {{ brew.ratio }}</span></p>
-        <p class="truncate"><span class="font-medium text-text">{{ brew.grind_setting }}</span> <span class="text-text-muted">· {{ brew.grinder_name }}</span></p>
-        <p class="truncate"><span class="font-medium text-text">{{ brew.brewer_name }}</span>{% if let Some(fp) = brew.filter_paper_name %} <span class="text-text-muted">· {{ fp }}</span>{% endif %}</p>
+        <p class="truncate">
+          <span class="font-medium text-text"
+            >{{ brew.coffee_weight }} · {{ brew.water_volume }} · {{ brew.water_temp }}</span
+          >
+          <span class="text-text-muted">· {{ brew.ratio }}</span>
+        </p>
+        <p class="truncate">
+          <span class="font-medium text-text">{{ brew.grind_setting }}</span>
+          <span class="text-text-muted">· {{ brew.grinder_name }}</span>
+        </p>
+        <p class="truncate">
+          <span class="font-medium text-text">{{ brew.brewer_name }}</span>{% if let Some(fp) =
+          brew.filter_paper_name %} <span class="text-text-muted">· {{ fp }}</span>{% endif %}
+        </p>
       </div>
       <div class="mt-3 pt-3 border-t flex items-center justify-between gap-3">
         <div class="flex flex-wrap gap-1">
-          {% if !brew.quick_notes.is_empty() %}
-          {% for qn in brew.quick_notes %}
+          {% if !brew.quick_notes.is_empty() %} {% for qn in brew.quick_notes %}
           <span class="{{ qn.pill_class }}">{{ qn.label }}</span>
-          {% endfor %}
-          {% else %}
+          {% endfor %} {% else %}
           <span class="pill pill-muted">No Notes</span>
           {% endif %}
         </div>
@@ -144,12 +155,12 @@
 <section id="open-bags-section">
   <div class="flex items-center justify-between mb-3">
     <h2 class="text-lg font-semibold text-text">Open Bags</h2>
-    <a href="/data?type=bags" class="text-sm text-accent hover:text-accent-hover font-medium">View all bags &rarr;</a>
+    <a href="/data?type=bags" class="text-sm text-accent hover:text-accent-hover font-medium"
+      >View all bags &rarr;</a
+    >
   </div>
   <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for bag in open_bags %}
-    {{ bag_card::card(bag, is_authenticated) }}
-    {% endfor %}
+    {% for bag in open_bags %} {{ bag_card::card(bag, is_authenticated) }} {% endfor %}
   </div>
 </section>
 {% endif %}
@@ -159,16 +170,27 @@
 <section>
   <div class="flex items-center justify-between mb-3">
     <h2 class="text-lg font-semibold text-text">Recent Activity</h2>
-    <a href="/timeline" class="text-sm text-accent hover:text-accent-hover font-medium">View full timeline &rarr;</a>
+    <a href="/timeline" class="text-sm text-accent hover:text-accent-hover font-medium"
+      >View full timeline &rarr;</a
+    >
   </div>
   <div class="space-y-2">
     {% for event in recent_events %}
     <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <span class="pill pill-muted w-28 shrink-0 justify-center whitespace-nowrap">{{ event.kind_label }}</span>
-        <p class="min-w-0 truncate text-sm"><a href="{{ event.link }}" class="font-medium text-text hover:text-accent">{{ event.title }}</a>{% if let Some(sub) = event.subtitle %} <span class="text-xs text-text-muted italic">· {{ sub }}</span>{% endif %}</p>
+        <span class="pill pill-muted w-28 shrink-0 justify-center whitespace-nowrap"
+          >{{ event.kind_label }}</span
+        >
+        <p class="min-w-0 truncate text-sm">
+          <a href="{{ event.link }}" class="font-medium text-text hover:text-accent"
+            >{{ event.title }}</a
+          >{% if let Some(sub) = event.subtitle %}
+          <span class="text-xs text-text-muted italic">· {{ sub }}</span>{% endif %}
+        </p>
       </div>
-      <time class="text-xs text-text-muted whitespace-nowrap shrink-0">{{ event.relative_date_label }}</time>
+      <time class="text-xs text-text-muted whitespace-nowrap shrink-0"
+        >{{ event.relative_date_label }}</time
+      >
     </div>
     {% endfor %}
   </div>
@@ -181,37 +203,58 @@
     <h2 class="text-lg font-semibold text-text">Stats</h2>
   </div>
   <div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-7">
-    <a href="/data?type=brews" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=brews"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::beaker("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.brews }}</span>
       <span class="text-xs text-text-muted">Brews</span>
     </a>
-    <a href="/data?type=roasts" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=roasts"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::fire("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasts }}</span>
       <span class="text-xs text-text-muted">Roasts</span>
     </a>
-    <a href="/data?type=roasters" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=roasters"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::building("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.roasters }}</span>
       <span class="text-xs text-text-muted">Roasters</span>
     </a>
-    <a href="/data?type=bags" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=bags"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::bag("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.bags }}</span>
       <span class="text-xs text-text-muted">Bags</span>
     </a>
-    <a href="/data?type=cups" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=cups"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::cup("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cups }}</span>
       <span class="text-xs text-text-muted">Cups</span>
     </a>
-    <a href="/data?type=cafes" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=cafes"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::location("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.cafes }}</span>
       <span class="text-xs text-text-muted">Cafes</span>
     </a>
-    <a href="/data?type=gear" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt">
+    <a
+      href="/data?type=gear"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:bg-surface-alt"
+    >
       {{ icons::wrench("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text group-hover:text-accent">{{ stats.gear }}</span>
       <span class="text-xs text-text-muted">Gear</span>

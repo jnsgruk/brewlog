@@ -1,12 +1,14 @@
-{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% import "partials/scan_input.html" as scan %} {% import "partials/location_search.html" as location %} {% block title %}Brewlog · Check In{% endblock %}
-
-{% block head %}
+{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% import
+"partials/scan_input.html" as scan %} {% import "partials/location_search.html" as location %} {%
+block title %}Brewlog · Check In{% endblock %} {% block head %}
 <script>
-{{ location::location_search_js() }}
+  {
+    {
+      location::location_search_js()
+    }
+  }
 </script>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <section
   id="checkin-root"
   data-signals:_step="1"
@@ -35,9 +37,7 @@
 >
   <header class="flex flex-col gap-2">
     <h1 class="text-3xl font-semibold">Check In</h1>
-    <p class="max-w-2xl text-sm text-text-secondary">
-      Record a cup of coffee at a cafe.
-    </p>
+    <p class="max-w-2xl text-sm text-text-secondary">Record a cup of coffee at a cafe.</p>
   </header>
 
   <!-- Step progress -->
@@ -45,38 +45,51 @@
     <!-- Background track (continuous line through dot centers) -->
     <div class="absolute bg-border" style="height: 3px; top: 8px; left: 10px; right: 10px"></div>
     <!-- Accent overlay: first segment -->
-    <div class="absolute bg-accent" style="height: 3px; top: 8px; left: 10px; right: 50%; display: none"
+    <div
+      class="absolute bg-accent"
+      style="height: 3px; top: 8px; left: 10px; right: 50%; display: none"
       data-show="$_step > 1"
     ></div>
     <!-- Accent overlay: second segment -->
-    <div class="absolute bg-accent" style="height: 3px; top: 8px; left: 50%; right: 10px; display: none"
+    <div
+      class="absolute bg-accent"
+      style="height: 3px; top: 8px; left: 50%; right: 10px; display: none"
       data-show="$_step > 2"
     ></div>
 
     <div class="relative flex justify-between">
       <div class="flex flex-col items-center">
-        <div class="h-5 w-5 rounded-full border-[3px] bg-page transition-all"
+        <div
+          class="h-5 w-5 rounded-full border-[3px] bg-page transition-all"
           data-class="{'border-accent': $_step >= 1, 'border-border': $_step < 1}"
         ></div>
-        <span class="mt-2 text-xs font-medium transition-colors"
+        <span
+          class="mt-2 text-xs font-medium transition-colors"
           data-class="{'text-accent': $_step === 1, 'text-text': $_step > 1}"
-        >Cafe</span>
+          >Cafe</span
+        >
       </div>
       <div class="flex flex-col items-center">
-        <div class="h-5 w-5 rounded-full border-[3px] bg-page transition-all"
+        <div
+          class="h-5 w-5 rounded-full border-[3px] bg-page transition-all"
           data-class="{'border-accent': $_step >= 2, 'border-border': $_step < 2}"
         ></div>
-        <span class="mt-2 text-xs font-medium transition-colors"
+        <span
+          class="mt-2 text-xs font-medium transition-colors"
           data-class="{'text-accent': $_step === 2, 'text-text': $_step > 2, 'text-text-muted': $_step < 2}"
-        >Coffee</span>
+          >Coffee</span
+        >
       </div>
       <div class="flex flex-col items-center">
-        <div class="h-5 w-5 rounded-full border-[3px] bg-page transition-all"
+        <div
+          class="h-5 w-5 rounded-full border-[3px] bg-page transition-all"
           data-class="{'border-accent': $_step >= 3, 'border-border': $_step < 3}"
         ></div>
-        <span class="mt-2 text-xs font-medium transition-colors"
+        <span
+          class="mt-2 text-xs font-medium transition-colors"
           data-class="{'text-accent': $_step === 3, 'text-text-muted': $_step < 3}"
-        >Submit</span>
+          >Submit</span
+        >
       </div>
     </div>
   </div>
@@ -90,13 +103,20 @@
     <div class="flex items-center gap-2">
       {{ icons::location("h-4 w-4 text-accent shrink-0") }}
       <span class="font-medium text-text" data-text="$_cafeName"></span>
-      <span class="text-xs text-text-muted" data-show="$_cafeCity" data-text="$_cafeCity" style="display: none"></span>
+      <span
+        class="text-xs text-text-muted"
+        data-show="$_cafeCity"
+        data-text="$_cafeCity"
+        style="display: none"
+      ></span>
     </div>
     <button
       type="button"
       data-on:click="$_cafeId = ''; $_cafeName = ''; $_step = 1"
       class="text-xs text-text-muted hover:text-text"
-    >Change</button>
+    >
+      Change
+    </button>
   </div>
 
   <!-- Selected roast summary (shown after selection) -->
@@ -108,13 +128,20 @@
     <div class="flex items-center gap-2">
       {{ icons::bag("h-4 w-4 text-accent shrink-0") }}
       <span class="font-medium text-text" data-text="$_roastName"></span>
-      <span class="text-xs text-text-muted" data-show="$_roasterName" data-text="$_roasterName" style="display: none"></span>
+      <span
+        class="text-xs text-text-muted"
+        data-show="$_roasterName"
+        data-text="$_roasterName"
+        style="display: none"
+      ></span>
     </div>
     <button
       type="button"
       data-on:click="$_roastId = ''; $_roastName = ''; $_roasterName = ''; $_scanSuccess = ''; $_step = 2"
       class="text-xs text-text-muted hover:text-text"
-    >Change</button>
+    >
+      Change
+    </button>
   </div>
 
   <!-- Error display -->
@@ -128,15 +155,10 @@
   <!-- Step 1: Cafe selection -->
   <div class="mt-4" data-show="$_step === 1" style="display: none">
     <div class="rounded-lg border bg-surface p-5">
-      <div data-show="!$_reviewingCafe">
-        {{ location::location_search("$_error") }}
-      </div>
+      <div data-show="!$_reviewingCafe">{{ location::location_search("$_error") }}</div>
 
       <!-- Review form for new cafe from Foursquare -->
-      <div
-        data-show="$_reviewingCafe"
-        style="display: none"
-      >
+      <div data-show="$_reviewingCafe" style="display: none">
         <h3 class="text-base font-semibold text-text mb-1">Confirm cafe details</h3>
         <p class="text-sm text-text-secondary mb-3">Review and edit the details before saving.</p>
         <div class="grid gap-4 sm:grid-cols-2">
@@ -154,7 +176,12 @@
           </label>
           <label class="flex flex-col gap-1 text-sm">
             <span class="text-text">Website</span>
-            <input type="url" data-bind:_cafe-website class="input-field" placeholder="https://&hellip;" />
+            <input
+              type="url"
+              data-bind:_cafe-website
+              class="input-field"
+              placeholder="https://&hellip;"
+            />
           </label>
         </div>
         <div class="mt-4 flex items-center justify-end gap-2">
@@ -179,13 +206,19 @@
       {% if !cafe_options.is_empty() %}
       <div class="mt-3 border-t pt-3" data-show="!$_reviewingCafe">
         <p class="mb-2 text-xs text-text-muted">Or choose a saved cafe:</p>
-        <searchable-select name="saved_cafe_id" placeholder="Type to search saved cafes&hellip;"
+        <searchable-select
+          name="saved_cafe_id"
+          placeholder="Type to search saved cafes&hellip;"
           data-on:change="$_cafeId = evt.detail.value; $_cafeName = evt.detail.display; $_cafeCity = evt.detail.data.city; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; $_step = 2"
         >
           {% for cafe in cafe_options %}
-          <button type="button" value="{{ cafe.id }}" data-display="{{ cafe.name }}"
+          <button
+            type="button"
+            value="{{ cafe.id }}"
+            data-display="{{ cafe.name }}"
             data-city="{{ cafe.city }}"
-            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
+            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+          >
             <span class="font-medium text-text">{{ cafe.name }}</span>
             <span class="ml-2 text-xs text-text-muted">{{ cafe.city }}</span>
           </button>
@@ -202,13 +235,18 @@
       <h3 class="text-base font-semibold text-text mb-3">What are you drinking?</h3>
 
       <div data-show="!$_scanSuccess" class="mb-4">
-        <p class="text-sm text-text-secondary mb-3" data-show="!$_extracting">Scan a bag to identify the coffee, or select from your existing roasts below.</p>
+        <p class="text-sm text-text-secondary mb-3" data-show="!$_extracting">
+          Scan a bag to identify the coffee, or select from your existing roasts below.
+        </p>
 
-        <form id="checkin-scan-form"
+        <form
+          id="checkin-scan-form"
           data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/scan', {contentType: 'form'})"
           data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_roastName = $_scanSuccess; $_step = 3 } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Scan failed. Please try again.' }"
         >
-          {{ scan::scan_input("checkin-scan-form", "checkin-image", "$_extracting", "$_extractError", "Describe the coffee…", "Scanning…") }}
+          {{ scan::scan_input("checkin-scan-form", "checkin-image", "$_extracting",
+          "$_extractError", "Describe a coffee bag to fetch details automatically…", "Scanning…")
+          }}
         </form>
       </div>
 
@@ -223,13 +261,19 @@
       {% if !roast_options.is_empty() %}
       <div class="border-t pt-3">
         <p class="text-xs text-text-muted mb-2">Or select an existing roast:</p>
-        <searchable-select name="roast_id" placeholder="Type to search existing roasts&hellip;"
+        <searchable-select
+          name="roast_id"
+          placeholder="Type to search existing roasts&hellip;"
           data-on:change="$_roastId = evt.detail.value; $_roastName = evt.detail.display; $_roasterName = evt.detail.data.roaster; $_step = 3"
         >
           {% for roast in roast_options %}
-          <button type="button" value="{{ roast.id }}" data-display="{{ roast.name }}"
+          <button
+            type="button"
+            value="{{ roast.id }}"
+            data-display="{{ roast.name }}"
             data-roaster="{{ roast.roaster_name }}"
-            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
+            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+          >
             <span class="font-medium text-text">{{ roast.name }}</span>
             <span class="ml-2 text-xs text-text-muted">{{ roast.roaster_name }}</span>
           </button>
@@ -247,11 +291,17 @@
       <dl class="flex flex-col gap-3 text-sm mb-6">
         <div class="flex justify-between gap-2">
           <dt class="font-medium text-text-muted">Cafe</dt>
-          <dd class="text-right text-text" data-text="$_cafeCity ? $_cafeName + ', ' + $_cafeCity : $_cafeName"></dd>
+          <dd
+            class="text-right text-text"
+            data-text="$_cafeCity ? $_cafeName + ', ' + $_cafeCity : $_cafeName"
+          ></dd>
         </div>
         <div class="flex justify-between gap-2">
           <dt class="font-medium text-text-muted">Coffee</dt>
-          <dd class="text-right text-text" data-text="$_roasterName ? $_roastName + ' (' + $_roasterName + ')' : $_roastName"></dd>
+          <dd
+            class="text-right text-text"
+            data-text="$_roasterName ? $_roastName + ' (' + $_roasterName + ')' : $_roastName"
+          ></dd>
         </div>
       </dl>
 
