@@ -159,7 +159,7 @@
       >View all bags &rarr;</a
     >
   </div>
-  <div id="open-bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div id="open-bags-grid" class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide">
     {% for bag in open_bags %} {{ bag_card::card(bag, is_authenticated) }} {% endfor %}
   </div>
 </section>

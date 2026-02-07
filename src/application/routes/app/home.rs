@@ -63,7 +63,7 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
     );
     let open_bags_req = ListRequest::new(
         1,
-        PageSize::limited(3),
+        PageSize::All,
         BagSortKey::UpdatedAt,
         SortDirection::Desc,
     );

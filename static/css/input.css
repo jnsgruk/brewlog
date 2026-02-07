@@ -88,6 +88,16 @@ a {
   text-decoration: none;
 }
 
+/* ── Scrollbar hide ───────────────────────────────────────────── */
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ── Form controls ─────────────────────────────────────────────── */
 
 .input-field {
