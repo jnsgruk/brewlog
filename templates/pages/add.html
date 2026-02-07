@@ -89,12 +89,12 @@
   data-signals:_user-lat="0"
   data-signals:_user-lng="0"
   data-signals:_reviewing-cafe="false"
-  data-signals:_qn-good="false"
-  data-signals:_qn-too-fast="false"
-  data-signals:_qn-too-slow="false"
-  data-signals:_qn-too-hot="false"
-  data-signals:_qn-under-extracted="false"
-  data-signals:_qn-over-extracted="false"
+  data-signals:_qn-good="{% if defaults.quick_notes_raw.contains("good") %}true{% else %}false{% endif %}"
+  data-signals:_qn-too-fast="{% if defaults.quick_notes_raw.contains("too-fast") %}true{% else %}false{% endif %}"
+  data-signals:_qn-too-slow="{% if defaults.quick_notes_raw.contains("too-slow") %}true{% else %}false{% endif %}"
+  data-signals:_qn-too-hot="{% if defaults.quick_notes_raw.contains("too-hot") %}true{% else %}false{% endif %}"
+  data-signals:_qn-under-extracted="{% if defaults.quick_notes_raw.contains("under-extracted") %}true{% else %}false{% endif %}"
+  data-signals:_qn-over-extracted="{% if defaults.quick_notes_raw.contains("over-extracted") %}true{% else %}false{% endif %}"
 >
   <h2 class="text-lg font-semibold text-text mb-3">Manual Add</h2>
 

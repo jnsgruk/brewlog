@@ -49,6 +49,16 @@ pub(crate) struct AddQuery {
     #[serde(rename = "type", default = "default_type")]
     entity_type: String,
     bag_id: Option<String>,
+    // Brew-again overrides
+    coffee_weight: Option<f64>,
+    grinder_id: Option<String>,
+    grind_setting: Option<f64>,
+    brewer_id: Option<String>,
+    filter_paper_id: Option<String>,
+    water_volume: Option<i32>,
+    water_temp: Option<f64>,
+    brew_time: Option<i32>,
+    quick_notes: Option<String>,
 }
 
 fn default_type() -> String {
@@ -75,6 +85,50 @@ pub(crate) async fn add_page(
     )
     .map_err(map_app_error)?;
 
+    let mut defaults = brew_form.defaults;
+
+    // Apply brew-again query param overrides
+    if let Some(cw) = query.coffee_weight {
+        defaults.coffee_weight = cw;
+    }
+    if let Some(ref gid) = query.grinder_id {
+        if let Some(opt) = brew_form.grinder_options.iter().find(|o| o.id == *gid) {
+            defaults.grinder_name = opt.label.clone();
+        }
+        defaults.grinder_id = gid.clone();
+    }
+    if let Some(gs) = query.grind_setting {
+        defaults.grind_setting = gs;
+    }
+    if let Some(ref bid) = query.brewer_id {
+        if let Some(opt) = brew_form.brewer_options.iter().find(|o| o.id == *bid) {
+            defaults.brewer_name = opt.label.clone();
+        }
+        defaults.brewer_id = bid.clone();
+    }
+    if let Some(ref fpid) = query.filter_paper_id {
+        if let Some(opt) = brew_form
+            .filter_paper_options
+            .iter()
+            .find(|o| o.id == *fpid)
+        {
+            defaults.filter_paper_name = opt.label.clone();
+        }
+        defaults.filter_paper_id = fpid.clone();
+    }
+    if let Some(wv) = query.water_volume {
+        defaults.water_volume = wv;
+    }
+    if let Some(wt) = query.water_temp {
+        defaults.water_temp = wt;
+    }
+    if let Some(bt) = query.brew_time {
+        defaults.brew_time = Some(bt);
+    }
+    if let Some(ref qn) = query.quick_notes {
+        defaults.quick_notes_raw.clone_from(qn);
+    }
+
     let template = AddTemplate {
         nav_active: "data",
         is_authenticated,
@@ -99,7 +153,7 @@ pub(crate) async fn add_page(
         brewer_options: brew_form.brewer_options,
         filter_paper_options: brew_form.filter_paper_options,
         cafe_options,
-        defaults: brew_form.defaults,
+        defaults,
         quick_note_options: brew_form.quick_note_options,
         pre_select_bag_id: query.bag_id,
     };

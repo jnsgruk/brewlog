@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use crate::domain::brews::{BrewWithDetails, QuickNote, format_brew_time};
 
 use super::relative_date;
@@ -126,6 +128,30 @@ impl BrewView {
             brew_time_raw: brew.brew.brew_time,
         }
     }
+
+    /// Build a URL to the add-brew form pre-filled with this brew's parameters.
+    pub fn brew_again_url(&self) -> String {
+        let mut url = format!(
+            "/add?type=brew&bag_id={}&coffee_weight={}&grinder_id={}&grind_setting={}&brewer_id={}&water_volume={}&water_temp={}",
+            self.bag_id,
+            self.coffee_weight_raw,
+            self.grinder_id,
+            self.grind_setting_raw,
+            self.brewer_id,
+            self.water_volume_raw,
+            self.water_temp_raw,
+        );
+        if let Some(fp_id) = self.filter_paper_id {
+            let _ = write!(url, "&filter_paper_id={fp_id}");
+        }
+        if let Some(bt) = self.brew_time_raw {
+            let _ = write!(url, "&brew_time={bt}");
+        }
+        if !self.quick_notes_raw.is_empty() {
+            let _ = write!(url, "&quick_notes={}", self.quick_notes_raw);
+        }
+        url
+    }
 }
 
 pub struct BrewDefaultsView {
@@ -141,6 +167,8 @@ pub struct BrewDefaultsView {
     pub water_volume: i32,
     pub water_temp: f64,
     pub brew_time: Option<i32>,
+    /// Comma-separated quick note form values (e.g. "good,too-fast") for pre-filling toggles.
+    pub quick_notes_raw: String,
 }
 
 impl Default for BrewDefaultsView {
@@ -158,6 +186,7 @@ impl Default for BrewDefaultsView {
             water_volume: 250,
             water_temp: 91.0,
             brew_time: Some(120),
+            quick_notes_raw: String::new(),
         }
     }
 }
@@ -181,6 +210,7 @@ impl From<BrewWithDetails> for BrewDefaultsView {
             water_volume: brew.brew.water_volume,
             water_temp: brew.brew.water_temp,
             brew_time: brew.brew.brew_time,
+            quick_notes_raw: String::new(),
         }
     }
 }

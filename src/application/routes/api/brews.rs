@@ -278,9 +278,7 @@ pub(crate) async fn create_brew(
             Ok(response)
         }
     } else if matches!(source, PayloadSource::Form) {
-        let target =
-            ListNavigator::new(BREW_PAGE_PATH, BREW_FRAGMENT_PATH, request, search).page_href(1);
-        Ok(Redirect::to(&target).into_response())
+        Ok(Redirect::to("/").into_response())
     } else {
         Ok((StatusCode::CREATED, Json(enriched)).into_response())
     }
