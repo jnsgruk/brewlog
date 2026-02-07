@@ -107,6 +107,8 @@ a {
   border: 1px solid var(--border);
   background-color: var(--surface);
   padding: 0.6rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
   color: var(--text);
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -134,7 +136,7 @@ input.input-field[type="number"] {
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border);
   background-color: var(--surface);
   color: var(--accent);
   font-weight: 700;
@@ -142,8 +144,8 @@ input.input-field[type="number"] {
 }
 
 .btn-adjust:hover {
-  background-color: var(--accent);
-  color: var(--accent-text);
+  background-color: var(--surface-alt);
+  color: var(--accent-hover);
 }
 
 /* ── Sticky Submit ────────────────────────────────────────────── */
@@ -316,15 +318,17 @@ input.input-field[type="number"] {
 .tab {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 1;
   border-radius: 0.375rem;
   padding: 0.375rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  border: none;
+  border: 1px solid var(--border);
   background: none;
-  transition: background-color 150ms ease, color 150ms ease;
-  color: var(--text);
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  color: var(--accent);
 }
 
 .tab:not(.tab-active):hover {
@@ -332,8 +336,7 @@ input.input-field[type="number"] {
 }
 
 .tab-active {
-  background-color: var(--accent);
-  color: var(--accent-text);
+  border-color: var(--accent);
 }
 
 .tab-mobile {
@@ -345,6 +348,7 @@ input.input-field[type="number"] {
   cursor: pointer;
   border: none;
   background: none;
+  color: var(--accent);
   transition: background-color 150ms ease, color 150ms ease;
   color: var(--text-secondary);
 }
@@ -355,8 +359,6 @@ input.input-field[type="number"] {
 
 .tab-mobile-active {
   background-color: var(--accent-subtle);
-  color: var(--text);
-  font-weight: 600;
 }
 
 /* ── Timeline layout ───────────────────────────────────────────── */
