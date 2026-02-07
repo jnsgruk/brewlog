@@ -221,7 +221,7 @@
   <div class="flex flex-col gap-4">
     <div>
       <h2 class="text-lg font-semibold text-text">Data</h2>
-      <p class="mt-1 text-sm text-text-secondary">Export all coffee data as JSON, or restore from a previous backup.</p>
+      <p class="mt-1 text-sm text-text-secondary">Export all coffee data as JSON, restore from a previous backup, or reset to start fresh.</p>
     </div>
 
     <div class="flex flex-wrap gap-3">
@@ -238,6 +238,13 @@
         onclick="document.getElementById('restore-file-input').click()"
       >
         Restore from Backup
+      </button>
+      <button
+        type="button"
+        class="rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:border-red-800"
+        onclick="resetDatabase()"
+      >
+        Reset Database
       </button>
     </div>
 
@@ -272,6 +279,24 @@
   </div>
 </section>
 {% endif %}
+
+<!-- Sign Out -->
+<section class="rounded-lg border bg-surface p-5">
+  <div class="flex flex-col gap-4">
+    <div>
+      <h2 class="text-lg font-semibold text-text">Sign Out</h2>
+      <p class="mt-1 text-sm text-text-secondary">Sign out of your account on this device.</p>
+    </div>
+    <div>
+      <form method="post" action="/logout">
+        <button type="submit" class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:border-accent hover:text-text">
+          {{ icons::logout("h-4 w-4") }}
+          Sign Out
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
 
 <script>
   // --- Passkey form ---
@@ -358,6 +383,35 @@
       status.classList.remove("hidden");
     } catch (err) {
       error.textContent = err instanceof SyntaxError ? "Invalid JSON file." : err.message;
+      error.classList.remove("hidden");
+    }
+  };
+
+  const resetDatabase = async () => {
+    if (!confirm("Reset all coffee data?\n\nThis will permanently delete all roasters, roasts, bags, gear, brews, cafes, cups, and timeline events.\n\nThis cannot be undone.")) {
+      return;
+    }
+
+    if (!confirm("Are you sure? All coffee data will be permanently deleted.")) {
+      return;
+    }
+
+    const status = document.getElementById("backup-status");
+    const error = document.getElementById("backup-error");
+    status.classList.add("hidden");
+    error.classList.add("hidden");
+
+    try {
+      const response = await fetch("/api/v1/backup/reset", { method: "POST" });
+
+      if (!response.ok) {
+        throw new Error(`Reset failed (HTTP ${response.status}).`);
+      }
+
+      status.textContent = "Database reset successfully. All coffee data has been deleted.";
+      status.classList.remove("hidden");
+    } catch (err) {
+      error.textContent = err.message;
       error.classList.remove("hidden");
     }
   };

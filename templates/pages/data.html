@@ -1,19 +1,8 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Data{% endblock %}
 {% block content %}
-<header class="flex flex-wrap items-start justify-between gap-4">
-  <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-semibold">Data</h1>
-    <p class="max-w-2xl text-sm text-text-secondary">Browse all your coffee data.</p>
-  </div>
-  {% if is_authenticated %}
-  <a
-    href="/add?type={{ active_type }}"
-    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-  >
-    {{ icons::plus_circle("h-4 w-4") }}
-    Add
-  </a>
-  {% endif %}
+<header class="flex flex-col gap-2">
+  <h1 class="text-3xl font-semibold">Data</h1>
+  <p class="max-w-2xl text-sm text-text-secondary">Browse all your coffee data.</p>
 </header>
 
 <div class="rounded-lg border bg-surface">
