@@ -40,10 +40,14 @@ pub struct TastingNoteView {
 
 /// Categorise a tasting note string and return a view with the appropriate
 /// pill class.  Matching is case-insensitive: first an exact match against
-/// known SCA wheel terms, then a substring scan for common keywords.
+/// known SCA wheel terms, then a substring scan for common keywords, then
+/// a fuzzy (Levenshtein distance) match for typo tolerance.
 pub fn categorize(note: &str) -> TastingNoteView {
     let lower = note.to_lowercase();
-    let category = exact_match(&lower).unwrap_or_else(|| substring_match(&lower));
+    let category = exact_match(&lower)
+        .or_else(|| substring_match(&lower))
+        .or_else(|| fuzzy_match(&lower))
+        .unwrap_or(NoteCategory::Default);
     TastingNoteView {
         label: note.to_string(),
         pill_class: category.pill_class(),
@@ -252,7 +256,7 @@ const EXACT_MATCHES: &[(&str, NoteCategory)] = &[
 
 // ── Substring fallback ───────────────────────────────────────────────
 
-fn substring_match(lower: &str) -> NoteCategory {
+fn substring_match(lower: &str) -> Option<NoteCategory> {
     // Order: specific before general to avoid false positives.
     const KEYWORDS: &[(&str, NoteCategory)] = &[
         // Floral
@@ -348,11 +352,84 @@ fn substring_match(lower: &str) -> NoteCategory {
 
     for (keyword, category) in KEYWORDS {
         if lower.contains(keyword) {
-            return *category;
+            return Some(*category);
         }
     }
 
-    NoteCategory::Default
+    None
+}
+
+// ── Fuzzy match using Levenshtein distance ───────────────────────────
+
+fn levenshtein(a: &str, b: &str) -> usize {
+    let b_chars: Vec<char> = b.chars().collect();
+    let b_len = b_chars.len();
+
+    if b_len == 0 {
+        return a.chars().count();
+    }
+
+    let mut prev: Vec<usize> = (0..=b_len).collect();
+    let mut curr = vec![0; b_len + 1];
+
+    for (i, a_char) in a.chars().enumerate() {
+        curr[0] = i + 1;
+        for (j, &b_char) in b_chars.iter().enumerate() {
+            let cost = usize::from(a_char != b_char);
+            curr[j + 1] = (prev[j] + cost).min(curr[j] + 1).min(prev[j + 1] + 1);
+        }
+        std::mem::swap(&mut prev, &mut curr);
+    }
+
+    prev[b_len]
+}
+
+fn max_edit_distance(len: usize) -> usize {
+    match len {
+        0..=3 => 0,
+        4..=7 => 1,
+        _ => 2,
+    }
+}
+
+/// Attempt to match the input against `EXACT_MATCHES` using Levenshtein
+/// distance.  First tries the full input, then falls back to matching
+/// individual words.  Returns `None` if no term is within threshold.
+fn fuzzy_match(lower: &str) -> Option<NoteCategory> {
+    // Try matching the full input string
+    if let Some(cat) = best_fuzzy_hit(lower) {
+        return Some(cat);
+    }
+
+    // Fall back to matching individual words
+    for word in lower.split_whitespace() {
+        if let Some(cat) = best_fuzzy_hit(word) {
+            return Some(cat);
+        }
+    }
+
+    None
+}
+
+fn best_fuzzy_hit(input: &str) -> Option<NoteCategory> {
+    let threshold = max_edit_distance(input.len());
+    if threshold == 0 {
+        return None;
+    }
+
+    let mut best: Option<(usize, NoteCategory)> = None;
+    for (term, category) in EXACT_MATCHES {
+        let distance = levenshtein(input, term);
+        if distance > 0 && distance <= threshold {
+            match best {
+                None => best = Some((distance, *category)),
+                Some((d, _)) if distance < d => best = Some((distance, *category)),
+                _ => {}
+            }
+        }
+    }
+
+    best.map(|(_, cat)| cat)
 }
 
 #[cfg(test)]
@@ -395,5 +472,63 @@ mod tests {
     fn preserves_original_label() {
         let view = categorize("Dark Chocolate");
         assert_eq!(view.label, "Dark Chocolate");
+    }
+
+    // ── Fuzzy matching ──────────────────────────────────────────────
+
+    #[test]
+    fn fuzzy_single_typo() {
+        assert_eq!(categorize("cinamon").pill_class, "pill pill-spice");
+        assert_eq!(categorize("smokey").pill_class, "pill pill-roasted");
+        assert_eq!(categorize("rasberry").pill_class, "pill pill-fruity");
+        assert_eq!(categorize("lemmon").pill_class, "pill pill-citrus");
+    }
+
+    #[test]
+    fn fuzzy_multi_word_typo() {
+        assert_eq!(categorize("pasion fruit").pill_class, "pill pill-fruity");
+        assert_eq!(categorize("brown suger").pill_class, "pill pill-sweet");
+    }
+
+    #[test]
+    fn fuzzy_word_by_word() {
+        assert_eq!(categorize("wild cheery").pill_class, "pill pill-fruity");
+    }
+
+    #[test]
+    fn fuzzy_skips_short_inputs() {
+        assert_eq!(categorize("fif").pill_class, "pill pill-muted");
+        assert_eq!(categorize("tee").pill_class, "pill pill-muted");
+    }
+
+    #[test]
+    fn fuzzy_beyond_threshold() {
+        assert_eq!(categorize("cinmn").pill_class, "pill pill-muted");
+    }
+
+    #[test]
+    fn fuzzy_does_not_override_exact() {
+        assert_eq!(categorize("cherry").pill_class, "pill pill-fruity");
+        assert_eq!(categorize("smoky").pill_class, "pill pill-roasted");
+    }
+
+    #[test]
+    fn fuzzy_does_not_override_substring() {
+        assert_eq!(categorize("smokey notes").pill_class, "pill pill-roasted");
+    }
+
+    #[test]
+    fn fuzzy_case_insensitive() {
+        assert_eq!(categorize("CINAMON").pill_class, "pill pill-spice");
+        assert_eq!(categorize("Smokey").pill_class, "pill pill-roasted");
+    }
+
+    #[test]
+    fn levenshtein_basic() {
+        assert_eq!(levenshtein("kitten", "sitting"), 3);
+        assert_eq!(levenshtein("", "abc"), 3);
+        assert_eq!(levenshtein("abc", ""), 3);
+        assert_eq!(levenshtein("same", "same"), 0);
+        assert_eq!(levenshtein("smokey", "smoky"), 1);
     }
 }
