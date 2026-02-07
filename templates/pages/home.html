@@ -112,8 +112,27 @@ is_authenticated %}
     {% for brew in recent_brews %} {{ brew_card::card(brew, is_authenticated) }} {% endfor %}
   </div>
   {% else %}
-  <div class="flex h-[280px] items-center justify-center rounded-lg border border-dashed text-sm text-text-muted">
-    No brews yet.
+  <div class="relative">
+    <div class="flex gap-4 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
+      {% for _ in 0..6 %}
+      <div class="w-[45vw] md:w-[200px] h-[279px] shrink-0 rounded-lg border bg-surface p-4 flex flex-col">
+        <div class="h-[4.5rem]">
+          <div class="h-4 w-3/4 rounded bg-surface-alt"></div>
+          <div class="mt-2 h-3 w-1/2 rounded bg-surface-alt"></div>
+        </div>
+        <div class="mt-2 flex-1 space-y-2">
+          <div class="h-3 w-full rounded bg-surface-alt"></div>
+          <div class="h-3 w-5/6 rounded bg-surface-alt"></div>
+          <div class="h-3 w-2/3 rounded bg-surface-alt"></div>
+          <div class="h-3 w-3/4 rounded bg-surface-alt"></div>
+        </div>
+        <div class="mt-3 h-8 rounded-md bg-surface-alt"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="absolute inset-0 z-10 flex items-center justify-center">
+      <span class="text-lg font-semibold text-text-muted">No brews yet</span>
+    </div>
   </div>
   {% endif %}
 </section>
@@ -134,8 +153,28 @@ is_authenticated %}
     {% for bag in open_bags %} {{ bag_card::card(bag, is_authenticated) }} {% endfor %}
   </div>
   {% else %}
-  <div class="flex h-[222px] items-center justify-center rounded-lg border border-dashed text-sm text-text-muted">
-    No open bags.
+  <div class="relative">
+    <div class="flex gap-4 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
+      {% for _ in 0..6 %}
+      <div class="w-[45vw] md:w-[200px] h-[200px] shrink-0 rounded-lg border bg-surface p-4 flex flex-col">
+        <div class="flex-1">
+          <div class="h-4 w-3/4 rounded bg-surface-alt"></div>
+          <div class="mt-2 h-3 w-1/2 rounded bg-surface-alt"></div>
+        </div>
+        <div>
+          <div class="h-2 w-full rounded-full bg-surface-alt"></div>
+          <div class="mt-1 h-2 w-1/3 rounded bg-surface-alt"></div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <div class="flex-1 h-8 rounded-md bg-surface-alt"></div>
+          <div class="flex-1 h-8 rounded-md bg-surface-alt"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="absolute inset-0 z-10 flex items-center justify-center">
+      <span class="text-lg font-semibold text-text-muted">No open bags</span>
+    </div>
   </div>
   {% endif %}
 </section>
@@ -170,8 +209,21 @@ is_authenticated %}
     {% endfor %}
   </div>
   {% else %}
-  <div class="flex h-[180px] items-center justify-center rounded-lg border border-dashed text-sm text-text-muted">
-    No activity yet.
+  <div class="relative">
+    <div class="space-y-2 blur-[2px] select-none pointer-events-none" aria-hidden="true">
+      {% for _ in 0..3 %}
+      <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="h-5 w-28 shrink-0 rounded-full bg-surface-alt"></div>
+          <div class="h-4 w-40 rounded bg-surface-alt"></div>
+        </div>
+        <div class="h-3 w-16 shrink-0 rounded bg-surface-alt"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="absolute inset-0 z-10 flex items-center justify-center">
+      <span class="text-lg font-semibold text-text-muted">No activity yet</span>
+    </div>
   </div>
   {% endif %}
 </section>
