@@ -631,3 +631,89 @@ async fn backup_round_trip_via_api() {
     assert_eq!(roasters.len(), 1);
     assert_eq!(roasters[0].name, "Test Roasters");
 }
+
+// --- Reset tests ---
+
+#[tokio::test]
+async fn reset_requires_auth() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .post(app.api_url("/backup/reset"))
+        .send()
+        .await
+        .expect("failed to send request");
+
+    assert_eq!(response.status(), reqwest::StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn reset_clears_all_data() {
+    let db = create_test_db().await;
+    populate_test_data(&db).await;
+
+    // Verify data exists before reset
+    assert!(!list_all_roasters(db.roaster_repo.as_ref()).await.is_empty());
+    assert!(!list_all_roasts(db.roast_repo.as_ref()).await.is_empty());
+    assert!(!list_all_bags(db.bag_repo.as_ref()).await.is_empty());
+    assert!(!list_all_gear(db.gear_repo.as_ref()).await.is_empty());
+    assert!(!list_all_brews(db.brew_repo.as_ref()).await.is_empty());
+    assert!(!list_all_cafes(db.cafe_repo.as_ref()).await.is_empty());
+    assert!(
+        !list_all_timeline_events(db.timeline_repo.as_ref())
+            .await
+            .is_empty()
+    );
+
+    // Reset
+    db.backup_service
+        .reset()
+        .await
+        .expect("failed to reset database");
+
+    // Verify all tables are empty
+    assert!(list_all_roasters(db.roaster_repo.as_ref()).await.is_empty());
+    assert!(list_all_roasts(db.roast_repo.as_ref()).await.is_empty());
+    assert!(list_all_bags(db.bag_repo.as_ref()).await.is_empty());
+    assert!(list_all_gear(db.gear_repo.as_ref()).await.is_empty());
+    assert!(list_all_brews(db.brew_repo.as_ref()).await.is_empty());
+    assert!(list_all_cafes(db.cafe_repo.as_ref()).await.is_empty());
+    assert!(
+        list_all_timeline_events(db.timeline_repo.as_ref())
+            .await
+            .is_empty()
+    );
+}
+
+#[tokio::test]
+async fn reset_then_restore_succeeds() {
+    let db = create_test_db().await;
+    populate_test_data(&db).await;
+
+    // Export before reset
+    let backup = db.backup_service.export().await.expect("failed to export");
+    assert_eq!(backup.roasters.len(), 1);
+    assert_eq!(backup.gear.len(), 3);
+    assert_eq!(backup.brews.len(), 1);
+
+    // Reset
+    db.backup_service
+        .reset()
+        .await
+        .expect("failed to reset database");
+
+    // Restore should succeed (database is now empty)
+    db.backup_service
+        .restore(backup)
+        .await
+        .expect("failed to restore after reset");
+
+    // Verify data is back
+    assert_eq!(list_all_roasters(db.roaster_repo.as_ref()).await.len(), 1);
+    assert_eq!(list_all_roasts(db.roast_repo.as_ref()).await.len(), 1);
+    assert_eq!(list_all_bags(db.bag_repo.as_ref()).await.len(), 1);
+    assert_eq!(list_all_gear(db.gear_repo.as_ref()).await.len(), 3);
+    assert_eq!(list_all_brews(db.brew_repo.as_ref()).await.len(), 1);
+    assert_eq!(list_all_cafes(db.cafe_repo.as_ref()).await.len(), 1);
+}

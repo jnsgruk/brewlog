@@ -115,6 +115,44 @@ impl BackupService {
         Ok(())
     }
 
+    /// Delete all coffee data, leaving auth tables intact.
+    ///
+    /// After a successful reset the database is in the same state that
+    /// `verify_empty_database()` requires, so a subsequent `restore()` will
+    /// succeed.
+    pub async fn reset(&self) -> anyhow::Result<()> {
+        let mut tx = self
+            .pool
+            .begin()
+            .await
+            .context("failed to begin transaction")?;
+
+        // Delete in FK-safe order: children before parents.
+        // brews has RESTRICT FK → gear; cups has RESTRICT FK → roasts, cafes.
+        let tables = [
+            "brews",
+            "cups",
+            "bags",
+            "roasts",
+            "timeline_events",
+            "gear",
+            "cafes",
+            "roasters",
+        ];
+
+        for table in tables {
+            let query = format!("DELETE FROM {table}");
+            sqlx::query(&query)
+                .execute(&mut *tx)
+                .await
+                .with_context(|| format!("failed to delete from {table}"))?;
+        }
+
+        tx.commit().await.context("failed to commit transaction")?;
+
+        Ok(())
+    }
+
     // --- Export methods ---
 
     async fn export_roasters(&self) -> anyhow::Result<Vec<Roaster>> {

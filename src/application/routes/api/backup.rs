@@ -58,3 +58,19 @@ pub(crate) async fn restore_backup(
     })?;
     Ok(StatusCode::NO_CONTENT.into_response())
 }
+
+/// POST /api/v1/backup/reset — delete all coffee data (requires authentication)
+pub(crate) async fn reset_database(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+) -> Result<Response, ApiError> {
+    state
+        .backup_service
+        .reset()
+        .await
+        .map_err(|e| AppError::unexpected(e.to_string()))?;
+
+    tracing::info!("database reset: all coffee data deleted");
+
+    Ok(StatusCode::NO_CONTENT.into_response())
+}

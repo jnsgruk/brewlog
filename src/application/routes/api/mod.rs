@@ -90,6 +90,7 @@ pub(super) fn router() -> axum::Router<AppState> {
             "/backup/restore",
             post(backup::restore_backup).layer(DefaultBodyLimit::max(50 * 1024 * 1024)),
         )
+        .route("/backup/reset", post(backup::reset_database))
 }
 
 pub(super) fn webauthn_router() -> axum::Router<AppState> {
