@@ -118,13 +118,13 @@ impl BrewWithDetails {
             TimelineEventDetail {
                 label: "Water".to_string(),
                 value: format!(
-                    "{}ml @ {:.1}\u{00B0}C",
+                    "{}ml \u{00B7} {:.1}\u{00B0}C",
                     self.brew.water_volume, self.brew.water_temp
                 ),
             },
             TimelineEventDetail {
                 label: "Grinder".to_string(),
-                value: format!("{} @ {:.1}", self.grinder_name, self.brew.grind_setting),
+                value: format!("{} \u{00B7} {:.1}", self.grinder_name, self.brew.grind_setting),
             },
             TimelineEventDetail {
                 label: "Brewer".to_string(),

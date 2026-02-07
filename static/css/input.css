@@ -382,6 +382,20 @@ a {
   display: block;
 }
 
+/* ── Timeline card expand/collapse ────────────────────────────── */
+/* Cards start collapsed; data-show toggles condensed vs detail content */
+
+.tl-card {
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  /* Tighter spacing for condensed cards on mobile */
+  .timeline-item {
+    margin-bottom: 1rem;
+  }
+}
+
 /* ── Data page ─────────────────────────────────────────────────── */
 
 /* Hide duplicate search inside data page - search is in the tab bar */

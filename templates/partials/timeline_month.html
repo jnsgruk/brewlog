@@ -12,23 +12,41 @@
     class="timeline-node absolute h-5 w-5 rounded-full border-[3px] border-accent bg-page"
     aria-hidden="true"
   ></span>
-  <div class="rounded-lg border bg-surface p-5 text-left">
+  <div
+    class="tl-card rounded-lg border bg-surface p-5 text-left"
+    data-on:click="if (!evt.target.closest('a, button, form')) $_expandedCard = $_expandedCard === '{{ event.id }}' ? '' : '{{ event.id }}'"
+  >
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <span class="pill pill-muted">{{ event.kind_label }}</span>
-      <time
-        datetime="{{ event.iso_timestamp }}"
-        class="text-xs uppercase tracking-wide text-text-muted"
-      >
-        {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif
-        %}
-      </time>
+      {# Category — always visible #}
+      <span class="text-xs text-text-muted">
+        <span class="uppercase tracking-wide">{{ event.kind_label }}</span>
+        {# Relative date — shown when collapsed #}
+        <span class="tl-condensed uppercase tracking-wide" data-show="$_expandedCard !== '{{ event.id }}'"> · {{ event.relative_date_label }}</span>
+        {# Full timestamp — shown when expanded #}
+        <time
+          datetime="{{ event.iso_timestamp }}"
+          class="tl-detail uppercase tracking-wide"
+          data-show="$_expandedCard === '{{ event.id }}'"
+          style="display:none"
+        > · {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif %}</time>
+      </span>
+      {# Expand/collapse chevron #}
+      <span class="tl-chevron text-text-muted" data-show="$_expandedCard !== '{{ event.id }}'">
+        {{ icons::chevron_down("h-4 w-4") }}
+      </span>
+      <span class="tl-chevron text-text-muted" data-show="$_expandedCard === '{{ event.id }}'" style="display:none">
+        {{ icons::chevron_up("h-4 w-4") }}
+      </span>
     </div>
     <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-text">
       <a href="{{ event.link }}" class="hover:text-accent">{{ event.title }}</a>
+      {# External link — shown when expanded #}
       {% if let Some(url) = event.external_link %}
       <a
         href="{{ url }}"
-        class="ml-auto text-accent transition hover:text-accent-hover"
+        class="tl-detail ml-auto text-accent transition hover:text-accent-hover"
+        data-show="$_expandedCard === '{{ event.id }}'"
+        style="display:none"
         target="_blank"
         rel="noreferrer noopener"
         aria-label="Open external link"
@@ -37,36 +55,21 @@
         <span class="sr-only">Open external link</span>
       </a>
       {% endif %}
-      {% if is_authenticated %}
-      {% if let Some(brew) = event.brew_data %}
-      <form
-        class="inline ml-auto"
-        data-on:submit="@post('/api/v1/brews', {contentType: 'form'})"
-      >
-        <input type="hidden" name="bag_id" value="{{ brew.bag_id }}" />
-        <input type="hidden" name="coffee_weight" value="{{ brew.coffee_weight }}" />
-        <input type="hidden" name="grinder_id" value="{{ brew.grinder_id }}" />
-        <input type="hidden" name="grind_setting" value="{{ brew.grind_setting }}" />
-        <input type="hidden" name="brewer_id" value="{{ brew.brewer_id }}" />
-        {% if let Some(fp_id) = brew.filter_paper_id %}
-        <input type="hidden" name="filter_paper_id" value="{{ fp_id }}" />
-        {% endif %}
-        <input type="hidden" name="water_volume" value="{{ brew.water_volume }}" />
-        <input type="hidden" name="water_temp" value="{{ brew.water_temp }}" />
-        <button
-          type="submit"
-          class="text-accent transition hover:text-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          title="Brew again"
-        >
-          <span class="sr-only">Brew again</span>
-          {{ icons::refresh("h-4 w-4") }}
-        </button>
-      </form>
-      {% endif %}
-      {% endif %}
     </h3>
+    {# Subtitle — shown when collapsed #}
+    {% if let Some(sub) = event.subtitle %}
+    <p
+      class="tl-condensed mt-1 text-sm text-text-muted"
+      data-show="$_expandedCard !== '{{ event.id }}'"
+    >{{ sub }}</p>
+    {% endif %}
+    {# Detail rows — shown when expanded #}
     {% if event.details.len() > 0 %}
-    <dl class="mt-4 flex flex-col gap-2 text-sm text-text-secondary">
+    <dl
+      class="tl-detail mt-4 flex flex-col gap-2 text-sm text-text-secondary"
+      data-show="$_expandedCard === '{{ event.id }}'"
+      style="display:none"
+    >
       {% for detail in event.details %}
       <div class="flex justify-between gap-2">
         <dt class="font-medium text-text-muted">{{ detail.label }}</dt>
