@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import
-"partials/brew_card.html" as brew_card %} {% import
-"partials/icons.html" as icons %} {% import "partials/scan_input.html" as scan %} {% block title
-%}Brewlog{% endblock %} {% block head %} {% if is_authenticated %}
+"partials/brew_card.html" as brew_card %} {% import "partials/icons.html" as icons %} {% import
+"partials/scan_input.html" as scan %} {% block title %}Brewlog{% endblock %} {% block head %} {% if
+is_authenticated %}
 <script>
   const closeBag = async (bagId, cardEl) => {
     if (!confirm("Close this bag? This will mark it as finished.")) return
@@ -56,7 +56,7 @@
       data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
     >
       {{ scan::scan_input("scan-extract-form", "scan-image", "$_extracting", "$_extractError",
-      "Describe a coffee bag to fetch details automatically…", "Waiting for response…") }}
+      "Describe a coffee bag…", "Waiting for response…") }}
     </form>
   </div>
 
@@ -83,9 +83,7 @@
     >
   </div>
   <div class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide">
-    {% for brew in recent_brews %}
-    {{ brew_card::card(brew, is_authenticated) }}
-    {% endfor %}
+    {% for brew in recent_brews %} {{ brew_card::card(brew, is_authenticated) }} {% endfor %}
   </div>
 </section>
 {% endif %}
@@ -99,7 +97,10 @@
       >View all bags &rarr;</a
     >
   </div>
-  <div id="open-bags-grid" class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide">
+  <div
+    id="open-bags-grid"
+    class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
+  >
     {% for bag in open_bags %} {{ bag_card::card(bag, is_authenticated) }} {% endfor %}
   </div>
 </section>

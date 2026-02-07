@@ -245,8 +245,7 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
           data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_roastName = $_scanSuccess; $_step = 3 } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Scan failed. Please try again.' }"
         >
           {{ scan::scan_input("checkin-scan-form", "checkin-image", "$_extracting",
-          "$_extractError", "Describe a coffee bag to fetch details automatically…", "Scanning…")
-          }}
+          "$_extractError", "Describe a coffee bag…", "Scanning…") }}
         </form>
       </div>
 
