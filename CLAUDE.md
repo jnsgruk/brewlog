@@ -398,46 +398,118 @@ Defined in `input.css` — use these instead of ad-hoc utility combinations:
 
 | Class | Use for |
 |-------|---------|
-| `.input-field` | All text/number/select inputs (border, padding, rounded, focus ring) |
+| `.input-field` | All text/number/select inputs |
 | `.btn-adjust` | +/- stepper buttons flanking a numeric input |
-| `.pill.pill-accent` | Tasting notes, highlighted tags |
-| `.pill.pill-muted` | Categories, kind labels, neutral status |
-| `.pill.pill-success` | Positive status ("Open") |
+| `.sticky-submit` | Mobile-fixed / desktop-static submit bar |
+| `.pill` + variant | Tags, status badges (always include `.pill` base) |
+| `.tab` / `.tab-active` | Desktop tab buttons |
+| `.tab-mobile` / `.tab-mobile-active` | Mobile tab dropdown items |
+| `.responsive-table` | Tables that become card layout on mobile |
+| `.scrollbar-hide` | Hide scrollbar on horizontal scroll containers |
+| `.timeline-*` / `.tl-card` | Timeline page layout (line, node, heading, card) |
+| `.text-2xs` | Micro text (0.65rem) — available for fine print |
+| `.small-caps` | Font-variant small-caps — table headers, footer |
 
-Always include `.pill` base class with the variant. Do not override pill colour/border/padding with utilities.
+**Pill variants** (always pair with `.pill` base class):
 
-Cards use `rounded-lg border bg-surface p-4` — no shadows.
+| Variant | Use |
+|---------|-----|
+| `.pill-muted` | Categories, neutral status |
+| `.pill-success` | Positive status ("Open") |
+| `.pill-warning` | Warning status |
+| `.pill-floral` through `.pill-vegetal` | Tasting note SCA wheel colours |
+
+Do not override pill colour/border/padding with utilities.
 
 ### UI Patterns
+
+#### Page Layout
+
+Main container from `base.html`: `mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-4 md:py-10`. All page sections are direct children spaced by `gap-8`.
+
+Cards use `rounded-lg border bg-surface` — no shadows. Padding varies by context:
+- `p-4` — compact cards (brew cards, bag cards, stat cards)
+- `p-5` — form sections, account sections, timeline cards
+- `p-6` — auth pages (login, register)
 
 #### Typography
 
 | Level | Classes | Use |
 |-------|---------|-----|
 | Page title | `text-3xl font-semibold` | `<h1>` on each page |
-| Section title | `text-lg font-semibold text-text` | `<h2>` / `<h3>` for cards |
+| Auth title | `text-2xl font-semibold text-accent` | Login/register headers |
+| Section title | `text-lg font-semibold text-text` | `<h2>` for page sections |
 | Subsection title | `text-base font-semibold text-text` | `<h3>` within cards |
-| Form section label | `text-xs font-semibold text-text-muted uppercase tracking-wide` | `<h4>` grouping fields |
+| Form subsection | `text-sm font-semibold text-text` | `<h4>` grouping fields (e.g. "Coffee", "Grinder") |
+| Form field label | `text-xs font-semibold text-text-muted uppercase tracking-wide` | `<h4>` / field group headings |
 | Body | `text-sm text-text-secondary` | Description text |
 | Muted | `text-xs text-text-muted` | Metadata, subtext |
-| Accent title | `text-2xl font-semibold text-accent` | Login/register headers |
+| Micro | `text-2xs text-text-muted` | Fine print (available utility, currently unused) |
 
 Page headers: `<header class="flex flex-col gap-2">` with `<h1>` + `<p class="max-w-2xl text-sm text-text-secondary">`.
+
+**Font weight rules:**
+- `font-bold` — stat values only (`text-lg font-bold text-text`)
+- `font-semibold` — headings and primary action buttons
+- `font-medium` — card action buttons, link-style actions, tab labels, table content, outlined/secondary buttons
+
+**Small-caps pattern:** `text-xs uppercase tracking-wide` — used for form field labels, timeline kind labels. Table headers and the footer use the `.small-caps` utility class.
+
+#### Icons
+
+Entity-type icon mapping (consistent across all pages):
+
+| Entity | Icon macro |
+|--------|-----------|
+| brew | `icons::beaker` |
+| roast | `icons::coffee_bean` |
+| roaster | `icons::fire` |
+| bag | `icons::bag` |
+| cup | `icons::cup` |
+| cafe | `icons::location` |
+| gear | `icons::grinder` |
+
+**Size by context:**
+
+| Size | Context |
+|------|---------|
+| `h-3 w-3` | Timeline card category labels (inline with `text-xs`) |
+| `h-4 w-4` | Buttons with text, tab buttons, account page actions, list action links, form indicator icons |
+| `h-5 w-5` | Nav icons, quick action buttons, loading spinners, homepage activity rows, timeline expand/collapse chevrons |
+| `h-6 w-6` | Stat cards on homepage |
+
+Always include `shrink-0` on icons inside flex containers to prevent shrinking.
+
+When an icon appears alongside text in a button or label, use `inline-flex items-center gap-N` on the container:
+- `gap-1` — compact inline labels (timeline categories)
+- `gap-1.5` — card action buttons, tab buttons (mobile selected label)
+- `gap-2` — standard buttons with icons
 
 #### Buttons
 
 | Variant | Classes | Use |
 |---------|---------|-----|
-| Primary | `rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover` | Save, Submit, Check In |
-| Secondary | `rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:border-accent hover:text-text` | Cancel, Back |
+| Primary | `rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover` | Form submits (Save, Log Brew, Check In) |
+| Primary + icon | Add `inline-flex items-center justify-center gap-2` to Primary | Submit buttons with icons, Download Backup |
+| Secondary | `rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt` | Cancel, Back |
+| Outlined accent | `rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt` | Restore, Sign Out — secondary actions with accent colour |
+| Outlined accent + icon | Add `inline-flex items-center gap-2` to Outlined accent | Account page actions with icons |
+| Destructive outlined | `rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:text-red-700 hover:bg-surface-alt` | Reset Database |
+| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt` | Brew, Brew Again on cards |
+| Card muted action | Same as Card action but `text-text-muted` + `hover:text-text` | Close Bag on cards |
 | Text-only | `text-xs text-text-muted hover:text-text` | Change, Back in summary bars |
-| Icon-only | `inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-text-muted transition hover:text-red-600` | Delete, revoke |
-| Link-style | `inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover` | Brew Again, View all |
+| Link-style | `inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover` | View all, Brew Again in tables |
+| Delete link | `inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600` | Delete in table rows |
+| Icon-only | `inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-text-muted transition hover:text-red-600` | Delete passkey, revoke token |
+| Nav icon | `rounded-md p-1.5 text-text-muted transition hover:text-text-secondary` | Theme toggle, user menu |
 | Adjustment | `.btn-adjust` CSS class | +/- steppers |
 
-Submit buttons are right-aligned: `<div class="flex items-center justify-end gap-2">`. Secondary comes first when paired.
+**Sizing rules:**
+- `w-full` for full-width CTAs (form submits)
+- `py-3` for larger touch targets (login, register, check-in submit)
+- `disabled:opacity-50 disabled:cursor-not-allowed` with `data-attr:disabled` for loading states
 
-Use `w-full` for full-width CTAs, `py-3` for larger touch targets, `disabled:opacity-50` with `data-attr:disabled` for loading states.
+Submit buttons right-aligned: `<div class="flex items-center justify-end gap-2">`. Secondary comes first when paired.
 
 #### Forms
 
@@ -463,7 +535,7 @@ Checkbox: `<label class="inline-flex items-center gap-2 text-sm cursor-pointer">
 | Success alert | `rounded-md bg-green-100 border border-green-300 p-4 text-sm text-green-800` |
 | Warning alert | `rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800` |
 | Info alert | `rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800` |
-| Loading spinner | `flex items-center gap-3 text-sm text-accent` with `{% call icons::spinner("h-5 w-5") %}` + `Saving&hellip;` |
+| Loading spinner | `flex items-center gap-3 text-sm text-accent` with `{{ icons::spinner("h-5 w-5") }}` + `Saving&hellip;` |
 
 Always pair loading spinners with `data-show` bound to an in-progress signal.
 
@@ -471,13 +543,25 @@ Always pair loading spinners with `data-show` bound to an in-progress signal.
 
 When a form requires a parent entity that doesn't exist yet, show a static message with `text-lg font-semibold text-text` heading and `text-sm text-text-secondary` body.
 
+Homepage empty states use blurred placeholder cards with an overlay: `blur-[2px] select-none pointer-events-none` on the placeholder grid, `absolute inset-0 z-10 flex items-center justify-center` on the overlay with `text-lg font-semibold text-text-muted` label.
+
 #### Selected Item Indicator
 
-In multi-step flows, show: `rounded-lg border bg-surface px-4 py-3 flex items-center justify-between` — icon + name + muted subtext on left, text-only "Change" button on right.
+In multi-step flows, show: `rounded-lg border bg-surface px-4 py-3 flex items-center justify-between` — icon + name + muted subtext on left, text-only "Change" button (`text-xs text-text-muted hover:text-text`) on right.
 
 #### Navigation
 
 Active state: `text-accent font-medium`. Inactive: `text-text-muted hover:text-text transition`. Desktop nav: `hidden md:flex items-center gap-6`. Mobile nav: toggled via `data-show`.
+
+#### Tabs
+
+Tabs are used on `/data` and `/add` pages. Each tab button shows an entity-type icon + label.
+
+Desktop: `<nav class="hidden md:flex gap-1.5">` with `.tab` buttons. Active state via `data-class:tab-active`.
+
+Mobile: dropdown selector — trigger button shows current tab with chevron, options list uses `.tab-mobile` with `data-class:tab-mobile-active`.
+
+Tab keys differ between pages: singular on `/add` (brew, roast, bag) vs plural on `/data` (brews, roasts, bags). Icon conditionals handle both: `tab.key == "brew" || tab.key == "brews"`.
 
 #### Responsive Patterns
 
@@ -489,13 +573,14 @@ Active state: `text-accent font-medium`. Inactive: `text-text-muted hover:text-t
 
 | Context | Gap |
 |---------|-----|
+| Page sections (main) | `gap-8` |
 | Major form sections | `gap-6` |
 | Related field groups | `gap-4` |
+| Button groups | `gap-2` or `gap-3` |
+| Icon + text (buttons) | `gap-2` |
+| Icon + text (compact) | `gap-1` or `gap-1.5` |
 | Label to input | `gap-1` |
-| Icon + text pairs | `gap-2` |
 | Navigation links | `gap-6` |
-| Button groups | `gap-2` |
-| Page sections | `gap-8` |
 
 ## Tables & Lists
 
