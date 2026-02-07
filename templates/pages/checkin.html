@@ -110,9 +110,9 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
     <button
       type="button"
       data-on:click="$_cafeId = ''; $_cafeName = ''; $_step = 1"
-      class="text-xs text-text-muted hover:text-text"
+      class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
     >
-      Change
+      {{ icons::pencil("h-3 w-3") }} Change
     </button>
   </div>
 
@@ -136,9 +136,9 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
     <button
       type="button"
       data-on:click="$_roastId = ''; $_roastName = ''; $_roasterName = ''; $_scanSuccess = ''; $_step = 2"
-      class="text-xs text-text-muted hover:text-text"
+      class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
     >
-      Change
+      {{ icons::pencil("h-3 w-3") }} Change
     </button>
   </div>
 
@@ -185,7 +185,7 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
         <div class="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"
-            class="rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:border-accent hover:text-text"
+            class="rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt"
             data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''"
           >
             Back
@@ -316,10 +316,10 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
         <input type="hidden" name="roast_id" data-attr:value="$_roastId" />
         <button
           type="submit"
-          class="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
           data-attr:disabled="$_submitting"
         >
-          Check In
+          {{ icons::check("h-4 w-4") }} Check In
         </button>
       </form>
     </div>

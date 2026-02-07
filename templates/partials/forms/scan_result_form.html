@@ -20,8 +20,8 @@
             <span class="font-medium text-text" data-text="$_roasterName"></span>
             <span class="text-xs text-text-muted" data-show="$_roasterCountry" data-text="$_roasterCountry" style="display:none"></span>
           </div>
-          <button type="button" class="text-xs text-text-muted hover:text-text"
-            data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''">Change</button>
+          <button type="button" class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+            data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''">{{ icons::pencil("h-3 w-3") }} Change</button>
         </div>
       </div>
       <!-- Roaster: form (not matched) -->
@@ -53,12 +53,12 @@
         <h3 class="text-base font-semibold text-text">Roast</h3>
         <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_matchedRoastId = ''">
           <div class="flex items-center gap-2">
-            {{ icons::bag("h-4 w-4 text-accent shrink-0") }}
+            {{ icons::coffee_bean("h-4 w-4 text-accent shrink-0") }}
             <span class="font-medium text-text" data-text="$_roastName"></span>
             <span class="text-xs text-text-muted" data-show="$_origin" data-text="$_origin" style="display:none"></span>
           </div>
-          <button type="button" class="text-xs text-text-muted hover:text-text"
-            data-on:click="$_matchedRoastId = ''">Change</button>
+          <button type="button" class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+            data-on:click="$_matchedRoastId = ''">{{ icons::pencil("h-3 w-3") }} Change</button>
         </div>
       </div>
       <!-- Roast: form (not matched) -->
@@ -114,33 +114,33 @@
         <button
           type="button"
           data-on:click="$_scanExtracted = false; $_matchedRoasterId = ''; $_matchedRoastId = ''"
-          class="rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt"
+          class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt"
         >
-          Cancel
+          {{ icons::x_mark("h-4 w-4") }} Cancel
         </button>
         <!-- Neither matched: full create -->
         <button
           type="submit"
           data-show="!$_matchedRoasterId"
-          class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+          class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
         >
-          Save Roaster &amp; Roast
+          {{ icons::plus("h-4 w-4") }} Save Roaster &amp; Roast
         </button>
         <!-- Roaster matched, roast not: create roast only -->
         <button
           type="submit"
           data-show="$_matchedRoasterId && !$_matchedRoastId"
-          class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover" style="display:none"
+          class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover" style="display:none"
         >
-          Save Roast
+          {{ icons::plus("h-4 w-4") }} Save Roast
         </button>
         <!-- Both matched + open bag: create bag only -->
         <button
           type="submit"
           data-show="$_matchedRoastId && $_openBag"
-          class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover" style="display:none"
+          class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover" style="display:none"
         >
-          Open Bag
+          {{ icons::bag("h-4 w-4") }} Open Bag
         </button>
         <!-- Both matched + no bag: nothing to do -->
         <p data-show="$_matchedRoastId && !$_openBag" style="display:none"

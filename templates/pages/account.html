@@ -67,16 +67,16 @@
           id="add-passkey-btn"
           type="button"
           onclick="registerPasskey()"
-          class="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Register
+          {{ icons::key("h-4 w-4") }} Register
         </button>
         <button
           type="button"
           data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
-          class="shrink-0 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
+          class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
         >
-          Cancel
+          {{ icons::x_mark("h-4 w-4") }} Cancel
         </button>
       </div>
       <div id="add-passkey-loading" class="mt-3 hidden flex items-center gap-3 text-sm text-accent">
@@ -90,8 +90,9 @@
         type="button"
         data-show="!$_showPasskeyForm"
         data-on:click="$_showPasskeyForm = true; setTimeout(() => document.getElementById('passkey-name').focus(), 50)"
-        class="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-text transition hover:bg-accent-hover"
+        class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
       >
+        {{ icons::key("h-4 w-4") }}
         Add Passkey
       </button>
     </div>
@@ -167,17 +168,17 @@
           </label>
           <button
             type="submit"
-            class="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
             data-attr:disabled="$_creatingToken"
           >
-            Create
+            {{ icons::plus("h-4 w-4") }} Create
           </button>
           <button
             type="button"
             data-on:click="$_showTokenForm = false; $_tokenError = ''"
-            class="shrink-0 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
+            class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
           >
-            Cancel
+            {{ icons::x_mark("h-4 w-4") }} Cancel
           </button>
         </div>
       </form>
@@ -201,9 +202,9 @@
         <button
           type="button"
           onclick="copyToken(this)"
-          class="shrink-0 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-green-50 transition hover:bg-green-500"
+          class="shrink-0 inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-green-50 transition hover:bg-green-500"
         >
-          Copy
+          {{ icons::clipboard("h-4 w-4") }} Copy
         </button>
       </div>
     </div>
@@ -213,8 +214,9 @@
         type="button"
         data-show="!$_showTokenForm && !$_tokenCreated"
         data-on:click="$_showTokenForm = true; setTimeout(() => document.getElementById('token-name').focus(), 50)"
-        class="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-text transition hover:bg-accent-hover"
+        class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
       >
+        {{ icons::terminal("h-4 w-4") }}
         Create Token
       </button>
     </div>
@@ -233,22 +235,25 @@
       <a
         href="/api/v1/backup"
         download
-        class="rounded-md bg-accent px-4 py-2 text-center text-sm font-medium text-accent-text transition hover:bg-accent-hover"
+        class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
       >
+        {{ icons::arrow_down_tray("h-4 w-4") }}
         Download Backup
       </a>
       <button
         type="button"
-        class="rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
         onclick="document.getElementById('restore-file-input').click()"
       >
+        {{ icons::arrow_up_tray("h-4 w-4") }}
         Restore from Backup
       </button>
       <button
         type="button"
-        class="rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:text-red-700 hover:bg-surface-alt"
         onclick="resetDatabase()"
       >
+        {{ icons::delete("h-4 w-4") }}
         Reset Database
       </button>
     </div>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Login{% endblock %}
 {% block head %}
 <script src="/webauthn.js"></script>
@@ -21,8 +21,8 @@
       <button
         id="login-button"
         type="button"
-        class="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"      >
-        Sign in with Passkey
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"      >
+        {{ icons::key("h-4 w-4") }} Sign in with Passkey
       </button>
 
       <div id="login-loading" class="mt-4 hidden text-center text-sm text-text-muted">

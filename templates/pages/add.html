@@ -118,8 +118,8 @@
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Save Roaster
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::plus("h-4 w-4") }} Save Roaster
         </button>
       </div>
     </form>
@@ -204,8 +204,8 @@
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Save Roast
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::plus("h-4 w-4") }} Save Roast
         </button>
       </div>
     </form>
@@ -249,8 +249,8 @@
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Save Bag
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::plus("h-4 w-4") }} Save Bag
         </button>
       </div>
     </form>
@@ -312,8 +312,8 @@
             <span class="text-text-muted shrink-0">&middot;</span>
             <span class="shrink-0" data-text="$_brewGrind"></span>
           </div>
-          <button type="button" class="shrink-0 ml-3 text-xs text-text-muted hover:text-text"
-            data-on:click="$_editGrinder = true">Change</button>
+          <button type="button" class="shrink-0 ml-3 inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+            data-on:click="$_editGrinder = true">{{ icons::pencil("h-3 w-3") }} Change</button>
         </div>
         <!-- Full grinder fields (expanded) -->
         <div data-show="$_editGrinder" style="display:none">
@@ -349,8 +349,8 @@
             <span data-show="$_filterDisplay" class="text-text-muted shrink-0" style="display:none">&middot;</span>
             <span data-show="$_filterDisplay" class="truncate" data-text="$_filterDisplay" style="display:none"></span>
           </div>
-          <button type="button" class="shrink-0 ml-3 text-xs text-text-muted hover:text-text"
-            data-on:click="$_editBrewer = true">Change</button>
+          <button type="button" class="shrink-0 ml-3 inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+            data-on:click="$_editBrewer = true">{{ icons::pencil("h-3 w-3") }} Change</button>
         </div>
         <!-- Full brewer fields (expanded) -->
         <div data-show="$_editBrewer" style="display:none">
@@ -437,8 +437,8 @@
           data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')" />
       </div>
       <div class="sticky-submit flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Log Brew
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::beaker("h-4 w-4") }} Log Brew
         </button>
       </div>
     </form>
@@ -472,8 +472,8 @@
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Save Gear
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::plus("h-4 w-4") }} Save Gear
         </button>
       </div>
     </form>
@@ -500,9 +500,9 @@
         <span class="text-xs text-text-muted" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
       </div>
       <button type="button"
-        class="text-xs text-text-muted hover:text-text"
+        class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
         data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = ''; $_cafeLng = ''; $_cafeWebsite = ''"
-      >Back</button>
+      >{{ icons::x_mark("h-3 w-3") }} Back</button>
     </div>
 
     <form id="cafe-form" method="post" action="/api/v1/cafes" class="mt-4 flex flex-col gap-4">
@@ -533,8 +533,8 @@
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Save Cafe
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::plus("h-4 w-4") }} Save Cafe
         </button>
       </div>
     </form>
@@ -580,8 +580,8 @@
         </div>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          Save Cup
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+          {{ icons::plus("h-4 w-4") }} Save Cup
         </button>
       </div>
     </form>
