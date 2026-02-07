@@ -63,6 +63,7 @@
                 stdenv.cc.cc.lib
               ];
 
+              env.GIT_HASH = self.shortRev or self.dirtyShortRev or "dev";
               env.LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.openssl ];
 
               meta = {

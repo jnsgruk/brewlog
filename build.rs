@@ -7,14 +7,15 @@ fn main() {
 }
 
 fn git_hash() {
-    let output = Command::new("git")
-        .args(["rev-parse", "--short", "HEAD"])
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .unwrap_or_default();
-    let hash = output.trim();
+    let hash = std::env::var("GIT_HASH").ok().or_else(|| {
+        Command::new("git")
+            .args(["rev-parse", "--short", "HEAD"])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+    });
+    let hash = hash.as_deref().map(str::trim).unwrap_or_default();
     println!("cargo:rustc-env=GIT_HASH={hash}");
 }
 
