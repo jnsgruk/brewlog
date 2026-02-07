@@ -69,6 +69,11 @@
   data-signals:_brew-volume="{{ defaults.water_volume }}"
   data-signals:_brew-weight="{{ defaults.coffee_weight }}"
   data-signals:_brew-time="{{ defaults.brew_time.unwrap_or(120) }}"
+  data-signals:_edit-grinder="{% if defaults.grinder_name.is_empty() %}true{% else %}false{% endif %}"
+  data-signals:_edit-brewer="{% if defaults.brewer_name.is_empty() %}true{% else %}false{% endif %}"
+  data-signals:_grinder-display="'{{ defaults.grinder_name }}'"
+  data-signals:_brewer-display="'{{ defaults.brewer_name }}'"
+  data-signals:_filter-display="'{{ defaults.filter_paper_name }}'"
   data-signals:_cafe-id="''"
   data-signals:_cafe-name="''"
   data-signals:_cafe-city="''"
@@ -108,24 +113,24 @@
     <form method="post" action="/api/v1/roasters" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Name *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Name*</span>
           <input type="text" name="name" required class="input-field" placeholder="Example Coffee Roasters" data-bind:_add-roaster-name />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Country *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Country*</span>
           <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_add-roaster-country />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">City</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">City</span>
           <input type="text" name="city" class="input-field" placeholder="Portland" data-bind:_add-roaster-city />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Homepage</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Homepage</span>
           <input type="url" name="homepage" class="input-field" placeholder="https://example.coffee" data-bind:_add-roaster-homepage />
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
           Save Roaster
         </button>
       </div>
@@ -147,7 +152,7 @@
 
     <form method="post" action="/api/v1/roasts" class="mt-4 flex flex-col gap-4">
       <div class="flex flex-col gap-1 text-sm">
-        <span class="text-text">Roaster *</span>
+        <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roaster*</span>
         <searchable-select name="roaster_id" placeholder="Type to search roasters&hellip;">
           {% for roaster in roaster_options %}
           <button type="button" value="{{ roaster.id }}" data-display="{{ roaster.name }}"
@@ -159,32 +164,32 @@
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Roast Name *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roast Name*</span>
           <input type="text" name="name" required class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_add-roast-name />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Origin *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Origin*</span>
           <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_add-origin />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Region *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Region*</span>
           <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_add-region />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Producer *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Producer*</span>
           <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" data-bind:_add-producer />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Process *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Process*</span>
           <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_add-process />
         </label>
         <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
-          <span class="text-text">Tasting Notes * (comma or newline separated)</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Tasting Notes* (comma or newline separated)</span>
           <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine" data-bind:_add-tasting-notes></textarea>
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
           Save Roast
         </button>
       </div>
@@ -206,7 +211,7 @@
     </div>
     <form method="post" action="/api/v1/bags" class="mt-4 flex flex-col gap-4">
       <div class="flex flex-col gap-1 text-sm">
-        <span class="text-text">Roast *</span>
+        <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roast*</span>
         <searchable-select name="roast_id" placeholder="Type to search roasts&hellip;">
           {% for roast in roast_options %}
           <button type="button" value="{{ roast.id }}" data-display="{{ roast.label }}"
@@ -219,16 +224,16 @@
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Roast Date</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roast Date</span>
           <input type="date" name="roast_date" class="input-field" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Amount (g) *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Amount (g)*</span>
           <input type="number" name="amount" step="0.1" required class="input-field" placeholder="250" />
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
           Save Bag
         </button>
       </div>
@@ -253,13 +258,13 @@
       <h3 class="text-lg font-semibold text-text">New Brew</h3>
       <p class="mt-1 text-sm text-text-secondary">Log a cup of coffee.</p>
     </div>
-    <form method="post" action="/api/v1/brews" class="mt-4 flex flex-col gap-6 overflow-hidden">
+    <form method="post" action="/api/v1/brews" class="mt-4 flex flex-col gap-6 overflow-hidden pb-16 md:pb-0">
       <!-- Coffee -->
       <div>
-        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Coffee</h4>
+        <h4 class="text-sm font-semibold text-text mb-3">Coffee</h4>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Bag *</span>
+            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Bag*</span>
             <searchable-select name="bag_id" placeholder="Type to search bags&hellip;"{% if let Some(bag_id) = pre_select_bag_id %} initial-value="{{ bag_id }}"{% endif %}>
               {% for bag in bag_options %}
               <button type="button" value="{{ bag.id }}" data-display="{{ bag.roast_name }}"
@@ -271,11 +276,11 @@
             </searchable-select>
           </div>
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Weight (g) *</span>
+            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Weight (g)*</span>
             <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Math.max(1, $_brewWeight - 0.5)">-</button>
-              <input type="number" name="coffee_weight" step="any" min="1" required class="input-field flex-1 text-center" data-attr:value="$_brewWeight" data-on:input="$_brewWeight = this.valueAsNumber" />
-              <button type="button" class="btn-adjust" data-on:click="$_brewWeight = $_brewWeight + 0.5">+</button>
+              <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Math.max(1, Number($_brewWeight) - 0.5)">-</button>
+              <input type="number" name="coffee_weight" step="any" min="1" required class="input-field flex-1 text-center" data-bind:_brew-weight />
+              <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Number($_brewWeight) + 0.5">+</button>
             </div>
           </div>
         </div>
@@ -283,22 +288,36 @@
 
       <!-- Grinder -->
       <div>
-        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Grinder</h4>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Grinder *</span>
-            <select name="grinder_id" required class="input-field">
-              {% for grinder in grinder_options %}
-              <option value="{{ grinder.id }}"{% if grinder.id == defaults.grinder_id %} selected{% endif %}>{{ grinder.label }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          <div class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Grind Setting *</span>
-            <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Math.max(0, $_brewGrind - 0.5)">-</button>
-              <input type="number" name="grind_setting" step="any" min="0" required class="input-field flex-1 text-center" data-attr:value="$_brewGrind" data-on:input="$_brewGrind = this.valueAsNumber" />
-              <button type="button" class="btn-adjust" data-on:click="$_brewGrind = $_brewGrind + 0.5">+</button>
+        <h4 class="text-sm font-semibold text-text mb-3">Grinder</h4>
+        <!-- Summary bar (collapsed) -->
+        <div data-show="!$_editGrinder" class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_editGrinder = true">
+          <div class="flex items-center gap-1.5 text-sm text-text min-w-0">
+            <span class="truncate" data-text="$_grinderDisplay"></span>
+            <span class="text-text-muted shrink-0">&middot;</span>
+            <span class="shrink-0" data-text="$_brewGrind"></span>
+          </div>
+          <button type="button" class="shrink-0 ml-3 text-xs text-text-muted hover:text-text"
+            data-on:click="$_editGrinder = true">Change</button>
+        </div>
+        <!-- Full grinder fields (expanded) -->
+        <div data-show="$_editGrinder" style="display:none">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm">
+              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Grinder*</span>
+              <select name="grinder_id" required class="input-field"
+                data-on:change="$_grinderDisplay = evt.target.options[evt.target.selectedIndex].text">
+                {% for grinder in grinder_options %}
+                <option value="{{ grinder.id }}"{% if grinder.id == defaults.grinder_id %} selected{% endif %}>{{ grinder.label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <div class="flex flex-col gap-1 text-sm">
+              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Grind Setting*</span>
+              <div class="flex items-center gap-2">
+                <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Math.max(0, Number($_brewGrind) - 0.5)">-</button>
+                <input type="number" name="grind_setting" step="any" min="0" required class="input-field flex-1 text-center" data-bind:_brew-grind />
+                <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Number($_brewGrind) + 0.5">+</button>
+              </div>
             </div>
           </div>
         </div>
@@ -306,56 +325,65 @@
 
       <!-- Brewer -->
       <div>
-        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Brewer</h4>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Brewer *</span>
-            <select name="brewer_id" required class="input-field">
-              {% for brewer in brewer_options %}
-              <option value="{{ brewer.id }}"{% if brewer.id == defaults.brewer_id %} selected{% endif %}>{{ brewer.label }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Filter Paper</span>
-            <select name="filter_paper_id" class="input-field">
-              <option value="">None</option>
-              {% for fp in filter_paper_options %}
-              <option value="{{ fp.id }}"{% if fp.id == defaults.filter_paper_id %} selected{% endif %}>{{ fp.label }}</option>
-              {% endfor %}
-            </select>
-          </label>
+        <h4 class="text-sm font-semibold text-text mb-3">Brewer</h4>
+        <!-- Summary bar (collapsed) -->
+        <div data-show="!$_editBrewer" class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_editBrewer = true">
+          <div class="flex items-center gap-1.5 text-sm text-text min-w-0">
+            <span class="truncate" data-text="$_brewerDisplay"></span>
+            <span data-show="$_filterDisplay" class="text-text-muted shrink-0" style="display:none">&middot;</span>
+            <span data-show="$_filterDisplay" class="truncate" data-text="$_filterDisplay" style="display:none"></span>
+          </div>
+          <button type="button" class="shrink-0 ml-3 text-xs text-text-muted hover:text-text"
+            data-on:click="$_editBrewer = true">Change</button>
+        </div>
+        <!-- Full brewer fields (expanded) -->
+        <div data-show="$_editBrewer" style="display:none">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm">
+              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Brewer*</span>
+              <select name="brewer_id" required class="input-field"
+                data-on:change="$_brewerDisplay = evt.target.options[evt.target.selectedIndex].text">
+                {% for brewer in brewer_options %}
+                <option value="{{ brewer.id }}"{% if brewer.id == defaults.brewer_id %} selected{% endif %}>{{ brewer.label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Filter Paper</span>
+              <select name="filter_paper_id" class="input-field"
+                data-on:change="const o = evt.target.options[evt.target.selectedIndex]; $_filterDisplay = o.value ? o.text : ''">
+                <option value="">None</option>
+                {% for fp in filter_paper_options %}
+                <option value="{{ fp.id }}"{% if fp.id == defaults.filter_paper_id %} selected{% endif %}>{{ fp.label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
         </div>
       </div>
 
-      <!-- Water -->
+      <!-- Recipe -->
       <div>
-        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Water</h4>
-        <div class="grid gap-4 sm:grid-cols-2">
+        <h4 class="text-sm font-semibold text-text mb-3">Recipe</h4>
+        <div class="grid gap-4 sm:grid-cols-3">
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Volume (ml) *</span>
+            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Volume (ml)*</span>
             <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Math.max(10, $_brewVolume - 10)">-</button>
-              <input type="number" name="water_volume" step="any" min="10" required class="input-field flex-1 text-center" data-attr:value="$_brewVolume" data-on:input="$_brewVolume = this.valueAsNumber" />
-              <button type="button" class="btn-adjust" data-on:click="$_brewVolume = $_brewVolume + 10">+</button>
+              <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Math.max(10, Number($_brewVolume) - 10)">-</button>
+              <input type="number" name="water_volume" step="any" min="10" required class="input-field flex-1 text-center" data-bind:_brew-volume />
+              <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Number($_brewVolume) + 10">+</button>
             </div>
           </div>
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Temp (&deg;C) *</span>
+            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Temp (&deg;C)*</span>
             <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.max(0, $_brewTemp - 0.5)">-</button>
-              <input type="number" name="water_temp" step="any" min="0" max="100" required class="input-field flex-1 text-center" data-attr:value="$_brewTemp" data-on:input="$_brewTemp = this.valueAsNumber" />
-              <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.min(100, $_brewTemp + 0.5)">+</button>
+              <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.max(0, Number($_brewTemp) - 0.5)">-</button>
+              <input type="number" name="water_temp" step="any" min="0" max="100" required class="input-field flex-1 text-center" data-bind:_brew-temp />
+              <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.min(100, Number($_brewTemp) + 0.5)">+</button>
             </div>
           </div>
-        </div>
-      </div>
-      <!-- Brew Time -->
-      <div>
-        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Brew Time</h4>
-        <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Time</span>
+            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Time</span>
             <div class="flex items-center gap-2">
               <button type="button" class="btn-adjust" data-on:click="$_brewTime = Math.max(5, $_brewTime - 5)">-</button>
               <input type="hidden" name="brew_time" data-attr:value="$_brewTime" />
@@ -368,7 +396,7 @@
       </div>
       <!-- Quick Notes -->
       <div>
-        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">Quick Notes</h4>
+        <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
         <div class="flex flex-wrap gap-2">
           <button type="button"
             data-on:click="$_qnGood = !$_qnGood"
@@ -392,8 +420,8 @@
         <input type="hidden" name="quick_notes"
           data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')" />
       </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+      <div class="sticky-submit flex items-center justify-end">
+        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover md:w-auto w-full">
           Log Brew
         </button>
       </div>
@@ -408,9 +436,9 @@
       <p class="mt-1 text-sm text-text-secondary">Add brewing equipment to your collection.</p>
     </div>
     <form method="post" action="/api/v1/gear" class="mt-4 flex flex-col gap-4">
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-4 sm:grid-cols-3">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Category *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Category*</span>
           <select name="category" required class="input-field">
             <option value="">Select a category</option>
             <option value="grinder">Grinder</option>
@@ -419,16 +447,16 @@
           </select>
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Make *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Make*</span>
           <input type="text" name="make" required class="input-field" placeholder="Baratza" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Model *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Model*</span>
           <input type="text" name="model" required class="input-field" placeholder="Encore" />
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
           Save Gear
         </button>
       </div>
@@ -449,7 +477,7 @@
     </div>
 
     <!-- Selected cafe indicator -->
-    <div class="mt-4 border-b pb-4 flex items-center justify-between" data-show="$_reviewingCafe" style="display:none">
+    <div class="mt-4 border-b pb-4 flex items-center justify-between cursor-pointer" data-show="$_reviewingCafe" style="display:none" data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = ''; $_cafeLng = ''; $_cafeWebsite = ''">
       <div class="flex items-center gap-2">
         {{ icons::location("h-4 w-4 text-accent shrink-0") }}
         <span class="text-sm font-medium text-text" data-text="$_cafeName"></span>
@@ -464,32 +492,32 @@
     <form id="cafe-form" method="post" action="/api/v1/cafes" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Name *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Name*</span>
           <input type="text" name="name" required class="input-field" placeholder="Blue Bottle Coffee" data-bind:_cafe-name />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">City *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">City*</span>
           <input type="text" name="city" required class="input-field" placeholder="San Francisco" data-bind:_cafe-city />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Country *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Country*</span>
           <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_cafe-country />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Website</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Website</span>
           <input type="url" name="website" class="input-field" placeholder="https://bluebottlecoffee.com" data-bind:_cafe-website />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Latitude *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Latitude*</span>
           <input type="number" name="latitude" step="any" required class="input-field" placeholder="37.7749" data-bind:_cafe-lat />
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Longitude *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Longitude*</span>
           <input type="number" name="longitude" step="any" required class="input-field" placeholder="-122.4194" data-bind:_cafe-lng />
         </label>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
           Save Cafe
         </button>
       </div>
@@ -511,7 +539,7 @@
     <form method="post" action="/api/v1/cups" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Coffee *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Coffee*</span>
           <searchable-select name="roast_id" placeholder="Type to search roasts&hellip;">
             {% for roast in roast_options %}
             <button type="button" value="{{ roast.id }}" data-display="{{ roast.name }}"
@@ -523,7 +551,7 @@
           </searchable-select>
         </div>
         <div class="flex flex-col gap-1 text-sm">
-          <span class="text-text">Cafe *</span>
+          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Cafe*</span>
           <searchable-select name="cafe_id" placeholder="Type to search cafes&hellip;">
             {% for cafe in cafe_options %}
             <button type="button" value="{{ cafe.id }}" data-display="{{ cafe.name }}"
@@ -536,7 +564,7 @@
         </div>
       </div>
       <div class="flex items-center justify-end">
-        <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
+        <button type="submit" class="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
           Save Cup
         </button>
       </div>

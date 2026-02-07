@@ -1,4 +1,4 @@
-use crate::domain::brews::{Brew, BrewWithDetails, QuickNote, format_brew_time};
+use crate::domain::brews::{BrewWithDetails, QuickNote, format_brew_time};
 
 use super::relative_date;
 
@@ -131,8 +131,11 @@ impl BrewView {
 pub struct BrewDefaultsView {
     pub bag_id: String,
     pub grinder_id: String,
+    pub grinder_name: String,
     pub brewer_id: String,
+    pub brewer_name: String,
     pub filter_paper_id: String,
+    pub filter_paper_name: String,
     pub coffee_weight: f64,
     pub grind_setting: f64,
     pub water_volume: i32,
@@ -144,10 +147,12 @@ impl Default for BrewDefaultsView {
     fn default() -> Self {
         Self {
             bag_id: String::new(),
-
             grinder_id: String::new(),
+            grinder_name: String::new(),
             brewer_id: String::new(),
+            brewer_name: String::new(),
             filter_paper_id: String::new(),
+            filter_paper_name: String::new(),
             coffee_weight: 15.0,
             grind_setting: 6.0,
             water_volume: 250,
@@ -157,22 +162,25 @@ impl Default for BrewDefaultsView {
     }
 }
 
-impl From<Brew> for BrewDefaultsView {
-    fn from(brew: Brew) -> Self {
+impl From<BrewWithDetails> for BrewDefaultsView {
+    fn from(brew: BrewWithDetails) -> Self {
         Self {
-            bag_id: brew.bag_id.to_string(),
-
-            grinder_id: brew.grinder_id.to_string(),
-            brewer_id: brew.brewer_id.to_string(),
+            bag_id: brew.brew.bag_id.to_string(),
+            grinder_id: brew.brew.grinder_id.to_string(),
+            grinder_name: brew.grinder_name,
+            brewer_id: brew.brew.brewer_id.to_string(),
+            brewer_name: brew.brewer_name,
             filter_paper_id: brew
+                .brew
                 .filter_paper_id
                 .map(|id| id.to_string())
                 .unwrap_or_default(),
-            coffee_weight: brew.coffee_weight,
-            grind_setting: brew.grind_setting,
-            water_volume: brew.water_volume,
-            water_temp: brew.water_temp,
-            brew_time: brew.brew_time,
+            filter_paper_name: brew.filter_paper_name.unwrap_or_default(),
+            coffee_weight: brew.brew.coffee_weight,
+            grind_setting: brew.brew.grind_setting,
+            water_volume: brew.brew.water_volume,
+            water_temp: brew.brew.water_temp,
+            brew_time: brew.brew.brew_time,
         }
     }
 }

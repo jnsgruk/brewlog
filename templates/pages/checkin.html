@@ -2,11 +2,7 @@
 "partials/scan_input.html" as scan %} {% import "partials/location_search.html" as location %} {%
 block title %}Brewlog · Check In{% endblock %} {% block head %}
 <script>
-  {
-    {
-      location::location_search_js()
-    }
-  }
+  {{ location::location_search_js() }}
 </script>
 {% endblock %} {% block content %}
 <section
@@ -96,9 +92,10 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
 
   <!-- Selected cafe summary (shown after selection) -->
   <div
-    class="mt-4 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between"
+    class="mt-4 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer"
     data-show="$_step > 1 && $_cafeName && !$_reviewingCafe"
     style="display: none"
+    data-on:click="$_cafeId = ''; $_cafeName = ''; $_step = 1"
   >
     <div class="flex items-center gap-2">
       {{ icons::location("h-4 w-4 text-accent shrink-0") }}
@@ -121,9 +118,10 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
 
   <!-- Selected roast summary (shown after selection) -->
   <div
-    class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between"
+    class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer"
     data-show="$_roastName && $_step > 2"
     style="display: none"
+    data-on:click="$_roastId = ''; $_roastName = ''; $_roasterName = ''; $_scanSuccess = ''; $_step = 2"
   >
     <div class="flex items-center gap-2">
       {{ icons::bag("h-4 w-4 text-accent shrink-0") }}

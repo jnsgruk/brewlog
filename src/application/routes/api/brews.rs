@@ -79,7 +79,7 @@ pub(crate) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData
         .items
         .into_iter()
         .next()
-        .map(|b| BrewDefaultsView::from(b.brew))
+        .map(BrewDefaultsView::from)
         .unwrap_or_default();
 
     let quick_note_options = QuickNote::all()

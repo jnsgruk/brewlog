@@ -14,7 +14,7 @@
       <!-- Roaster: card (matched) -->
       <div data-show="$_matchedRoasterId">
         <h3 class="text-base font-semibold text-text">Roaster</h3>
-        <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between">
+        <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''">
           <div class="flex items-center gap-2">
             {{ icons::fire("h-4 w-4 text-accent shrink-0") }}
             <span class="font-medium text-text" data-text="$_roasterName"></span>
@@ -51,7 +51,7 @@
       <!-- Roast: card (matched) -->
       <div data-show="$_matchedRoastId">
         <h3 class="text-base font-semibold text-text">Roast</h3>
-        <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between">
+        <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_matchedRoastId = ''">
           <div class="flex items-center gap-2">
             {{ icons::bag("h-4 w-4 text-accent shrink-0") }}
             <span class="font-medium text-text" data-text="$_roastName"></span>
