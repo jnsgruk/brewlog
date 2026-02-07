@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
+use super::parse_created_at;
 use super::print_json;
 use crate::domain::brews::QuickNote;
 use crate::domain::ids::{BagId, BrewId, GearId};
@@ -65,6 +66,10 @@ pub struct AddBrewCommand {
     /// Quick notes (comma-separated: good,too-fast,too-slow,too-hot,under-extracted,over-extracted)
     #[arg(long, value_delimiter = ',')]
     pub quick_notes: Vec<String>,
+
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result<()> {
@@ -73,6 +78,10 @@ pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result
         .iter()
         .filter_map(|s| QuickNote::from_str_value(s))
         .collect();
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
 
     let brew = client
         .brews()
@@ -86,6 +95,7 @@ pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result
             command.water_volume,
             command.water_temp,
             quick_notes,
+            created_at,
         )
         .await?;
     print_json(&brew)

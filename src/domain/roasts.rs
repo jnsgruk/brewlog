@@ -37,6 +37,8 @@ pub struct NewRoast {
     pub producer: String,
     pub tasting_notes: Vec<String>,
     pub process: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 impl NewRoast {
@@ -54,6 +56,8 @@ pub struct UpdateRoast {
     pub producer: Option<String>,
     pub tasting_notes: Option<Vec<String>>,
     pub process: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -120,7 +124,7 @@ pub fn roast_timeline_event(roast: &Roast, roaster: &Roaster) -> NewTimelineEven
         entity_type: "roast".to_string(),
         entity_id: roast.id.into_inner(),
         action: "added".to_string(),
-        occurred_at: Utc::now(),
+        occurred_at: roast.created_at,
         title: roast.name.clone(),
         details,
         tasting_notes: roast.tasting_notes.clone(),

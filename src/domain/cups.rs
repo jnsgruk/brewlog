@@ -33,7 +33,7 @@ impl CupWithDetails {
             entity_type: "cup".to_string(),
             entity_id: self.cup.id.into_inner(),
             action: "added".to_string(),
-            occurred_at: Utc::now(),
+            occurred_at: self.cup.created_at,
             title: self.roast_name.clone(),
             details: vec![
                 TimelineEventDetail {
@@ -61,6 +61,8 @@ impl CupWithDetails {
 pub struct NewCup {
     pub roast_id: RoastId,
     pub cafe_id: CafeId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 /// Filter criteria for cup queries.

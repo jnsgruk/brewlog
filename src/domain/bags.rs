@@ -35,6 +35,8 @@ pub struct NewBag {
     pub roast_id: RoastId,
     pub roast_date: Option<NaiveDate>,
     pub amount: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +44,8 @@ pub struct UpdateBag {
     pub remaining: Option<f64>,
     pub closed: Option<bool>,
     pub finished_at: Option<NaiveDate>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 /// Filter criteria for bag queries.
@@ -141,7 +145,7 @@ pub fn bag_timeline_event(
         entity_type: "bag".to_string(),
         entity_id: bag.id.into_inner(),
         action: action.to_string(),
-        occurred_at: Utc::now(),
+        occurred_at: bag.created_at,
         title: roast.name.clone(),
         details: vec![
             TimelineEventDetail {

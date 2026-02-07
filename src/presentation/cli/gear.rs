@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
+use super::parse_created_at;
 use super::print_json;
 use crate::domain::ids::GearId;
 use crate::infrastructure::client::BrewlogClient;
@@ -38,12 +39,19 @@ pub struct AddGearCommand {
     pub make: String,
     #[arg(long)]
     pub model: String,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn add_gear(client: &BrewlogClient, command: AddGearCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let gear = client
         .gear()
-        .create(&command.category, command.make, command.model)
+        .create(&command.category, command.make, command.model, created_at)
         .await?;
     print_json(&gear)
 }
@@ -69,12 +77,24 @@ pub struct UpdateGearCommand {
     pub make: Option<String>,
     #[arg(long)]
     pub model: Option<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn update_gear(client: &BrewlogClient, command: UpdateGearCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let gear = client
         .gear()
-        .update(GearId::new(command.id), command.make, command.model)
+        .update(
+            GearId::new(command.id),
+            command.make,
+            command.model,
+            created_at,
+        )
         .await?;
     print_json(&gear)
 }

@@ -112,9 +112,10 @@ impl SqlBagRepository {
 #[async_trait]
 impl BagRepository for SqlBagRepository {
     async fn insert(&self, bag: NewBag) -> Result<Bag, RepositoryError> {
+        let created_at = bag.created_at.unwrap_or_else(Utc::now);
         let query = r"
-            INSERT INTO bags (roast_id, roast_date, amount, remaining)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO bags (roast_id, roast_date, amount, remaining, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
             RETURNING id, roast_id, roast_date, amount, remaining, closed, finished_at, created_at, updated_at
         ";
 
@@ -123,6 +124,8 @@ impl BagRepository for SqlBagRepository {
             .bind(bag.roast_date)
             .bind(bag.amount)
             .bind(bag.amount) // remaining starts as amount
+            .bind(created_at)
+            .bind(created_at)
             .fetch_one(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -206,6 +209,7 @@ impl BagRepository for SqlBagRepository {
         push_update_field!(builder, sep, "remaining", changes.remaining);
         push_update_field!(builder, sep, "closed", changes.closed);
         push_update_field!(builder, sep, "finished_at", changes.finished_at);
+        push_update_field!(builder, sep, "created_at", changes.created_at);
         let _ = sep; // Suppress unused_assignments warning from macro
 
         builder.push(" WHERE id = ");

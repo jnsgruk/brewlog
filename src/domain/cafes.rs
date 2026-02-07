@@ -25,7 +25,7 @@ impl Cafe {
             entity_type: "cafe".to_string(),
             entity_id: self.id.into_inner(),
             action: "added".to_string(),
-            occurred_at: Utc::now(),
+            occurred_at: self.created_at,
             title: self.name.clone(),
             details: vec![
                 TimelineEventDetail {
@@ -53,6 +53,8 @@ pub struct NewCafe {
     pub latitude: f64,
     pub longitude: f64,
     pub website: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 impl NewCafe {
@@ -88,6 +90,8 @@ pub struct UpdateCafe {
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
     pub website: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

@@ -62,7 +62,7 @@ impl RoasterRepository for SqlRoasterRepository {
     async fn insert(&self, new_roaster: NewRoaster) -> Result<Roaster, RepositoryError> {
         let new_roaster = new_roaster.normalize();
         let slug = new_roaster.slug();
-        let created_at = Utc::now();
+        let created_at = new_roaster.created_at.unwrap_or_else(Utc::now);
 
         let record = query_as::<_, RoasterRecord>(
                 "INSERT INTO roasters (name, slug, country, city, homepage, created_at) VALUES (?, ?, ?, ?, ?, ?)\
@@ -157,6 +157,7 @@ impl RoasterRepository for SqlRoasterRepository {
         push_update_field!(builder, sep, "country", changes.country);
         push_update_field!(builder, sep, "city", changes.city);
         push_update_field!(builder, sep, "homepage", changes.homepage);
+        push_update_field!(builder, sep, "created_at", changes.created_at);
 
         if !sep {
             return Err(RepositoryError::unexpected(

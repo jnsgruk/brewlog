@@ -2,6 +2,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tracing::info;
 
@@ -125,6 +126,7 @@ pub(crate) async fn update_bag(
             remaining: None,
             closed: None,
             finished_at: None,
+            created_at: None,
         },
         |Json(p)| p,
     );
@@ -133,6 +135,7 @@ pub(crate) async fn update_bag(
         remaining: body_update.remaining.or(update_params.remaining),
         closed: body_update.closed.or(update_params.closed),
         finished_at: body_update.finished_at.or(update_params.finished_at),
+        created_at: body_update.created_at,
     };
 
     let bag = if let Some(true) = update.closed {
@@ -183,6 +186,8 @@ pub(crate) struct NewBagSubmission {
     roast_id: RoastId,
     roast_date: Option<String>,
     amount: f64,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
 }
 
 impl NewBagSubmission {
@@ -208,6 +213,7 @@ impl NewBagSubmission {
             roast_id,
             roast_date,
             amount: self.amount,
+            created_at: self.created_at,
         })
     }
 }

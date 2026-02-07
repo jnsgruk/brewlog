@@ -100,7 +100,8 @@ pub(crate) async fn update_cafe(
         || payload.country.is_some()
         || payload.latitude.is_some()
         || payload.longitude.is_some()
-        || payload.website.is_some();
+        || payload.website.is_some()
+        || payload.created_at.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());

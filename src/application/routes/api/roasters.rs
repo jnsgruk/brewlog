@@ -100,7 +100,8 @@ pub(crate) async fn update_roaster(
     let has_changes = payload.name.is_some()
         || payload.country.is_some()
         || payload.city.is_some()
-        || payload.homepage.is_some();
+        || payload.homepage.is_some()
+        || payload.created_at.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());

@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
+use super::parse_created_at;
 use super::print_json;
 use crate::domain::ids::RoasterId;
 use crate::domain::roasters::{NewRoaster, UpdateRoaster};
@@ -41,14 +42,22 @@ pub struct AddRoasterCommand {
     pub city: Option<String>,
     #[arg(long)]
     pub homepage: Option<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn add_roaster(client: &BrewlogClient, command: AddRoasterCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let payload = NewRoaster {
         name: command.name,
         country: command.country,
         city: command.city,
         homepage: command.homepage,
+        created_at,
     };
 
     let roaster = client.roasters().create(&payload).await?;
@@ -74,14 +83,22 @@ pub struct UpdateRoasterCommand {
     pub city: Option<String>,
     #[arg(long)]
     pub homepage: Option<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn update_roaster(client: &BrewlogClient, command: UpdateRoasterCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let payload = UpdateRoaster {
         name: command.name,
         country: command.country,
         city: command.city,
         homepage: command.homepage,
+        created_at,
     };
 
     let roaster = client

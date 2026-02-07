@@ -163,9 +163,10 @@ impl BrewRepository for SqlBrewRepository {
         }
 
         // Insert the brew
+        let created_at = brew.created_at.unwrap_or_else(Utc::now);
         let insert_query = r"
-            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, created_at, updated_at
         ";
 
@@ -182,6 +183,8 @@ impl BrewRepository for SqlBrewRepository {
             .bind(brew.water_volume)
             .bind(brew.water_temp)
             .bind(Self::encode_quick_notes(&brew.quick_notes))
+            .bind(created_at)
+            .bind(created_at)
             .fetch_one(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;

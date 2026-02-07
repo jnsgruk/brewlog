@@ -68,7 +68,7 @@ impl CafeRepository for SqlCafeRepository {
     async fn insert(&self, new_cafe: NewCafe) -> Result<Cafe, RepositoryError> {
         let new_cafe = new_cafe.normalize();
         let slug = new_cafe.slug();
-        let now = Utc::now();
+        let now = new_cafe.created_at.unwrap_or_else(Utc::now);
 
         let record = query_as::<_, CafeRecord>(
                 "INSERT INTO cafes (name, slug, city, country, latitude, longitude, website, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\
@@ -163,6 +163,7 @@ impl CafeRepository for SqlCafeRepository {
         push_update_field!(builder, sep, "latitude", changes.latitude);
         push_update_field!(builder, sep, "longitude", changes.longitude);
         push_update_field!(builder, sep, "website", changes.website);
+        push_update_field!(builder, sep, "created_at", changes.created_at);
         let _ = sep;
 
         builder.push(" WHERE id = ");

@@ -107,12 +107,15 @@ impl SqlCupRepository {
 #[async_trait]
 impl CupRepository for SqlCupRepository {
     async fn insert(&self, new_cup: NewCup) -> Result<Cup, RepositoryError> {
+        let created_at = new_cup.created_at.unwrap_or_else(Utc::now);
         let record = query_as::<_, CupRecord>(
-            "INSERT INTO cups (roast_id, cafe_id) VALUES (?, ?) \
+            "INSERT INTO cups (roast_id, cafe_id, created_at, updated_at) VALUES (?, ?, ?, ?) \
              RETURNING id, roast_id, cafe_id, created_at, updated_at",
         )
         .bind(new_cup.roast_id.into_inner())
         .bind(new_cup.cafe_id.into_inner())
+        .bind(created_at)
+        .bind(created_at)
         .fetch_one(&self.pool)
         .await
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;

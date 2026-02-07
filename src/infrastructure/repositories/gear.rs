@@ -63,9 +63,10 @@ impl SqlGearRepository {
 #[async_trait]
 impl GearRepository for SqlGearRepository {
     async fn insert(&self, gear: NewGear) -> Result<Gear, RepositoryError> {
+        let created_at = gear.created_at.unwrap_or_else(Utc::now);
         let query = r"
-            INSERT INTO gear (category, make, model)
-            VALUES (?, ?, ?)
+            INSERT INTO gear (category, make, model, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
             RETURNING id, category, make, model, created_at, updated_at
         ";
 
@@ -73,6 +74,8 @@ impl GearRepository for SqlGearRepository {
             .bind(gear.category.as_str())
             .bind(&gear.make)
             .bind(&gear.model)
+            .bind(created_at)
+            .bind(created_at)
             .fetch_one(&self.pool)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -142,6 +145,7 @@ impl GearRepository for SqlGearRepository {
 
         push_update_field!(builder, sep, "make", changes.make);
         push_update_field!(builder, sep, "model", changes.model);
+        push_update_field!(builder, sep, "created_at", changes.created_at);
         let _ = sep; // Suppress unused_assignments warning
 
         builder.push(" WHERE id = ");

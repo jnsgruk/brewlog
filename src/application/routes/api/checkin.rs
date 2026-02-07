@@ -65,6 +65,7 @@ pub(crate) async fn submit_checkin(
             latitude: submission.cafe_lat,
             longitude: submission.cafe_lng,
             website: submission.cafe_website.filter(|s| !s.is_empty()),
+            created_at: None,
         }
         .normalize();
 
@@ -79,6 +80,7 @@ pub(crate) async fn submit_checkin(
     let new_cup = NewCup {
         roast_id: RoastId::from(roast_id),
         cafe_id,
+        created_at: None,
     };
 
     let cup = state

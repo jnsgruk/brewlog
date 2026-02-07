@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 
 use crate::domain::bags::{BagWithRoast, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
@@ -20,13 +20,17 @@ impl<'a> BagsClient<'a> {
         roast_id: RoastId,
         roast_date: Option<NaiveDate>,
         amount: f64,
+        created_at: Option<DateTime<Utc>>,
     ) -> Result<BagWithRoast> {
         let url = self.inner.endpoint("api/v1/bags")?;
-        let payload = serde_json::json!({
+        let mut payload = serde_json::json!({
             "roast_id": roast_id,
             "roast_date": roast_date.map(|d| d.to_string()),
             "amount": amount,
         });
+        if let Some(ts) = created_at {
+            payload["created_at"] = serde_json::json!(ts);
+        }
 
         let response = self
             .inner
@@ -74,12 +78,14 @@ impl<'a> BagsClient<'a> {
         remaining: Option<f64>,
         closed: Option<bool>,
         finished_at: Option<NaiveDate>,
+        created_at: Option<DateTime<Utc>>,
     ) -> Result<BagWithRoast> {
         let url = self.inner.endpoint(&format!("api/v1/bags/{id}"))?;
         let payload = UpdateBag {
             remaining,
             closed,
             finished_at,
+            created_at,
         };
 
         let response = self

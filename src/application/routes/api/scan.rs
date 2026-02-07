@@ -121,6 +121,7 @@ async fn match_existing_entities(
         country: roaster_country.to_string(),
         city: result.roaster.city.clone(),
         homepage: None,
+        created_at: None,
     }
     .normalize();
     let roaster_slug = temp_roaster.slug();
@@ -281,6 +282,7 @@ pub(crate) async fn submit_scan(
         country: submission.roaster_country,
         city: submission.roaster_city,
         homepage: submission.roaster_homepage,
+        created_at: None,
     }
     .normalize();
 
@@ -317,6 +319,7 @@ pub(crate) async fn submit_scan(
             producer: submission.producer.trim().to_string(),
             process: submission.process.trim().to_string(),
             tasting_notes,
+            created_at: None,
         }
     } else {
         fn require(field: &str, value: &str) -> Result<String, AppError> {
@@ -336,6 +339,7 @@ pub(crate) async fn submit_scan(
             producer: require("producer", &submission.producer)?,
             process: require("process", &submission.process)?,
             tasting_notes,
+            created_at: None,
         }
     };
 
@@ -358,6 +362,7 @@ pub(crate) async fn submit_scan(
             roast_id: roast.id,
             roast_date: None,
             amount,
+            created_at: None,
         };
         state
             .bag_service
@@ -416,6 +421,7 @@ async fn submit_existing_roast(
             roast_id: roast.id,
             roast_date: None,
             amount,
+            created_at: None,
         };
         state
             .bag_service

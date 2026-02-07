@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 
 use crate::domain::brews::{BrewWithDetails, QuickNote};
 use crate::domain::ids::{BagId, BrewId, GearId};
@@ -26,6 +27,7 @@ impl<'a> BrewsClient<'a> {
         water_volume: i32,
         water_temp: f64,
         quick_notes: Vec<QuickNote>,
+        created_at: Option<DateTime<Utc>>,
     ) -> Result<BrewWithDetails> {
         let url = self.inner.endpoint("api/v1/brews")?;
         let mut payload = serde_json::json!({
@@ -43,6 +45,9 @@ impl<'a> BrewsClient<'a> {
         if !quick_notes.is_empty() {
             let labels: Vec<&str> = quick_notes.iter().map(|n| n.label()).collect();
             payload["quick_notes"] = serde_json::json!(labels);
+        }
+        if let Some(ts) = created_at {
+            payload["created_at"] = serde_json::json!(ts);
         }
 
         let response = self

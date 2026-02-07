@@ -156,7 +156,7 @@ impl BrewWithDetails {
             entity_type: "brew".to_string(),
             entity_id: self.brew.id.into_inner(),
             action: "brewed".to_string(),
-            occurred_at: Utc::now(),
+            occurred_at: self.brew.created_at,
             title: self.roast_name.clone(),
             details,
             tasting_notes: vec![],
@@ -187,6 +187,8 @@ pub struct NewBrew {
     pub water_volume: i32,
     pub water_temp: f64,
     pub quick_notes: Vec<QuickNote>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 /// Filter criteria for brew queries.

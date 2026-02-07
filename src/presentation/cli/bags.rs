@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
+use super::parse_created_at;
 use super::print_json;
 use crate::domain::ids::{BagId, RoastId};
 use crate::infrastructure::client::BrewlogClient;
@@ -38,6 +39,9 @@ pub struct AddBagCommand {
     pub roast_date: Option<String>,
     #[arg(long)]
     pub amount: f64,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn add_bag(client: &BrewlogClient, command: AddBagCommand) -> Result<()> {
@@ -45,9 +49,18 @@ pub async fn add_bag(client: &BrewlogClient, command: AddBagCommand) -> Result<(
         .roast_date
         .map(|d| chrono::NaiveDate::parse_from_str(&d, "%Y-%m-%d"))
         .transpose()?;
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let bag = client
         .bags()
-        .create(RoastId::new(command.roast_id), roast_date, command.amount)
+        .create(
+            RoastId::new(command.roast_id),
+            roast_date,
+            command.amount,
+            created_at,
+        )
         .await?;
     print_json(&bag)
 }
@@ -78,12 +91,19 @@ pub struct UpdateBagCommand {
     pub closed: Option<bool>,
     #[arg(long)]
     pub finished_at: Option<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn update_bag(client: &BrewlogClient, command: UpdateBagCommand) -> Result<()> {
     let finished_at = command
         .finished_at
         .map(|d| chrono::NaiveDate::parse_from_str(&d, "%Y-%m-%d"))
+        .transpose()?;
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
         .transpose()?;
 
     let bag = client
@@ -93,6 +113,7 @@ pub async fn update_bag(client: &BrewlogClient, command: UpdateBagCommand) -> Re
             command.remaining,
             command.closed,
             finished_at,
+            created_at,
         )
         .await?;
     print_json(&bag)

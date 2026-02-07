@@ -2,6 +2,7 @@ use axum::Json;
 use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer};
 use tracing::info;
 
@@ -188,6 +189,8 @@ pub(crate) struct NewBrewSubmission {
     water_temp: f64,
     #[serde(default, deserialize_with = "deserialize_quick_notes")]
     quick_notes: Vec<QuickNote>,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
 }
 
 impl NewBrewSubmission {
@@ -217,6 +220,7 @@ impl NewBrewSubmission {
             water_volume: self.water_volume,
             water_temp: self.water_temp,
             quick_notes: self.quick_notes,
+            created_at: self.created_at,
         })
     }
 }

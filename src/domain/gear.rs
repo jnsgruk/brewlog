@@ -63,7 +63,7 @@ impl Gear {
             entity_type: "gear".to_string(),
             entity_id: self.id.into_inner(),
             action: "added".to_string(),
-            occurred_at: Utc::now(),
+            occurred_at: self.created_at,
             title: format!("{} {}", self.make, self.model),
             details: vec![
                 TimelineEventDetail {
@@ -92,12 +92,16 @@ pub struct NewGear {
     pub category: GearCategory,
     pub make: String,
     pub model: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateGear {
     pub make: Option<String>,
     pub model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Default, Clone)]

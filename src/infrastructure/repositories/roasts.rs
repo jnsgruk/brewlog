@@ -67,6 +67,7 @@ impl RoastRepository for SqlRoastRepository {
             producer,
             tasting_notes,
             process,
+            created_at,
         } = new_roast;
 
         let origin_value = empty_to_none(origin);
@@ -74,7 +75,7 @@ impl RoastRepository for SqlRoastRepository {
         let producer_value = empty_to_none(producer);
         let process_value = empty_to_none(process);
 
-        let created_at = Utc::now();
+        let created_at = created_at.unwrap_or_else(Utc::now);
         let notes_json = Self::encode_notes(&tasting_notes)?;
 
         let record = query_as::<_, RoastRecord>(
@@ -228,6 +229,7 @@ impl RoastRepository for SqlRoastRepository {
         push_update_field!(builder, sep, "region", changes.region);
         push_update_field!(builder, sep, "producer", changes.producer);
         push_update_field!(builder, sep, "process", changes.process);
+        push_update_field!(builder, sep, "created_at", changes.created_at);
 
         // Handle tasting_notes specially due to JSON encoding
         if let Some(tasting_notes) = changes.tasting_notes {

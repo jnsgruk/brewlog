@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
+use super::parse_created_at;
 use super::print_json;
 use crate::domain::cafes::{NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
@@ -45,9 +46,16 @@ pub struct AddCafeCommand {
     pub longitude: f64,
     #[arg(long)]
     pub website: Option<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn add_cafe(client: &BrewlogClient, command: AddCafeCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let payload = NewCafe {
         name: command.name,
         city: command.city,
@@ -55,6 +63,7 @@ pub async fn add_cafe(client: &BrewlogClient, command: AddCafeCommand) -> Result
         latitude: command.latitude,
         longitude: command.longitude,
         website: command.website,
+        created_at,
     };
 
     let cafe = client.cafes().create(&payload).await?;
@@ -84,9 +93,16 @@ pub struct UpdateCafeCommand {
     pub longitude: Option<f64>,
     #[arg(long)]
     pub website: Option<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn update_cafe(client: &BrewlogClient, command: UpdateCafeCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let payload = UpdateCafe {
         name: command.name,
         city: command.city,
@@ -94,6 +110,7 @@ pub async fn update_cafe(client: &BrewlogClient, command: UpdateCafeCommand) -> 
         latitude: command.latitude,
         longitude: command.longitude,
         website: command.website,
+        created_at,
     };
 
     let cafe = client

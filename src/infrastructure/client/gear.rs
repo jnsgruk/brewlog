@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 
 use crate::domain::gear::{Gear, UpdateGear};
 use crate::domain::ids::GearId;
@@ -14,13 +15,22 @@ impl<'a> GearClient<'a> {
         Self { inner }
     }
 
-    pub async fn create(&self, category: &str, make: String, model: String) -> Result<Gear> {
+    pub async fn create(
+        &self,
+        category: &str,
+        make: String,
+        model: String,
+        created_at: Option<DateTime<Utc>>,
+    ) -> Result<Gear> {
         let url = self.inner.endpoint("api/v1/gear")?;
-        let payload = serde_json::json!({
+        let mut payload = serde_json::json!({
             "category": category,
             "make": make,
             "model": model,
         });
+        if let Some(ts) = created_at {
+            payload["created_at"] = serde_json::json!(ts);
+        }
 
         let response = self
             .inner
@@ -66,9 +76,14 @@ impl<'a> GearClient<'a> {
         id: GearId,
         make: Option<String>,
         model: Option<String>,
+        created_at: Option<DateTime<Utc>>,
     ) -> Result<Gear> {
         let url = self.inner.endpoint(&format!("api/v1/gear/{id}"))?;
-        let payload = UpdateGear { make, model };
+        let payload = UpdateGear {
+            make,
+            model,
+            created_at,
+        };
 
         let response = self
             .inner

@@ -22,6 +22,8 @@ pub struct NewRoaster {
     pub country: String,
     pub city: Option<String>,
     pub homepage: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 impl NewRoaster {
@@ -77,7 +79,7 @@ impl Roaster {
             entity_type: "roaster".to_string(),
             entity_id: self.id.into_inner(),
             action: "added".to_string(),
-            occurred_at: Utc::now(),
+            occurred_at: self.created_at,
             title: self.name.clone(),
             details,
             tasting_notes: vec![],
@@ -94,6 +96,8 @@ pub struct UpdateRoaster {
     pub country: Option<String>,
     pub city: Option<String>,
     pub homepage: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 impl UpdateRoaster {

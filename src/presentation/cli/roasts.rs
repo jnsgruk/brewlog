@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
+use super::parse_created_at;
 use super::print_json;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::roasts::{NewRoast, UpdateRoast};
@@ -47,9 +48,16 @@ pub struct AddRoastCommand {
     pub process: String,
     #[arg(long = "tasting-notes", required = true)]
     pub tasting_notes: Vec<String>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn add_roast(client: &BrewlogClient, command: AddRoastCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let payload = NewRoast {
         roaster_id: RoasterId::new(command.roaster_id),
         name: command.name,
@@ -58,6 +66,7 @@ pub async fn add_roast(client: &BrewlogClient, command: AddRoastCommand) -> Resu
         producer: command.producer,
         tasting_notes: command.tasting_notes,
         process: command.process,
+        created_at,
     };
 
     let roast = client.roasts().create(&payload).await?;
@@ -98,9 +107,16 @@ pub struct UpdateRoastCommand {
     pub process: Option<String>,
     #[arg(long = "tasting-notes")]
     pub tasting_notes: Option<Vec<String>>,
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
 }
 
 pub async fn update_roast(client: &BrewlogClient, command: UpdateRoastCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
     let payload = UpdateRoast {
         roaster_id: command.roaster_id.map(RoasterId::new),
         name: command.name,
@@ -109,6 +125,7 @@ pub async fn update_roast(client: &BrewlogClient, command: UpdateRoastCommand) -
         producer: command.producer,
         tasting_notes: command.tasting_notes,
         process: command.process,
+        created_at,
     };
 
     let roast = client

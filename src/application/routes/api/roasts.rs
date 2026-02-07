@@ -2,6 +2,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
 use super::macros::{
@@ -160,7 +161,8 @@ pub(crate) async fn update_roast(
         || payload.region.is_some()
         || payload.producer.is_some()
         || payload.tasting_notes.is_some()
-        || payload.process.is_some();
+        || payload.process.is_some()
+        || payload.created_at.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());
@@ -197,6 +199,8 @@ pub(crate) struct NewRoastSubmission {
     producer: String,
     tasting_notes: TastingNotesInput,
     process: String,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
 }
 
 impl NewRoastSubmission {
@@ -234,6 +238,7 @@ impl NewRoastSubmission {
             producer,
             tasting_notes,
             process,
+            created_at: self.created_at,
         })
     }
 }

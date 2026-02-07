@@ -4,6 +4,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tracing::info;
 
@@ -148,6 +149,8 @@ pub(crate) struct NewGearSubmission {
     category: String,
     make: String,
     model: String,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
 }
 
 impl NewGearSubmission {
@@ -167,6 +170,7 @@ impl NewGearSubmission {
             category,
             make: self.make,
             model: self.model,
+            created_at: self.created_at,
         })
     }
 }

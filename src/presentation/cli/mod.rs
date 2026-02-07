@@ -11,6 +11,8 @@ pub mod tokens;
 
 use std::net::SocketAddr;
 
+use chrono::{DateTime, NaiveDate, Utc};
+
 use backup::{BackupCommand, RestoreCommand};
 use bags::BagCommands;
 use brews::BrewCommands;
@@ -127,6 +129,18 @@ pub struct ServeCommand {
 
     #[arg(long, env = "BREWLOG_FOURSQUARE_API_KEY")]
     pub foursquare_api_key: Option<String>,
+}
+
+pub fn parse_created_at(value: &str) -> anyhow::Result<DateTime<Utc>> {
+    if let Ok(dt) = DateTime::parse_from_rfc3339(value) {
+        return Ok(dt.with_timezone(&Utc));
+    }
+    if let Ok(date) = NaiveDate::parse_from_str(value, "%Y-%m-%d") {
+        return Ok(date.and_time(chrono::NaiveTime::MIN).and_utc());
+    }
+    anyhow::bail!(
+        "invalid date format: expected RFC 3339 (e.g. 2025-08-05T10:00:00Z) or YYYY-MM-DD"
+    )
 }
 
 pub(crate) fn print_json<T>(value: &T) -> anyhow::Result<()>
