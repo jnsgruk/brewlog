@@ -1,4 +1,8 @@
-use crate::helpers::{create_cafe_with_payload, create_roaster_with_payload, spawn_app_with_auth};
+use crate::helpers::{
+    create_cafe_with_payload, create_default_bag, create_default_cafe, create_default_gear,
+    create_default_roast, create_default_roaster, create_roaster_with_payload, spawn_app_with_auth,
+};
+use brewlog::domain::brews::NewBrew;
 use brewlog::domain::cafes::NewCafe;
 use brewlog::domain::ids::RoasterId;
 use brewlog::domain::roasters::NewRoaster;
@@ -497,5 +501,160 @@ async fn creating_a_cafe_surfaces_on_the_timeline() {
     assert!(
         body.contains("/data?type=cafes"),
         "Expected cafe link in timeline HTML, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn checkin_surfaces_cup_on_the_timeline() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let cafe = create_default_cafe(&app).await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    let payload = serde_json::json!({
+        "cafe_id": cafe.id.to_string(),
+        "roast_id": roast.id.to_string(),
+    });
+
+    let response = client
+        .post(app.api_url("/check-in"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&payload)
+        .send()
+        .await
+        .expect("failed to create check-in");
+    assert_eq!(response.status(), 201);
+
+    sleep(Duration::from_millis(10)).await;
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("failed to read response body");
+    assert!(
+        body.contains("Cup Added"),
+        "Expected 'Cup Added' badge in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains("Test Roast"),
+        "Expected roast name to appear in cup timeline event, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn checkin_with_new_cafe_surfaces_both_on_the_timeline() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    let cafe_name = "Checkin Timeline Cafe";
+    let payload = serde_json::json!({
+        "roast_id": roast.id.to_string(),
+        "cafe_name": cafe_name,
+        "cafe_city": "London",
+        "cafe_country": "UK",
+        "cafe_lat": 51.5074,
+        "cafe_lng": -0.1278,
+    });
+
+    let response = client
+        .post(app.api_url("/check-in"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&payload)
+        .send()
+        .await
+        .expect("failed to create check-in");
+    assert_eq!(response.status(), 201);
+
+    sleep(Duration::from_millis(10)).await;
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("failed to read response body");
+    assert!(
+        body.contains("Cafe Added"),
+        "Expected 'Cafe Added' badge in timeline HTML for new cafe, got: {body}"
+    );
+    assert!(
+        body.contains("Cup Added"),
+        "Expected 'Cup Added' badge in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains(cafe_name),
+        "Expected cafe name to appear in timeline HTML, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn creating_a_brew_surfaces_on_the_timeline() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    let new_brew = NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 15.0,
+        grinder_id: grinder.id,
+        grind_setting: 24.0,
+        brewer_id: brewer.id,
+        filter_paper_id: None,
+        water_volume: 250,
+        water_temp: 92.0,
+        quick_notes: Vec::new(),
+    };
+
+    let response = client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("failed to create brew");
+    assert_eq!(response.status(), 201);
+
+    sleep(Duration::from_millis(10)).await;
+
+    let response = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("failed to read response body");
+    assert!(
+        body.contains("Brew Added"),
+        "Expected 'Brew Added' badge in timeline HTML, got: {body}"
+    );
+    assert!(
+        body.contains("Test Roast"),
+        "Expected roast name to appear in brew timeline event, got: {body}"
     );
 }

@@ -69,8 +69,8 @@ pub(crate) async fn submit_checkin(
         .normalize();
 
         let cafe = state
-            .cafe_repo
-            .insert(new_cafe)
+            .cafe_service
+            .create(new_cafe)
             .await
             .map_err(AppError::from)?;
         cafe.id
@@ -82,8 +82,8 @@ pub(crate) async fn submit_checkin(
     };
 
     let cup = state
-        .cup_repo
-        .insert(new_cup)
+        .cup_service
+        .create(new_cup)
         .await
         .map_err(AppError::from)?;
 
