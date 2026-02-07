@@ -118,13 +118,16 @@
     {% else %}
     <div class="flex flex-col gap-2">
       {% for token in tokens %}
-      <div class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3">
-        <div class="min-w-0">
-          <span class="block text-sm font-semibold text-text">{{ token.name }}</span>
-          <span class="block text-xs text-text-muted">
-            Created {{ token.created_at }}
-            · {% if let Some(last_used) = token.last_used_at %}Last used {{ last_used }}{% else %}Never used{% endif %}
-          </span>
+      <div id="token-row-{{ token.id }}" class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3">
+        <div class="flex items-center gap-3 min-w-0">
+          {{ icons::terminal("h-4 w-4 text-accent shrink-0") }}
+          <div class="min-w-0">
+            <span class="block text-sm font-semibold text-text">{{ token.name }}</span>
+            <span class="block text-xs text-text-muted">
+              Created {{ token.created_at }}
+              · {% if let Some(last_used) = token.last_used_at %}Last used {{ last_used }}{% else %}Never used{% endif %}
+            </span>
+          </div>
         </div>
         <button
           type="button"
@@ -147,7 +150,7 @@
       <form
         data-on:submit="$_creatingToken = true; $_tokenError = ''; @post('/api/v1/tokens', {contentType: 'form'})"
         data-on:datastar-fetch="if (!$_creatingToken) return;
-          if (evt.detail.type === 'finished') { $_creatingToken = false }
+          if (evt.detail.type === 'finished') { $_creatingToken = false; document.getElementById('token-name').value = '' }
           else if (evt.detail.type === 'error') { $_creatingToken = false; $_tokenError = 'Failed to create token.' }"
       >
         <div class="flex items-end gap-3">
@@ -156,6 +159,7 @@
             <input
               type="text"
               name="name"
+              id="token-name"
               required
               class="input-field"
               placeholder="e.g. laptop-cli, ci-server"
@@ -181,8 +185,16 @@
 
     <!-- One-time token display -->
     <div data-show="$_tokenCreated" style="display: none"
-      class="rounded-md border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/40 p-4">
-      <p class="text-sm font-medium text-green-800 dark:text-green-300">Token created! Copy it now — you won't see it again.</p>
+      class="relative rounded-md border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/40 p-4">
+      <button
+        type="button"
+        onclick="window.location.reload()"
+        class="absolute top-3.5 right-3 inline-flex h-6 w-6 items-center justify-center rounded text-green-800 dark:text-green-300 transition hover:text-green-600 dark:hover:text-green-100"
+        aria-label="Dismiss"
+      >
+        {{ icons::x_mark("h-4 w-4") }}
+      </button>
+      <p class="pr-6 text-sm font-medium text-green-800 dark:text-green-300">Token created! Copy it now — you won't see it again.</p>
       <div class="mt-3 flex items-center gap-2">
         <code id="token-value" data-text="$_tokenValue"
           class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 dark:border-green-800 break-all select-all"></code>
@@ -194,20 +206,13 @@
           Copy
         </button>
       </div>
-      <button
-        type="button"
-        onclick="window.location.reload()"
-        class="mt-2 text-sm text-text-muted hover:text-text"
-      >
-        Dismiss
-      </button>
     </div>
 
     <div>
       <button
         type="button"
         data-show="!$_showTokenForm && !$_tokenCreated"
-        data-on:click="$_showTokenForm = true"
+        data-on:click="$_showTokenForm = true; setTimeout(() => document.getElementById('token-name').focus(), 50)"
         class="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-text transition hover:bg-accent-hover"
       >
         Create Token
@@ -439,7 +444,8 @@
     try {
       const response = await fetch(`/api/v1/tokens/${id}/revoke`, { method: "POST" });
       if (response.ok) {
-        window.location.reload();
+        const row = document.getElementById(`token-row-${id}`);
+        if (row) row.remove();
       } else {
         alert("Failed to revoke token.");
       }
