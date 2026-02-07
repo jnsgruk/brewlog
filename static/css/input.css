@@ -88,7 +88,7 @@ a {
   text-decoration: none;
 }
 
-/* ── Scrollbar hide ───────────────────────────────────────────── */
+/* ── Utilities ────────────────────────────────────────────────── */
 
 @utility scrollbar-hide {
   -ms-overflow-style: none;
@@ -96,6 +96,15 @@ a {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+@utility text-2xs {
+  font-size: 0.65rem;
+  line-height: 1rem;
+}
+
+@utility small-caps {
+  font-variant: small-caps;
 }
 
 /* ── Form controls ─────────────────────────────────────────────── */
@@ -319,6 +328,7 @@ input.input-field[type="number"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.375rem;
   flex: 1;
   border-radius: 0.375rem;
   padding: 0.375rem 0.875rem;
@@ -340,7 +350,9 @@ input.input-field[type="number"] {
 }
 
 .tab-mobile {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   width: 100%;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;

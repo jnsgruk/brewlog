@@ -21,7 +21,7 @@
     {{ table::search_header(navigator, "#bag-list") }}
     <div class="overflow-x-auto">
       <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text" style="font-variant: small-caps">
+        <thead class="bg-surface-alt text-xs font-semibold tracking-wide text-text small-caps">
           <tr>
             {{ table::sortable_header("Added", "created-at", navigator, "#bag-list") }}
             {{ table::sortable_header("Roaster", "roaster", navigator, "#bag-list") }}
@@ -56,7 +56,7 @@
                 <div class="h-1.5 rounded-full bg-surface-alt overflow-hidden">
                   <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
                 </div>
-                <div class="mt-0.5 text-text-muted" style="font-variant: small-caps; font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
+                <div class="mt-0.5 text-text-muted small-caps" style="font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
               </div>
               {% endif %}
             </td>
@@ -65,7 +65,7 @@
               <div class="h-1.5 rounded-full bg-surface-alt overflow-hidden">
                 <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
               </div>
-              <div class="mt-0.5 text-right text-text-muted" style="font-variant: small-caps; font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
+              <div class="mt-0.5 text-right text-text-muted small-caps" style="font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}g</div>
             </td>
             {% endif %}
             <td data-label="Finished" class="mobile-hidden whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
