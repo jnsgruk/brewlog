@@ -250,6 +250,20 @@
       </button>
       <button
         type="button"
+        data-signals:_recomputing="false"
+        data-on:click="$_recomputing = true; @post('/api/v1/stats/recompute')"
+        data-on:datastar-fetch="if (!$_recomputing) return;
+          if (evt.detail.type === 'finished') { $_recomputing = false; document.getElementById('backup-status').textContent = 'Stats recomputed successfully.'; document.getElementById('backup-status').classList.remove('hidden') }
+          else if (evt.detail.type === 'error') { $_recomputing = false; document.getElementById('backup-error').textContent = 'Stats recompute failed.'; document.getElementById('backup-error').classList.remove('hidden') }"
+        data-attr:disabled="$_recomputing"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto sm:min-w-44"
+      >
+        <span data-show="!$_recomputing">{{ icons::refresh("h-4 w-4") }}</span>
+        <span data-show="$_recomputing" style="display:none">{{ icons::spinner("h-4 w-4") }}</span>
+        Recompute Stats
+      </button>
+      <button
+        type="button"
         class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
         onclick="resetDatabase()"
       >

@@ -3,8 +3,8 @@ use askama::Template;
 use super::views::{
     BagOptionView, BagView, BrewDefaultsView, BrewView, CafeOptionView, CafeView, CupView,
     GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, QuickNoteView,
-    RoastOptionView, RoastView, RoasterOptionView, RoasterView, StatsView, TimelineEventView,
-    TimelineMonthView,
+    RoastOptionView, RoastView, RoasterOptionView, RoasterView, StatCard, StatsView,
+    TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -13,6 +13,7 @@ use crate::domain::cups::CupSortKey;
 use crate::domain::gear::GearSortKey;
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::{RoastSortKey, RoastWithRoaster};
+use crate::domain::stats::{BrewingSummaryStats, ConsumptionStats, RoastSummaryStats};
 use crate::domain::timeline::TimelineSortKey;
 
 #[derive(Template)]
@@ -109,6 +110,7 @@ pub struct HomeTemplate {
     pub open_bags: Vec<BagView>,
     pub recent_events: Vec<TimelineEventView>,
     pub stats: StatsView,
+    pub stat_cards: Vec<StatCard>,
 }
 
 #[derive(Template)]
@@ -189,6 +191,14 @@ pub struct StatsPageTemplate {
     pub tab_fetch_target: &'static str,
     pub tab_fetch_mode: &'static str,
     pub content: String,
+    pub roast_summary: RoastSummaryStats,
+    pub consumption: ConsumptionStats,
+    pub brewing_summary: BrewingSummaryStats,
+    pub grinder_weights: Vec<(String, f64, String)>,
+    pub max_grinder_weight: f64,
+    pub consumption_30d_weight: String,
+    pub consumption_all_time_weight: String,
+    pub cache_age: String,
 }
 
 #[derive(Template)]

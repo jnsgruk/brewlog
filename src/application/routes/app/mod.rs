@@ -36,6 +36,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         )
         .route("/components/chip-scroll.js", get(chip_scroll_js))
         .route("/components/world-map.js", get(world_map_js))
+        .route("/components/donut-chart.js", get(donut_chart_js))
         .route("/favicon-light.svg", get(favicon_light))
         .route("/favicon-dark.svg", get(favicon_dark))
 }
@@ -101,6 +102,16 @@ async fn world_map_js() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/js/components/world-map.js"),
+    )
+}
+
+async fn donut_chart_js() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_str!("../../../../static/js/components/donut-chart.js"),
     )
 }
 

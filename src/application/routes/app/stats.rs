@@ -1,13 +1,17 @@
 use axum::extract::{Query, State};
+use axum::http::header::HeaderValue;
 use axum::http::{HeaderMap, StatusCode};
-use axum::response::{IntoResponse, Response};
+use axum::response::{Html, IntoResponse, Response};
+use chrono::Utc;
 use serde::Deserialize;
 
-use crate::application::errors::{AppError, map_app_error};
+use crate::application::errors::map_app_error;
 use crate::application::routes::render_html;
 use crate::application::routes::support::is_datastar_request;
+use crate::application::services::stats::compute_all_stats;
 use crate::application::state::AppState;
-use crate::domain::country_stats::{CountryStat, GeoStats, country_to_iso, iso_to_flag_emoji};
+use crate::domain::country_stats::GeoStats;
+use crate::domain::stats::CachedStats;
 use crate::presentation::web::templates::{
     StatsMapFragment, StatsPageTemplate, Tab, render_template,
 };
@@ -51,21 +55,17 @@ pub(crate) async fn stats_page(
     let entity_type = stats_query.entity_type;
     let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
 
-    let geo_stats = load_geo_stats(&state, &entity_type)
-        .await
-        .map_err(map_app_error)?;
-
-    let content = render_template(StatsMapFragment {
-        geo_stats: &geo_stats,
-    })
-    .map_err(|err| {
-        tracing::error!(error = %err, "failed to render stats fragment");
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
-
+    // Datastar tab switch: only need geo stats for the selected tab
     if is_datastar_request(&headers) {
-        use axum::http::header::HeaderValue;
-        use axum::response::Html;
+        let geo_stats = geo_for_type(&load_or_compute(&state).await?, &entity_type);
+
+        let content = render_template(StatsMapFragment {
+            geo_stats: &geo_stats,
+        })
+        .map_err(|err| {
+            tracing::error!(error = %err, "failed to render stats fragment");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
         let mut response = Html(content).into_response();
         response.headers_mut().insert(
@@ -78,6 +78,18 @@ pub(crate) async fn stats_page(
         return Ok(response);
     }
 
+    // Full page load: use cached stats or compute on the fly
+    let cached = load_or_compute(&state).await?;
+    let geo_stats = geo_for_type(&cached, &entity_type);
+
+    let content = render_template(StatsMapFragment {
+        geo_stats: &geo_stats,
+    })
+    .map_err(|err| {
+        tracing::error!(error = %err, "failed to render stats fragment");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
     let tabs: Vec<Tab> = TABS
         .iter()
         .map(|t| Tab {
@@ -85,6 +97,25 @@ pub(crate) async fn stats_page(
             label: t.label,
         })
         .collect();
+
+    let cache_age = format_cache_age(&cached.computed_at);
+    let consumption_30d_weight =
+        crate::domain::formatting::format_weight(cached.consumption.last_30_days_grams);
+    let consumption_all_time_weight =
+        crate::domain::formatting::format_weight(cached.consumption.all_time_grams);
+    let grinder_weights: Vec<(String, f64, String)> = cached
+        .brewing_summary
+        .grinder_weight_counts
+        .iter()
+        .map(|(name, grams)| {
+            (
+                name.clone(),
+                *grams,
+                crate::domain::formatting::format_weight(*grams),
+            )
+        })
+        .collect();
+    let max_grinder_weight = cached.brewing_summary.max_grinder_weight;
 
     let template = StatsPageTemplate {
         nav_active: "stats",
@@ -98,43 +129,44 @@ pub(crate) async fn stats_page(
         tab_fetch_target: "#stats-content",
         tab_fetch_mode: "inner",
         content,
+        roast_summary: cached.roast_summary,
+        consumption: cached.consumption,
+        brewing_summary: cached.brewing_summary,
+        grinder_weights,
+        max_grinder_weight,
+        consumption_30d_weight,
+        consumption_all_time_weight,
+        cache_age,
     };
 
     render_html(template).map(IntoResponse::into_response)
 }
 
-async fn load_geo_stats(state: &AppState, entity_type: &str) -> Result<GeoStats, AppError> {
-    let raw_counts = match entity_type {
-        "roasts" => state.stats_repo.roast_origin_counts().await?,
-        "cups" => state.stats_repo.cup_country_counts().await?,
-        "cafes" => state.stats_repo.cafe_country_counts().await?,
-        _ => state.stats_repo.roaster_country_counts().await?,
+/// Load stats from cache, falling back to live computation on cache miss.
+async fn load_or_compute(state: &AppState) -> Result<CachedStats, StatusCode> {
+    if let Ok(Some(cached)) = state.stats_repo.get_cached().await {
+        return Ok(cached);
+    }
+    tracing::debug!("stats cache miss, computing live");
+    compute_all_stats(&*state.stats_repo)
+        .await
+        .map_err(|e| map_app_error(e.into()))
+}
+
+/// Select the geo stats for a given entity type from the cached snapshot.
+fn geo_for_type(cached: &CachedStats, entity_type: &str) -> GeoStats {
+    match entity_type {
+        "roasts" => cached.geo_roasts.clone(),
+        "cups" => cached.geo_cups.clone(),
+        "cafes" => cached.geo_cafes.clone(),
+        _ => cached.geo_roasters.clone(),
+    }
+}
+
+/// Format the cache timestamp as a relative age string (e.g. "Just now", "2m ago").
+fn format_cache_age(computed_at: &str) -> String {
+    let Ok(ts) = chrono::DateTime::parse_from_rfc3339(computed_at) else {
+        return String::new();
     };
-
-    let entries: Vec<CountryStat> = raw_counts
-        .into_iter()
-        .map(|(name, count)| {
-            let iso = country_to_iso(&name).unwrap_or("").to_string();
-            let flag = if iso.is_empty() {
-                String::new()
-            } else {
-                iso_to_flag_emoji(&iso)
-            };
-            CountryStat {
-                country_name: name,
-                iso_code: iso,
-                flag_emoji: flag,
-                count,
-            }
-        })
-        .collect();
-
-    let total_countries = entries.len();
-    let max_count = entries.iter().map(|e| e.count).max().unwrap_or(0);
-
-    Ok(GeoStats {
-        entries,
-        total_countries,
-        max_count,
-    })
+    crate::domain::formatting::format_relative_time(ts.with_timezone(&Utc), Utc::now())
 }

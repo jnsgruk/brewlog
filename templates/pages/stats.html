@@ -1,8 +1,13 @@
-{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Stats{% endblock %}
+{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% import "partials/histogram.html" as histogram %} {% block title %}Brewlog · Stats{% endblock %}
 {% block content %}
 <header class="flex flex-col gap-2">
-  <h1 class="text-3xl font-semibold">Stats</h1>
-  <p class="max-w-2xl text-sm text-text-secondary">Geographic overview of coffee data.</p>
+  <div class="flex items-start justify-between gap-4">
+    <h1 class="text-3xl font-semibold">Stats</h1>
+    {% if !cache_age.is_empty() %}
+    <span class="shrink-0 text-xs text-text-muted pt-2">Updated {{ cache_age }}</span>
+    {% endif %}
+  </div>
+  <p class="max-w-2xl text-sm text-text-secondary">Aggregated coffee data across origins, consumption, and brewing.</p>
 </header>
 
 <div class="flex flex-col gap-6">
@@ -12,4 +17,107 @@
     {{ content|safe }}
   </div>
 </div>
+
+<section>
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-lg font-semibold text-text">Roast Stats</h2>
+  </div>
+  <div class="grid gap-3 sm:grid-cols-3">
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::map("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text">{{ roast_summary.unique_origins }}</span>
+      <span class="text-sm font-medium text-accent">Origins</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::location("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text truncate max-w-full">{% match roast_summary.top_origin %}{% when Some with (v) %}{{ v }}{% when None %}&mdash;{% endmatch %}</span>
+      <span class="text-sm font-medium text-accent">Top Origin</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::fire("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text truncate max-w-full">{% match roast_summary.top_roaster %}{% when Some with (v) %}{{ v }}{% when None %}&mdash;{% endmatch %}</span>
+      <span class="text-sm font-medium text-accent">Top Roaster</span>
+    </div>
+  </div>
+  {% if !roast_summary.origin_counts.is_empty() || !roast_summary.flavour_counts.is_empty() %}
+  <div class="mt-5 grid gap-5 md:grid-cols-2">
+    {% if !roast_summary.origin_counts.is_empty() %}
+    <div>
+      <h3 class="text-sm font-semibold text-text mb-3">Top 5 Origins</h3>
+      {{ histogram::bar_chart(roast_summary.origin_counts, roast_summary.max_origin_count) }}
+    </div>
+    {% endif %}
+    {% if !roast_summary.flavour_counts.is_empty() %}
+    <div>
+      <h3 class="text-sm font-semibold text-text mb-3">Top 5 Flavours</h3>
+      {{ histogram::bar_chart(roast_summary.flavour_counts, roast_summary.max_flavour_count) }}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<section>
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-lg font-semibold text-text">Consumption</h2>
+  </div>
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::coffee_bean("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text">{{ consumption_30d_weight }}</span>
+      <span class="text-sm font-medium text-accent">Last 30 Days</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::coffee_bean("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text">{{ consumption_all_time_weight }}</span>
+      <span class="text-sm font-medium text-accent">All Time</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::beaker("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text">{{ consumption.brews_last_30_days }}</span>
+      <span class="text-sm font-medium text-accent">Brews (30d)</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      {{ icons::beaker("h-6 w-6 text-accent") }}
+      <span class="text-lg font-bold text-text">{{ consumption.brews_all_time }}</span>
+      <span class="text-sm font-medium text-accent">Brews (All Time)</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-lg font-semibold text-text">Brewing</h2>
+  </div>
+  {% if !brewing_summary.brewer_counts.is_empty() || !brewing_summary.grinder_counts.is_empty() %}
+  <div class="grid gap-5 md:grid-cols-2">
+    {% if !brewing_summary.brewer_counts.is_empty() %}
+    <div class="rounded-lg border bg-surface p-5">
+      <h3 class="text-sm font-semibold text-text mb-4">Brewer Usage</h3>
+      <donut-chart data-icon="beaker" data-items="{% for item in brewing_summary.brewer_counts %}{% if !loop.first %}|{% endif %}{{ item.0 }}:{{ item.1 }}{% endfor %}"></donut-chart>
+    </div>
+    {% endif %}
+    {% if !brewing_summary.grinder_counts.is_empty() %}
+    <div class="rounded-lg border bg-surface p-5">
+      <h3 class="text-sm font-semibold text-text mb-4">Grinder Usage</h3>
+      <donut-chart data-icon="grinder" data-items="{% for item in brewing_summary.grinder_counts %}{% if !loop.first %}|{% endif %}{{ item.0 }}:{{ item.1 }}{% endfor %}"></donut-chart>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div class="mt-5 grid gap-5 md:grid-cols-2">
+    {% if !grinder_weights.is_empty() %}
+    <div>
+      <h3 class="text-sm font-semibold text-text mb-3">Coffee per Grinder</h3>
+      {{ histogram::bar_chart_weight(grinder_weights, max_grinder_weight) }}
+    </div>
+    {% endif %}
+    {% if !brewing_summary.brew_time_distribution.is_empty() %}
+    <div>
+      <h3 class="text-sm font-semibold text-text mb-3">Brew Time Distribution</h3>
+      {{ histogram::bar_chart(brewing_summary.brew_time_distribution, brewing_summary.max_brew_time_count) }}
+    </div>
+    {% endif %}
+  </div>
+</section>
 {% endblock %}

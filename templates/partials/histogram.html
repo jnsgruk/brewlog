@@ -1,0 +1,31 @@
+{% macro bar_chart(items, max_count) %}
+<div class="rounded-lg border bg-surface p-5">
+  <div class="flex flex-col gap-2">
+    {% for item in items %}
+    <div class="flex items-center gap-3">
+      <span class="w-28 shrink-0 text-right text-xs font-medium text-text-secondary truncate">{{ item.0 }}</span>
+      <div class="flex-1 h-5 rounded bg-surface-alt overflow-hidden">
+        <div class="h-full rounded bg-accent" style="width: {{ item.1 * 100 / max_count }}%"></div>
+      </div>
+      <span class="w-6 shrink-0 text-xs text-text-muted text-right">{{ item.1 }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro bar_chart_weight(items, max_weight) %}
+<div class="rounded-lg border bg-surface p-5">
+  <div class="flex flex-col gap-2">
+    {% for item in items %}
+    <div class="flex items-center gap-3">
+      <span class="w-28 shrink-0 text-right text-xs font-medium text-text-secondary truncate">{{ item.0 }}</span>
+      <div class="flex-1 h-5 rounded bg-surface-alt overflow-hidden">
+        <div class="h-full rounded bg-accent" style="width: {{ item.1 * 100.0 / max_weight }}%"></div>
+      </div>
+      <span class="w-14 shrink-0 text-xs text-text-muted text-right">{{ item.2 }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endmacro %}
