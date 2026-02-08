@@ -2,6 +2,7 @@ pub mod ai_usage;
 pub mod bags;
 pub mod brews;
 pub mod cafes;
+pub mod countries;
 pub mod country_stats;
 pub mod cups;
 pub mod errors;
