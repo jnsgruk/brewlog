@@ -15,6 +15,7 @@ pub mod repositories;
 pub mod roasters;
 pub mod roasts;
 pub mod sessions;
+pub mod stats;
 pub mod timeline;
 pub mod tokens;
 pub mod users;

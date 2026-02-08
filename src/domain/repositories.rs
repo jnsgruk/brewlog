@@ -275,4 +275,20 @@ pub trait StatsRepository: Send + Sync {
     async fn roast_origin_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
     async fn cup_country_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
     async fn cafe_country_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
+    async fn roast_summary(
+        &self,
+    ) -> Result<crate::domain::stats::RoastSummaryStats, RepositoryError>;
+    async fn consumption_summary(
+        &self,
+    ) -> Result<crate::domain::stats::ConsumptionStats, RepositoryError>;
+    async fn brewing_summary(
+        &self,
+    ) -> Result<crate::domain::stats::BrewingSummaryStats, RepositoryError>;
+    async fn get_cached(
+        &self,
+    ) -> Result<Option<crate::domain::stats::CachedStats>, RepositoryError>;
+    async fn store_cached(
+        &self,
+        stats: &crate::domain::stats::CachedStats,
+    ) -> Result<(), RepositoryError>;
 }

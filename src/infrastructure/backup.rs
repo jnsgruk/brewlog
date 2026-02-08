@@ -138,6 +138,7 @@ impl BackupService {
             "gear",
             "cafes",
             "roasters",
+            "stats_cache",
         ];
 
         for table in tables {

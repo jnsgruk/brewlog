@@ -10,6 +10,7 @@ mod macros;
 pub(crate) mod roasters;
 pub(crate) mod roasts;
 pub(crate) mod scan;
+pub(crate) mod stats;
 pub(crate) mod tokens;
 pub(crate) mod webauthn;
 
@@ -91,6 +92,7 @@ pub(super) fn router() -> axum::Router<AppState> {
             post(backup::restore_backup).layer(DefaultBodyLimit::max(50 * 1024 * 1024)),
         )
         .route("/backup/reset", post(backup::reset_database))
+        .route("/stats/recompute", post(stats::recompute_stats))
 }
 
 pub(super) fn webauthn_router() -> axum::Router<AppState> {

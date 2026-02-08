@@ -226,6 +226,26 @@ Use `QueryBuilder` for dynamic queries. For UPDATE, use `push_update_field!` (se
 
 **`format_weight`** — displays grams up to 999g, switches to kg for 1000g+. Whole-gram values omit the decimal ("250g"), fractional values show one decimal ("15.5g"). Kilogram values always show one decimal ("1.5kg"). All weight values in the database are stored in grams.
 
+### Stats Cache
+
+Statistics are pre-computed and stored as a single JSON row in `stats_cache`. A background `tokio::spawn` task (`stats_recomputation_task` in `application/services/stats.rs`) recomputes all stats when signalled, with 2-second debouncing to collapse rapid mutations (e.g., bootstrap script).
+
+**`StatsInvalidator`** — lives on `AppState`, provides `invalidate()` which sends a non-blocking signal to the background task. Every entity create/update/delete handler must call `state.stats_invalidator.invalidate()` after a successful mutation. The `define_delete_handler!` macro does this automatically.
+
+**Stats page** (`application/routes/app/stats.rs`) — reads from cache via `stats_repo.get_cached()`, falling back to live computation on cache miss (first startup before background task completes).
+
+**Force recompute** — `POST /api/v1/stats/recompute` (authenticated) bypasses the debounce and recomputes synchronously. Available on the admin page.
+
+**Database reset** clears `stats_cache` along with all other coffee data (see `infrastructure/backup.rs`).
+
+**Adding new stats:**
+1. Add the field to the relevant domain struct (`RoastSummaryStats`, `ConsumptionStats`, `BrewingSummaryStats`, or `GeoStats`)
+2. Add the query in `SqlStatsRepository`
+3. The `CachedStats` struct inherits the change via serde
+4. The stats page template can reference the new field — it will be populated from the cache
+
+**Gotcha:** If a new entity type is added that affects stats, its create/update/delete handlers must call `state.stats_invalidator.invalidate()`.
+
 ### Error Handling & Logging
 
 **Error types**: `RepositoryError` (domain), `AppError` (HTTP with status code mapping), `anyhow::Result` (CLI).

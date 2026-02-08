@@ -65,6 +65,7 @@ pub(crate) async fn create_gear(
         .map_err(AppError::from)?;
 
     info!(gear_id = %gear.id, make = %gear.make, model = %gear.model, "gear created");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_gear_list_fragment(state, request, search, true)
@@ -121,6 +122,7 @@ pub(crate) async fn update_gear(
         .map_err(AppError::from)?;
 
     info!(%id, "gear updated");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_gear_list_fragment(state, request, search, true)

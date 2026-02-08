@@ -72,6 +72,7 @@ pub(crate) async fn create_roast(
         .map_err(AppError::from)?;
 
     info!(roast_id = %roast.id, name = %roast.name, "roast created");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_roast_list_fragment(state, request, search, true)
@@ -175,6 +176,7 @@ pub(crate) async fn update_roast(
         .map_err(AppError::from)?;
 
     info!(%id, "roast updated");
+    state.stats_invalidator.invalidate();
 
     let enriched = state
         .roast_repo

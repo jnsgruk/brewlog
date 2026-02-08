@@ -62,6 +62,7 @@ pub(crate) async fn create_cup(
         .map_err(AppError::from)?;
 
     info!(cup_id = %cup.id, "cup created");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_cup_list_fragment(state, request, search, true)

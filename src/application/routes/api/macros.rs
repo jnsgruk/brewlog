@@ -96,6 +96,7 @@ macro_rules! define_delete_handler {
                 .map_err(crate::application::errors::AppError::from)?;
 
             tracing::info!(%id, "entity deleted");
+            state.stats_invalidator.invalidate();
 
             if crate::application::routes::support::is_datastar_request(&headers) {
                 $render_fragment(state, request, search, true)

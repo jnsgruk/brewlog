@@ -252,6 +252,7 @@ pub(crate) async fn create_brew(
         .map_err(AppError::from)?;
 
     info!(brew_id = %enriched.brew.id, "brew created");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         // If the request came from a page that has #brew-list, return the updated fragment.

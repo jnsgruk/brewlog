@@ -2,11 +2,13 @@ mod bags;
 mod brews;
 mod cups;
 mod roasts;
+pub mod stats;
 
 pub use bags::BagService;
 pub use brews::BrewService;
 pub use cups::CupService;
 pub use roasts::RoastService;
+pub use stats::StatsInvalidator;
 
 use std::sync::Arc;
 

@@ -70,6 +70,7 @@ pub(crate) async fn create_bag(
         .map_err(AppError::from)?;
 
     info!(bag_id = %bag.id, "bag created");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_bag_list_fragment(state, request, search, true)
@@ -153,6 +154,7 @@ pub(crate) async fn update_bag(
     };
 
     info!(%id, closed = ?update.closed, "bag updated");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_bag_list_fragment(state, request, search, true)

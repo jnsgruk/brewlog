@@ -9,6 +9,8 @@ use tracing::info;
 use webauthn_rs::prelude::*;
 
 use crate::application::routes::app_router;
+use crate::application::services::StatsInvalidator;
+use crate::application::services::stats::stats_recomputation_task;
 use crate::application::state::{AppState, AppStateConfig};
 use crate::domain::registration_tokens::NewRegistrationToken;
 use crate::domain::repositories::{RegistrationTokenRepository, UserRepository};
@@ -39,6 +41,9 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
             .context("failed to build WebAuthn instance")?,
     );
 
+    let (stats_tx, stats_rx) = tokio::sync::mpsc::channel::<()>(32);
+    let stats_invalidator = StatsInvalidator::new(stats_tx);
+
     let state = AppState::from_database(
         &database,
         AppStateConfig {
@@ -48,8 +53,20 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
             openrouter_url: crate::infrastructure::ai::OPENROUTER_URL.to_string(),
             openrouter_api_key: config.openrouter_api_key,
             openrouter_model: config.openrouter_model,
+            stats_invalidator: stats_invalidator.clone(),
         },
     );
+
+    // Spawn background stats recomputation task
+    let stats_repo = Arc::clone(&state.stats_repo);
+    tokio::spawn(stats_recomputation_task(
+        stats_rx,
+        stats_repo,
+        std::time::Duration::from_secs(2),
+    ));
+
+    // Seed the stats cache on startup
+    stats_invalidator.invalidate();
 
     // Clean up expired sessions on startup
     if let Err(err) = state.session_repo.delete_expired().await {

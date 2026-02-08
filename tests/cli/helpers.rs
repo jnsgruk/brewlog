@@ -85,6 +85,7 @@ fn ensure_server_started() -> Result<(String, String), String> {
                     .await
                     .expect("Failed to connect to test database");
 
+                let (stats_tx, _stats_rx) = tokio::sync::mpsc::channel(1);
                 let state = AppState::from_database(
                     &database,
                     AppStateConfig {
@@ -95,6 +96,9 @@ fn ensure_server_started() -> Result<(String, String), String> {
                         openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
                         openrouter_api_key: String::new(),
                         openrouter_model: "openrouter/free".to_string(),
+                        stats_invalidator: brewlog::application::services::StatsInvalidator::new(
+                            stats_tx,
+                        ),
                     },
                 );
 

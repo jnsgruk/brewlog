@@ -4,6 +4,7 @@ use webauthn_rs::prelude::*;
 
 use crate::application::services::{
     BagService, BrewService, CafeService, CupService, GearService, RoastService, RoasterService,
+    StatsInvalidator,
 };
 use crate::domain::repositories::{
     AiUsageRepository, BagRepository, BrewRepository, CafeRepository, CupRepository,
@@ -40,6 +41,7 @@ pub struct AppStateConfig {
     pub openrouter_url: String,
     pub openrouter_api_key: String,
     pub openrouter_model: String,
+    pub stats_invalidator: StatsInvalidator,
 }
 
 #[derive(Clone)]
@@ -75,6 +77,7 @@ pub struct AppState {
     pub gear_service: GearService,
     pub cafe_service: CafeService,
     pub cup_service: CupService,
+    pub stats_invalidator: StatsInvalidator,
 }
 
 impl AppState {
@@ -161,6 +164,7 @@ impl AppState {
             gear_service,
             cafe_service,
             cup_service,
+            stats_invalidator: config.stats_invalidator,
         }
     }
 }

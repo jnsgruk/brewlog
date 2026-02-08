@@ -72,6 +72,7 @@ pub(crate) async fn create_cafe(
         .map_err(AppError::from)?;
 
     info!(cafe_id = %cafe.id, name = %cafe.name, "cafe created");
+    state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
         render_cafe_list_fragment(state, request, search, true)
@@ -113,6 +114,7 @@ pub(crate) async fn update_cafe(
         .await
         .map_err(AppError::from)?;
     info!(%id, "cafe updated");
+    state.stats_invalidator.invalidate();
     Ok(Json(cafe))
 }
 
