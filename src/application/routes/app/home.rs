@@ -9,13 +9,15 @@ use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::brews::{BrewFilter, BrewSortKey};
 use crate::domain::cafes::CafeSortKey;
 use crate::domain::cups::CupFilter;
-use crate::domain::gear::GearFilter;
 use crate::domain::listing::{ListRequest, PageSize, SortDirection, SortKey};
 use crate::domain::roasters::RoasterSortKey;
 use crate::domain::roasts::RoastSortKey;
 use crate::domain::timeline::TimelineSortKey;
+use rand::seq::SliceRandom;
+
+use crate::domain::stats::CachedStats;
 use crate::presentation::web::templates::HomeTemplate;
-use crate::presentation::web::views::{BagView, BrewView, StatsView, TimelineEventView};
+use crate::presentation::web::views::{BagView, BrewView, StatCard, StatsView, TimelineEventView};
 
 #[allow(clippy::similar_names)]
 #[tracing::instrument(skip(state, cookies))]
@@ -28,6 +30,15 @@ pub(crate) async fn home_page(
     let (content, stats) =
         tokio::try_join!(load_home_content(&state), load_stats(&state),).map_err(map_app_error)?;
 
+    let stat_cards = state
+        .stats_repo
+        .get_cached()
+        .await
+        .ok()
+        .flatten()
+        .map(build_stat_cards)
+        .unwrap_or_default();
+
     let template = HomeTemplate {
         nav_active: "home",
         is_authenticated,
@@ -36,6 +47,7 @@ pub(crate) async fn home_page(
         open_bags: content.open_bags,
         recent_events: content.recent_events,
         stats,
+        stat_cards,
     };
 
     render_html(template).map(IntoResponse::into_response)
@@ -124,11 +136,10 @@ async fn load_stats(state: &AppState) -> Result<StatsView, AppError> {
     let req_roasts: ListRequest<RoastSortKey> = count_request();
     let req_bags: ListRequest<BagSortKey> = count_request();
     let req_brews: ListRequest<BrewSortKey> = count_request();
-    let req_gear: ListRequest<crate::domain::gear::GearSortKey> = count_request();
     let req_cafes: ListRequest<CafeSortKey> = count_request();
     let req_cups: ListRequest<crate::domain::cups::CupSortKey> = count_request();
 
-    let (roasters, roasts, bags, brews, gear, cafes, cups) = tokio::try_join!(
+    let (roasters, roasts, bags, brews, cafes, cups) = tokio::try_join!(
         async {
             state
                 .roaster_repo
@@ -159,13 +170,6 @@ async fn load_stats(state: &AppState) -> Result<StatsView, AppError> {
         },
         async {
             state
-                .gear_repo
-                .list(GearFilter::all(), &req_gear, None)
-                .await
-                .map_err(AppError::from)
-        },
-        async {
-            state
                 .cafe_repo
                 .list(&req_cafes, None)
                 .await
@@ -187,6 +191,48 @@ async fn load_stats(state: &AppState) -> Result<StatsView, AppError> {
         cups: cups.total,
         cafes: cafes.total,
         bags: bags.total,
-        gear: gear.total,
     })
+}
+
+fn build_stat_cards(cs: CachedStats) -> Vec<StatCard> {
+    let mut cards = vec![
+        StatCard {
+            icon: "coffee_bean",
+            value: crate::domain::formatting::format_weight(cs.consumption.last_30_days_grams),
+            label: "Coffee (30d)",
+        },
+        StatCard {
+            icon: "coffee_bean",
+            value: crate::domain::formatting::format_weight(cs.consumption.all_time_grams),
+            label: "All Time",
+        },
+        StatCard {
+            icon: "beaker",
+            value: cs.consumption.brews_last_30_days.to_string(),
+            label: "Brews (30d)",
+        },
+        StatCard {
+            icon: "map",
+            value: cs.roast_summary.unique_origins.to_string(),
+            label: "Origins",
+        },
+        StatCard {
+            icon: "location",
+            value: cs
+                .roast_summary
+                .top_origin
+                .unwrap_or_else(|| "\u{2014}".into()),
+            label: "Top Origin",
+        },
+        StatCard {
+            icon: "fire",
+            value: cs
+                .roast_summary
+                .top_roaster
+                .unwrap_or_else(|| "\u{2014}".into()),
+            label: "Top Roaster",
+        },
+    ];
+    cards.shuffle(&mut rand::thread_rng());
+    cards
 }

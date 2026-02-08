@@ -27,7 +27,12 @@ pub struct StatsView {
     pub cups: u64,
     pub cafes: u64,
     pub bags: u64,
-    pub gear: u64,
+}
+
+pub struct StatCard {
+    pub icon: &'static str,
+    pub value: String,
+    pub label: &'static str,
 }
 
 use chrono::{DateTime, Utc};
