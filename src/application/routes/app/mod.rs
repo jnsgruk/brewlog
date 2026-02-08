@@ -44,19 +44,22 @@ pub(super) fn router() -> axum::Router<AppState> {
             "/roasters/{roaster_slug}/roasts/{roast_slug}",
             get(roasts::roast_detail_page),
         )
-        .route("/styles.css", get(styles))
-        .route("/webauthn.js", get(webauthn_js))
-        .route("/components/photo-capture.js", get(photo_capture_js))
+        .route("/static/css/styles.css", get(styles))
+        .route("/static/js/webauthn.js", get(webauthn_js))
         .route(
-            "/components/searchable-select.js",
+            "/static/js/components/photo-capture.js",
+            get(photo_capture_js),
+        )
+        .route(
+            "/static/js/components/searchable-select.js",
             get(searchable_select_js),
         )
-        .route("/components/chip-scroll.js", get(chip_scroll_js))
-        .route("/components/world-map.js", get(world_map_js))
-        .route("/components/donut-chart.js", get(donut_chart_js))
-        .route("/favicon-light.svg", get(favicon_light))
-        .route("/favicon-dark.svg", get(favicon_dark))
-        .route("/og-image.png", get(og_image))
+        .route("/static/js/components/chip-scroll.js", get(chip_scroll_js))
+        .route("/static/js/components/world-map.js", get(world_map_js))
+        .route("/static/js/components/donut-chart.js", get(donut_chart_js))
+        .route("/static/favicon-light.svg", get(favicon_light))
+        .route("/static/favicon-dark.svg", get(favicon_dark))
+        .route("/static/og-image.png", get(og_image))
         .route("/health", get(health))
 }
 

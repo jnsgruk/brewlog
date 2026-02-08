@@ -5,7 +5,7 @@
 {% block description %}{{ cup.roast_name }} by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.{% endblock %}
 {% block og_title %}{{ cup.roast_name }} at {{ cup.cafe_name }} — Brewlog{% endblock %}
 {% block og_description %}{{ cup.roast_name }} by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.{% endblock %}
-{% block head %}<meta property="og:image" content="{{ base_url }}/og-image.png" />{% endblock %}
+{% block head %}<meta property="og:image" content="{{ base_url }}/static/og-image.png" />{% endblock %}
 {% block content %}
 <header class="flex items-start justify-between gap-4">
   <div class="flex flex-col gap-2">

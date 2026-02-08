@@ -13,8 +13,8 @@
     <meta property="og:description" content="{% block og_description %}Self-hosted coffee logging — track roasters, roasts, bags, brews, and gear.{% endblock %}" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>{% block title %}Brewlog{% endblock %}</title>
-    <link rel="stylesheet" href="/styles.css" />
-    <link rel="icon" id="favicon" type="image/svg+xml" href="/favicon-light.svg" />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="icon" id="favicon" type="image/svg+xml" href="/static/favicon-light.svg" />
     <script>
       ;(() => {
         const stored = localStorage.getItem("theme")
@@ -22,7 +22,7 @@
           stored === "dark" || (!stored && matchMedia("(prefers-color-scheme: dark)").matches)
         if (isDark) {
           document.documentElement.setAttribute("data-theme", "dark")
-          document.getElementById("favicon").href = "/favicon-dark.svg"
+          document.getElementById("favicon").href = "/static/favicon-dark.svg"
         }
       })()
     </script>
@@ -30,11 +30,11 @@
       type="module"
       src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"
     ></script>
-    <script defer src="/components/photo-capture.js"></script>
-    <script defer src="/components/searchable-select.js"></script>
-    <script defer src="/components/chip-scroll.js"></script>
-    <script defer src="/components/world-map.js"></script>
-    <script defer src="/components/donut-chart.js"></script>
+    <script defer src="/static/js/components/photo-capture.js"></script>
+    <script defer src="/static/js/components/searchable-select.js"></script>
+    <script defer src="/static/js/components/chip-scroll.js"></script>
+    <script defer src="/static/js/components/world-map.js"></script>
+    <script defer src="/static/js/components/donut-chart.js"></script>
     {% block head %}{% endblock %}
     <script>
       const toggleRow = (event) => {
