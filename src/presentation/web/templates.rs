@@ -1,9 +1,9 @@
 use askama::Template;
 
 use super::views::{
-    BagOptionView, BagView, BrewDefaultsView, BrewView, CafeOptionView, CafeView, CupView,
-    GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, QuickNoteView,
-    RoastOptionView, RoastView, RoasterOptionView, RoasterView, StatCard, StatsView,
+    BagOptionView, BagView, BrewDefaultsView, BrewDetailView, BrewView, CafeOptionView, CafeView,
+    CupDetailView, CupView, GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated,
+    QuickNoteView, RoastOptionView, RoastView, RoasterOptionView, RoasterView, StatCard, StatsView,
     TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
@@ -199,12 +199,31 @@ pub struct StatsPageTemplate {
     pub consumption_30d_weight: String,
     pub consumption_all_time_weight: String,
     pub cache_age: String,
+    pub has_data: bool,
 }
 
 #[derive(Template)]
 #[template(path = "partials/stats_map.html")]
 pub struct StatsMapFragment<'a> {
     pub geo_stats: &'a crate::domain::country_stats::GeoStats,
+}
+
+#[derive(Template)]
+#[template(path = "pages/brew.html")]
+pub struct BrewDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub brew: BrewDetailView,
+}
+
+#[derive(Template)]
+#[template(path = "pages/cup.html")]
+pub struct CupDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub cup: CupDetailView,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

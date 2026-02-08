@@ -9,9 +9,9 @@ pub mod tasting_notes;
 mod timeline;
 
 pub use bags::{BagOptionView, BagView};
-pub use brews::{BrewDefaultsView, BrewView, QuickNoteView};
+pub use brews::{BrewDefaultsView, BrewDetailView, BrewView, QuickNoteView};
 pub use cafes::{CafeOptionView, CafeView, NearbyCafeView};
-pub use cups::CupView;
+pub use cups::{CupDetailView, CupView};
 pub use gear::{GearOptionView, GearView};
 pub use roasters::{RoasterOptionView, RoasterView};
 pub use roasts::{RoastOptionView, RoastView};
@@ -27,6 +27,17 @@ pub struct StatsView {
     pub cups: u64,
     pub cafes: u64,
     pub bags: u64,
+}
+
+impl StatsView {
+    pub fn is_empty(&self) -> bool {
+        self.brews == 0
+            && self.roasts == 0
+            && self.roasters == 0
+            && self.cups == 0
+            && self.cafes == 0
+            && self.bags == 0
+    }
 }
 
 pub struct StatCard {
@@ -348,4 +359,38 @@ fn page_size_from_text(value: &str) -> PageSize {
     } else {
         PageSize::limited(DEFAULT_PAGE_SIZE)
     }
+}
+
+/// Build `data-countries` and `data-max` values for the world-map component.
+///
+/// Accepts `(country_name, weight)` pairs where higher weights render darker.
+/// Resolves country names to ISO codes, deduplicates by keeping the highest weight
+/// per ISO code, and returns the attribute string and max value.
+pub(crate) fn build_map_data(entries: &[(&str, u32)]) -> (String, u32) {
+    use std::collections::HashMap;
+
+    use crate::domain::countries::country_to_iso;
+
+    let mut iso_weights: HashMap<&str, u32> = HashMap::new();
+
+    for &(country_name, weight) in entries {
+        if country_name.is_empty() {
+            continue;
+        }
+        if let Some(iso) = country_to_iso(country_name) {
+            let entry = iso_weights.entry(iso).or_insert(0);
+            *entry = (*entry).max(weight);
+        }
+    }
+
+    let mut max = 0u32;
+    let parts: Vec<String> = iso_weights
+        .iter()
+        .map(|(iso, &w)| {
+            max = max.max(w);
+            format!("{iso}:{w}")
+        })
+        .collect();
+
+    (parts.join(","), max)
 }

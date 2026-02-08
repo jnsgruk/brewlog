@@ -1,9 +1,14 @@
 use std::fmt::Write;
 
 use crate::domain::brews::{BrewWithDetails, QuickNote, format_brew_time};
+use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::formatting::format_weight;
+use crate::domain::roasters::Roaster;
+use crate::domain::roasts::Roast;
 
+use super::build_map_data;
 use super::relative_date;
+use super::tasting_notes::{self, TastingNoteView};
 
 #[derive(Clone)]
 pub struct QuickNoteView {
@@ -188,6 +193,128 @@ impl Default for BrewDefaultsView {
             water_temp: 91.0,
             brew_time: Some(120),
             quick_notes_raw: String::new(),
+        }
+    }
+}
+
+pub struct BrewDetailView {
+    // Coffee info
+    pub roast_name: String,
+    pub roaster_name: String,
+    pub origin: String,
+    pub origin_flag: String,
+    pub region: String,
+    pub producer: String,
+    pub process: String,
+    pub tasting_notes: Vec<TastingNoteView>,
+    // Roaster info
+    pub roaster_country: String,
+    pub roaster_country_flag: String,
+    pub roaster_city: Option<String>,
+    pub roaster_homepage: Option<String>,
+    // Recipe
+    pub coffee_weight: String,
+    pub water_volume: String,
+    pub water_temp: String,
+    pub grind_setting: String,
+    pub brew_time: Option<String>,
+    pub quick_notes_label: String,
+    // Gear
+    pub grinder_name: String,
+    pub brewer_name: String,
+    pub filter_paper_name: Option<String>,
+    // Map
+    pub map_countries: String,
+    pub map_max: u32,
+    // Dates
+    pub created_date: String,
+    pub created_time: String,
+}
+
+impl BrewDetailView {
+    pub fn from_parts(brew: BrewWithDetails, roast: &Roast, roaster: &Roaster) -> Self {
+        let em_dash = "\u{2014}".to_string();
+
+        let origin = roast.origin.clone().unwrap_or_default();
+        let origin_flag = country_to_iso(&origin)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
+
+        let roaster_country_flag = country_to_iso(&roaster.country)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
+
+        let mut map_entries: Vec<(&str, u32)> = Vec::new();
+        if let Some(ref o) = roast.origin
+            && !o.is_empty()
+        {
+            map_entries.push((o.as_str(), 2));
+        }
+        map_entries.push((roaster.country.as_str(), 1));
+        let (map_countries, map_max) = build_map_data(&map_entries);
+
+        let tasting_notes = roast
+            .tasting_notes
+            .iter()
+            .flat_map(|note| {
+                note.split([',', '\n'])
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect::<Vec<_>>()
+            })
+            .map(|n| tasting_notes::categorize(&n))
+            .collect();
+
+        let quick_notes_label = brew
+            .brew
+            .quick_notes
+            .iter()
+            .map(|n| n.label())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        Self {
+            roast_name: brew.roast_name,
+            roaster_name: brew.roaster_name,
+            origin: if origin.is_empty() {
+                em_dash.clone()
+            } else {
+                origin
+            },
+            origin_flag,
+            region: roast
+                .region
+                .clone()
+                .filter(|s| !s.is_empty())
+                .unwrap_or(em_dash.clone()),
+            producer: roast
+                .producer
+                .clone()
+                .filter(|s| !s.is_empty())
+                .unwrap_or(em_dash.clone()),
+            process: roast
+                .process
+                .clone()
+                .filter(|s| !s.is_empty())
+                .unwrap_or(em_dash),
+            tasting_notes,
+            roaster_country: roaster.country.clone(),
+            roaster_country_flag,
+            roaster_city: roaster.city.clone(),
+            roaster_homepage: roaster.homepage.clone(),
+            coffee_weight: format_weight(brew.brew.coffee_weight),
+            water_volume: format!("{}ml", brew.brew.water_volume),
+            water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
+            grind_setting: format!("{:.1}", brew.brew.grind_setting),
+            brew_time: brew.brew.brew_time.map(format_brew_time),
+            quick_notes_label,
+            grinder_name: brew.grinder_name,
+            brewer_name: brew.brewer_name,
+            filter_paper_name: brew.filter_paper_name,
+            map_countries,
+            map_max,
+            created_date: brew.brew.created_at.format("%Y-%m-%d").to_string(),
+            created_time: brew.brew.created_at.format("%H:%M").to_string(),
         }
     }
 }

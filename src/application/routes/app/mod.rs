@@ -1,7 +1,9 @@
 mod add;
 mod admin;
 pub(super) mod auth;
+mod brews;
 mod checkin;
+mod cups;
 mod data;
 mod home;
 mod stats;
@@ -27,6 +29,8 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/stats", get(stats::stats_page))
+        .route("/brews/{id}", get(brews::brew_detail_page))
+        .route("/cups/{id}", get(cups::cup_detail_page))
         .route("/styles.css", get(styles))
         .route("/webauthn.js", get(webauthn_js))
         .route("/components/photo-capture.js", get(photo_capture_js))
@@ -137,8 +141,5 @@ async fn favicon_dark() -> impl IntoResponse {
 }
 
 async fn health() -> impl IntoResponse {
-    (
-        [("content-type", "application/json")],
-        r#"{"status":"ok"}"#,
-    )
+    ([("content-type", "application/json")], r#"{"status":"ok"}"#)
 }

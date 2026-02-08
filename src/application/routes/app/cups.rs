@@ -1,0 +1,60 @@
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use tower_cookies::Cookies;
+
+use crate::application::errors::map_app_error;
+use crate::application::routes::render_html;
+use crate::application::state::AppState;
+use crate::domain::ids::CupId;
+use crate::presentation::web::templates::CupDetailTemplate;
+use crate::presentation::web::views::CupDetailView;
+
+#[tracing::instrument(skip(state, cookies))]
+pub(crate) async fn cup_detail_page(
+    State(state): State<AppState>,
+    cookies: Cookies,
+    Path(id): Path<CupId>,
+) -> Result<Response, StatusCode> {
+    let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
+
+    let cup_details = state
+        .cup_repo
+        .get_with_details(id)
+        .await
+        .map_err(|e| map_app_error(e.into()))?;
+
+    let (roast, cafe) = tokio::try_join!(
+        async {
+            state
+                .roast_repo
+                .get(cup_details.cup.roast_id)
+                .await
+                .map_err(|e| map_app_error(e.into()))
+        },
+        async {
+            state
+                .cafe_repo
+                .get(cup_details.cup.cafe_id)
+                .await
+                .map_err(|e| map_app_error(e.into()))
+        },
+    )?;
+
+    let roaster = state
+        .roaster_repo
+        .get(roast.roaster_id)
+        .await
+        .map_err(|e| map_app_error(e.into()))?;
+
+    let view = CupDetailView::from_parts(cup_details, &roast, &roaster, &cafe);
+
+    let template = CupDetailTemplate {
+        nav_active: "",
+        is_authenticated,
+        version_info: &crate::VERSION_INFO,
+        cup: view,
+    };
+
+    render_html(template).map(IntoResponse::into_response)
+}
