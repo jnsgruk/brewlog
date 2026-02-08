@@ -33,11 +33,11 @@
         {% if passkeys.len() > 1 %}
         <button
           type="button"
-          class="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-text-muted transition hover:text-red-600"
+          class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
           onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
-          aria-label="Delete passkey"
         >
           {{ icons::delete("h-4 w-4") }}
+          Delete
         </button>
         {% endif %}
       </div>
@@ -74,7 +74,7 @@
         <button
           type="button"
           data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
-          class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
+          class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
         >
           {{ icons::x_mark("h-4 w-4") }} Cancel
         </button>
@@ -90,10 +90,10 @@
         type="button"
         data-show="!$_showPasskeyForm"
         data-on:click="$_showPasskeyForm = true; setTimeout(() => document.getElementById('passkey-name').focus(), 50)"
-        class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
       >
         {{ icons::key("h-4 w-4") }}
-        Add Passkey
+        New Passkey
       </button>
     </div>
   </div>
@@ -132,11 +132,11 @@
         </div>
         <button
           type="button"
-          class="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-text-muted transition hover:text-red-600"
+          class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
           onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
-          aria-label="Revoke token"
         >
           {{ icons::delete("h-4 w-4") }}
+          Revoke
         </button>
       </div>
       {% endfor %}
@@ -176,7 +176,7 @@
           <button
             type="button"
             data-on:click="$_showTokenForm = false; $_tokenError = ''"
-            class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-muted transition hover:text-text hover:bg-surface-alt"
+            class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
           >
             {{ icons::x_mark("h-4 w-4") }} Cancel
           </button>
@@ -214,10 +214,10 @@
         type="button"
         data-show="!$_showTokenForm && !$_tokenCreated"
         data-on:click="$_showTokenForm = true; setTimeout(() => document.getElementById('token-name').focus(), 50)"
-        class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
       >
         {{ icons::terminal("h-4 w-4") }}
-        Create Token
+        New Token
       </button>
     </div>
   </div>
@@ -235,26 +235,26 @@
       <a
         href="/api/v1/backup"
         download
-        class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
       >
         {{ icons::arrow_down_tray("h-4 w-4") }}
-        Download Backup
+        New Backup
       </a>
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
         onclick="document.getElementById('restore-file-input').click()"
       >
         {{ icons::arrow_up_tray("h-4 w-4") }}
-        Restore from Backup
+        Restore
       </button>
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:text-red-700 hover:bg-surface-alt"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
         onclick="resetDatabase()"
       >
         {{ icons::delete("h-4 w-4") }}
-        Reset Database
+        Reset
       </button>
     </div>
 
@@ -299,7 +299,7 @@
     </div>
     <div>
       <form method="post" action="/logout">
-        <button type="submit" class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt">
+        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44">
           {{ icons::logout("h-4 w-4") }}
           Sign Out
         </button>
