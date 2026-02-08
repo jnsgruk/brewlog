@@ -1,6 +1,8 @@
+use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
 
 use super::tasting_notes::{self, TastingNoteView};
+use super::{build_coffee_info, build_map_data, build_roaster_info};
 
 pub struct RoastView {
     pub id: String,
@@ -86,6 +88,68 @@ impl RoastView {
             created_time,
             created_at_sort_key,
             tasting_notes,
+        }
+    }
+}
+
+pub struct RoastDetailView {
+    pub id: String,
+    pub name: String,
+    pub roaster_name: String,
+    pub roaster_slug: String,
+    // Coffee info
+    pub origin: String,
+    pub origin_flag: String,
+    pub region: String,
+    pub producer: String,
+    pub process: String,
+    pub tasting_notes: Vec<TastingNoteView>,
+    // Roaster info
+    pub roaster_country: String,
+    pub roaster_country_flag: String,
+    pub roaster_city: Option<String>,
+    pub roaster_homepage: Option<String>,
+    // Map
+    pub map_countries: String,
+    pub map_max: u32,
+    // Dates
+    pub created_date: String,
+    pub created_time: String,
+}
+
+impl RoastDetailView {
+    pub fn from_parts(roast: Roast, roaster: &Roaster) -> Self {
+        let coffee = build_coffee_info(&roast);
+        let roaster_info = build_roaster_info(roaster);
+
+        let mut map_entries: Vec<(&str, u32)> = Vec::new();
+        if let Some(ref o) = roast.origin
+            && !o.is_empty()
+        {
+            map_entries.push((o.as_str(), 2));
+        }
+        map_entries.push((roaster.country.as_str(), 1));
+        let (map_countries, map_max) = build_map_data(&map_entries);
+
+        Self {
+            id: roast.id.to_string(),
+            name: roast.name,
+            roaster_name: roaster.name.clone(),
+            roaster_slug: roaster.slug.clone(),
+            origin: coffee.origin,
+            origin_flag: coffee.origin_flag,
+            region: coffee.region,
+            producer: coffee.producer,
+            process: coffee.process,
+            tasting_notes: coffee.tasting_notes,
+            roaster_country: roaster_info.country,
+            roaster_country_flag: roaster_info.country_flag,
+            roaster_city: roaster_info.city,
+            roaster_homepage: roaster_info.homepage,
+            map_countries,
+            map_max,
+            created_date: roast.created_at.format("%Y-%m-%d").to_string(),
+            created_time: roast.created_at.format("%H:%M").to_string(),
         }
     }
 }

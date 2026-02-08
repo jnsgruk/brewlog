@@ -104,7 +104,9 @@ define_delete_handler!(
     CupId,
     CupSortKey,
     cup_repo,
-    render_cup_list_fragment
+    render_cup_list_fragment,
+    "type=cups",
+    "/data?type=cups"
 );
 
 define_list_fragment_renderer!(

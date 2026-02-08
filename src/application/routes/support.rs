@@ -131,6 +131,21 @@ where
     (view_page, navigator)
 }
 
+/// Return a Datastar response that redirects the browser to `url`.
+///
+/// Works by appending a `<script>` tag to `<body>` that sets `window.location.href`.
+pub fn render_redirect_script(url: &str) -> Result<Response, AppError> {
+    let script = format!("<script>window.location.href='{url}'</script>");
+    let mut response = Html(script).into_response();
+    response
+        .headers_mut()
+        .insert("datastar-selector", HeaderValue::from_static("body"));
+    response
+        .headers_mut()
+        .insert("datastar-mode", HeaderValue::from_static("append"));
+    Ok(response)
+}
+
 pub fn render_fragment<T: Template>(
     template: T,
     selector: &'static str,

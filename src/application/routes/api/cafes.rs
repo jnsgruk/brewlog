@@ -141,7 +141,9 @@ define_delete_handler!(
     CafeId,
     CafeSortKey,
     cafe_repo,
-    render_cafe_list_fragment
+    render_cafe_list_fragment,
+    "type=cafes",
+    "/data?type=cafes"
 );
 
 define_list_fragment_renderer!(

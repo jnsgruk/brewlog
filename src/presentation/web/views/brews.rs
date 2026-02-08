@@ -196,6 +196,7 @@ impl Default for BrewDefaultsView {
 }
 
 pub struct BrewDetailView {
+    pub id: String,
     // Coffee info
     pub roast_name: String,
     pub roaster_name: String,
@@ -252,6 +253,7 @@ impl BrewDetailView {
             .join(", ");
 
         Self {
+            id: brew.brew.id.to_string(),
             roast_name: brew.roast_name,
             roaster_name: brew.roaster_name,
             origin: coffee.origin,

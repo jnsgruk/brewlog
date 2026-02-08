@@ -59,12 +59,19 @@ macro_rules! define_enriched_get_handler {
 
 /// Generates a DELETE handler with Datastar fragment re-rendering support.
 ///
+/// When a Datastar request arrives from the data/list page (detected via referer
+/// containing `$referer_match`), the handler re-renders the list fragment. When the
+/// request comes from elsewhere (e.g. a detail page), it returns a redirect script
+/// pointing at `$redirect_url`. Non-Datastar requests get a 204 No Content.
+///
 /// # Arguments
 /// * `$fn_name` - Name of the generated handler function
 /// * `$id_type` - Type of the ID path parameter (e.g., `RoasterId`)
 /// * `$sort_key` - Sort key type for list requests (e.g., `RoasterSortKey`)
 /// * `$repo_field` - Name of the repository field on `AppState` (e.g., `roaster_repo`)
 /// * `$render_fragment` - Path to the fragment render function
+/// * `$referer_match` - String to look for in `Referer` header (e.g., `"type=roasters"`)
+/// * `$redirect_url` - URL for the redirect script (e.g., `"/data?type=roasters"`)
 ///
 /// # Example
 /// ```ignore
@@ -73,11 +80,13 @@ macro_rules! define_enriched_get_handler {
 ///     RoasterId,
 ///     RoasterSortKey,
 ///     roaster_repo,
-///     render_roaster_list_fragment
+///     render_roaster_list_fragment,
+///     "type=roasters",
+///     "/data?type=roasters"
 /// );
 /// ```
 macro_rules! define_delete_handler {
-    ($fn_name:ident, $id_type:ty, $sort_key:ty, $repo_field:ident, $render_fragment:path) => {
+    ($fn_name:ident, $id_type:ty, $sort_key:ty, $repo_field:ident, $render_fragment:path, $referer_match:literal, $redirect_url:literal) => {
         #[tracing::instrument(skip(state, _auth_user, headers, query))]
         pub(crate) async fn $fn_name(
             axum::extract::State(state): axum::extract::State<crate::application::state::AppState>,
@@ -99,9 +108,19 @@ macro_rules! define_delete_handler {
             state.stats_invalidator.invalidate();
 
             if crate::application::routes::support::is_datastar_request(&headers) {
-                $render_fragment(state, request, search, true)
-                    .await
-                    .map_err(crate::application::errors::ApiError::from)
+                let from_data_page = headers
+                    .get("referer")
+                    .and_then(|v| v.to_str().ok())
+                    .is_some_and(|r| r.contains($referer_match));
+
+                if from_data_page {
+                    $render_fragment(state, request, search, true)
+                        .await
+                        .map_err(crate::application::errors::ApiError::from)
+                } else {
+                    crate::application::routes::support::render_redirect_script($redirect_url)
+                        .map_err(crate::application::errors::ApiError::from)
+                }
             } else {
                 Ok(axum::http::StatusCode::NO_CONTENT.into_response())
             }

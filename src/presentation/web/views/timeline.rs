@@ -72,14 +72,14 @@ impl TimelineEventView {
         let TimelineEvent {
             id,
             entity_type,
-            entity_id: _,
+            entity_id,
             action,
             occurred_at,
             title,
             details,
             tasting_notes,
-            slug: _,
-            roaster_slug: _,
+            slug,
+            roaster_slug,
             brew_data,
         } = event;
 
@@ -96,11 +96,21 @@ impl TimelineEventView {
         };
 
         let link = match entity_type.as_str() {
-            "roaster" => "/data?type=roasters".to_string(),
-            "roast" | "bag" | "brew" => format!("/data?type={entity_type}s"),
-            "cafe" => "/data?type=cafes".to_string(),
-            "cup" => "/data?type=cups".to_string(),
-            "gear" => "/data?type=gear".to_string(),
+            "brew" => format!("/brews/{entity_id}"),
+            "cup" => format!("/cups/{entity_id}"),
+            "bag" => format!("/bags/{entity_id}"),
+            "gear" => format!("/gear/{entity_id}"),
+            "roaster" => slug.as_deref().map_or_else(
+                || "/data?type=roasters".to_string(),
+                |s| format!("/roasters/{s}"),
+            ),
+            "cafe" => slug
+                .as_deref()
+                .map_or_else(|| "/data?type=cafes".to_string(), |s| format!("/cafes/{s}")),
+            "roast" => match (roaster_slug.as_deref(), slug.as_deref()) {
+                (Some(rs), Some(s)) => format!("/roasters/{rs}/roasts/{s}"),
+                _ => "/data?type=roasts".to_string(),
+            },
             _ => String::from("#"),
         };
 

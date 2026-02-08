@@ -14,10 +14,7 @@
       {{ bag.roaster_name }} · {{ bag.amount }} · Opened {{ bag.created_date }}
     </p>
   </div>
-  {{ detail::share_button() }}
 </header>
-
-{{ detail::share_script() }}
 
 {# ── Coffee + map ── #}
 <div class="grid gap-6 md:grid-cols-2">
@@ -76,47 +73,18 @@
 <div class="grid gap-6 md:grid-cols-2">
   <div class="rounded-lg border bg-surface p-5 md:col-span-2 flex items-center gap-2">
     {% if !bag.closed %}
-    <button type="button" onclick="closeBag('{{ bag.id }}')"
-      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt">
+    <button type="button"
+      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+      data-on:click="confirm('Close this bag? This will mark it as finished.') && @put('/api/v1/bags/{{ bag.id }}?closed=true&remaining=0')">
       {{ icons::x_mark("h-4 w-4") }} Close Bag
     </button>
     {% endif %}
-    <button type="button" onclick="deleteBag('{{ bag.id }}')"
-      class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+    <button type="button"
+      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+      data-on:click="confirm('Delete this bag? This cannot be undone.') && @delete('/api/v1/bags/{{ bag.id }}')">
       {{ icons::delete("h-4 w-4") }} Delete
     </button>
   </div>
 </div>
-<script>
-const closeBag = async (bagId) => {
-  if (!confirm('Close this bag? This will mark it as finished.')) return;
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const resp = await fetch(`/api/v1/bags/${bagId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ closed: true, remaining: 0.0, finished_at: today }),
-    });
-    if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-    window.location.reload();
-  } catch (e) {
-    alert(`Failed to close bag: ${e.message}`);
-  }
-};
-const deleteBag = async (bagId) => {
-  if (!confirm('Delete this bag? This cannot be undone.')) return;
-  try {
-    const resp = await fetch(`/api/v1/bags/${bagId}`, {
-      method: 'DELETE',
-      credentials: 'same-origin',
-    });
-    if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-    window.location.href = '/';
-  } catch (e) {
-    alert(`Failed to delete bag: ${e.message}`);
-  }
-};
-</script>
 {% endif %}
 {% endblock %}

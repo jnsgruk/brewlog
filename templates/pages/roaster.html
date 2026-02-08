@@ -13,10 +13,7 @@
       {{ roaster.country_flag }} {{ roaster.country }}{% if let Some(c) = roaster.city %} · {{ c }}{% endif %} · Added {{ roaster.created_date }}
     </p>
   </div>
-  {{ detail::share_button() }}
 </header>
-
-{{ detail::share_script() }}
 
 <div class="grid gap-6 md:grid-cols-2">
   <div class="rounded-lg border bg-surface p-5">
@@ -50,25 +47,11 @@
 
 {% if is_authenticated %}
 <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-  <button type="button" onclick="deleteRoaster('{{ roaster.id }}')"
-    class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+  <button type="button"
+    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+    data-on:click="confirm('Delete this roaster? This cannot be undone.') && @delete('/api/v1/roasters/{{ roaster.id }}')">
     {{ icons::delete("h-4 w-4") }} Delete
   </button>
 </div>
-<script>
-const deleteRoaster = async (id) => {
-  if (!confirm('Delete this roaster? This cannot be undone.')) return;
-  try {
-    const resp = await fetch(`/api/v1/roasters/${id}`, {
-      method: 'DELETE',
-      credentials: 'same-origin',
-    });
-    if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-    window.location.href = '/data?type=roasters';
-  } catch (e) {
-    alert(`Failed to delete roaster: ${e.message}`);
-  }
-};
-</script>
 {% endif %}
 {% endblock %}

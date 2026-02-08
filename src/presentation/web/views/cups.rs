@@ -39,6 +39,7 @@ impl CupView {
 }
 
 pub struct CupDetailView {
+    pub id: String,
     // Coffee info
     pub roast_name: String,
     pub roaster_name: String,
@@ -87,6 +88,7 @@ impl CupDetailView {
         let (map_countries, map_max) = build_map_data(&map_entries);
 
         Self {
+            id: cup.cup.id.to_string(),
             roast_name: cup.roast_name,
             roaster_name: cup.roaster_name,
             origin: coffee.origin,

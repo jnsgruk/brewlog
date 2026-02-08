@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ gear.make }} {{ gear.model }}{% endblock %}
 {% block og_title %}{{ gear.make }} {{ gear.model }} — Brewlog{% endblock %}
@@ -13,10 +12,7 @@
       {{ gear.category_label }} · Added {{ gear.created_date }}
     </p>
   </div>
-  {{ detail::share_button() }}
 </header>
-
-{{ detail::share_script() }}
 
 <div class="rounded-lg border bg-surface p-5">
   <h2 class="text-lg font-semibold text-text mb-4">Details</h2>
@@ -38,25 +34,11 @@
 
 {% if is_authenticated %}
 <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-  <button type="button" onclick="deleteGear('{{ gear.id }}')"
-    class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+  <button type="button"
+    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+    data-on:click="confirm('Delete this gear? This cannot be undone.') && @delete('/api/v1/gear/{{ gear.id }}')">
     {{ icons::delete("h-4 w-4") }} Delete
   </button>
 </div>
-<script>
-const deleteGear = async (id) => {
-  if (!confirm('Delete this gear? This cannot be undone.')) return;
-  try {
-    const resp = await fetch(`/api/v1/gear/${id}`, {
-      method: 'DELETE',
-      credentials: 'same-origin',
-    });
-    if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-    window.location.href = '/data?type=gear';
-  } catch (e) {
-    alert(`Failed to delete gear: ${e.message}`);
-  }
-};
-</script>
 {% endif %}
 {% endblock %}

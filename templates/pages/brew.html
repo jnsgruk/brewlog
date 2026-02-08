@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/detail_cards.html" as detail %}
+{% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ brew.roast_name }}{% endblock %}
 {% block description %}{{ brew.roast_name }} by {{ brew.roaster_name }} — {{ brew.coffee_weight }} coffee, {{ brew.water_volume }} water.{% endblock %}
 {% block og_title %}{{ brew.roast_name }} — Brewlog{% endblock %}
@@ -13,10 +14,7 @@
       {{ brew.roaster_name }} · Brewed {{ brew.created_date }} at {{ brew.created_time }}
     </p>
   </div>
-  {{ detail::share_button() }}
 </header>
-
-{{ detail::share_script() }}
 
 {# ── Coffee + map ── #}
 <div class="grid gap-6 md:grid-cols-2">
@@ -85,4 +83,14 @@
     </dl>
   </div>
 </div>
+
+{% if is_authenticated %}
+<div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
+  <button type="button"
+    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+    data-on:click="confirm('Delete this brew? This cannot be undone.') && @delete('/api/v1/brews/{{ brew.id }}')">
+    {{ icons::delete("h-4 w-4") }} Delete
+  </button>
+</div>
+{% endif %}
 {% endblock %}

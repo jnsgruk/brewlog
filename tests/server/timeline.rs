@@ -124,8 +124,8 @@ async fn creating_a_roaster_surfaces_on_the_timeline() {
         "Expected roaster name to appear in timeline HTML, got: {body}"
     );
     assert!(
-        body.contains("/data?type=roasters"),
-        "Expected roaster link in timeline HTML, got: {body}"
+        body.contains("/roasters/"),
+        "Expected roaster detail link in timeline HTML, got: {body}"
     );
 }
 
@@ -506,8 +506,8 @@ async fn creating_a_cafe_surfaces_on_the_timeline() {
         "Expected cafe name to appear in timeline HTML, got: {body}"
     );
     assert!(
-        body.contains("/data?type=cafes"),
-        "Expected cafe link in timeline HTML, got: {body}"
+        body.contains("/cafes/"),
+        "Expected cafe detail link in timeline HTML, got: {body}"
     );
 }
 

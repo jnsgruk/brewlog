@@ -4,8 +4,8 @@ use super::views::{
     BagDetailView, BagOptionView, BagView, BrewDefaultsView, BrewDetailView, BrewView,
     CafeDetailView, CafeOptionView, CafeView, CupDetailView, CupView, GearDetailView,
     GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, QuickNoteView,
-    RoastOptionView, RoastView, RoasterDetailView, RoasterOptionView, RoasterView, StatCard,
-    StatsView, TimelineEventView, TimelineMonthView,
+    RoastDetailView, RoastOptionView, RoastView, RoasterDetailView, RoasterOptionView, RoasterView,
+    StatCard, StatsView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -239,6 +239,16 @@ pub struct CupDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub cup: CupDetailView,
+}
+
+#[derive(Template)]
+#[template(path = "pages/roast.html")]
+pub struct RoastDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
+    pub roast: RoastDetailView,
 }
 
 #[derive(Template)]

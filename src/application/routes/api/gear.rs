@@ -156,7 +156,9 @@ define_delete_handler!(
     GearId,
     GearSortKey,
     gear_repo,
-    render_gear_list_fragment
+    render_gear_list_fragment,
+    "type=gear",
+    "/data?type=gear"
 );
 
 #[derive(Debug, Deserialize)]

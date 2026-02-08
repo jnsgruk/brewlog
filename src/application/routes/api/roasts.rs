@@ -74,14 +74,37 @@ pub(crate) async fn create_roast(
     info!(roast_id = %roast.id, name = %roast.name, "roast created");
     state.stats_invalidator.invalidate();
 
+    let roaster = state
+        .roaster_repo
+        .get(roast.roaster_id)
+        .await
+        .map_err(AppError::from)?;
+    let detail_url = format!("/roasters/{}/roasts/{}", roaster.slug, roast.slug);
+
     if is_datastar_request(&headers) {
-        render_roast_list_fragment(state, request, search, true)
-            .await
-            .map_err(ApiError::from)
+        let from_data_page = headers
+            .get("referer")
+            .and_then(|v| v.to_str().ok())
+            .is_some_and(|r| r.contains("type=roasts"));
+
+        if from_data_page {
+            render_roast_list_fragment(state, request, search, true)
+                .await
+                .map_err(ApiError::from)
+        } else {
+            use axum::http::header::HeaderValue;
+            let script = format!("<script>window.location.href='{detail_url}'</script>");
+            let mut response = axum::response::Html(script).into_response();
+            response
+                .headers_mut()
+                .insert("datastar-selector", HeaderValue::from_static("body"));
+            response
+                .headers_mut()
+                .insert("datastar-mode", HeaderValue::from_static("append"));
+            Ok(response)
+        }
     } else if matches!(source, PayloadSource::Form) {
-        let target =
-            ListNavigator::new(ROAST_PAGE_PATH, ROAST_FRAGMENT_PATH, request, search).page_href(1);
-        Ok(Redirect::to(&target).into_response())
+        Ok(Redirect::to(&detail_url).into_response())
     } else {
         let enriched = state
             .roast_repo
@@ -146,7 +169,9 @@ define_delete_handler!(
     RoastId,
     RoastSortKey,
     roast_repo,
-    render_roast_list_fragment
+    render_roast_list_fragment,
+    "type=roasts",
+    "/data?type=roasts"
 );
 
 #[tracing::instrument(skip(state, _auth_user))]

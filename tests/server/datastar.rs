@@ -203,6 +203,7 @@ async fn roasts_create_with_datastar_header_returns_fragment() {
         .post(app.api_url("/roasts"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("datastar-request", "true")
+        .header("referer", format!("{}/data?type=roasts", app.address))
         .json(&new_roast)
         .send()
         .await
@@ -314,6 +315,7 @@ async fn bags_update_with_datastar_header_returns_fragment() {
         .put(app.api_url(&format!("/bags/{}", bag.id)))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("datastar-request", "true")
+        .header("referer", format!("{}/data?type=bags", app.address))
         .json(&update)
         .send()
         .await

@@ -169,6 +169,7 @@ macro_rules! define_datastar_entity_tests {
                     .delete(app.api_url(&format!("{}/{}", $api_path, entity_id)))
                     .bearer_auth(app.auth_token.as_ref().unwrap())
                     .header("datastar-request", "true")
+                    .header("referer", format!("{}/data?type={}", app.address, $type_param))
                     .send()
                     .await
                     .expect(concat!("failed to delete ", stringify!($entity)));

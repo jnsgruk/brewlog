@@ -197,22 +197,20 @@
   {% if !recent_events.is_empty() %}
   <div class="space-y-2">
     {% for event in recent_events %}
-    <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
+    <a href="{{ event.link }}" class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3 transition hover:border-accent/40">
       <div class="flex items-center gap-3 min-w-0">
         <span class="text-text-muted shrink-0">
           {% if event.entity_type == "brew" %}{{ icons::beaker("h-5 w-5") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-5 w-5") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-5 w-5") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-5 w-5") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-5 w-5") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-5 w-5") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-5 w-5") }}{% else %}{{ icons::beaker("h-5 w-5") }}{% endif %}
         </span>
         <p class="min-w-0 truncate text-sm">
-          <a href="{{ event.link }}" class="font-medium text-text hover:text-accent"
-            >{{ event.title }}</a
-          >{% if let Some(sub) = event.subtitle %}
+          <span class="font-medium text-text">{{ event.title }}</span>{% if let Some(sub) = event.subtitle %}
           <span class="text-xs text-text-muted">· {{ sub }}</span>{% endif %}
         </p>
       </div>
       <time class="text-xs text-text-muted whitespace-nowrap shrink-0"
         >{{ event.relative_date_label }}</time
       >
-    </div>
+    </a>
     {% endfor %}
   </div>
   {% else %}

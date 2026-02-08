@@ -269,16 +269,8 @@ pub(crate) async fn create_brew(
                 .await
                 .map_err(ApiError::from)
         } else {
-            use axum::http::header::HeaderValue;
-            let script = format!("<script>window.location.href='{detail_url}'</script>");
-            let mut response = axum::response::Html(script).into_response();
-            response
-                .headers_mut()
-                .insert("datastar-selector", HeaderValue::from_static("body"));
-            response
-                .headers_mut()
-                .insert("datastar-mode", HeaderValue::from_static("append"));
-            Ok(response)
+            crate::application::routes::support::render_redirect_script(&detail_url)
+                .map_err(ApiError::from)
         }
     } else if matches!(source, PayloadSource::Form) {
         Ok(Redirect::to(&detail_url).into_response())
@@ -323,7 +315,9 @@ define_delete_handler!(
     BrewId,
     BrewSortKey,
     brew_repo,
-    render_brew_list_fragment
+    render_brew_list_fragment,
+    "type=brews",
+    "/data?type=brews"
 );
 
 async fn render_brew_list_fragment(

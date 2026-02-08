@@ -85,16 +85,8 @@ pub(crate) async fn create_bag(
                 .await
                 .map_err(ApiError::from)
         } else {
-            use axum::http::header::HeaderValue;
-            let script = format!("<script>window.location.href='{detail_url}'</script>");
-            let mut response = axum::response::Html(script).into_response();
-            response
-                .headers_mut()
-                .insert("datastar-selector", HeaderValue::from_static("body"));
-            response
-                .headers_mut()
-                .insert("datastar-mode", HeaderValue::from_static("append"));
-            Ok(response)
+            crate::application::routes::support::render_redirect_script(&detail_url)
+                .map_err(ApiError::from)
         }
     } else if matches!(source, PayloadSource::Form) {
         Ok(Redirect::to(&detail_url).into_response())
@@ -175,9 +167,20 @@ pub(crate) async fn update_bag(
     state.stats_invalidator.invalidate();
 
     if is_datastar_request(&headers) {
-        render_bag_list_fragment(state, request, search, true)
-            .await
-            .map_err(ApiError::from)
+        let from_bag_page = headers
+            .get("referer")
+            .and_then(|v| v.to_str().ok())
+            .is_some_and(|r| r.contains("type=bags"));
+
+        if from_bag_page {
+            render_bag_list_fragment(state, request, search, true)
+                .await
+                .map_err(ApiError::from)
+        } else {
+            let detail_url = format!("/bags/{id}");
+            crate::application::routes::support::render_redirect_script(&detail_url)
+                .map_err(ApiError::from)
+        }
     } else {
         let enriched = state
             .bag_repo
@@ -193,7 +196,9 @@ define_delete_handler!(
     BagId,
     BagSortKey,
     bag_repo,
-    render_bag_list_fragment
+    render_bag_list_fragment,
+    "type=bags",
+    "/data?type=bags"
 );
 
 #[derive(Debug, Deserialize)]

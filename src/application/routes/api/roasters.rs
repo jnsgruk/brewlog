@@ -141,7 +141,9 @@ define_delete_handler!(
     RoasterId,
     RoasterSortKey,
     roaster_repo,
-    render_roaster_list_fragment
+    render_roaster_list_fragment,
+    "type=roasters",
+    "/data?type=roasters"
 );
 
 #[tracing::instrument(skip(state, auth_user, headers, payload))]

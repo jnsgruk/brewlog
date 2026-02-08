@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "partials/detail_cards.html" as detail %}
+{% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ cup.roast_name }} at {{ cup.cafe_name }}{% endblock %}
 {% block description %}{{ cup.roast_name }} by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.{% endblock %}
 {% block og_title %}{{ cup.roast_name }} at {{ cup.cafe_name }} — Brewlog{% endblock %}
@@ -13,10 +14,7 @@
       {{ cup.roaster_name }} · {{ cup.cafe_name }}, {{ cup.cafe_city }} · {{ cup.created_date }}
     </p>
   </div>
-  {{ detail::share_button() }}
 </header>
-
-{{ detail::share_script() }}
 
 {# ── Coffee + map ── #}
 <div class="grid gap-6 md:grid-cols-2">
@@ -56,4 +54,14 @@
     </dl>
   </div>
 </div>
+
+{% if is_authenticated %}
+<div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
+  <button type="button"
+    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+    data-on:click="confirm('Delete this cup? This cannot be undone.') && @delete('/api/v1/cups/{{ cup.id }}')">
+    {{ icons::delete("h-4 w-4") }} Delete
+  </button>
+</div>
+{% endif %}
 {% endblock %}

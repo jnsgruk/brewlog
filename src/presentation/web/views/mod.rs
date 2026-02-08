@@ -14,7 +14,7 @@ pub use cafes::{CafeDetailView, CafeOptionView, CafeView, NearbyCafeView};
 pub use cups::{CupDetailView, CupView};
 pub use gear::{GearDetailView, GearOptionView, GearView};
 pub use roasters::{RoasterDetailView, RoasterOptionView, RoasterView};
-pub use roasts::{RoastOptionView, RoastView};
+pub use roasts::{RoastDetailView, RoastOptionView, RoastView};
 pub use tasting_notes::TastingNoteView;
 pub use timeline::{
     TimelineBrewDataView, TimelineEventDetailView, TimelineEventView, TimelineMonthView,

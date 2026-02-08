@@ -28,9 +28,7 @@
             {{ table::sortable_header("Roaster", "roaster", navigator, "#cup-list") }}
             {{ table::sortable_header("Cafe", "cafe", navigator, "#cup-list") }}
             {{ table::sortable_header("City", "city", navigator, "#cup-list") }}
-            {% if is_authenticated %}
-            <th scope="col" class="actions-col px-4 py-3 text-right">Actions</th>
-            {% endif %}
+            <th scope="col" class="actions-col px-4 py-3 text-right"></th>
           </tr>
         </thead>
         <tbody class="divide-y/70">
@@ -38,7 +36,7 @@
           <tr
             data-star-key="{{ cup.id }}"
             class="transition hover:bg-surface-alt"
-            {% if is_authenticated %}onclick="toggleRow(event)"{% endif %}
+            onclick="window.location.href='/cups/{{ cup.id }}'"
           >
             <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
               <div>{{ cup.created_date }}</div>
@@ -55,39 +53,13 @@
             </td>
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cup.cafe_city }}</td>
             <td data-label="City" class="mobile-hidden px-4 py-3 whitespace-nowrap">{{ cup.cafe_city }}</td>
-            {% if is_authenticated %}
-            <td data-label="" class="card-detail hidden">
-              <div class="flex items-center gap-4">
-                <button type="button"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
-                  data-on:click="confirm('Delete this cup?') && @delete('/api/v1/cups/{{ cup.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cup-list', mode: 'replace'}})">
-                  {{ icons::delete("h-4 w-4") }} Delete
-                </button>
-              </div>
-            </td>
             <td data-label="" class="card-actions px-4 py-3 text-right">
-              <button type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
-                title="Actions">
-                <span class="icon-expand">{{ icons::ellipsis_vertical("h-5 w-5") }}</span>
-                <span class="icon-collapse hidden">{{ icons::chevron_up("h-5 w-5") }}</span>
-              </button>
-            </td>
-            {% endif %}
-          </tr>
-          {% if is_authenticated %}
-          <tr class="hidden detail-row">
-            <td colspan="6" class="bg-surface-alt px-4 py-2">
-              <div class="flex items-center gap-4">
-                <button type="button"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600"
-                  data-on:click="confirm('Delete this cup?') && @delete('/api/v1/cups/{{ cup.id }}?{{ navigator.query() }}', {responseOverrides: {selector: '#cup-list', mode: 'replace'}})">
-                  {{ icons::delete("h-4 w-4") }} Delete
-                </button>
-              </div>
+              <a href="/cups/{{ cup.id }}"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt">
+                {{ icons::chevron_right("h-5 w-5") }}
+              </a>
             </td>
           </tr>
-          {% endif %}
           {% endfor %}
         </tbody>
       </table>
