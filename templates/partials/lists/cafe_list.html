@@ -25,8 +25,8 @@
           <tr>
             {{ table::sortable_header("Added", "created-at", navigator, "#cafe-list") }}
             {{ table::sortable_header("Name", "name", navigator, "#cafe-list") }}
-            {{ table::sortable_header("City", "city", navigator, "#cafe-list") }}
             {{ table::sortable_header("Country", "country", navigator, "#cafe-list") }}
+            {{ table::sortable_header("City", "city", navigator, "#cafe-list") }}
             <th scope="col" class="actions-col px-4 py-3 text-right"></th>
           </tr>
         </thead>
@@ -48,10 +48,10 @@
             <td data-label="Name" class="card-title px-4 py-3 font-medium text-text">
               {{ cafe.name }}
             </td>
-            <td data-label="Location" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cafe.country }}</td>
+            <td data-label="Location" class="px-4 py-3 whitespace-nowrap md:hidden">{% if !cafe.country_flag.is_empty() %}{{ cafe.country_flag }} {% endif %}{{ cafe.country }}</td>
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ cafe.city }}</td>
+            <td data-label="Country" class="mobile-hidden px-4 py-3 whitespace-nowrap">{% if !cafe.country_flag.is_empty() %}{{ cafe.country_flag }} {% endif %}{{ cafe.country }}</td>
             <td data-label="City" class="mobile-hidden px-4 py-3 whitespace-nowrap">{{ cafe.city }}</td>
-            <td data-label="Country" class="mobile-hidden px-4 py-3 whitespace-nowrap">{{ cafe.country }}</td>
             <td data-label="" class="card-actions px-4 py-3 text-right">
               <a href="{{ cafe.detail_path }}"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt">

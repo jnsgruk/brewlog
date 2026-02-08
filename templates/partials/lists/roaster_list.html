@@ -48,11 +48,11 @@
             <td data-label="Name" class="card-title px-4 py-3 font-medium text-text">
               {{ roaster.name }}
             </td>
-            <td data-label="Location" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roaster.country }}</td>
+            <td data-label="Location" class="px-4 py-3 whitespace-nowrap md:hidden">{% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }} {% endif %}{{ roaster.country }}</td>
             {% if !roaster.city.is_empty() %}
             <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roaster.city }}</td>
             {% endif %}
-            <td data-label="Country" class="mobile-hidden px-4 py-3 whitespace-nowrap">{{ roaster.country }}</td>
+            <td data-label="Country" class="mobile-hidden px-4 py-3 whitespace-nowrap">{% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }} {% endif %}{{ roaster.country }}</td>
             <td data-label="City" class="mobile-hidden px-4 py-3 whitespace-nowrap">{{ roaster.city }}</td>
             <td data-label="" class="card-actions px-4 py-3 text-right">
               <a href="{{ roaster.detail_path }}"

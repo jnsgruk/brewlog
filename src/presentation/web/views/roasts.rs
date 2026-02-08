@@ -1,3 +1,4 @@
+use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
 
@@ -11,6 +12,7 @@ pub struct RoastView {
     pub name: String,
     pub roaster_label: String,
     pub origin: String,
+    pub origin_flag: String,
     pub region: String,
     pub producer: String,
     pub process: String,
@@ -55,6 +57,11 @@ impl RoastView {
         } else {
             roaster_name.to_string()
         };
+        let origin_flag = origin
+            .as_deref()
+            .and_then(country_to_iso)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
         let origin = origin.unwrap_or_else(|| "—".to_string());
         let region = region.unwrap_or_else(|| "—".to_string());
         let producer = producer.unwrap_or_else(|| "—".to_string());
@@ -81,6 +88,7 @@ impl RoastView {
             name,
             roaster_label,
             origin,
+            origin_flag,
             region,
             producer,
             process,

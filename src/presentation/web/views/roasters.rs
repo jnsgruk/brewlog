@@ -66,6 +66,7 @@ pub struct RoasterView {
     pub detail_path: String,
     pub name: String,
     pub country: String,
+    pub country_flag: String,
     pub city: String,
     pub has_homepage: bool,
     pub homepage_url: String,
@@ -90,6 +91,9 @@ impl From<Roaster> for RoasterView {
         let homepage = homepage.unwrap_or_default();
         let has_homepage = !homepage.is_empty();
         let detail_path = format!("/roasters/{slug}");
+        let country_flag = country_to_iso(&country)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
 
         let created_at_sort_key = created_at.timestamp();
         let created_date = created_at.format("%Y-%m-%d").to_string();
@@ -99,6 +103,7 @@ impl From<Roaster> for RoasterView {
             detail_path,
             id: id.to_string(),
             name,
+            country_flag,
             country,
             city: city.unwrap_or_else(|| "—".to_string()),
             has_homepage,

@@ -52,7 +52,7 @@
             </td>
             <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roast.roaster_label }}</td>
             <td data-label="Origin" class="px-4 py-3 whitespace-nowrap">
-              {{ roast.origin }}
+              {% if !roast.origin_flag.is_empty() %}{{ roast.origin_flag }} {% endif %}{{ roast.origin }}
               {% if !roast.producer.is_empty() %}
               <div class="hidden md:block text-xs text-text-muted">{{ roast.producer }}</div>
               {% endif %}

@@ -45,6 +45,7 @@ pub struct CafeView {
     pub name: String,
     pub city: String,
     pub country: String,
+    pub country_flag: String,
     pub latitude: f64,
     pub longitude: f64,
     pub map_url: String,
@@ -75,6 +76,9 @@ impl From<Cafe> for CafeView {
         let has_website = !website.is_empty();
         let detail_path = format!("/cafes/{slug}");
         let map_url = format!("https://www.google.com/maps?q={latitude},{longitude}");
+        let country_flag = country_to_iso(&country)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
 
         let created_at_sort_key = created_at.timestamp();
         let created_date = created_at.format("%Y-%m-%d").to_string();
@@ -85,6 +89,7 @@ impl From<Cafe> for CafeView {
             id: id.to_string(),
             name,
             city,
+            country_flag,
             country,
             latitude,
             longitude,
