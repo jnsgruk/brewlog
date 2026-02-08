@@ -185,17 +185,17 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
         <div class="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"
-            class="rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt"
+            class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
             data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''"
           >
             Back
           </button>
           <button
             type="button"
-            class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+            class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
             data-on:click="$_reviewingCafe = false; $_step = 2"
           >
-            Next
+            Next {{ icons::chevron_right("h-4 w-4") }}
           </button>
         </div>
       </div>
