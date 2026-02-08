@@ -1,5 +1,43 @@
 use crate::domain::cafes::Cafe;
+use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::infrastructure::foursquare::NearbyCafe;
+
+use super::build_map_data;
+
+pub struct CafeDetailView {
+    pub id: String,
+    pub name: String,
+    pub city: String,
+    pub country: String,
+    pub country_flag: String,
+    pub website: Option<String>,
+    pub map_countries: String,
+    pub map_max: u32,
+    pub created_date: String,
+    pub created_time: String,
+}
+
+impl CafeDetailView {
+    pub fn from_domain(cafe: Cafe) -> Self {
+        let country_flag = country_to_iso(&cafe.country)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
+        let (map_countries, map_max) = build_map_data(&[(&cafe.country, 1)]);
+
+        Self {
+            id: cafe.id.to_string(),
+            name: cafe.name,
+            city: cafe.city,
+            country_flag,
+            country: cafe.country,
+            website: cafe.website,
+            map_countries,
+            map_max,
+            created_date: cafe.created_at.format("%Y-%m-%d").to_string(),
+            created_time: cafe.created_at.format("%H:%M").to_string(),
+        }
+    }
+}
 
 pub struct CafeView {
     pub id: String,

@@ -2,9 +2,10 @@ use askama::Template;
 
 use super::views::{
     BagDetailView, BagOptionView, BagView, BrewDefaultsView, BrewDetailView, BrewView,
-    CafeOptionView, CafeView, CupDetailView, CupView, GearOptionView, GearView, ListNavigator,
-    NearbyCafeView, Paginated, QuickNoteView, RoastOptionView, RoastView, RoasterOptionView,
-    RoasterView, StatCard, StatsView, TimelineEventView, TimelineMonthView,
+    CafeDetailView, CafeOptionView, CafeView, CupDetailView, CupView, GearDetailView,
+    GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated, QuickNoteView,
+    RoastOptionView, RoastView, RoasterDetailView, RoasterOptionView, RoasterView, StatCard,
+    StatsView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -238,6 +239,36 @@ pub struct CupDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub cup: CupDetailView,
+}
+
+#[derive(Template)]
+#[template(path = "pages/roaster.html")]
+pub struct RoasterDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
+    pub roaster: RoasterDetailView,
+}
+
+#[derive(Template)]
+#[template(path = "pages/cafe.html")]
+pub struct CafeDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
+    pub cafe: CafeDetailView,
+}
+
+#[derive(Template)]
+#[template(path = "pages/gear.html")]
+pub struct GearDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
+    pub gear: GearDetailView,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

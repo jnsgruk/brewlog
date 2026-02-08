@@ -115,6 +115,7 @@ async fn roasters_create_with_datastar_header_returns_fragment() {
         .post(app.api_url("/roasters"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("datastar-request", "true")
+        .header("referer", format!("{}/data?type=roasters", app.address))
         .json(&new_roaster)
         .send()
         .await
@@ -281,6 +282,7 @@ async fn bags_create_with_datastar_header_returns_fragment() {
         .post(app.api_url("/bags"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("datastar-request", "true")
+        .header("referer", format!("{}/data?type=bags", app.address))
         .json(&new_bag)
         .send()
         .await
@@ -415,6 +417,7 @@ async fn gear_create_with_datastar_header_returns_fragment() {
         .post(app.api_url("/gear"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("datastar-request", "true")
+        .header("referer", format!("{}/data?type=gear", app.address))
         .json(&new_gear)
         .send()
         .await
@@ -566,6 +569,7 @@ async fn cafes_create_with_datastar_header_returns_fragment() {
         .post(app.api_url("/cafes"))
         .bearer_auth(app.auth_token.as_ref().unwrap())
         .header("datastar-request", "true")
+        .header("referer", format!("{}/data?type=cafes", app.address))
         .json(&new_cafe)
         .send()
         .await

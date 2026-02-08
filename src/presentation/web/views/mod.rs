@@ -10,10 +10,10 @@ mod timeline;
 
 pub use bags::{BagDetailView, BagOptionView, BagView};
 pub use brews::{BrewDefaultsView, BrewDetailView, BrewView, QuickNoteView};
-pub use cafes::{CafeOptionView, CafeView, NearbyCafeView};
+pub use cafes::{CafeDetailView, CafeOptionView, CafeView, NearbyCafeView};
 pub use cups::{CupDetailView, CupView};
-pub use gear::{GearOptionView, GearView};
-pub use roasters::{RoasterOptionView, RoasterView};
+pub use gear::{GearDetailView, GearOptionView, GearView};
+pub use roasters::{RoasterDetailView, RoasterOptionView, RoasterView};
 pub use roasts::{RoastOptionView, RoastView};
 pub use tasting_notes::TastingNoteView;
 pub use timeline::{

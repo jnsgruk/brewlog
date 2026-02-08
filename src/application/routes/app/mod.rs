@@ -3,10 +3,13 @@ mod admin;
 pub(super) mod auth;
 mod bags;
 mod brews;
+mod cafes;
 mod checkin;
 mod cups;
 mod data;
+mod gear;
 mod home;
+mod roasters;
 mod stats;
 mod timeline;
 mod webauthn;
@@ -32,7 +35,10 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/stats", get(stats::stats_page))
         .route("/bags/{id}", get(bags::bag_detail_page))
         .route("/brews/{id}", get(brews::brew_detail_page))
+        .route("/cafes/{slug}", get(cafes::cafe_detail_page))
         .route("/cups/{id}", get(cups::cup_detail_page))
+        .route("/gear/{id}", get(gear::gear_detail_page))
+        .route("/roasters/{slug}", get(roasters::roaster_detail_page))
         .route("/styles.css", get(styles))
         .route("/webauthn.js", get(webauthn_js))
         .route("/components/photo-capture.js", get(photo_capture_js))

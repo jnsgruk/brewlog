@@ -1,4 +1,42 @@
+use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::roasters::Roaster;
+
+use super::build_map_data;
+
+pub struct RoasterDetailView {
+    pub id: String,
+    pub name: String,
+    pub country: String,
+    pub country_flag: String,
+    pub city: Option<String>,
+    pub homepage: Option<String>,
+    pub map_countries: String,
+    pub map_max: u32,
+    pub created_date: String,
+    pub created_time: String,
+}
+
+impl RoasterDetailView {
+    pub fn from_domain(roaster: Roaster) -> Self {
+        let country_flag = country_to_iso(&roaster.country)
+            .map(iso_to_flag_emoji)
+            .unwrap_or_default();
+        let (map_countries, map_max) = build_map_data(&[(&roaster.country, 1)]);
+
+        Self {
+            id: roaster.id.to_string(),
+            name: roaster.name,
+            country_flag,
+            country: roaster.country,
+            city: roaster.city,
+            homepage: roaster.homepage,
+            map_countries,
+            map_max,
+            created_date: roaster.created_at.format("%Y-%m-%d").to_string(),
+            created_time: roaster.created_at.format("%H:%M").to_string(),
+        }
+    }
+}
 
 pub struct RoasterOptionView {
     pub id: String,
