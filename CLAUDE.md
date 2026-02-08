@@ -489,18 +489,11 @@ When an icon appears alongside text in a button or label, use `inline-flex items
 
 | Variant | Classes | Use |
 |---------|---------|-----|
-| Primary | `rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover` | Form submits (Save, Log Brew, Check In) |
-| Primary + icon | Add `inline-flex items-center justify-center gap-2` to Primary | Submit buttons with icons, Download Backup |
-| Secondary | `rounded-md border px-4 py-2 text-sm font-semibold text-text transition hover:bg-surface-alt` | Cancel, Back |
-| Outlined accent | `rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt` | Restore, Sign Out — secondary actions with accent colour |
-| Outlined accent + icon | Add `inline-flex items-center gap-2` to Outlined accent | Account page actions with icons |
-| Destructive outlined | `rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:text-red-700 hover:bg-surface-alt` | Reset Database |
-| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt` | Brew, Brew Again on cards |
-| Card muted action | Same as Card action but `text-text-muted` + `hover:text-text` | Close Bag on cards |
-| Text-only | `text-xs text-text-muted hover:text-text` | Change, Back in summary bars |
-| Link-style | `inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover` | View all, Brew Again in tables |
-| Delete link | `inline-flex items-center gap-1 text-sm font-medium text-text-muted hover:text-red-600` | Delete in table rows |
-| Icon-only | `inline-flex h-8 w-8 items-center justify-center rounded-md p-1 text-text-muted transition hover:text-red-600` | Delete passkey, revoke token |
+| Primary | `inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover` | Form submits (Save, Log Brew, Check In), New Backup |
+| Outlined | `inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-surface-alt` | Bordered secondary actions. Colour variants: `text-text` for Cancel/Back, `text-accent hover:text-text` for actions (Restore, Reset, Sign Out, Delete, Revoke) |
+| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium transition hover:bg-surface-alt` | Compact inline card buttons. Colour variants: `text-accent hover:text-accent-hover` for positive actions (Brew), `text-text-muted hover:text-text` for neutral (Close Bag) |
+| Link | `inline-flex items-center gap-1 text-sm font-medium` | Borderless inline actions. Colour variants: `text-accent hover:text-accent-hover` for actions (View all, Brew Again, Homepage), `text-text-muted hover:text-red-600` for destructive (Delete) |
+| Text-only | `text-xs text-text-muted hover:text-text` | Minimal buttons: Change, Back in summary bars |
 | Nav icon | `rounded-md p-1.5 text-text-muted transition hover:text-text-secondary` | Theme toggle, user menu |
 | Adjustment | `.btn-adjust` CSS class | +/- steppers |
 
@@ -509,7 +502,7 @@ When an icon appears alongside text in a button or label, use `inline-flex items
 - `py-3` for larger touch targets (login, register, check-in submit)
 - `disabled:opacity-50 disabled:cursor-not-allowed` with `data-attr:disabled` for loading states
 
-Submit buttons right-aligned: `<div class="flex items-center justify-end gap-2">`. Secondary comes first when paired.
+Submit buttons right-aligned: `<div class="flex items-center justify-end gap-2">`. Outlined comes first when paired with Primary.
 
 #### Forms
 
