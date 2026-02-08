@@ -258,7 +258,6 @@ is_authenticated %}
 </section>
 
 <!-- Stats -->
-{% if !stat_cards.is_empty() %}
 <section>
   <div class="flex items-center justify-between mb-5">
     <h2 class="text-lg font-semibold text-text">Stats</h2>
@@ -266,6 +265,7 @@ is_authenticated %}
       >View all stats &rarr;</a
     >
   </div>
+  {% if !stat_cards.is_empty() %}
   <chip-scroll class="relative block">
     <button type="button" aria-label="Scroll left"
       class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
@@ -289,8 +289,23 @@ is_authenticated %}
       {{ icons::chevron_right("h-5 w-5") }}
     </button>
   </chip-scroll>
+  {% else %}
+  <div class="relative">
+    <div class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
+      {% for _ in 0..6 %}
+      <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+        <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
+        <div class="h-5 w-16 rounded bg-surface-alt"></div>
+        <div class="h-4 w-20 rounded bg-surface-alt"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="absolute inset-0 z-10 flex items-center justify-center">
+      <span class="text-lg font-semibold text-text-muted">No stats yet</span>
+    </div>
+  </div>
+  {% endif %}
 </section>
-{% endif %}
 
 <!-- Data Cards -->
 <section>
@@ -300,6 +315,7 @@ is_authenticated %}
       >View all data &rarr;</a
     >
   </div>
+  {% if !stats.is_empty() %}
   <chip-scroll class="relative block">
     <button type="button" aria-label="Scroll left"
       class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
@@ -364,5 +380,21 @@ is_authenticated %}
       {{ icons::chevron_right("h-5 w-5") }}
     </button>
   </chip-scroll>
+  {% else %}
+  <div class="relative">
+    <div class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
+      {% for _ in 0..6 %}
+      <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+        <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
+        <div class="h-5 w-8 rounded bg-surface-alt"></div>
+        <div class="h-4 w-16 rounded bg-surface-alt"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="absolute inset-0 z-10 flex items-center justify-center">
+      <span class="text-lg font-semibold text-text-muted">No data yet</span>
+    </div>
+  </div>
+  {% endif %}
 </section>
 {% endblock %}

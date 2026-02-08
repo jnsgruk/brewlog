@@ -117,6 +117,10 @@ pub(crate) async fn stats_page(
         .collect();
     let max_grinder_weight = cached.brewing_summary.max_grinder_weight;
 
+    let has_data = cached.consumption.brews_all_time > 0
+        || cached.roast_summary.unique_origins > 0
+        || !cached.brewing_summary.brewer_counts.is_empty();
+
     let template = StatsPageTemplate {
         nav_active: "stats",
         is_authenticated,
@@ -137,6 +141,7 @@ pub(crate) async fn stats_page(
         consumption_30d_weight,
         consumption_all_time_weight,
         cache_age,
+        has_data,
     };
 
     render_html(template).map(IntoResponse::into_response)

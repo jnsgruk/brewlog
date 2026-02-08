@@ -10,6 +10,7 @@
   <p class="max-w-2xl text-sm text-text-secondary">Aggregated coffee data across origins, consumption, and brewing.</p>
 </header>
 
+{% if has_data %}
 <div class="flex flex-col gap-6">
   {% include "partials/tab_bar.html" %}
 
@@ -120,4 +121,59 @@
     {% endif %}
   </div>
 </section>
+{% else %}
+<div class="relative">
+  <div class="flex flex-col gap-8 blur-[2px] select-none pointer-events-none" aria-hidden="true">
+    <!-- Placeholder: Roast Stats -->
+    <section>
+      <div class="mb-5"><div class="h-5 w-28 rounded bg-surface-alt"></div></div>
+      <div class="grid gap-3 sm:grid-cols-3">
+        {% for _ in 0..3 %}
+        <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+          <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
+          <div class="h-5 w-10 rounded bg-surface-alt"></div>
+          <div class="h-4 w-16 rounded bg-surface-alt"></div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    <!-- Placeholder: Consumption -->
+    <section>
+      <div class="mb-5"><div class="h-5 w-32 rounded bg-surface-alt"></div></div>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {% for _ in 0..4 %}
+        <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+          <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
+          <div class="h-5 w-12 rounded bg-surface-alt"></div>
+          <div class="h-4 w-20 rounded bg-surface-alt"></div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    <!-- Placeholder: Brewing charts -->
+    <section>
+      <div class="mb-5"><div class="h-5 w-24 rounded bg-surface-alt"></div></div>
+      <div class="grid gap-5 md:grid-cols-2">
+        {% for _ in 0..2 %}
+        <div class="rounded-lg border bg-surface p-5">
+          <div class="h-4 w-28 rounded bg-surface-alt mb-4"></div>
+          <div class="flex flex-col gap-2">
+            {% for _ in 0..4 %}
+            <div class="flex items-center gap-3">
+              <div class="w-28 h-3 rounded bg-surface-alt"></div>
+              <div class="flex-1 h-5 rounded bg-surface-alt"></div>
+              <div class="w-6 h-3 rounded bg-surface-alt"></div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+  <div class="absolute inset-0 z-10 flex items-center justify-center">
+    <span class="text-lg font-semibold text-text-muted">No stats yet</span>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
