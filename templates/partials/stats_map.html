@@ -24,7 +24,7 @@
       {% for entry in geo_stats.entries %}
       {% if !entry.iso_code.is_empty() %}
       <button type="button"
-        class="inline-flex shrink-0 snap-start items-center rounded-full border text-sm transition cursor-pointer"
+        class="inline-flex shrink-0 snap-start items-center rounded-full border bg-surface text-sm transition cursor-pointer hover:border-accent/40"
         data-iso="{{ entry.iso_code|lower }}"
         onclick="const map = document.querySelector('world-map'); const iso = this.dataset.iso; const cur = map.getAttribute('data-selected'); if (cur === iso) { map.removeAttribute('data-selected'); } else { map.setAttribute('data-selected', iso); } document.querySelectorAll('[data-iso]').forEach(b => b.classList.toggle('bg-accent-subtle', b.dataset.iso === map.getAttribute('data-selected')));">
         <span class="inline-flex items-center gap-1.5 py-1.5 pl-3 pr-2">
@@ -36,7 +36,7 @@
         <span class="border-l py-1.5 pl-2 pr-3 font-semibold text-highlight">{{ entry.count }}</span>
       </button>
       {% else %}
-      <div class="inline-flex shrink-0 snap-start items-center rounded-full border text-sm">
+      <div class="inline-flex shrink-0 snap-start items-center rounded-full border bg-surface text-sm">
         <span class="inline-flex items-center gap-1.5 py-1.5 pl-3 pr-2">
           <span class="text-text whitespace-nowrap">{{ entry.country_name }}</span>
         </span>

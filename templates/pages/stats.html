@@ -27,17 +27,17 @@
     <h2 class="text-lg font-semibold text-text">Roast Stats</h2>
   </div>
   <div class="grid gap-3 sm:grid-cols-3">
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::map("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ roast_summary.unique_origins }}</span>
       <span class="text-sm font-medium text-accent">Origins</span>
     </div>
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::location("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text truncate max-w-full">{% match roast_summary.top_origin %}{% when Some with (v) %}{{ v }}{% when None %}&mdash;{% endmatch %}</span>
       <span class="text-sm font-medium text-accent">Top Origin</span>
     </div>
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::fire("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text truncate max-w-full">{% match roast_summary.top_roaster %}{% when Some with (v) %}{{ v }}{% when None %}&mdash;{% endmatch %}</span>
       <span class="text-sm font-medium text-accent">Top Roaster</span>
@@ -66,22 +66,22 @@
     <h2 class="text-lg font-semibold text-text">Consumption</h2>
   </div>
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::coffee_bean("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ consumption_30d_weight }}</span>
       <span class="text-sm font-medium text-accent">Last 30 Days</span>
     </div>
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::coffee_bean("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ consumption_all_time_weight }}</span>
       <span class="text-sm font-medium text-accent">All Time</span>
     </div>
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::beaker("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ consumption.brews_last_30_days }}</span>
       <span class="text-sm font-medium text-accent">Brews (30d)</span>
     </div>
-    <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+    <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
       {{ icons::beaker("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ consumption.brews_all_time }}</span>
       <span class="text-sm font-medium text-accent">Brews (All Time)</span>
@@ -132,7 +132,7 @@
       <div class="mb-5"><div class="h-5 w-28 rounded bg-surface-alt"></div></div>
       <div class="grid gap-3 sm:grid-cols-3">
         {% for _ in 0..3 %}
-        <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+        <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
           <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
           <div class="h-5 w-10 rounded bg-surface-alt"></div>
           <div class="h-4 w-16 rounded bg-surface-alt"></div>
@@ -145,7 +145,7 @@
       <div class="mb-5"><div class="h-5 w-32 rounded bg-surface-alt"></div></div>
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {% for _ in 0..4 %}
-        <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+        <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
           <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
           <div class="h-5 w-12 rounded bg-surface-alt"></div>
           <div class="h-4 w-20 rounded bg-surface-alt"></div>

@@ -342,13 +342,13 @@ input.input-field[type="number"] {
   font-weight: 500;
   cursor: pointer;
   border: 1px solid var(--border);
-  background: none;
+  background-color: var(--surface);
   transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
   color: var(--accent);
 }
 
 .tab:not(.tab-active):hover {
-  background-color: var(--surface-alt);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .tab-active {

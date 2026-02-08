@@ -18,12 +18,12 @@ use crate::presentation::web::templates::{
 
 const TABS: &[Tab] = &[
     Tab {
-        key: "roasters",
-        label: "Roasters",
-    },
-    Tab {
         key: "roasts",
         label: "Roasts",
+    },
+    Tab {
+        key: "roasters",
+        label: "Roasters",
     },
     Tab {
         key: "cups",
@@ -42,7 +42,7 @@ pub(crate) struct StatsQuery {
 }
 
 fn default_type() -> String {
-    "roasters".to_string()
+    "roasts".to_string()
 }
 
 #[tracing::instrument(skip(state, cookies, headers, stats_query))]
