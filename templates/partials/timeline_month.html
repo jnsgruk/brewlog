@@ -22,7 +22,7 @@
   ></span>
   <div
     class="tl-card rounded-lg border bg-surface p-5 text-left"
-    data-on:click="if (!evt.target.closest('a, button, form')) { if ($_expandedMonths.includes(',{{ month.anchor }}')) { $_collapsedCards = $_collapsedCards.includes(',{{ event.id }}') ? $_collapsedCards.replace(',{{ event.id }}', '') : $_collapsedCards + ',{{ event.id }}' } else { $_expandedCard = $_expandedCard === '{{ event.id }}' ? '' : '{{ event.id }}' } }"
+    data-on:click="if (!evt.target.closest('a, button, form')) { if ($_expandedMonths.includes(',{{ month.anchor }}')) { $_collapsedCards = $_collapsedCards.includes(',{{ event.id }}') ? $_collapsedCards.replace(',{{ event.id }}', '') : $_collapsedCards + ',{{ event.id }}' } else { $_expandedCard = $_expandedCard.includes(',{{ event.id }}') ? $_expandedCard.replace(',{{ event.id }}', '') : $_expandedCard + ',{{ event.id }}' } }"
   >
     <div class="flex flex-wrap items-center justify-between gap-2">
       {# Category — always visible #}
@@ -30,20 +30,20 @@
         {% if event.entity_type == "brew" %}{{ icons::beaker("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-3 w-3 shrink-0") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-3 w-3 shrink-0") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-3 w-3 shrink-0") }}{% endif %}
         <span class="uppercase tracking-wide">{{ event.kind_label }}</span>
         {# Relative date — shown when collapsed #}
-        <span class="tl-condensed uppercase tracking-wide" data-show="($_expandedCard !== '{{ event.id }}' && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"> · {{ event.relative_date_label }}</span>
+        <span class="tl-condensed uppercase tracking-wide" data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"> · {{ event.relative_date_label }}</span>
         {# Full timestamp — shown when expanded #}
         <time
           datetime="{{ event.iso_timestamp }}"
           class="tl-detail uppercase tracking-wide"
-          data-show="($_expandedCard === '{{ event.id }}' || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
+          data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
           style="display:none"
         > · {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif %}</time>
       </span>
       {# Expand/collapse chevron #}
-      <span class="tl-chevron text-text-muted" data-show="($_expandedCard !== '{{ event.id }}' && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')">
+      <span class="tl-chevron text-text-muted" data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')">
         {{ icons::chevron_down("h-4 w-4") }}
       </span>
-      <span class="tl-chevron text-text-muted" data-show="($_expandedCard === '{{ event.id }}' || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')" style="display:none">
+      <span class="tl-chevron text-text-muted" data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')" style="display:none">
         {{ icons::chevron_up("h-4 w-4") }}
       </span>
     </div>
@@ -54,7 +54,7 @@
       <a
         href="{{ url }}"
         class="tl-detail ml-auto text-accent transition hover:text-accent-hover"
-        data-show="($_expandedCard === '{{ event.id }}' || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
+        data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
         style="display:none"
         target="_blank"
         rel="noreferrer noopener"
@@ -69,14 +69,14 @@
     {% if let Some(sub) = event.subtitle %}
     <p
       class="tl-condensed mt-1 text-sm text-text-muted"
-      data-show="($_expandedCard !== '{{ event.id }}' && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"
+      data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"
     >{{ sub }}</p>
     {% endif %}
     {# Detail rows — shown when expanded #}
     {% if event.details.len() > 0 %}
     <dl
       class="tl-detail mt-4 flex flex-col gap-2 text-sm text-text-secondary"
-      data-show="($_expandedCard === '{{ event.id }}' || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
+      data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
       style="display:none"
     >
       {% for detail in event.details %}

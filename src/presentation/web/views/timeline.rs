@@ -1,3 +1,4 @@
+use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
 use super::relative_date;
@@ -114,7 +115,12 @@ impl TimelineEventView {
             _ => String::from("#"),
         };
 
-        let (mapped_details, external_link) = Self::map_details(details);
+        let (mut mapped_details, external_link) = Self::map_details(details);
+
+        // Build subtitle before adding flags so it stays clean text.
+        let subtitle = Self::build_subtitle(entity_type.as_str(), &mapped_details);
+
+        Self::add_country_flags(&mut mapped_details);
 
         let tasting_notes = if entity_type == "roast" {
             let notes = tasting_notes
@@ -131,8 +137,6 @@ impl TimelineEventView {
         } else {
             None
         };
-
-        let subtitle = Self::build_subtitle(entity_type.as_str(), &mapped_details);
 
         let brew_data_view = brew_data.map(|bd| TimelineBrewDataView {
             bag_id: bd.bag_id,
@@ -246,5 +250,16 @@ impl TimelineEventView {
         }
 
         (mapped, external_link)
+    }
+
+    fn add_country_flags(details: &mut [TimelineEventDetailView]) {
+        for detail in details.iter_mut() {
+            let label_lower = detail.label.to_ascii_lowercase();
+            if matches!(label_lower.as_str(), "origin" | "country")
+                && let Some(flag) = country_to_iso(detail.value.trim()).map(iso_to_flag_emoji)
+            {
+                detail.value = format!("{flag} {}", detail.value);
+            }
+        }
     }
 }
