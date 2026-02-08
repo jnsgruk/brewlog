@@ -56,28 +56,43 @@ The codebase follows **Clean Architecture / Domain-Driven Design** with four lay
 
 ```
 src/
-├── domain/           # Pure business logic, no external dependencies
-│   ├── errors.rs     # RepositoryError enum
-│   ├── ids.rs        # Typed ID wrappers (RoasterId, RoastId, BagId, BrewId, GearId, etc.)
-│   ├── listing.rs    # Pagination & sorting (SortKey, ListRequest, Page, PageSize)
+├── domain/              # Pure business logic, no external dependencies
+│   ├── errors.rs        # RepositoryError enum
+│   ├── ids.rs           # Typed ID wrappers (RoasterId, RoastId, BagId, BrewId, GearId, CafeId, CupId, etc.)
+│   ├── listing.rs       # Pagination & sorting (SortKey, ListRequest, Page, PageSize)
 │   ├── repositories.rs  # Repository traits
-│   └── {entity}.rs   # Entity definitions (roasters, roasts, bags, brews, gear, etc.)
+│   ├── countries.rs     # Country name → ISO code mapping, flag emoji conversion
+│   ├── formatting.rs    # Shared display formatting helpers
+│   ├── coffee/          # roasters, roasts, bags, brews, cups, gear, cafes
+│   ├── auth/            # users, sessions, tokens, passkey_credentials, registration_tokens
+│   └── analytics/       # timeline, stats, country_stats, ai_usage
 │
-├── infrastructure/   # External integrations (database, HTTP clients, third-party APIs)
-│   ├── repositories/ # SQL implementations of repository traits
-│   ├── client/       # HTTP client for CLI
-│   ├── ai/           # OpenRouter LLM integration for AI extraction
-│   ├── foursquare.rs # Foursquare Places API for nearby cafe search
-│   └── database.rs   # Database pool abstraction
+├── infrastructure/      # External integrations (database, HTTP clients, third-party APIs)
+│   ├── repositories/    # SQL implementations of repository traits
+│   │   ├── coffee/      # Coffee entity repos
+│   │   ├── auth/        # Auth repos
+│   │   └── analytics/   # Analytics repos (timeline_events, stats, ai_usage)
+│   ├── client/          # HTTP client for CLI
+│   ├── ai.rs            # OpenRouter LLM integration for AI extraction
+│   ├── foursquare.rs    # Foursquare Places API for nearby cafe search
+│   ├── backup.rs        # Database backup/restore
+│   ├── webauthn.rs      # WebAuthn/passkey credential storage
+│   └── database.rs      # Database pool abstraction
 │
-├── application/      # HTTP server, routes, middleware, services
-│   ├── routes/       # Axum route handlers
-│   ├── services/     # Entity services (create + timeline orchestration)
-│   └── errors.rs     # HTTP error mapping
+├── application/         # HTTP server, routes, middleware, services
+│   ├── routes/          # Axum route handlers
+│   │   ├── api/         # REST API
+│   │   │   ├── coffee/  # Entity CRUD + extract + scan + checkin
+│   │   │   ├── auth/    # Tokens, WebAuthn
+│   │   │   ├── analytics/ # Stats
+│   │   │   └── system/  # Admin, backup
+│   │   └── app/         # Web UI page routes
+│   ├── services/        # Entity services (create + timeline orchestration)
+│   └── errors.rs        # HTTP error mapping
 │
-└── presentation/     # User interfaces
-    ├── cli/          # CLI commands and argument parsing
-    └── web/          # View models for templates
+└── presentation/        # User interfaces
+    ├── cli/             # CLI commands and argument parsing
+    └── web/             # View models for templates
 ```
 
 **Dependency flow**: `presentation → application → domain ← infrastructure`
@@ -109,15 +124,15 @@ Only reset state on `finished` or `error`, never unconditionally.
 
 **7. Use token-based text classes, never hardcoded `text-stone-*`.** Always use `text-text`, `text-text-secondary`, `text-text-muted` which adapt between light and dark themes.
 
-**8. Static assets need explicit routes and cache headers.** All assets are embedded at compile time via `include_str!()`/`include_bytes!()` with explicit routes in `application/routes/app/mod.rs`. There is no `tower-http` static file serving. Every static asset handler must return a `cache-control: public, max-age=604800` header alongside `content-type`.
+**8. Static assets need explicit routes and cache headers.** All assets are embedded at compile time via `include_str!()`/`include_bytes!()` with explicit routes in `application/routes/app/mod.rs`. All asset routes use the `/static/` prefix (e.g., `/static/css/styles.css`, `/static/js/components/world-map.js`). There is no `tower-http` static file serving. Every static asset handler must return a `cache-control: public, max-age=604800` header alongside `content-type`.
 
 **9. CSP must be updated when adding external resources.** The `Content-Security-Policy` header is set in `application/routes/mod.rs`. If you add a new external script, stylesheet, font, or image source, update the corresponding CSP directive (`script-src`, `style-src`, `font-src`, `img-src`) or the browser will block it silently. Datastar requires `'unsafe-inline'` and `'unsafe-eval'` in `script-src`.
 
 **10. Cookie `Secure` flag is on by default.** Session cookies are marked `Secure` unless `BREWLOG_INSECURE_COOKIES=true` is set. Local HTTP development needs this env var in `.env`. Do not use the old `BREWLOG_SECURE_COOKIES` variable — it no longer exists.
 
-**11. URL fields must validate scheme server-side.** Any user-supplied URL field (e.g., roaster `homepage`) must reject non-`http(s)` schemes to prevent `javascript:` or `data:` XSS. Use the `is_valid_url_scheme()` helper in `domain/roasters.rs` as a reference pattern.
+**11. URL fields must validate scheme server-side.** Any user-supplied URL field (e.g., roaster `homepage`) must reject non-`http(s)` schemes to prevent `javascript:` or `data:` XSS. Use the `is_valid_url_scheme()` helper in `domain/coffee/roasters.rs` as a reference pattern.
 
-**12. Datastar create handlers must check referer for fragment targets.** When a `@post` creates an entity and returns a list fragment (e.g., `#brew-list`), that fragment only exists on the entity's data page. If the same `@post` can fire from other pages (homepage, timeline), check the `Referer` header and return a reload-script response for pages that lack the target element. See `create_brew` in `application/routes/api/brews.rs`.
+**12. Datastar create handlers must check referer for fragment targets.** When a `@post` creates an entity and returns a list fragment (e.g., `#brew-list`), that fragment only exists on the entity's data page. If the same `@post` can fire from other pages (homepage, timeline), check the `Referer` header and return a reload-script response for pages that lack the target element. See `create_brew` in `application/routes/api/coffee/brews.rs`.
 
 ## Backend Patterns
 
@@ -146,12 +161,12 @@ Social media preview cards are powered by Open Graph and Twitter Card meta tags 
 
 **Base URL** — `BREWLOG_RP_ORIGIN` is stored at startup via `set_base_url()` in `lib.rs` (a `OnceLock<String>`). Templates access it through the `base_url` field on their template struct, set with `crate::base_url()` in the handler.
 
-**`og:image`** — a static 1200x630 PNG (`static/og-image.png`) served at `/og-image.png` via `include_bytes!()`. Only public shareable pages (home, bag detail, brew detail, cup detail, stats) include it via `{% block head %}`, since those are the pages social crawlers can access.
+**`og:image`** — a static 1200×630 PNG (`static/og-image.png`) served at `/static/og-image.png` via `include_bytes!()`. All detail pages (bag, brew, cafe, cup, gear, roast, roaster), plus home and stats, include it via `{% block head %}`.
 
 **Adding OG tags to a new page:**
 1. Add `pub base_url: &'static str` to the template struct
 2. Set `base_url: crate::base_url()` in the handler
-3. Override `{% block og_title %}`, `{% block og_description %}`, and add `<meta property="og:image" content="{{ base_url }}/og-image.png" />` in `{% block head %}`
+3. Override `{% block og_title %}`, `{% block og_description %}`, and add `<meta property="og:image" content="{{ base_url }}/static/og-image.png" />` in `{% block head %}`
 
 ### Repository Pattern
 
@@ -188,7 +203,7 @@ if let Err(err) = self.timeline_repo.insert(entity.to_timeline_event()).await {
 
 ### Route Module Structure
 
-Each list-bearing route module (roasters, roasts, bags, gear, brews) follows the same structure:
+Each list-bearing route module (roasters, roasts, bags, brews, cups, cafes, gear) follows the same structure:
 
 1. **Path constants** — `ENTITY_PAGE_PATH` (full page URL) and `ENTITY_FRAGMENT_PATH` (with `#entity-list` anchor)
 2. **`load_entity_page()`** — calls `repo.list()` and builds view models via `build_page_view()` from `support.rs`
@@ -209,17 +224,28 @@ if is_datastar_request(&headers) {
 
 ### Detail Pages
 
-Three shareable detail pages (`/brews/:id`, `/cups/:id`, `/bags/:id`) share layout and logic via extracted template macros and Rust helpers.
+Seven detail pages share layout via extracted template macros and Rust helpers:
+
+| Page | Route | Shared macros used |
+|------|-------|--------------------|
+| Bag | `/bags/{id}` | coffee_card, roaster_card, map_with_legend_2 |
+| Brew | `/brews/{id}` | coffee_card, roaster_card, map_with_legend_2 |
+| Cafe | `/cafes/{slug}` | map_with_legend_1 |
+| Cup | `/cups/{id}` | coffee_card, roaster_card, map_with_legend_3 |
+| Gear | `/gear/{id}` | (standalone layout) |
+| Roast | `/roasters/{roaster_slug}/roasts/{roast_slug}` | coffee_card, roaster_card, map_with_legend_2 |
+| Roaster | `/roasters/{slug}` | map_with_legend_1 |
 
 **Template macros** — `templates/partials/detail_cards.html` provides:
 
 | Macro | Parameters | Used by |
 |-------|-----------|---------|
-| `share_button()` | — | All detail pages |
-| `share_script()` | — | All detail pages |
-| `coffee_card(...)` | roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes | All detail pages |
-| `roaster_card(...)` | name, country, country_flag, city, homepage | All detail pages |
-| `map_with_legend_2(...)` | map_countries, map_max, label1, opacity1, label2, opacity2 | Brew, Bag |
+| `share_button()` | — | (defined, currently unused) |
+| `share_script()` | — | (defined, currently unused) |
+| `coffee_card(...)` | roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes | Bag, Brew, Cup, Roast |
+| `roaster_card(...)` | name, country, country_flag, city, homepage | Bag, Brew, Cup, Roast |
+| `map_with_legend_1(...)` | map_countries, map_max, label1, opacity1 | Cafe, Roaster |
+| `map_with_legend_2(...)` | map_countries, map_max, label1, opacity1, label2, opacity2 | Bag, Brew, Roast |
 | `map_with_legend_3(...)` | map_countries, map_max, label1-3, opacity1-3 | Cup |
 
 Detail page templates import with `{% import "partials/detail_cards.html" as detail %}` and call macros as `{{ detail::coffee_card(...) }}`.
@@ -234,11 +260,13 @@ Detail page templates import with `{% import "partials/detail_cards.html" as det
 
 Each `*DetailView::from_parts()` calls these helpers and flattens the results into its own struct (Askama needs direct field access).
 
-**Detail page layout** — all three follow the same grid structure:
-1. Header: page title + subtitle + share button
+**Detail page layout** — pages using the shared macros (Bag, Brew, Cup, Roast) follow the same grid structure:
+1. Header: page title + subtitle
 2. Row 1 (2-col): Coffee card + Map with legend
 3. Row 2 (2-col): Roaster card + page-specific card (Gear/Recipe for brew, Cafe for cup, Bag Info for bag)
 4. Actions card (authenticated, full-width): page-specific buttons (e.g., Close Bag + Delete on bag page)
+
+Cafe, Gear, and Roaster detail pages have simpler standalone layouts.
 
 **Route handlers** — each handler fetches the entity with related data (bag → roast → roaster), builds the `*DetailView`, and renders the template. Handlers live in `application/routes/app/{entity}.rs`.
 
@@ -468,6 +496,17 @@ Renders an inline SVG choropleth world map colored by country counts.
 | `data-selected` | ISO code of the currently selected country (optional) |
 
 Uses `requestAnimationFrame` to defer rendering until after Datastar morphing completes.
+
+**`<donut-chart>`** (`static/js/components/donut-chart.js`):
+
+Renders an SVG donut chart with a legend, colored proportionally using the `--highlight-rgb` CSS custom property.
+
+| Attribute | Purpose |
+|-----------|---------|
+| `data-items` | Pipe-separated `label:count` pairs (e.g. `V60:15\|Aeropress:8`) |
+| `data-icon` | Icon key displayed in the center (`"beaker"` or `"grinder"`) |
+
+Re-renders on theme change via `MutationObserver` on the `data-theme` attribute. Uses `requestAnimationFrame` to defer rendering.
 
 ### FlexiblePayload
 

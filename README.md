@@ -9,6 +9,11 @@ CLI client.
 - **CLI client** for terminal-based workflows
 - **AI extraction** — scan a coffee bag label or type a description to auto-fill forms (via [OpenRouter](https://openrouter.ai/))
 - **Nearby cafe search** powered by [Foursquare Places](https://docs.foursquare.com/developer/reference/place-search)
+- **Cafe check-in** — log a cup of coffee at a cafe
+- **Bag scanning** — photograph a coffee bag label to auto-create roaster, roast, and bag records
+- **Shareable detail pages** for roasters, roasts, bags, brews, cups, cafes, and gear
+- **Activity timeline** showing all logged events chronologically
+- **Stats dashboard** with brewing, consumption, and geographic analytics
 - **SQLite** database
 - **Passkey authentication** — no passwords, WebAuthn only
 
