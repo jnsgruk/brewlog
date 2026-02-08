@@ -53,18 +53,6 @@
       </div>
     </div>
 
-    <div id="register-success" class="mt-6 hidden">
-      <div class="rounded-md bg-green-100 border border-green-300 p-4 text-sm text-green-800">
-        <p class="font-semibold">Registration successful!</p>
-        <p class="mt-1">Passkey registered. Now signed in.</p>
-      </div>
-      <a
-        href="/"
-        class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"      >
-        {{ icons::check_circle("h-4 w-4") }}
-        Go to Brewlog
-      </a>
-    </div>
   </div>
 </div>
 
@@ -77,8 +65,6 @@
     const errorDiv = document.getElementById("register-error");
     const loadingDiv = document.getElementById("register-loading");
     const unsupportedDiv = document.getElementById("register-unsupported");
-    const formDiv = document.getElementById("register-form");
-    const successDiv = document.getElementById("register-success");
 
     // Check WebAuthn support
     if (!window.PublicKeyCredential) {
@@ -108,8 +94,7 @@
 
       try {
         await startPasskeyRegistration(token, displayName, passkeyName);
-        formDiv.classList.add("hidden");
-        successDiv.classList.remove("hidden");
+        window.location.href = "/";
       } catch (err) {
         errorDiv.textContent = err.message;
         errorDiv.classList.remove("hidden");
