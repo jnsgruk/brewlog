@@ -93,18 +93,18 @@ pub(crate) async fn add_page(
     }
     if let Some(ref gid) = query.grinder_id {
         if let Some(opt) = brew_form.grinder_options.iter().find(|o| o.id == *gid) {
-            defaults.grinder_name = opt.label.clone();
+            opt.label.clone_into(&mut defaults.grinder_name);
         }
-        defaults.grinder_id = gid.clone();
+        gid.clone_into(&mut defaults.grinder_id);
     }
     if let Some(gs) = query.grind_setting {
         defaults.grind_setting = gs;
     }
     if let Some(ref bid) = query.brewer_id {
         if let Some(opt) = brew_form.brewer_options.iter().find(|o| o.id == *bid) {
-            defaults.brewer_name = opt.label.clone();
+            opt.label.clone_into(&mut defaults.brewer_name);
         }
-        defaults.brewer_id = bid.clone();
+        bid.clone_into(&mut defaults.brewer_id);
     }
     if let Some(ref fpid) = query.filter_paper_id {
         if let Some(opt) = brew_form
@@ -112,9 +112,9 @@ pub(crate) async fn add_page(
             .iter()
             .find(|o| o.id == *fpid)
         {
-            defaults.filter_paper_name = opt.label.clone();
+            opt.label.clone_into(&mut defaults.filter_paper_name);
         }
-        defaults.filter_paper_id = fpid.clone();
+        fpid.clone_into(&mut defaults.filter_paper_id);
     }
     if let Some(wv) = query.water_volume {
         defaults.water_volume = wv;

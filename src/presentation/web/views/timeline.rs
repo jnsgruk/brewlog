@@ -166,8 +166,7 @@ impl TimelineEventView {
         let picks: &[&str] = match entity_type {
             "brew" => &["Roaster", "Brewer"],
             "roast" => &["Roaster", "Origin"],
-            "roaster" => &["City", "Country"],
-            "cafe" => &["City", "Country"],
+            "roaster" | "cafe" => &["City", "Country"],
             "cup" => &["Roaster", "Cafe"],
             _ => &[],
         };
