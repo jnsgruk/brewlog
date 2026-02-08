@@ -268,3 +268,11 @@ pub trait AiUsageRepository: Send + Sync {
     async fn insert(&self, usage: NewAiUsage) -> Result<AiUsage, RepositoryError>;
     async fn summary_for_user(&self, user_id: UserId) -> Result<AiUsageSummary, RepositoryError>;
 }
+
+#[async_trait]
+pub trait StatsRepository: Send + Sync {
+    async fn roaster_country_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
+    async fn roast_origin_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
+    async fn cup_country_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
+    async fn cafe_country_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError>;
+}

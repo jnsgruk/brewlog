@@ -8,7 +8,8 @@ use crate::application::services::{
 use crate::domain::repositories::{
     AiUsageRepository, BagRepository, BrewRepository, CafeRepository, CupRepository,
     GearRepository, PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository,
-    RoasterRepository, SessionRepository, TimelineEventRepository, TokenRepository, UserRepository,
+    RoasterRepository, SessionRepository, StatsRepository, TimelineEventRepository,
+    TokenRepository, UserRepository,
 };
 use crate::infrastructure::backup::BackupService;
 use crate::infrastructure::database::Database;
@@ -23,6 +24,7 @@ use crate::infrastructure::repositories::registration_tokens::SqlRegistrationTok
 use crate::infrastructure::repositories::roasters::SqlRoasterRepository;
 use crate::infrastructure::repositories::roasts::SqlRoastRepository;
 use crate::infrastructure::repositories::sessions::SqlSessionRepository;
+use crate::infrastructure::repositories::stats::SqlStatsRepository;
 use crate::infrastructure::repositories::timeline_events::SqlTimelineEventRepository;
 use crate::infrastructure::repositories::tokens::SqlTokenRepository;
 use crate::infrastructure::repositories::users::SqlUserRepository;
@@ -56,6 +58,7 @@ pub struct AppState {
     pub passkey_repo: Arc<dyn PasskeyCredentialRepository>,
     pub registration_token_repo: Arc<dyn RegistrationTokenRepository>,
     pub ai_usage_repo: Arc<dyn AiUsageRepository>,
+    pub stats_repo: Arc<dyn StatsRepository>,
     pub webauthn: Arc<Webauthn>,
     pub challenge_store: Arc<ChallengeStore>,
     pub http_client: reqwest::Client,
@@ -100,6 +103,7 @@ impl AppState {
             Arc::new(SqlRegistrationTokenRepository::new(pool.clone()));
         let ai_usage_repo: Arc<dyn AiUsageRepository> =
             Arc::new(SqlAiUsageRepository::new(pool.clone()));
+        let stats_repo: Arc<dyn StatsRepository> = Arc::new(SqlStatsRepository::new(pool.clone()));
 
         let backup_service = Arc::new(BackupService::new(pool));
 
@@ -136,6 +140,7 @@ impl AppState {
             passkey_repo,
             registration_token_repo,
             ai_usage_repo,
+            stats_repo,
             webauthn: config.webauthn,
             challenge_store: Arc::new(ChallengeStore::new()),
             #[allow(clippy::expect_used)]

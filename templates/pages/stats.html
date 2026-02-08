@@ -1,0 +1,15 @@
+{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Stats{% endblock %}
+{% block content %}
+<header class="flex flex-col gap-2">
+  <h1 class="text-3xl font-semibold">Stats</h1>
+  <p class="max-w-2xl text-sm text-text-secondary">Geographic overview of coffee data.</p>
+</header>
+
+<div class="flex flex-col gap-6">
+  {% include "partials/tab_bar.html" %}
+
+  <div id="stats-content">
+    {{ content|safe }}
+  </div>
+</div>
+{% endblock %}

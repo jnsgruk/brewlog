@@ -4,6 +4,7 @@ pub(super) mod auth;
 mod checkin;
 mod data;
 mod home;
+mod stats;
 mod timeline;
 mod webauthn;
 
@@ -25,6 +26,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/scan", get(scan_redirect))
         .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))
+        .route("/stats", get(stats::stats_page))
         .route("/styles.css", get(styles))
         .route("/webauthn.js", get(webauthn_js))
         .route("/components/photo-capture.js", get(photo_capture_js))
@@ -32,6 +34,7 @@ pub(super) fn router() -> axum::Router<AppState> {
             "/components/searchable-select.js",
             get(searchable_select_js),
         )
+        .route("/components/world-map.js", get(world_map_js))
         .route("/favicon-light.svg", get(favicon_light))
         .route("/favicon-dark.svg", get(favicon_dark))
 }
@@ -77,6 +80,16 @@ async fn searchable_select_js() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/js/components/searchable-select.js"),
+    )
+}
+
+async fn world_map_js() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_str!("../../../../static/js/components/world-map.js"),
     )
 }
 

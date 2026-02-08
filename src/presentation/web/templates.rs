@@ -175,6 +175,28 @@ pub struct AddTemplate {
     pub pre_select_bag_id: Option<String>,
 }
 
+#[derive(Template)]
+#[template(path = "pages/stats.html")]
+pub struct StatsPageTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub active_type: String,
+    pub tabs: Vec<Tab>,
+    pub tab_signal: &'static str,
+    pub tab_signal_js: &'static str,
+    pub tab_base_url: &'static str,
+    pub tab_fetch_target: &'static str,
+    pub tab_fetch_mode: &'static str,
+    pub content: String,
+}
+
+#[derive(Template)]
+#[template(path = "partials/stats_map.html")]
+pub struct StatsMapFragment<'a> {
+    pub geo_stats: &'a crate::domain::country_stats::GeoStats,
+}
+
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {
     template.render()
 }
