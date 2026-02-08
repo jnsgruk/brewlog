@@ -119,7 +119,7 @@ impl BrewWithDetails {
             },
             TimelineEventDetail {
                 label: "Coffee".to_string(),
-                value: format!("{:.1}g", self.brew.coffee_weight),
+                value: super::formatting::format_weight(self.brew.coffee_weight),
             },
             TimelineEventDetail {
                 label: "Water".to_string(),

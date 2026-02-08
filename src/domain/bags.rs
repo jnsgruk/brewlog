@@ -154,7 +154,7 @@ pub fn bag_timeline_event(
             },
             TimelineEventDetail {
                 label: "Amount".to_string(),
-                value: format!("{}g", bag.amount),
+                value: super::formatting::format_weight(bag.amount),
             },
         ],
         tasting_notes: vec![],

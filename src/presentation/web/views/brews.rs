@@ -1,6 +1,7 @@
 use std::fmt::Write;
 
 use crate::domain::brews::{BrewWithDetails, QuickNote, format_brew_time};
+use crate::domain::formatting::format_weight;
 
 use super::relative_date;
 
@@ -96,7 +97,7 @@ impl BrewView {
             roaster_name: brew.roaster_name,
             roast_slug: brew.roast_slug,
             roaster_slug: brew.roaster_slug,
-            coffee_weight: format!("{:.1}g", brew.brew.coffee_weight),
+            coffee_weight: format_weight(brew.brew.coffee_weight),
             grinder_id: brew.brew.grinder_id.into_inner(),
             grinder_model: brew
                 .grinder_name

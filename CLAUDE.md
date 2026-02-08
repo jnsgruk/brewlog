@@ -213,6 +213,19 @@ All macros have doc comments with usage examples. Check the source files for ful
 
 Use `QueryBuilder` for dynamic queries. For UPDATE, use `push_update_field!` (see macro docs). Each repository has an `order_clause()` method for sort query generation — use `order_clause` as the method name, not `sort_clause`.
 
+### Display Formatting
+
+`domain/formatting.rs` contains shared formatting helpers with unit tests. Always use these instead of ad-hoc `format!()` calls:
+
+| Function | Signature | Output examples |
+|----------|-----------|-----------------|
+| `format_relative_time` | `(dt: DateTime<Utc>, now: DateTime<Utc>) -> String` | "Just now", "5m ago", "Yesterday", "2w ago", "Mar 15" |
+| `format_weight` | `(grams: f64) -> String` | "15g", "15.5g", "250g", "1.0kg", "2.3kg" |
+
+**`format_relative_time`** — accepts an explicit `now` parameter for testability. Callers pass `Utc::now()` at the call site. Covers seconds through absolute dates, with title case ("Just now", "Yesterday").
+
+**`format_weight`** — displays grams up to 999g, switches to kg for 1000g+. Whole-gram values omit the decimal ("250g"), fractional values show one decimal ("15.5g"). Kilogram values always show one decimal ("1.5kg"). All weight values in the database are stored in grams.
+
 ### Error Handling & Logging
 
 **Error types**: `RepositoryError` (domain), `AppError` (HTTP with status code mapping), `anyhow::Result` (CLI).

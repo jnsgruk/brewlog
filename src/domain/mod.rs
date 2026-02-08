@@ -5,6 +5,7 @@ pub mod cafes;
 pub mod country_stats;
 pub mod cups;
 pub mod errors;
+pub mod formatting;
 pub mod gear;
 pub mod ids;
 pub mod listing;

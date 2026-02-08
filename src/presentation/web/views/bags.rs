@@ -1,4 +1,5 @@
 use crate::domain::bags::BagWithRoast;
+use crate::domain::formatting::format_weight;
 
 #[derive(Debug, Clone)]
 pub struct BagView {
@@ -30,8 +31,8 @@ impl BagView {
             id: bag.bag.id.to_string(),
             roast_id: bag.bag.roast_id.to_string(),
             roast_date: bag.bag.roast_date.map(|d| d.to_string()),
-            amount: format!("{:.1}", bag.bag.amount),
-            remaining: format!("{:.1}", bag.bag.remaining),
+            amount: format_weight(bag.bag.amount),
+            remaining: format_weight(bag.bag.remaining),
             closed: bag.bag.closed,
             finished_date: bag
                 .bag
@@ -59,7 +60,7 @@ pub struct BagOptionView {
 
 impl From<BagWithRoast> for BagOptionView {
     fn from(bag: BagWithRoast) -> Self {
-        let remaining = format!("{:.0}g", bag.bag.remaining);
+        let remaining = format_weight(bag.bag.remaining);
         Self {
             id: bag.bag.id.to_string(),
             label: format!(
