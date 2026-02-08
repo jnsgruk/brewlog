@@ -6,7 +6,16 @@ const WORLD_SVG = `
 customElements.define("world-map", class extends HTMLElement {
   static get observedAttributes() { return ["data-countries", "data-max", "data-selected"]; }
 
-  connectedCallback() { this._scheduleRender(); }
+  connectedCallback() {
+    this._scheduleRender();
+    this._themeObserver = new MutationObserver(() => requestAnimationFrame(() => this._recolor()));
+    this._themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  disconnectedCallback() {
+    this._themeObserver?.disconnect();
+    this._themeObserver = null;
+  }
 
   attributeChangedCallback(name) {
     if (!this.isConnected) return;
@@ -64,23 +73,29 @@ customElements.define("world-map", class extends HTMLElement {
     const counts = this._counts;
     const max = this._max;
 
+    const styles = getComputedStyle(document.documentElement);
+    const rgb = styles.getPropertyValue('--highlight-rgb').trim() || '185, 28, 28';
+    const borderColor = styles.getPropertyValue('--text-muted').trim() || '#9ca3af';
+    const surfaceAlt = styles.getPropertyValue('--surface-alt').trim() || '#f5f5f4';
+    const borderMuted = styles.getPropertyValue('--border').trim() || '#d6d3d1';
+
     const applyStyle = (el, fill) => {
       el.style.fill = fill;
-      el.style.stroke = "#9ca3af";
+      el.style.stroke = borderColor;
       el.style.strokeWidth = "0.3";
     };
 
     const colorFor = (code) => {
       const count = counts.get(code);
       if (selected) {
-        if (code === selected && count) return "rgba(185, 28, 28, 1)";
-        return count ? "#d6d3d1" : "#f5f5f4";
+        if (code === selected && count) return `rgba(${rgb}, 1)`;
+        return count ? borderMuted : surfaceAlt;
       }
       if (count) {
         const alpha = (0.15 + 0.85 * (count / max)).toFixed(2);
-        return `rgba(220, 38, 38, ${alpha})`;
+        return `rgba(${rgb}, ${alpha})`;
       }
-      return "#f5f5f4";
+      return surfaceAlt;
     };
 
     svg.querySelectorAll("path[id], g[id]").forEach((el) => {

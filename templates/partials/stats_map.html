@@ -31,9 +31,9 @@
           {% if !entry.flag_emoji.is_empty() %}
           <span>{{ entry.flag_emoji }}</span>
           {% endif %}
-          <span class="text-text whitespace-nowrap">{{ entry.country_name }}</span>
+          <span class="font-semibold text-highlight whitespace-nowrap">{{ entry.country_name }}</span>
         </span>
-        <span class="border-l py-1.5 pl-2 pr-3 font-medium text-text">{{ entry.count }}</span>
+        <span class="border-l py-1.5 pl-2 pr-3 font-semibold text-highlight">{{ entry.count }}</span>
       </button>
       {% else %}
       <div class="inline-flex shrink-0 snap-start items-center rounded-full border text-sm">
@@ -52,7 +52,5 @@
       {{ icons::chevron_right("h-4 w-4") }}
     </button>
   </chip-scroll>
-
-  <p class="text-xs text-text-muted">{{ geo_stats.total_countries }} {% if geo_stats.total_countries == 1 %}country{% else %}countries{% endif %}</p>
   {% endif %}
 </div>
