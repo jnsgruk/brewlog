@@ -5,9 +5,9 @@ use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use super::roasts::TastingNotesInput;
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::roasts::TastingNotesInput;
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
 use crate::application::state::AppState;
 use crate::domain::bags::NewBag;

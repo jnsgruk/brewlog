@@ -1,17 +1,10 @@
-pub mod ai_usage;
-pub mod bags;
-pub mod brews;
-pub mod cafes;
-pub mod cups;
-pub mod gear;
-mod macros;
+pub mod analytics;
+pub mod auth;
+pub mod coffee;
+pub(crate) mod macros;
 pub mod pagination;
-pub mod passkey_credentials;
-pub mod registration_tokens;
-pub mod roasters;
-pub mod roasts;
-pub mod sessions;
-pub mod stats;
-pub mod timeline_events;
-pub mod tokens;
-pub mod users;
+
+// Re-exports for backward compatibility
+pub use analytics::{ai_usage, stats, timeline_events};
+pub use auth::{passkey_credentials, registration_tokens, sessions, tokens, users};
+pub use coffee::{bags, brews, cafes, cups, gear, roasters, roasts};

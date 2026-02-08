@@ -4,13 +4,13 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, query_as};
 
-use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::GearId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::GearRepository;
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 #[derive(Clone)]
 pub struct SqlGearRepository {

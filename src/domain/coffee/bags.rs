@@ -1,8 +1,8 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::ids::{BagId, RoastId};
-use super::listing::{SortDirection, SortKey};
+use crate::domain::ids::{BagId, RoastId};
+use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
@@ -154,7 +154,7 @@ pub fn bag_timeline_event(
             },
             TimelineEventDetail {
                 label: "Amount".to_string(),
-                value: super::formatting::format_weight(bag.amount),
+                value: crate::domain::formatting::format_weight(bag.amount),
             },
         ],
         tasting_notes: vec![],

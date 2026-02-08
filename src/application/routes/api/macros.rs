@@ -169,7 +169,7 @@ macro_rules! define_list_fragment_renderer {
     };
 }
 
-pub(super) use define_delete_handler;
-pub(super) use define_enriched_get_handler;
-pub(super) use define_get_handler;
-pub(super) use define_list_fragment_renderer;
+pub(crate) use define_delete_handler;
+pub(crate) use define_enriched_get_handler;
+pub(crate) use define_get_handler;
+pub(crate) use define_list_fragment_renderer;

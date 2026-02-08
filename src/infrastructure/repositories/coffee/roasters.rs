@@ -2,13 +2,13 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, query, query_as};
 
-use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoasterRepository;
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 #[derive(Clone)]
 pub struct SqlRoasterRepository {

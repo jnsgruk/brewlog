@@ -1,0 +1,9 @@
+pub(crate) mod bags;
+pub(crate) mod brews;
+pub(crate) mod cafes;
+pub(crate) mod checkin;
+pub(crate) mod cups;
+pub(crate) mod gear;
+pub(crate) mod roasters;
+pub(crate) mod roasts;
+pub(crate) mod scan;

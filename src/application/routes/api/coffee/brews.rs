@@ -6,9 +6,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer};
 use tracing::info;
 
-use super::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 
 /// A single country's count for geographic statistics.
 #[derive(Debug, Clone, Serialize, Deserialize)]

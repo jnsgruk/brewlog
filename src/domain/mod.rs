@@ -1,24 +1,15 @@
-pub mod ai_usage;
-pub mod bags;
-pub mod brews;
-pub mod cafes;
+pub mod analytics;
+pub mod auth;
+pub mod coffee;
 pub mod countries;
-pub mod country_stats;
-pub mod cups;
 pub mod errors;
 pub mod formatting;
-pub mod gear;
 pub mod ids;
 pub mod listing;
-pub mod passkey_credentials;
-pub mod registration_tokens;
 pub mod repositories;
-pub mod roasters;
-pub mod roasts;
-pub mod sessions;
-pub mod stats;
-pub mod timeline;
-pub mod tokens;
-pub mod users;
 
+// Re-exports for backward compatibility
+pub use analytics::{ai_usage, country_stats, stats, timeline};
+pub use auth::{passkey_credentials, registration_tokens, sessions, tokens, users};
+pub use coffee::{bags, brews, cafes, cups, gear, roasters, roasts};
 pub use errors::RepositoryError;

@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::ids::{BagId, BrewId, GearId};
-use super::listing::{SortDirection, SortKey};
+use crate::domain::ids::{BagId, BrewId, GearId};
+use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -119,7 +119,7 @@ impl BrewWithDetails {
             },
             TimelineEventDetail {
                 label: "Coffee".to_string(),
-                value: super::formatting::format_weight(self.brew.coffee_weight),
+                value: crate::domain::formatting::format_weight(self.brew.coffee_weight),
             },
             TimelineEventDetail {
                 label: "Water".to_string(),

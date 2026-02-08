@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::ids::{CafeId, CupId, RoastId};
-use super::listing::{SortDirection, SortKey};
+use crate::domain::ids::{CafeId, CupId, RoastId};
+use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

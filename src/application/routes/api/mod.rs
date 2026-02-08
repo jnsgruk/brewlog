@@ -1,18 +1,14 @@
-pub(crate) mod admin;
-pub(crate) mod backup;
-pub(crate) mod bags;
-pub(crate) mod brews;
-pub(crate) mod cafes;
-pub(crate) mod checkin;
-pub(crate) mod cups;
-pub(crate) mod gear;
-mod macros;
-pub(crate) mod roasters;
-pub(crate) mod roasts;
-pub(crate) mod scan;
-pub(crate) mod stats;
-pub(crate) mod tokens;
-pub(crate) mod webauthn;
+pub(crate) mod analytics;
+pub(crate) mod auth;
+pub(crate) mod coffee;
+pub(crate) mod macros;
+pub(crate) mod system;
+
+// Re-exports for backward compatibility
+pub(crate) use analytics::stats;
+pub(crate) use auth::{tokens, webauthn};
+pub(crate) use coffee::{bags, brews, cafes, checkin, cups, gear, roasters, roasts, scan};
+pub(crate) use system::{admin, backup};
 
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};

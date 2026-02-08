@@ -2,13 +2,13 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{QueryBuilder, query, query_as};
 
-use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::CafeRepository;
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 #[derive(Clone)]
 pub struct SqlCafeRepository {

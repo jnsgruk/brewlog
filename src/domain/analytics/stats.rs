@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::country_stats::GeoStats;
+use crate::domain::country_stats::GeoStats;
 
 /// Summary statistics for roasts: origins, flavours, and roasters.
 #[derive(Debug, Clone, Serialize, Deserialize)]

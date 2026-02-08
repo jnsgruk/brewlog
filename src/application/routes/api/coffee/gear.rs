@@ -8,9 +8,11 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tracing::info;
 
-use super::macros::{define_delete_handler, define_get_handler, define_list_fragment_renderer};
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::macros::{
+    define_delete_handler, define_get_handler, define_list_fragment_renderer,
+};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
 };

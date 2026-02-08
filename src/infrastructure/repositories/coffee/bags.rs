@@ -2,13 +2,13 @@ use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
 use sqlx::{QueryBuilder, query_as};
 
-use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BagRepository;
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 const BASE_SELECT: &str = r"
     SELECT 

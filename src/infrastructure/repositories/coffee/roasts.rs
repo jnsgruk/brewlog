@@ -3,13 +3,13 @@ use chrono::{DateTime, Utc};
 use serde_json::{from_str, to_string};
 use sqlx::{Error as SqlxError, QueryBuilder, query, query_as};
 
-use super::macros::push_update_field;
 use crate::domain::RepositoryError;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::RoastRepository;
 use crate::domain::roasts::{NewRoast, Roast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 #[derive(Clone)]
 pub struct SqlRoastRepository {

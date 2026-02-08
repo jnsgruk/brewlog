@@ -3,8 +3,8 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::ids::GearId;
-use super::listing::{SortDirection, SortKey};
+use crate::domain::ids::GearId;
+use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
