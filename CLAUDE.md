@@ -362,6 +362,32 @@ Clicking the element opens the camera/file picker, reads the file as a data URL,
 
 Place `<button>` children with `value` and `data-display` attributes. The component handles search filtering, hidden input, and selected-value display internally.
 
+**`<chip-scroll>`** (`static/js/components/chip-scroll.js`):
+
+Wraps a horizontal scroll container with floating left/right chevron buttons on desktop. Buttons auto-show/hide based on scroll position and are hidden on mobile (`max-width: 767px`). Uses `ResizeObserver` and `MutationObserver` to update when content changes (including Datastar morphs).
+
+Required child structure:
+
+| Selector | Purpose |
+|----------|---------|
+| `[data-chip-scroll]` | The scrollable container |
+| `[data-scroll-left]` | Left chevron button |
+| `[data-scroll-right]` | Right chevron button |
+
+Scroll distance and button sizing are set in the template `onclick` handler, not the component — use `scrollBy({left: ±200})` for chips, `±220` for cards. For chips use `p-1` + `h-4 w-4` icons at `left-0`/`right-0`. For cards use `p-1.5` + `h-5 w-5` icons at `-left-4`/`-right-4` (half-overlapping the card edges).
+
+**`<world-map>`** (`static/js/components/world-map.js`):
+
+Renders an inline SVG choropleth world map colored by country counts.
+
+| Attribute | Purpose |
+|-----------|---------|
+| `data-countries` | Comma-separated `ISO:count` pairs (e.g. `ET:5,CO:3`) |
+| `data-max` | Maximum count value (for color scaling) |
+| `data-selected` | ISO code of the currently selected country (optional) |
+
+Uses `requestAnimationFrame` to defer rendering until after Datastar morphing completes.
+
 ### FlexiblePayload
 
 Handlers accept both JSON and form data via `FlexiblePayload<T>`. When form fields don't map 1:1 to the domain `New*` struct (e.g., a roaster name needing resolution to an ID), use a `*Submission` newtype that handles the conversion.

@@ -34,6 +34,7 @@ pub(super) fn router() -> axum::Router<AppState> {
             "/components/searchable-select.js",
             get(searchable_select_js),
         )
+        .route("/components/chip-scroll.js", get(chip_scroll_js))
         .route("/components/world-map.js", get(world_map_js))
         .route("/favicon-light.svg", get(favicon_light))
         .route("/favicon-dark.svg", get(favicon_dark))
@@ -80,6 +81,16 @@ async fn searchable_select_js() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/js/components/searchable-select.js"),
+    )
+}
+
+async fn chip_scroll_js() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_str!("../../../../static/js/components/chip-scroll.js"),
     )
 }
 
