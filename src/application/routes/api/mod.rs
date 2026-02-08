@@ -1,4 +1,4 @@
-pub(crate) mod account;
+pub(crate) mod admin;
 pub(crate) mod backup;
 pub(crate) mod bags;
 pub(crate) mod brews;
@@ -80,10 +80,10 @@ pub(super) fn router() -> axum::Router<AppState> {
             post(tokens::create_token).get(tokens::list_tokens),
         )
         .route("/tokens/{id}/revoke", post(tokens::revoke_token))
-        .route("/passkeys", get(account::list_passkeys))
+        .route("/passkeys", get(admin::list_passkeys))
         .route(
             "/passkeys/{id}",
-            axum::routing::delete(account::delete_passkey),
+            axum::routing::delete(admin::delete_passkey),
         )
         .route("/backup", get(backup::export_backup))
         .route(

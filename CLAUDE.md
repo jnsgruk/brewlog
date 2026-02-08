@@ -429,7 +429,7 @@ Main container from `base.html`: `mx-auto flex w-full max-w-5xl flex-col gap-8 p
 
 Cards use `rounded-lg border bg-surface` — no shadows. Padding varies by context:
 - `p-4` — compact cards (brew cards, bag cards, stat cards)
-- `p-5` — form sections, account sections, timeline cards
+- `p-5` — form sections, admin sections, timeline cards
 - `p-6` — auth pages (login, register)
 
 #### Typography
@@ -474,7 +474,7 @@ Entity-type icon mapping (consistent across all pages):
 | Size | Context |
 |------|---------|
 | `h-3 w-3` | Timeline card category labels (inline with `text-xs`) |
-| `h-4 w-4` | Buttons with text, tab buttons, account page actions, list action links, form indicator icons |
+| `h-4 w-4` | Buttons with text, tab buttons, admin page actions, list action links, form indicator icons |
 | `h-5 w-5` | Nav icons, quick action buttons, loading spinners, homepage activity rows, timeline expand/collapse chevrons |
 | `h-6 w-6` | Stat cards on homepage |
 

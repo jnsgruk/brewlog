@@ -186,7 +186,7 @@ async fn add_page_returns_200_when_authenticated() {
 }
 
 #[tokio::test]
-async fn account_page_redirects_unauthenticated_to_login() {
+async fn admin_page_redirects_unauthenticated_to_login() {
     let app = spawn_app().await;
     let client = reqwest::Client::builder()
         .redirect(Policy::none())
@@ -194,7 +194,7 @@ async fn account_page_redirects_unauthenticated_to_login() {
         .expect("Failed to build client");
 
     let response = client
-        .get(app.page_url("/account"))
+        .get(app.page_url("/admin"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -212,7 +212,7 @@ async fn account_page_redirects_unauthenticated_to_login() {
 }
 
 #[tokio::test]
-async fn account_page_returns_200_when_authenticated() {
+async fn admin_page_returns_200_when_authenticated() {
     let app = spawn_app_with_auth().await;
     let session_token = create_session(&app).await;
 
@@ -222,7 +222,7 @@ async fn account_page_returns_200_when_authenticated() {
         .expect("Failed to build client");
 
     let response = client
-        .get(app.page_url("/account"))
+        .get(app.page_url("/admin"))
         .header("Cookie", format!("brewlog_session={session_token}"))
         .send()
         .await

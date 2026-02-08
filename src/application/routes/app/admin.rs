@@ -65,8 +65,8 @@ fn format_date(dt: DateTime<Utc>) -> String {
 // --- Templates ---
 
 #[derive(Template)]
-#[template(path = "pages/account.html")]
-struct AccountTemplate {
+#[template(path = "pages/admin.html")]
+struct AdminTemplate {
     nav_active: &'static str,
     is_authenticated: bool,
     version_info: &'static crate::VersionInfo,
@@ -77,7 +77,7 @@ struct AccountTemplate {
 
 // --- Page handler ---
 
-pub(crate) async fn account_page(
+pub(crate) async fn admin_page(
     State(state): State<AppState>,
     cookies: Cookies,
 ) -> Result<Response, StatusCode> {
@@ -95,7 +95,7 @@ pub(crate) async fn account_page(
         .list_by_user(auth_user.id)
         .await
         .map_err(|err| {
-            error!(error = %err, "failed to list passkeys for account page");
+            error!(error = %err, "failed to list passkeys for admin page");
             StatusCode::INTERNAL_SERVER_ERROR
         })?
         .into_iter()
@@ -112,7 +112,7 @@ pub(crate) async fn account_page(
         .list_by_user(auth_user.id)
         .await
         .map_err(|err| {
-            error!(error = %err, "failed to list tokens for account page");
+            error!(error = %err, "failed to list tokens for admin page");
             StatusCode::INTERNAL_SERVER_ERROR
         })?
         .into_iter()
@@ -138,8 +138,8 @@ pub(crate) async fn account_page(
         cost: format_cost(s.total_cost),
     });
 
-    let template = AccountTemplate {
-        nav_active: "account",
+    let template = AdminTemplate {
+        nav_active: "admin",
         is_authenticated: true,
         version_info: &crate::VERSION_INFO,
         ai_usage,
@@ -167,7 +167,7 @@ async fn extract_user_from_session(
     {
         Ok(s) => s,
         Err(err) => {
-            warn!(error = %err, "session lookup failed on account page");
+            warn!(error = %err, "session lookup failed on admin page");
             return None;
         }
     };

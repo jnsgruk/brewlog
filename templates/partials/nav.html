@@ -13,7 +13,7 @@
                 <span class="theme-icon-dark hidden">{{ icons::sun("h-5 w-5") }}</span>
             </button>
             {% if is_authenticated %}
-            <a class="rounded-md p-1.5 transition {% if nav_active == "account" %}text-accent{% else %}text-text-muted hover:text-text-secondary{% endif %}" href="/account" title="Account" aria-label="Account">
+            <a class="rounded-md p-1.5 transition {% if nav_active == "admin" %}text-accent{% else %}text-text-muted hover:text-text-secondary{% endif %}" href="/admin" title="Admin" aria-label="Admin">
                 {{ icons::user("h-5 w-5") }}
             </a>
             {% else %}

@@ -1,5 +1,5 @@
-mod account;
 mod add;
+mod admin;
 pub(super) mod auth;
 mod checkin;
 mod data;
@@ -17,7 +17,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/", get(home::home_page))
         .route("/login", get(auth::login_page))
         .route("/logout", post(auth::logout))
-        .route("/account", get(account::account_page))
+        .route("/admin", get(admin::admin_page))
         .route("/register/{token}", get(webauthn::register_page))
         .route("/auth/cli-callback", get(webauthn::cli_callback_page))
         .route("/data", get(data::data_page))

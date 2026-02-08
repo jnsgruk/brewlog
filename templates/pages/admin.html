@@ -1,11 +1,11 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
-{% block title %}Brewlog · Account{% endblock %}
+{% block title %}Brewlog · Admin{% endblock %}
 {% block head %}
 <script src="/webauthn.js"></script>
 {% endblock %}
 {% block content %}
 <header class="flex flex-col gap-2">
-  <h1 class="text-3xl font-semibold">Account</h1>
+  <h1 class="text-3xl font-semibold">Admin</h1>
   <p class="max-w-2xl text-sm text-text-secondary">Manage your passkeys, API tokens, and data.</p>
 </header>
 
@@ -295,7 +295,7 @@
   <div class="flex flex-col gap-4">
     <div>
       <h2 class="text-lg font-semibold text-text">Sign Out</h2>
-      <p class="mt-1 text-sm text-text-secondary">Sign out of your account on this device.</p>
+      <p class="mt-1 text-sm text-text-secondary">Sign out on this device.</p>
     </div>
     <div>
       <form method="post" action="/logout">
