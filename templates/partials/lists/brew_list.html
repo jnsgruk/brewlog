@@ -22,7 +22,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No brews logged yet. Click the Add button to log your first brew.
+      No brews logged yet. Click Add to log the first brew.
       {% else %}
       No brews logged yet.
       {% endif %}
@@ -124,7 +124,7 @@
 
     {% if brews.items.is_empty() %}
     <div class="p-8 text-center text-text-muted">
-      No brews match your search.
+      No brews match the search.
     </div>
     {% endif %}
 

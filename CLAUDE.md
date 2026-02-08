@@ -693,6 +693,14 @@ Server-side via `q` query parameter. `ListQuery` extracts it, repos apply `LIKE`
 - Prefer `if`/`else` and `switch` over ternaries; never nest ternaries
 - **Inline `onclick` + global arrow functions** for pages with imperative JS — do not use `DOMContentLoaded` + `addEventListener`
 
+### Copy & UI Text
+
+- **No second-person pronouns** — never use "you", "your", "you're" in user-facing strings (templates, CLI output, error messages, docs). Use imperative tone or impersonal phrasing instead.
+  - "Browse all your coffee data" → "Browse all coffee data"
+  - "Lets you sign in" → "Enables sign-in"
+  - "Your browser does not support" → "This browser does not support"
+  - "you won't see it again" → "it will not be shown again"
+
 ### Naming & Conventions
 
 - **Method naming**: `order_clause()` for sort query builders (not `sort_clause`)

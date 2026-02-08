@@ -7,7 +7,7 @@ const locateUser = (triggerEl) => {
     root.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
 
   if (!navigator.geolocation) {
-    emit('location-error', { message: 'Geolocation not supported by your browser.' });
+    emit('location-error', { message: 'Geolocation not supported by this browser.' });
     return;
   }
 
@@ -48,7 +48,7 @@ const locateUser = (triggerEl) => {
     </button>
     <input type="text" data-bind:_city-name
       class="input-field w-full"
-      data-attr:placeholder="$_locationFound ? 'Using your location (' + $_userLat.toFixed(2) + ', ' + $_userLng.toFixed(2) + ')' : 'Name of city or area'"
+      data-attr:placeholder="$_locationFound ? 'Using current location (' + $_userLat.toFixed(2) + ', ' + $_userLng.toFixed(2) + ')' : 'Name of city or area'"
       data-attr:disabled="$_locationFound"
       data-on:input__debounce.350ms="$_cityName.length >= 2 && $_cafeSearch.length >= 2 && @get('/api/v1/nearby-cafes?near=' + encodeURIComponent($_cityName) + '&q=' + encodeURIComponent($_cafeSearch), {responseOverrides: {selector: '#nearby-results', mode: 'replace'}})"
     />

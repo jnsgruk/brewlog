@@ -8,7 +8,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No cups added yet. Click the Add button to add your first cup.
+      No cups added yet. Click Add to add the first cup.
       {% else %}
       No cups added yet.
       {% endif %}
@@ -93,7 +93,7 @@
       </table>
     </div>
     {% if cups.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No cups match your search.</div>
+    <div class="p-8 text-center text-text-muted">No cups match the search.</div>
     {% endif %}
     {{ table::pagination_header(cups, navigator, "#cup-list") }}
     {% if cups.has_next() %}

@@ -6,7 +6,7 @@
 {% block content %}
 <header class="flex flex-col gap-2">
   <h1 class="text-3xl font-semibold">Admin</h1>
-  <p class="max-w-2xl text-sm text-text-secondary">Manage your passkeys, API tokens, and data.</p>
+  <p class="max-w-2xl text-sm text-text-secondary">Manage passkeys, API tokens, and data.</p>
 </header>
 
 <!-- Passkeys -->
@@ -14,7 +14,7 @@
   <div class="flex flex-col gap-4">
     <div>
       <h2 class="text-lg font-semibold text-text">Passkeys</h2>
-      <p class="mt-1 text-sm text-text-secondary">Passkeys let you sign in securely without a password.</p>
+      <p class="mt-1 text-sm text-text-secondary">Passkeys enable secure sign-in without a password.</p>
     </div>
 
     <div class="flex flex-col gap-2">
@@ -45,7 +45,7 @@
     </div>
 
     {% if passkeys.len() <= 1 %}
-    <p class="text-xs text-text-muted">Add another passkey before removing your only one.</p>
+    <p class="text-xs text-text-muted">Add another passkey before removing the only one.</p>
     {% endif %}
 
     <!-- Add passkey form -->
@@ -81,7 +81,7 @@
       </div>
       <div id="add-passkey-loading" class="mt-3 hidden flex items-center gap-3 text-sm text-accent">
         {{ icons::spinner("h-5 w-5") }}
-        Follow the prompts from your browser or device...
+        Follow the prompts from the browser or device...
       </div>
     </div>
 
@@ -195,7 +195,7 @@
       >
         {{ icons::x_mark("h-4 w-4") }}
       </button>
-      <p class="pr-6 text-sm font-medium text-green-800 dark:text-green-300">Token created! Copy it now — you won't see it again.</p>
+      <p class="pr-6 text-sm font-medium text-green-800 dark:text-green-300">Token created! Copy it now — it will not be shown again.</p>
       <div class="mt-3 flex items-center gap-2">
         <code id="token-value" data-text="$_tokenValue"
           class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 dark:border-green-800 break-all select-all"></code>
@@ -402,7 +402,7 @@
       return;
     }
 
-    if (!confirm("Are you sure? All coffee data will be permanently deleted.")) {
+    if (!confirm("Confirm? All coffee data will be permanently deleted.")) {
       return;
     }
 
@@ -434,7 +434,7 @@
       if (response.ok) {
         window.location.reload();
       } else if (response.status === 409) {
-        alert("Cannot delete your only passkey. Add another passkey first.");
+        alert("Cannot delete the only passkey. Add another passkey first.");
       } else {
         alert("Failed to delete passkey.");
       }

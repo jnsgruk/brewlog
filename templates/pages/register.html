@@ -8,13 +8,13 @@
   <div class="rounded-lg border bg-surface p-6">
     <h1 class="text-2xl font-semibold text-accent">Register</h1>
     <p class="mt-2 text-sm text-text-secondary">
-      Create your account by registering a passkey. This will be used to sign in going forward.
+      Create an account by registering a passkey. This will be used to sign in going forward.
     </p>
 
     <div id="register-error" class="mt-4 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"></div>
 
     <div id="register-unsupported" class="mt-4 hidden rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800">
-      Your browser does not support passkeys. Please use a modern browser (Chrome, Firefox, Safari, or Edge).
+      This browser does not support passkeys. Please use a modern browser (Chrome, Firefox, Safari, or Edge).
     </div>
 
     <div id="register-form" class="mt-6 flex flex-col gap-4">
@@ -26,7 +26,7 @@
           required
           autofocus
           class="input-field"
-          placeholder="Your name"
+          placeholder="Display name"
         />
       </label>
 
@@ -49,14 +49,14 @@
       </button>
 
       <div id="register-loading" class="mt-2 hidden text-center text-sm text-text-muted">
-        <p>Follow the prompts from your browser or device...</p>
+        <p>Follow the prompts from the browser or device...</p>
       </div>
     </div>
 
     <div id="register-success" class="mt-6 hidden">
       <div class="rounded-md bg-green-100 border border-green-300 p-4 text-sm text-green-800">
         <p class="font-semibold">Registration successful!</p>
-        <p class="mt-1">Your passkey has been registered and you are now signed in.</p>
+        <p class="mt-1">Passkey registered. Now signed in.</p>
       </div>
       <a
         href="/"

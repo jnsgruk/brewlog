@@ -87,14 +87,14 @@ async fn run_server(command: ServeCommand) -> Result<()> {
     let openrouter_api_key = command.openrouter_api_key.ok_or_else(|| {
         anyhow::anyhow!(
             "BREWLOG_OPENROUTER_API_KEY is required. Set this environment variable \
-             to your OpenRouter API key for AI-powered extraction features."
+             to an OpenRouter API key for AI-powered extraction features."
         )
     })?;
 
     let foursquare_api_key = command.foursquare_api_key.ok_or_else(|| {
         anyhow::anyhow!(
             "BREWLOG_FOURSQUARE_API_KEY is required. Set this environment variable \
-             to your Foursquare API key for nearby cafe search."
+             to a Foursquare API key for nearby cafe search."
         )
     })?;
 

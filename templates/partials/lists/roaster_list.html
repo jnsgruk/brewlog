@@ -8,7 +8,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No roasters added yet. Click the Add button to create your first roaster.
+      No roasters added yet. Click Add to create the first roaster.
       {% else %}
       No roasters added yet.
       {% endif %}
@@ -110,7 +110,7 @@
       </table>
     </div>
     {% if roasters.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No roasters match your search.</div>
+    <div class="p-8 text-center text-text-muted">No roasters match the search.</div>
     {% endif %}
     {{ table::pagination_header(roasters, navigator, "#roaster-list") }}
     {% if roasters.has_next() %}

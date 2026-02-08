@@ -102,7 +102,7 @@ pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Re
     println!("Token Name: {}", cmd.name);
     println!("\nSave this token securely - it will not be shown again:");
     println!("\n{token}");
-    println!("\nExport it in your environment:");
+    println!("\nExport it as an environment variable:");
     println!("  export BREWLOG_TOKEN={token}");
 
     Ok(())
@@ -159,7 +159,7 @@ async fn run_callback_server(
                     let _ = sender.send(token);
                 }
 
-                Html("<html><body><h1>Authenticated</h1><p>You can close this window and return to the terminal.</p></body></html>".to_string())
+                Html("<html><body><h1>Authenticated</h1><p>This window can be closed. Return to the terminal.</p></body></html>".to_string())
             }
         }),
     );

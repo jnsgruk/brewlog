@@ -8,7 +8,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No cafes added yet. Click the Add button to add your first cafe.
+      No cafes added yet. Click Add to add the first cafe.
       {% else %}
       No cafes added yet.
       {% endif %}
@@ -110,7 +110,7 @@
       </table>
     </div>
     {% if cafes.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No cafes match your search.</div>
+    <div class="p-8 text-center text-text-muted">No cafes match the search.</div>
     {% endif %}
     {{ table::pagination_header(cafes, navigator, "#cafe-list") }}
     {% if cafes.has_next() %}

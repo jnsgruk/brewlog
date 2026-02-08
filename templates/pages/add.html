@@ -266,8 +266,8 @@
     </div>
     {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
     <div class="text-sm text-text-secondary">
-      <h3 class="text-lg font-semibold text-text">Add your gear first</h3>
-      <p class="mt-2">Brews need a grinder and brewer. Add your gear to enable this form.</p>
+      <h3 class="text-lg font-semibold text-text">Add gear first</h3>
+      <p class="mt-2">Brews need a grinder and brewer. Add gear to enable this form.</p>
     </div>
     {% else %}
     <div>
@@ -449,7 +449,7 @@
   <div data-show="$_addType === 'gear'" style="display:none" class="rounded-lg border bg-surface p-5">
     <div>
       <h3 class="text-lg font-semibold text-text">New Gear</h3>
-      <p class="mt-1 text-sm text-text-secondary">Add brewing equipment to your collection.</p>
+      <p class="mt-1 text-sm text-text-secondary">Add brewing equipment.</p>
     </div>
     <form method="post" action="/api/v1/gear" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-3">
@@ -550,7 +550,7 @@
     {% else %}
     <div>
       <h3 class="text-lg font-semibold text-text">New Cup</h3>
-      <p class="mt-1 text-sm text-text-secondary">Record a coffee you had at a cafe.</p>
+      <p class="mt-1 text-sm text-text-secondary">Record a coffee from a cafe visit.</p>
     </div>
     <form method="post" action="/api/v1/cups" class="mt-4 flex flex-col gap-4">
       <div class="grid gap-4 sm:grid-cols-2">

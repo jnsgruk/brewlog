@@ -8,7 +8,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No gear added yet. Click the Add button to add your first piece of equipment.
+      No gear added yet. Click Add to add the first piece of equipment.
       {% else %}
       No gear added yet.
       {% endif %}
@@ -90,7 +90,7 @@
       </table>
     </div>
     {% if gear.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No gear matches your search.</div>
+    <div class="p-8 text-center text-text-muted">No gear matches the search.</div>
     {% endif %}
     {{ table::pagination_header(gear, navigator, "#gear-list") }}
     {% if gear.has_next() %}

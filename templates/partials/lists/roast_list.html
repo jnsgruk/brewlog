@@ -8,7 +8,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No roasts added yet. Click the Add button to create your first roast.
+      No roasts added yet. Click Add to create the first roast.
       {% else %}
       No roasts added yet.
       {% endif %}
@@ -111,7 +111,7 @@
       </table>
     </div>
     {% if roasts.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No roasts match your search.</div>
+    <div class="p-8 text-center text-text-muted">No roasts match the search.</div>
     {% endif %}
     {{ table::pagination_header(roasts, navigator, "#roast-list") }}
     {% if roasts.has_next() %}

@@ -46,8 +46,8 @@ No users found. Register the first user at:
 This link expires in 1 hour.
 ```
 
-Open that URL, choose a display name, and register a passkey. This creates your account and
-signs you in.
+Open that URL, choose a display name, and register a passkey. This creates an account and
+signs in automatically.
 
 ### CLI Authentication
 
@@ -55,12 +55,12 @@ To use the CLI or API for write operations, create a token via browser handoff:
 
 ```bash
 brewlog token create --name "my-cli-token"
-# Browser opens → authenticate with your passkey → token printed once
+# Browser opens → authenticate with a passkey → token printed once
 
 export BREWLOG_URL="http://localhost:3000"
 export BREWLOG_TOKEN="<token from above>"
 
-# Now you can create data from the CLI
+# Create data from the CLI
 brewlog roaster add --name "Radical Roasters" --country "United Kingdom"
 ```
 
@@ -75,7 +75,7 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 
 | Variable                 | Purpose                                                | Default               |
 | ------------------------ | ------------------------------------------------------ | --------------------- |
-| `BREWLOG_RP_ID`          | WebAuthn Relying Party ID (your domain)                | **required**          |
+| `BREWLOG_RP_ID`          | WebAuthn Relying Party ID (server domain)                | **required**          |
 | `BREWLOG_RP_ORIGIN`      | WebAuthn Relying Party origin (full URL)               | **required**          |
 | `BREWLOG_DATABASE_URL`   | Database connection string                             | `sqlite://brewlog.db` |
 | `BREWLOG_BIND_ADDRESS`   | Server bind address                                    | `127.0.0.1:3000`      |

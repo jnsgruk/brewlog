@@ -8,7 +8,7 @@
   >
     <p class="text-center">
       {% if is_authenticated %}
-      No bags added yet. Click the Add button to create your first bag.
+      No bags added yet. Click Add to create the first bag.
       {% else %}
       No bags added yet.
       {% endif %}
@@ -135,7 +135,7 @@
       </table>
     </div>
     {% if bags.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No bags match your search.</div>
+    <div class="p-8 text-center text-text-muted">No bags match the search.</div>
     {% endif %}
     {{ table::pagination_header(bags, navigator, "#bag-list") }}
     {% if bags.has_next() %}
