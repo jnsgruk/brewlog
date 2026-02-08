@@ -14,11 +14,12 @@
     </div>
   </div>
   {% if is_authenticated %}
-  <div class="mt-3 flex items-center gap-2">
+  <div class="@container mt-3 flex items-center gap-2">
     <a href="/add?type=brew&bag_id={{ bag.id }}"
+      title="Brew"
       class="flex-1 inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt">
       {{ icons::beaker("h-4 w-4") }}
-      Brew
+      <span class="hidden @[10rem]:inline">Brew</span>
     </a>
     <button
       type="button"
@@ -27,7 +28,7 @@
       onclick="closeBag('{{ bag.id }}', document.getElementById('bag-card-{{ bag.id }}'))"
     >
       {{ icons::x_mark("h-4 w-4") }}
-      Close
+      <span class="hidden @[10rem]:inline">Close</span>
     </button>
   </div>
   {% endif %}
