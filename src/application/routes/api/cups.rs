@@ -52,7 +52,7 @@ pub(crate) async fn create_cup(
     Query(query): Query<ListQuery>,
     payload: FlexiblePayload<NewCup>,
 ) -> Result<Response, ApiError> {
-    let (request, search) = query.into_request_and_search::<CupSortKey>();
+    let (_request, _search) = query.into_request_and_search::<CupSortKey>();
     let (new_cup, source) = payload.into_parts();
 
     let cup = state
@@ -64,14 +64,21 @@ pub(crate) async fn create_cup(
     info!(cup_id = %cup.id, "cup created");
     state.stats_invalidator.invalidate();
 
+    let detail_url = format!("/cups/{}", cup.id);
+
     if is_datastar_request(&headers) {
-        render_cup_list_fragment(state, request, search, true)
-            .await
-            .map_err(ApiError::from)
+        use axum::http::header::HeaderValue;
+        let script = format!("<script>window.location.href='{detail_url}'</script>");
+        let mut response = axum::response::Html(script).into_response();
+        response
+            .headers_mut()
+            .insert("datastar-selector", HeaderValue::from_static("body"));
+        response
+            .headers_mut()
+            .insert("datastar-mode", HeaderValue::from_static("append"));
+        Ok(response)
     } else if matches!(source, PayloadSource::Form) {
-        let target =
-            ListNavigator::new(CUP_PAGE_PATH, CUP_FRAGMENT_PATH, request, search).page_href(1);
-        Ok(Redirect::to(&target).into_response())
+        Ok(Redirect::to(&detail_url).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(cup)).into_response())
     }

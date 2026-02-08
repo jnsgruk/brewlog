@@ -304,7 +304,7 @@ block title %}Brewlog · Check In{% endblock %} {% block head %}
 
       <form
         data-on:submit="$_submitting = true; $_error = ''; @post('/api/v1/check-in', {contentType: 'form'})"
-        data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'finished') { window.location.href = '/' } else if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
+        data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
       >
         <input type="hidden" name="cafe_id" data-attr:value="$_cafeId" />
         <input type="hidden" name="cafe_name" data-attr:value="$_cafeName" />

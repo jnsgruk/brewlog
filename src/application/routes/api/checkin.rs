@@ -89,10 +89,21 @@ pub(crate) async fn submit_checkin(
         .await
         .map_err(AppError::from)?;
 
+    let detail_url = format!("/cups/{}", cup.id);
+
     if is_datastar_request(&headers) {
-        crate::application::routes::support::render_signals_json(&[]).map_err(ApiError::from)
+        use axum::http::header::HeaderValue;
+        let script = format!("<script>window.location.href='{detail_url}'</script>");
+        let mut response = axum::response::Html(script).into_response();
+        response
+            .headers_mut()
+            .insert("datastar-selector", HeaderValue::from_static("body"));
+        response
+            .headers_mut()
+            .insert("datastar-mode", HeaderValue::from_static("append"));
+        Ok(response)
     } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to("/").into_response())
+        Ok(Redirect::to(&detail_url).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(cup)).into_response())
     }

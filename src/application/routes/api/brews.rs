@@ -254,9 +254,11 @@ pub(crate) async fn create_brew(
     info!(brew_id = %enriched.brew.id, "brew created");
     state.stats_invalidator.invalidate();
 
+    let detail_url = format!("/brews/{}", enriched.brew.id);
+
     if is_datastar_request(&headers) {
         // If the request came from a page that has #brew-list, return the updated fragment.
-        // Otherwise (homepage, timeline, etc.), trigger a page reload instead.
+        // Otherwise (homepage, add page, etc.), redirect to the brew detail page.
         let from_brew_page = headers
             .get("referer")
             .and_then(|v| v.to_str().ok())
@@ -268,8 +270,8 @@ pub(crate) async fn create_brew(
                 .map_err(ApiError::from)
         } else {
             use axum::http::header::HeaderValue;
-            let mut response =
-                axum::response::Html("<script>window.location.reload()</script>").into_response();
+            let script = format!("<script>window.location.href='{detail_url}'</script>");
+            let mut response = axum::response::Html(script).into_response();
             response
                 .headers_mut()
                 .insert("datastar-selector", HeaderValue::from_static("body"));
@@ -279,7 +281,7 @@ pub(crate) async fn create_brew(
             Ok(response)
         }
     } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to("/").into_response())
+        Ok(Redirect::to(&detail_url).into_response())
     } else {
         Ok((StatusCode::CREATED, Json(enriched)).into_response())
     }
