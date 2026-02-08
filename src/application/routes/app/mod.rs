@@ -1,6 +1,7 @@
 mod add;
 mod admin;
 pub(super) mod auth;
+mod bags;
 mod brews;
 mod checkin;
 mod cups;
@@ -29,6 +30,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/check-in", get(checkin::checkin_page))
         .route("/timeline", get(timeline::timeline_page))
         .route("/stats", get(stats::stats_page))
+        .route("/bags/{id}", get(bags::bag_detail_page))
         .route("/brews/{id}", get(brews::brew_detail_page))
         .route("/cups/{id}", get(cups::cup_detail_page))
         .route("/styles.css", get(styles))

@@ -8,7 +8,7 @@ mod roasts;
 pub mod tasting_notes;
 mod timeline;
 
-pub use bags::{BagOptionView, BagView};
+pub use bags::{BagDetailView, BagOptionView, BagView};
 pub use brews::{BrewDefaultsView, BrewDetailView, BrewView, QuickNoteView};
 pub use cafes::{CafeOptionView, CafeView, NearbyCafeView};
 pub use cups::{CupDetailView, CupView};
@@ -358,6 +358,88 @@ fn page_size_from_text(value: &str) -> PageSize {
         PageSize::limited(parsed)
     } else {
         PageSize::limited(DEFAULT_PAGE_SIZE)
+    }
+}
+
+/// Shared coffee info fields extracted from a `Roast` for detail pages.
+pub(crate) struct CoffeeInfo {
+    pub origin: String,
+    pub origin_flag: String,
+    pub region: String,
+    pub producer: String,
+    pub process: String,
+    pub tasting_notes: Vec<tasting_notes::TastingNoteView>,
+}
+
+/// Build coffee info fields from a roast, using em dash for empty/missing values.
+pub(crate) fn build_coffee_info(roast: &crate::domain::roasts::Roast) -> CoffeeInfo {
+    use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+
+    let em_dash = "\u{2014}".to_string();
+    let origin = roast.origin.clone().unwrap_or_default();
+    let origin_flag = country_to_iso(&origin)
+        .map(iso_to_flag_emoji)
+        .unwrap_or_default();
+
+    let notes = roast
+        .tasting_notes
+        .iter()
+        .flat_map(|note| {
+            note.split([',', '\n'])
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<_>>()
+        })
+        .map(|n| tasting_notes::categorize(&n))
+        .collect();
+
+    CoffeeInfo {
+        origin: if origin.is_empty() {
+            em_dash.clone()
+        } else {
+            origin
+        },
+        origin_flag,
+        region: roast
+            .region
+            .clone()
+            .filter(|s| !s.is_empty())
+            .unwrap_or(em_dash.clone()),
+        producer: roast
+            .producer
+            .clone()
+            .filter(|s| !s.is_empty())
+            .unwrap_or(em_dash.clone()),
+        process: roast
+            .process
+            .clone()
+            .filter(|s| !s.is_empty())
+            .unwrap_or(em_dash),
+        tasting_notes: notes,
+    }
+}
+
+/// Shared roaster info fields extracted from a `Roaster` for detail pages.
+pub(crate) struct RoasterInfo {
+    pub country: String,
+    pub country_flag: String,
+    pub city: Option<String>,
+    pub homepage: Option<String>,
+}
+
+/// Build roaster info fields from a roaster.
+pub(crate) fn build_roaster_info(roaster: &crate::domain::roasters::Roaster) -> RoasterInfo {
+    use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+
+    let country_flag = country_to_iso(&roaster.country)
+        .map(iso_to_flag_emoji)
+        .unwrap_or_default();
+
+    RoasterInfo {
+        country: roaster.country.clone(),
+        country_flag,
+        city: roaster.city.clone(),
+        homepage: roaster.homepage.clone(),
     }
 }
 

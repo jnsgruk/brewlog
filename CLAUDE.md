@@ -146,7 +146,7 @@ Social media preview cards are powered by Open Graph and Twitter Card meta tags 
 
 **Base URL** — `BREWLOG_RP_ORIGIN` is stored at startup via `set_base_url()` in `lib.rs` (a `OnceLock<String>`). Templates access it through the `base_url` field on their template struct, set with `crate::base_url()` in the handler.
 
-**`og:image`** — a static 1200x630 PNG (`static/og-image.png`) served at `/og-image.png` via `include_bytes!()`. Only public shareable pages (home, brew detail, cup detail, stats) include it via `{% block head %}`, since those are the pages social crawlers can access.
+**`og:image`** — a static 1200x630 PNG (`static/og-image.png`) served at `/og-image.png` via `include_bytes!()`. Only public shareable pages (home, bag detail, brew detail, cup detail, stats) include it via `{% block head %}`, since those are the pages social crawlers can access.
 
 **Adding OG tags to a new page:**
 1. Add `pub base_url: &'static str` to the template struct
@@ -206,6 +206,41 @@ if is_datastar_request(&headers) {
     Json(entity)           // API → JSON
 }
 ```
+
+### Detail Pages
+
+Three shareable detail pages (`/brews/:id`, `/cups/:id`, `/bags/:id`) share layout and logic via extracted template macros and Rust helpers.
+
+**Template macros** — `templates/partials/detail_cards.html` provides:
+
+| Macro | Parameters | Used by |
+|-------|-----------|---------|
+| `share_button()` | — | All detail pages |
+| `share_script()` | — | All detail pages |
+| `coffee_card(...)` | roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes | All detail pages |
+| `roaster_card(...)` | name, country, country_flag, city, homepage | All detail pages |
+| `map_with_legend_2(...)` | map_countries, map_max, label1, opacity1, label2, opacity2 | Brew, Bag |
+| `map_with_legend_3(...)` | map_countries, map_max, label1-3, opacity1-3 | Cup |
+
+Detail page templates import with `{% import "partials/detail_cards.html" as detail %}` and call macros as `{{ detail::coffee_card(...) }}`.
+
+**View model helpers** — `presentation/web/views/mod.rs` provides:
+
+| Helper | Input | Purpose |
+|--------|-------|---------|
+| `build_coffee_info(roast)` | `&Roast` | Extracts origin, flag, region, producer, process, tasting notes |
+| `build_roaster_info(roaster)` | `&Roaster` | Extracts country, flag, city, homepage |
+| `build_map_data(entries)` | `&[(&str, u32)]` | Builds `data-countries` + `data-max` for `<world-map>` |
+
+Each `*DetailView::from_parts()` calls these helpers and flattens the results into its own struct (Askama needs direct field access).
+
+**Detail page layout** — all three follow the same grid structure:
+1. Header: page title + subtitle + share button
+2. Row 1 (2-col): Coffee card + Map with legend
+3. Row 2 (2-col): Roaster card + page-specific card (Gear/Recipe for brew, Cafe for cup, Bag Info for bag)
+4. Actions card (authenticated, full-width): page-specific buttons (e.g., Close Bag + Delete on bag page)
+
+**Route handlers** — each handler fetches the entity with related data (bag → roast → roaster), builds the `*DetailView`, and renders the template. Handlers live in `application/routes/app/{entity}.rs`.
 
 ### Macros Reference
 
@@ -504,6 +539,8 @@ Cards use `rounded-lg border bg-surface` — no shadows. Padding varies by conte
 - `p-5` — form sections, admin sections, timeline cards
 - `p-6` — auth pages (login, register)
 
+**Clickable cards** (homepage cards, bag cards, brew cards, stats/data links) use `hover:border-accent/40` for hover state — never `hover:bg-surface-alt`. When a clickable card contains action buttons, wrap the buttons in `<div class="relative z-10">` and use `event.preventDefault()` on clicks to prevent the card link from firing.
+
 #### Typography
 
 | Level | Classes | Use |
@@ -563,7 +600,7 @@ When an icon appears alongside text in a button or label, use `inline-flex items
 |---------|---------|-----|
 | Primary | `inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover` | Form submits (Save, Log Brew, Check In), New Backup |
 | Outlined | `inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-surface-alt` | Bordered secondary actions. Colour variants: `text-text` for Cancel/Back, `text-accent hover:text-text` for actions (Restore, Reset, Sign Out, Delete, Revoke) |
-| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium transition hover:bg-surface-alt` | Compact inline card buttons. Colour variants: `text-accent hover:text-accent-hover` for positive actions (Brew), `text-text-muted hover:text-text` for neutral (Close Bag) |
+| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt` | Compact inline card buttons (e.g., Brew on bag card) |
 | Link | `inline-flex items-center gap-1 text-sm font-medium` | Borderless inline actions. Colour variants: `text-accent hover:text-accent-hover` for actions (View all, Brew Again, Homepage), `text-text-muted hover:text-red-600` for destructive (Delete) |
 | Text-only | `text-xs text-text-muted hover:text-text` | Minimal buttons: Change, Back in summary bars |
 | Nav icon | `rounded-md p-1.5 text-text-muted transition hover:text-text-secondary` | Theme toggle, user menu |

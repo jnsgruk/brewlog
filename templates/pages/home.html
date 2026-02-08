@@ -1,30 +1,7 @@
 {% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import
 "partials/brew_card.html" as brew_card %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog{% endblock %} {% block head %}
 <meta property="og:image" content="{{ base_url }}/og-image.png" />
-{% if is_authenticated %}
-<script>
-  const closeBag = async (bagId, cardEl) => {
-    if (!confirm("Close this bag? This will mark it as finished.")) return
-    try {
-      const today = new Date().toISOString().split("T")[0]
-      const resp = await fetch(`/api/v1/bags/${bagId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ closed: true, remaining: 0.0, finished_at: today }),
-      })
-      if (!resp.ok) throw new Error(`Server returned ${resp.status}`)
-      cardEl.remove()
-      const grid = document.getElementById("open-bags-grid")
-      if (grid && grid.children.length === 0) {
-        document.getElementById("open-bags-section")?.remove()
-      }
-    } catch (e) {
-      alert(`Failed to close bag: ${e.message}`)
-    }
-  }
-</script>
-{% endif %} {% endblock %} {% block content %}
+{% endblock %} {% block content %}
 <!-- Scan Bag -->
 {% if is_authenticated %}
 <section
@@ -57,14 +34,14 @@
         data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
         class="hidden"></form>
       <brew-photo-capture target-input="scan-image" target-form="scan-extract-form"
-        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border px-4 py-3 text-accent transition hover:bg-surface-alt cursor-pointer"
+        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40 cursor-pointer"
         aria-label="Scan Bag"
       >
         {{ icons::camera("h-5 w-5") }}
         <span class="text-sm font-medium">Scan</span>
       </brew-photo-capture>
       <a href="/check-in"
-        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border px-4 py-3 text-accent transition hover:bg-surface-alt"
+        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40"
         title="Check in at a cafe"
         aria-label="Check in at a cafe"
       >
@@ -72,7 +49,7 @@
         <span class="text-sm font-medium">Check In</span>
       </a>
       <a href="/add"
-        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border px-4 py-3 text-accent transition hover:bg-surface-alt"
+        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40"
         title="Add manually"
         aria-label="Add manually"
       >
@@ -276,7 +253,7 @@
     </button>
     <div class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-x-auto scroll-smooth scrollbar-hide" data-chip-scroll>
     {% for card in stat_cards %}
-    <a href="/stats" class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt">
+    <a href="/stats" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40">
       {% if card.icon == "coffee_bean" %}{{ icons::coffee_bean("h-6 w-6 text-accent") }}{% else if card.icon == "beaker" %}{{ icons::beaker("h-6 w-6 text-accent") }}{% else if card.icon == "map" %}{{ icons::map("h-6 w-6 text-accent") }}{% else if card.icon == "location" %}{{ icons::location("h-6 w-6 text-accent") }}{% else if card.icon == "fire" %}{{ icons::fire("h-6 w-6 text-accent") }}{% endif %}
       <span class="text-lg font-bold text-text whitespace-nowrap">{{ card.value }}</span>
       <span class="text-sm font-medium text-accent">{{ card.label }}</span>
@@ -294,7 +271,7 @@
   <div class="relative">
     <div class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
       {% for _ in 0..6 %}
-      <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
         <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
         <div class="h-5 w-16 rounded bg-surface-alt"></div>
         <div class="h-4 w-20 rounded bg-surface-alt"></div>
@@ -327,7 +304,7 @@
     <div class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-x-auto scroll-smooth scrollbar-hide" data-chip-scroll>
     <a
       href="/data?type=brews"
-      class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
     >
       {{ icons::beaker("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.brews }}</span>
@@ -335,7 +312,7 @@
     </a>
     <a
       href="/data?type=roasts"
-      class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
     >
       {{ icons::coffee_bean("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.roasts }}</span>
@@ -343,7 +320,7 @@
     </a>
     <a
       href="/data?type=roasters"
-      class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
     >
       {{ icons::fire("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.roasters }}</span>
@@ -351,7 +328,7 @@
     </a>
     <a
       href="/data?type=bags"
-      class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
     >
       {{ icons::bag("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.bags }}</span>
@@ -359,7 +336,7 @@
     </a>
     <a
       href="/data?type=cups"
-      class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
     >
       {{ icons::cup("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.cups }}</span>
@@ -367,7 +344,7 @@
     </a>
     <a
       href="/data?type=cafes"
-      class="group flex flex-col items-center gap-1 rounded-lg border p-4 transition hover:bg-surface-alt"
+      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
     >
       {{ icons::location("h-6 w-6 text-accent") }}
       <span class="text-lg font-bold text-text">{{ stats.cafes }}</span>
@@ -385,7 +362,7 @@
   <div class="relative">
     <div class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
       {% for _ in 0..6 %}
-      <div class="flex flex-col items-center gap-1 rounded-lg border p-4">
+      <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
         <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
         <div class="h-5 w-8 rounded bg-surface-alt"></div>
         <div class="h-4 w-16 rounded bg-surface-alt"></div>

@@ -1,10 +1,10 @@
 use askama::Template;
 
 use super::views::{
-    BagOptionView, BagView, BrewDefaultsView, BrewDetailView, BrewView, CafeOptionView, CafeView,
-    CupDetailView, CupView, GearOptionView, GearView, ListNavigator, NearbyCafeView, Paginated,
-    QuickNoteView, RoastOptionView, RoastView, RoasterOptionView, RoasterView, StatCard, StatsView,
-    TimelineEventView, TimelineMonthView,
+    BagDetailView, BagOptionView, BagView, BrewDefaultsView, BrewDetailView, BrewView,
+    CafeOptionView, CafeView, CupDetailView, CupView, GearOptionView, GearView, ListNavigator,
+    NearbyCafeView, Paginated, QuickNoteView, RoastOptionView, RoastView, RoasterOptionView,
+    RoasterView, StatCard, StatsView, TimelineEventView, TimelineMonthView,
 };
 use crate::domain::bags::BagSortKey;
 use crate::domain::brews::BrewSortKey;
@@ -208,6 +208,16 @@ pub struct StatsPageTemplate {
 #[template(path = "partials/stats_map.html")]
 pub struct StatsMapFragment<'a> {
     pub geo_stats: &'a crate::domain::country_stats::GeoStats,
+}
+
+#[derive(Template)]
+#[template(path = "pages/bag.html")]
+pub struct BagDetailTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
+    pub bag: BagDetailView,
 }
 
 #[derive(Template)]

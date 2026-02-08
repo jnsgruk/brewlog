@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "partials/icons.html" as icons %}
+{% import "partials/detail_cards.html" as detail %}
 {% block title %}Brewlog · {{ cup.roast_name }} at {{ cup.cafe_name }}{% endblock %}
 {% block description %}{{ cup.roast_name }} by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.{% endblock %}
 {% block og_title %}{{ cup.roast_name }} at {{ cup.cafe_name }} — Brewlog{% endblock %}
@@ -13,130 +13,20 @@
       {{ cup.roaster_name }} · {{ cup.cafe_name }}, {{ cup.cafe_city }} · {{ cup.created_date }}
     </p>
   </div>
-  <button onclick="shareLink(this)" class="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-text-muted transition hover:bg-surface-alt hover:text-text shrink-0">
-    <span class="share-icon">{{ icons::clipboard("h-4 w-4 shrink-0") }}</span>
-    <span class="share-icon-check hidden">{{ icons::check("h-4 w-4 shrink-0") }}</span>
-    <span class="share-label">Share</span>
-  </button>
+  {{ detail::share_button() }}
 </header>
 
-<script>
-const shareLink = (btn) => {
-  navigator.clipboard.writeText(window.location.href).then(() => {
-    btn.querySelector('.share-icon').classList.add('hidden');
-    btn.querySelector('.share-icon-check').classList.remove('hidden');
-    btn.querySelector('.share-label').textContent = 'Copied';
-    setTimeout(() => {
-      btn.querySelector('.share-icon').classList.remove('hidden');
-      btn.querySelector('.share-icon-check').classList.add('hidden');
-      btn.querySelector('.share-label').textContent = 'Share';
-    }, 2000);
-  });
-};
-</script>
+{{ detail::share_script() }}
 
 {# ── Coffee + map ── #}
 <div class="grid gap-6 md:grid-cols-2">
-  <div class="rounded-lg border bg-surface p-5">
-    <h2 class="text-lg font-semibold text-text mb-4">Coffee</h2>
-    <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-      <div>
-        <dt class="text-text-muted">Roast</dt>
-        <dd class="font-medium text-text">{{ cup.roast_name }}</dd>
-      </div>
-      <div>
-        <dt class="text-text-muted">Roaster</dt>
-        <dd class="font-medium text-text">{{ cup.roaster_name }}</dd>
-      </div>
-      {% if cup.origin != "\u{2014}" %}
-      <div>
-        <dt class="text-text-muted">Origin</dt>
-        <dd class="font-medium text-text">
-          {% if !cup.origin_flag.is_empty() %}{{ cup.origin_flag }} {% endif %}{{ cup.origin }}
-        </dd>
-      </div>
-      {% endif %}
-      {% if cup.region != "\u{2014}" %}
-      <div>
-        <dt class="text-text-muted">Region</dt>
-        <dd class="font-medium text-text">{{ cup.region }}</dd>
-      </div>
-      {% endif %}
-      {% if cup.producer != "\u{2014}" %}
-      <div>
-        <dt class="text-text-muted">Producer</dt>
-        <dd class="font-medium text-text">{{ cup.producer }}</dd>
-      </div>
-      {% endif %}
-      {% if cup.process != "\u{2014}" %}
-      <div>
-        <dt class="text-text-muted">Process</dt>
-        <dd class="font-medium text-text">{{ cup.process }}</dd>
-      </div>
-      {% endif %}
-    </dl>
-    {% if !cup.tasting_notes.is_empty() %}
-    <div class="mt-4 flex flex-wrap gap-1.5">
-      {% for note in cup.tasting_notes %}
-      <span class="{{ note.pill_class }}">{{ note.label }}</span>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-
-  {% if !cup.map_countries.is_empty() %}
-  <div class="relative rounded-lg border bg-surface overflow-hidden flex items-center">
-    <world-map
-      class="block w-full"
-      data-countries="{{ cup.map_countries }}"
-      data-max="{{ cup.map_max }}"
-    ></world-map>
-    <div class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted">
-      <span class="inline-flex items-center gap-1">
-        <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent"></span> Cafe
-      </span>
-      <span class="inline-flex items-center gap-1">
-        <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent opacity-65"></span> Origin
-      </span>
-      <span class="inline-flex items-center gap-1">
-        <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent opacity-35"></span> Roaster
-      </span>
-    </div>
-  </div>
-  {% endif %}
+  {{ detail::coffee_card(cup.roast_name, cup.roaster_name, cup.origin, cup.origin_flag, cup.region, cup.producer, cup.process, cup.tasting_notes) }}
+  {{ detail::map_with_legend_3(cup.map_countries, cup.map_max, "Cafe", "", "Origin", "opacity-65", "Roaster", "opacity-35") }}
 </div>
 
 {# ── Roaster & cafe ── #}
 <div class="grid gap-6 md:grid-cols-2">
-  <div class="rounded-lg border bg-surface p-5">
-    <h2 class="text-lg font-semibold text-text mb-4">Roaster</h2>
-    <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-      <div>
-        <dt class="text-text-muted">Name</dt>
-        <dd class="font-medium text-text">{{ cup.roaster_name }}</dd>
-      </div>
-      <div>
-        <dt class="text-text-muted">Country</dt>
-        <dd class="font-medium text-text">
-          {% if !cup.roaster_country_flag.is_empty() %}{{ cup.roaster_country_flag }} {% endif %}{{ cup.roaster_country }}
-        </dd>
-      </div>
-      {% if let Some(city) = cup.roaster_city %}
-      <div>
-        <dt class="text-text-muted">City</dt>
-        <dd class="font-medium text-text">{{ city }}</dd>
-      </div>
-      {% endif %}
-      {% if let Some(url) = cup.roaster_homepage %}
-      <div>
-        <dt class="text-text-muted">Website</dt>
-        <dd class="font-medium">
-          <a href="{{ url }}" target="_blank" rel="noreferrer noopener" class="text-accent hover:text-accent-hover transition">Visit Website</a>
-        </dd>
-      </div>
-      {% endif %}
-    </dl>
-  </div>
+  {{ detail::roaster_card(cup.roaster_name, cup.roaster_country, cup.roaster_country_flag, cup.roaster_city, cup.roaster_homepage) }}
 
   <div class="rounded-lg border bg-surface p-5">
     <h2 class="text-lg font-semibold text-text mb-4">Cafe</h2>
@@ -146,14 +36,14 @@ const shareLink = (btn) => {
         <dd class="font-medium text-text">{{ cup.cafe_name }}</dd>
       </div>
       <div>
-        <dt class="text-text-muted">City</dt>
-        <dd class="font-medium text-text">{{ cup.cafe_city }}</dd>
-      </div>
-      <div>
         <dt class="text-text-muted">Country</dt>
         <dd class="font-medium text-text">
           {% if !cup.cafe_country_flag.is_empty() %}{{ cup.cafe_country_flag }} {% endif %}{{ cup.cafe_country }}
         </dd>
+      </div>
+      <div>
+        <dt class="text-text-muted">City</dt>
+        <dd class="font-medium text-text">{{ cup.cafe_city }}</dd>
       </div>
       {% if let Some(url) = cup.cafe_website %}
       <div>

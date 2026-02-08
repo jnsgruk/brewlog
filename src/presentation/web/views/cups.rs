@@ -4,8 +4,8 @@ use crate::domain::cups::CupWithDetails;
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 
-use super::build_map_data;
-use super::tasting_notes::{self, TastingNoteView};
+use super::tasting_notes::TastingNoteView;
+use super::{build_coffee_info, build_map_data, build_roaster_info};
 
 #[derive(Clone)]
 pub struct CupView {
@@ -69,16 +69,8 @@ pub struct CupDetailView {
 
 impl CupDetailView {
     pub fn from_parts(cup: CupWithDetails, roast: &Roast, roaster: &Roaster, cafe: &Cafe) -> Self {
-        let em_dash = "\u{2014}".to_string();
-
-        let origin = roast.origin.clone().unwrap_or_default();
-        let origin_flag = country_to_iso(&origin)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
-
-        let roaster_country_flag = country_to_iso(&roaster.country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let coffee = build_coffee_info(roast);
+        let roaster_info = build_roaster_info(roaster);
 
         let cafe_country_flag = country_to_iso(&cafe.country)
             .map(iso_to_flag_emoji)
@@ -94,47 +86,19 @@ impl CupDetailView {
         map_entries.push((roaster.country.as_str(), 1));
         let (map_countries, map_max) = build_map_data(&map_entries);
 
-        let tasting_notes = roast
-            .tasting_notes
-            .iter()
-            .flat_map(|note| {
-                note.split([',', '\n'])
-                    .map(|s| s.trim().to_string())
-                    .filter(|s| !s.is_empty())
-                    .collect::<Vec<_>>()
-            })
-            .map(|n| tasting_notes::categorize(&n))
-            .collect();
-
         Self {
             roast_name: cup.roast_name,
             roaster_name: cup.roaster_name,
-            origin: if origin.is_empty() {
-                em_dash.clone()
-            } else {
-                origin
-            },
-            origin_flag,
-            region: roast
-                .region
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or(em_dash.clone()),
-            producer: roast
-                .producer
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or(em_dash.clone()),
-            process: roast
-                .process
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or(em_dash),
-            tasting_notes,
-            roaster_country: roaster.country.clone(),
-            roaster_country_flag,
-            roaster_city: roaster.city.clone(),
-            roaster_homepage: roaster.homepage.clone(),
+            origin: coffee.origin,
+            origin_flag: coffee.origin_flag,
+            region: coffee.region,
+            producer: coffee.producer,
+            process: coffee.process,
+            tasting_notes: coffee.tasting_notes,
+            roaster_country: roaster_info.country,
+            roaster_country_flag: roaster_info.country_flag,
+            roaster_city: roaster_info.city,
+            roaster_homepage: roaster_info.homepage,
             cafe_name: cafe.name.clone(),
             cafe_city: cafe.city.clone(),
             cafe_country: cafe.country.clone(),

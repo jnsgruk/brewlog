@@ -1,14 +1,12 @@
 use std::fmt::Write;
 
 use crate::domain::brews::{BrewWithDetails, QuickNote, format_brew_time};
-use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::formatting::format_weight;
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 
-use super::build_map_data;
-use super::relative_date;
-use super::tasting_notes::{self, TastingNoteView};
+use super::tasting_notes::TastingNoteView;
+use super::{build_coffee_info, build_map_data, build_roaster_info, relative_date};
 
 #[derive(Clone)]
 pub struct QuickNoteView {
@@ -233,16 +231,8 @@ pub struct BrewDetailView {
 
 impl BrewDetailView {
     pub fn from_parts(brew: BrewWithDetails, roast: &Roast, roaster: &Roaster) -> Self {
-        let em_dash = "\u{2014}".to_string();
-
-        let origin = roast.origin.clone().unwrap_or_default();
-        let origin_flag = country_to_iso(&origin)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
-
-        let roaster_country_flag = country_to_iso(&roaster.country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let coffee = build_coffee_info(roast);
+        let roaster_info = build_roaster_info(roaster);
 
         let mut map_entries: Vec<(&str, u32)> = Vec::new();
         if let Some(ref o) = roast.origin
@@ -252,18 +242,6 @@ impl BrewDetailView {
         }
         map_entries.push((roaster.country.as_str(), 1));
         let (map_countries, map_max) = build_map_data(&map_entries);
-
-        let tasting_notes = roast
-            .tasting_notes
-            .iter()
-            .flat_map(|note| {
-                note.split([',', '\n'])
-                    .map(|s| s.trim().to_string())
-                    .filter(|s| !s.is_empty())
-                    .collect::<Vec<_>>()
-            })
-            .map(|n| tasting_notes::categorize(&n))
-            .collect();
 
         let quick_notes_label = brew
             .brew
@@ -276,32 +254,16 @@ impl BrewDetailView {
         Self {
             roast_name: brew.roast_name,
             roaster_name: brew.roaster_name,
-            origin: if origin.is_empty() {
-                em_dash.clone()
-            } else {
-                origin
-            },
-            origin_flag,
-            region: roast
-                .region
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or(em_dash.clone()),
-            producer: roast
-                .producer
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or(em_dash.clone()),
-            process: roast
-                .process
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or(em_dash),
-            tasting_notes,
-            roaster_country: roaster.country.clone(),
-            roaster_country_flag,
-            roaster_city: roaster.city.clone(),
-            roaster_homepage: roaster.homepage.clone(),
+            origin: coffee.origin,
+            origin_flag: coffee.origin_flag,
+            region: coffee.region,
+            producer: coffee.producer,
+            process: coffee.process,
+            tasting_notes: coffee.tasting_notes,
+            roaster_country: roaster_info.country,
+            roaster_country_flag: roaster_info.country_flag,
+            roaster_city: roaster_info.city,
+            roaster_homepage: roaster_info.homepage,
             coffee_weight: format_weight(brew.brew.coffee_weight),
             water_volume: format!("{}ml", brew.brew.water_volume),
             water_temp: format!("{:.1}\u{00B0}C", brew.brew.water_temp),
