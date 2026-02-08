@@ -53,6 +53,7 @@ pub(crate) async fn cup_detail_page(
         nav_active: "",
         is_authenticated,
         version_info: &crate::VERSION_INFO,
+        base_url: crate::base_url(),
         cup: view,
     };
 

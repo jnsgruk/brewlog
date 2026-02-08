@@ -7,6 +7,11 @@
       name="description"
       content="{% block description %}Self-hosted coffee logging — track roasters, roasts, bags, brews, and gear.{% endblock %}"
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Brewlog" />
+    <meta property="og:title" content="{% block og_title %}Brewlog{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}Self-hosted coffee logging — track roasters, roasts, bags, brews, and gear.{% endblock %}" />
+    <meta name="twitter:card" content="summary_large_image" />
     <title>{% block title %}Brewlog{% endblock %}</title>
     <link rel="stylesheet" href="/styles.css" />
     <link rel="icon" id="favicon" type="image/svg+xml" href="/favicon-light.svg" />

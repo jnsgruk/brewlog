@@ -125,6 +125,7 @@ pub(crate) async fn stats_page(
         nav_active: "stats",
         is_authenticated,
         version_info: &crate::VERSION_INFO,
+        base_url: crate::base_url(),
         active_type: entity_type,
         tabs,
         tab_signal: "_active-tab",

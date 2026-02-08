@@ -98,6 +98,8 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         )
     })?;
 
+    brewlog::set_base_url(rp_origin.clone());
+
     let config = ServerConfig {
         bind_address: command.bind_address,
         database_url: command.database_url,

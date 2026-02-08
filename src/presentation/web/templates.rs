@@ -105,6 +105,7 @@ pub struct HomeTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
 
     pub recent_brews: Vec<BrewView>,
     pub open_bags: Vec<BagView>,
@@ -183,6 +184,7 @@ pub struct StatsPageTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
     pub active_type: String,
     pub tabs: Vec<Tab>,
     pub tab_signal: &'static str,
@@ -214,6 +216,7 @@ pub struct BrewDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
     pub brew: BrewDetailView,
 }
 
@@ -223,6 +226,7 @@ pub struct CupDetailTemplate {
     pub nav_active: &'static str,
     pub is_authenticated: bool,
     pub version_info: &'static crate::VersionInfo,
+    pub base_url: &'static str,
     pub cup: CupDetailView,
 }
 

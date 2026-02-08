@@ -43,6 +43,7 @@ pub(crate) async fn home_page(
         nav_active: "home",
         is_authenticated,
         version_info: &crate::VERSION_INFO,
+        base_url: crate::base_url(),
         recent_brews: content.recent_brews,
         open_bags: content.open_bags,
         recent_events: content.recent_events,

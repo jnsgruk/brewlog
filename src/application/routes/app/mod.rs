@@ -43,6 +43,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/components/donut-chart.js", get(donut_chart_js))
         .route("/favicon-light.svg", get(favicon_light))
         .route("/favicon-dark.svg", get(favicon_dark))
+        .route("/og-image.png", get(og_image))
         .route("/health", get(health))
 }
 
@@ -137,6 +138,16 @@ async fn favicon_dark() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/favicon-dark.svg"),
+    )
+}
+
+async fn og_image() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "image/png"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_bytes!("../../../../static/og-image.png").as_slice(),
     )
 }
 

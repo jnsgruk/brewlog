@@ -1,4 +1,7 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %} {% import "partials/histogram.html" as histogram %} {% block title %}Brewlog · Stats{% endblock %}
+{% block og_title %}Stats — Brewlog{% endblock %}
+{% block og_description %}Aggregated coffee data across origins, consumption, and brewing.{% endblock %}
+{% block head %}<meta property="og:image" content="{{ base_url }}/og-image.png" />{% endblock %}
 {% block content %}
 <header class="flex flex-col gap-2">
   <div class="flex items-start justify-between gap-4">

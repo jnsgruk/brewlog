@@ -140,6 +140,19 @@ When adding new pragmas, add them after the existing ones in `Database::connect(
 
 The middleware stack in `application/routes/mod.rs` applies layers in this order (outermost first): request tracing, cookie parsing, body size limit, security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `CSP`, `HSTS`), and gzip compression. When adding new middleware, place it in the `ServiceBuilder` chain at the appropriate position.
 
+### Open Graph Meta Tags
+
+Social media preview cards are powered by Open Graph and Twitter Card meta tags in `templates/base.html`. The base template defines default `og:title`, `og:description`, `og:type`, `og:site_name`, and `twitter:card` tags using Askama blocks (`{% block og_title %}`, `{% block og_description %}`).
+
+**Base URL** — `BREWLOG_RP_ORIGIN` is stored at startup via `set_base_url()` in `lib.rs` (a `OnceLock<String>`). Templates access it through the `base_url` field on their template struct, set with `crate::base_url()` in the handler.
+
+**`og:image`** — a static 1200x630 PNG (`static/og-image.png`) served at `/og-image.png` via `include_bytes!()`. Only public shareable pages (home, brew detail, cup detail, stats) include it via `{% block head %}`, since those are the pages social crawlers can access.
+
+**Adding OG tags to a new page:**
+1. Add `pub base_url: &'static str` to the template struct
+2. Set `base_url: crate::base_url()` in the handler
+3. Override `{% block og_title %}`, `{% block og_description %}`, and add `<meta property="og:image" content="{{ base_url }}/og-image.png" />` in `{% block head %}`
+
 ### Repository Pattern
 
 All data access goes through trait-based repositories defined in `domain/repositories.rs`. SQL implementations live in `infrastructure/repositories/`, each using a private `Record` struct with a `to_domain()` method to convert database rows to domain entities. Use typed ID wrappers from `domain/ids.rs` (e.g., `RoastId`, `BagId`) — never raw `i64`.
