@@ -103,7 +103,7 @@ class DonutChart extends HTMLElement {
     });
 
     this.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:1rem">
-      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block" role="img" aria-label="Distribution: ${items.map((i) => `${esc(i.label)} ${Math.round((i.count / total) * 100)}%`).join(", ")}">
         ${segments.join("")}
         ${(() => {
           const icon = DONUT_ICONS[this.dataset.icon];

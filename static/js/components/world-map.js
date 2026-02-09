@@ -71,6 +71,31 @@ customElements.define(
       svg.style.display = "block";
       this.appendChild(svg);
 
+      svg.setAttribute("role", "img");
+      svg.setAttribute(
+        "aria-label",
+        "World map showing coffee origins by country",
+      );
+
+      const srOnly = this.querySelector(".sr-only");
+      if (srOnly) srOnly.remove();
+      const raw = this.dataset.countries || "";
+      if (raw) {
+        const entries = raw.split(",").map((e) => e.split(":"));
+        const sr = document.createElement("div");
+        sr.className = "sr-only";
+        sr.innerHTML =
+          "<table><caption>Coffee origins by country</caption><thead><tr><th>Country</th><th>Count</th></tr></thead><tbody>" +
+          entries
+            .map(
+              ([code, count]) =>
+                `<tr><td>${code.toUpperCase()}</td><td>${count}</td></tr>`,
+            )
+            .join("") +
+          "</tbody></table>";
+        this.appendChild(sr);
+      }
+
       this._recolor();
     }
 
