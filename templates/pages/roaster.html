@@ -16,9 +16,12 @@
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">{{ roaster.name }}</h1>
       <p class="text-sm text-text-secondary">
-        {{ roaster.country_flag }}
-        {{ roaster.country }}{% if let Some(c) = roaster.city %}· {{ c }}{% endif %}
-        · Added {{ roaster.created_date }}
+        <a
+          href="/data?type=roasters"
+          class="text-accent hover:text-accent-hover transition"
+          >Roasters</a
+        >
+        · {{ roaster.created_date }}
       </p>
     </div>
   </header>

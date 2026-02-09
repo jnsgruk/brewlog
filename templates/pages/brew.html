@@ -21,8 +21,12 @@
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">{{ brew.roast_name }}</h1>
       <p class="text-sm text-text-secondary">
-        {{ brew.roaster_name }} · Brewed {{ brew.created_date }} at
-        {{ brew.created_time }}
+        <a
+          href="/data?type=brews"
+          class="text-accent hover:text-accent-hover transition"
+          >Brews</a
+        >
+        · {{ brew.created_date }}
       </p>
     </div>
   </header>

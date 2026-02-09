@@ -19,8 +19,12 @@
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">{{ bag.roast_name }}</h1>
       <p class="text-sm text-text-secondary">
-        {{ bag.roaster_name }} · {{ bag.amount }} · Opened
-        {{ bag.created_date }}
+        <a
+          href="/data?type=bags"
+          class="text-accent hover:text-accent-hover transition"
+          >Bags</a
+        >
+        · {{ bag.created_date }}
       </p>
     </div>
   </header>

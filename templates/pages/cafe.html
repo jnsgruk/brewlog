@@ -15,8 +15,12 @@
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">{{ cafe.name }}</h1>
       <p class="text-sm text-text-secondary">
-        {{ cafe.city }}, {{ cafe.country_flag }} {{ cafe.country }} · Added
-        {{ cafe.created_date }}
+        <a
+          href="/data?type=cafes"
+          class="text-accent hover:text-accent-hover transition"
+          >Cafes</a
+        >
+        · {{ cafe.created_date }}
       </p>
     </div>
   </header>

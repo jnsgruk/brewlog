@@ -15,7 +15,12 @@
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">{{ gear.make }} {{ gear.model }}</h1>
       <p class="text-sm text-text-secondary">
-        {{ gear.category_label }} · Added {{ gear.created_date }}
+        <a
+          href="/data?type=gear"
+          class="text-accent hover:text-accent-hover transition"
+          >Gear</a
+        >
+        · {{ gear.created_date }}
       </p>
     </div>
   </header>

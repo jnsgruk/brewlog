@@ -15,8 +15,12 @@
     <div class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">{{ roast.name }}</h1>
       <p class="text-sm text-text-secondary">
-        {{ roast.roaster_name }} · {{ roast.origin_flag }} {{ roast.origin }} ·
-        Added {{ roast.created_date }}
+        <a
+          href="/data?type=roasts"
+          class="text-accent hover:text-accent-hover transition"
+          >Roasts</a
+        >
+        · {{ roast.created_date }}
       </p>
     </div>
   </header>
