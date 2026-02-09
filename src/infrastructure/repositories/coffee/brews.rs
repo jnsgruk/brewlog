@@ -18,6 +18,7 @@ const BASE_SELECT: &str = r"
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug,
         (g_grinder.make || ' ' || g_grinder.model) as grinder_name,
+        g_grinder.model as grinder_model,
         (g_brewer.make || ' ' || g_brewer.model) as brewer_name,
         (g_fp.make || ' ' || g_fp.model) as filter_paper_name
     FROM brews br
@@ -118,6 +119,7 @@ impl SqlBrewRepository {
             roast_slug: record.roast_slug,
             roaster_slug: record.roaster_slug,
             grinder_name: record.grinder_name,
+            grinder_model: record.grinder_model,
             brewer_name: record.brewer_name,
             filter_paper_name: record.filter_paper_name,
         }
@@ -325,6 +327,7 @@ struct BrewWithDetailsRecord {
     roaster_name: String,
     roaster_slug: String,
     grinder_name: String,
+    grinder_model: String,
     brewer_name: String,
     filter_paper_name: Option<String>,
 }

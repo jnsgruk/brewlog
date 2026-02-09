@@ -97,6 +97,7 @@ pub struct BrewWithDetails {
     pub roast_slug: String,
     pub roaster_slug: String,
     pub grinder_name: String,
+    pub grinder_model: String,
     pub brewer_name: String,
     pub filter_paper_name: Option<String>,
 }

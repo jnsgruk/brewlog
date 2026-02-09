@@ -102,10 +102,7 @@ impl BrewView {
             roaster_slug: brew.roaster_slug,
             coffee_weight: format_weight(brew.brew.coffee_weight),
             grinder_id: brew.brew.grinder_id.into_inner(),
-            grinder_model: brew
-                .grinder_name
-                .split_once(' ')
-                .map_or_else(|| brew.grinder_name.clone(), |(_, model)| model.to_string()),
+            grinder_model: brew.grinder_model,
             grinder_name: brew.grinder_name,
             grind_setting: format!("{:.1}", brew.brew.grind_setting),
             brewer_id: brew.brew.brewer_id.into_inner(),
@@ -225,6 +222,9 @@ pub struct BrewDetailView {
     // Map
     pub map_countries: String,
     pub map_max: u32,
+    // Slugs (for breadcrumbs)
+    pub roaster_slug: String,
+    pub roast_slug: String,
     // Dates
     pub created_date: String,
     pub created_time: String,
@@ -256,6 +256,8 @@ impl BrewDetailView {
             id: brew.brew.id.to_string(),
             roast_name: brew.roast_name,
             roaster_name: brew.roaster_name,
+            roaster_slug: roaster.slug.clone(),
+            roast_slug: roast.slug.clone(),
             origin: coffee.origin,
             origin_flag: coffee.origin_flag,
             region: coffee.region,
