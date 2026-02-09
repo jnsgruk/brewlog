@@ -241,7 +241,7 @@
       >View all stats &rarr;</a
     >
   </div>
-  {% if !stat_cards.is_empty() %}
+  {% if !stats.is_empty() && !stat_cards.is_empty() %}
   <chip-scroll class="relative block">
     <button type="button" aria-label="Scroll left"
       class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
