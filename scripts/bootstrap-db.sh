@@ -9,7 +9,7 @@ cargo build
 #   2. Register at the URL printed on first start
 #   3. Create a token: ./target/debug/brewlog token create --name "bootstrap-token"
 #   4. Export the token: export BREWLOG_TOKEN=<token>
-if [[ -z "${BREWLOG_TOKEN:-}" ]]; then
+if [[ -z ${BREWLOG_TOKEN:-} ]]; then
   echo "Error: BREWLOG_TOKEN environment variable is not set."
   echo "Create a token first: ./target/debug/brewlog token create --name bootstrap-token"
   exit 1

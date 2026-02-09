@@ -6,6 +6,12 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
+
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -14,11 +20,17 @@
       nixpkgs,
       rust-overlay,
       flake-parts,
+      ...
     }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
         "aarch64-linux"
+      ];
+
+      imports = [
+        inputs.treefmt-nix.flakeModule
+        inputs.git-hooks.flakeModule
       ];
 
       perSystem =
@@ -110,6 +122,10 @@
               NIX_CONFIG = "experimental-features = nix-command flakes";
               RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
 
+              shellHook = ''
+                ${config.pre-commit.shellHook}
+              '';
+
               buildInputs = [
                 rust
               ]
@@ -125,7 +141,50 @@
                 sqlite
                 sqlx-cli
                 tailwindcss_4
-              ]);
+              ])
+              ++ config.pre-commit.settings.enabledPackages;
+            };
+          };
+
+          treefmt = {
+            projectRootFile = "flake.nix";
+            programs = {
+              deadnix.enable = true;
+              nixfmt.enable = true;
+              rustfmt.enable = true;
+              shfmt.enable = true;
+            };
+          };
+
+          pre-commit = {
+            check.enable = false;
+            settings = {
+              package = pkgs.prek;
+              hooks = {
+                treefmt = {
+                  enable = true;
+                  package = config.treefmt.build.wrapper;
+                  pass_filenames = false;
+                  stages = [ "pre-commit" ];
+                };
+                clippy = {
+                  enable = true;
+                  package = rust;
+                  packageOverrides = {
+                    cargo = rust;
+                    clippy = rust;
+                  };
+                  settings.extraArgs = "--allow-dirty --fix";
+                };
+                cargo-test = {
+                  enable = true;
+                  files = "\\.(rs|toml)$";
+                  entry = "cargo test";
+                  pass_filenames = false;
+                  stages = [ "pre-commit" ];
+                };
+                shellcheck.enable = true;
+              };
             };
           };
         };

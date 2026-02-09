@@ -78,15 +78,15 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 
 ### Server (`brewlog serve`)
 
-| Variable                 | Purpose                                                | Default               |
-| ------------------------ | ------------------------------------------------------ | --------------------- |
-| `BREWLOG_RP_ID`          | WebAuthn Relying Party ID (server domain)                | **required**          |
-| `BREWLOG_RP_ORIGIN`      | WebAuthn Relying Party origin (full URL)               | **required**          |
-| `BREWLOG_DATABASE_URL`   | Database connection string                             | `sqlite://brewlog.db` |
-| `BREWLOG_BIND_ADDRESS`   | Server bind address                                    | `127.0.0.1:3000`      |
-| `BREWLOG_INSECURE_COOKIES` | Disable the `Secure` cookie flag (set `true` for local dev over HTTP) | `false` |
-| `RUST_LOG`               | Log level filter                                       | `info`                |
-| `RUST_LOG_FORMAT`        | Set to `json` for structured log output                | —                     |
+| Variable                   | Purpose                                                               | Default               |
+| -------------------------- | --------------------------------------------------------------------- | --------------------- |
+| `BREWLOG_RP_ID`            | WebAuthn Relying Party ID (server domain)                             | **required**          |
+| `BREWLOG_RP_ORIGIN`        | WebAuthn Relying Party origin (full URL)                              | **required**          |
+| `BREWLOG_DATABASE_URL`     | Database connection string                                            | `sqlite://brewlog.db` |
+| `BREWLOG_BIND_ADDRESS`     | Server bind address                                                   | `127.0.0.1:3000`      |
+| `BREWLOG_INSECURE_COOKIES` | Disable the `Secure` cookie flag (set `true` for local dev over HTTP) | `false`               |
+| `RUST_LOG`                 | Log level filter                                                      | `info`                |
+| `RUST_LOG_FORMAT`          | Set to `json` for structured log output                               | —                     |
 
 ### CLI Client
 

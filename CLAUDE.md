@@ -11,11 +11,26 @@ Brewlog is a self-hosted coffee logging platform built in Rust. It provides:
 
 ## Build & Test Commands
 
+Use `prek` to run the lints, tests and formatters all-in-one:
+
 ```bash
-cargo build                    # Build the project
-cargo test                     # Run all tests
+prek run -av
+```
+
+Individual checks can be run with `prek` if needed:
+
+```bash
+prek run clippy -av
+prek run cargo-test -av
+```
+
+Or the individual commands themselves:
+
+```bash
+cargo build                       # Build the project
+cargo test                        # Run all tests
 cargo clippy --allow-dirty --fix  # Lint and auto-fix
-cargo fmt                      # Format code
+nix fmt                           # Format code
 ```
 
 ### Database Migrations
@@ -101,13 +116,15 @@ src/
 
 These are non-obvious footguns that will cause bugs if missed.
 
-**1. `datastar-fetch` event bubbles through the DOM.** When a page has multiple forms with `data-on:datastar-fetch` handlers, each handler fires for events from *any* `@post`/`@get` in the same DOM tree. **Every handler must guard with its own in-progress signal**:
+**1. `datastar-fetch` event bubbles through the DOM.** When a page has multiple forms with `data-on:datastar-fetch` handlers, each handler fires for events from _any_ `@post`/`@get` in the same DOM tree. **Every handler must guard with its own in-progress signal**:
 
 ```html
-<form data-on:submit="$_extracting = true; @post(...)"
+<form
+  data-on:submit="$_extracting = true; @post(...)"
   data-on:datastar-fetch="if (!$_extracting) return;
     if (evt.detail.type === 'finished') { $_extracting = false }
-    else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Failed.' }">
+    else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Failed.' }"
+></form>
 ```
 
 Only reset state on `finished` or `error`, never unconditionally.
@@ -140,14 +157,14 @@ Only reset state on `finished` or `error`, never unconditionally.
 
 `infrastructure/database.rs` configures SQLite pragmas at connection time:
 
-| Pragma | Value | Purpose |
-|--------|-------|---------|
-| `foreign_keys` | `ON` | Enforce FK constraints |
-| `journal_mode` | `WAL` | Concurrent reads during writes |
-| `synchronous` | `NORMAL` | Faster writes (safe with WAL) |
-| `cache_size` | `-8000` | 8 MB page cache |
-| `temp_store` | `MEMORY` | Temp tables in RAM |
-| `busy_timeout` | `5000` | Wait up to 5s on lock contention |
+| Pragma         | Value    | Purpose                          |
+| -------------- | -------- | -------------------------------- |
+| `foreign_keys` | `ON`     | Enforce FK constraints           |
+| `journal_mode` | `WAL`    | Concurrent reads during writes   |
+| `synchronous`  | `NORMAL` | Faster writes (safe with WAL)    |
+| `cache_size`   | `-8000`  | 8 MB page cache                  |
+| `temp_store`   | `MEMORY` | Temp tables in RAM               |
+| `busy_timeout` | `5000`   | Wait up to 5s on lock contention |
 
 When adding new pragmas, add them after the existing ones in `Database::connect()`. Connection pool is capped at 5 — appropriate for SQLite's single-writer model.
 
@@ -164,6 +181,7 @@ Social media preview cards are powered by Open Graph and Twitter Card meta tags 
 **`og:image`** — a static 1200×630 PNG (`static/og-image.png`) served at `/static/og-image.png` via `include_bytes!()`. All detail pages (bag, brew, cafe, cup, gear, roast, roaster), plus home and stats, include it via `{% block head %}`.
 
 **Adding OG tags to a new page:**
+
 1. Add `pub base_url: &'static str` to the template struct
 2. Set `base_url: crate::base_url()` in the handler
 3. Override `{% block og_title %}`, `{% block og_description %}`, and add `<meta property="og:image" content="{{ base_url }}/static/og-image.png" />` in `{% block head %}`
@@ -177,6 +195,7 @@ All data access goes through trait-based repositories defined in `domain/reposit
 Services in `application/services/` encapsulate "create entity + record timeline event" as a single operation.
 
 **When to use services vs repos:**
+
 - **Services** — for `create()` (and `finish()` for bags). These record a timeline event after the insert.
 - **Repos** — for `get()`, `list()`, `update()`, `delete()`. No side effects needed.
 
@@ -186,12 +205,12 @@ The `define_simple_service!` macro in `services/mod.rs` generates services for e
 
 Entities needing enrichment are hand-written:
 
-| Service | Extra repos | Why |
-|---------|-------------|-----|
-| `RoastService` | `roaster_repo` | Needs roaster name/slug for timeline |
-| `BagService` | `roast_repo`, `roaster_repo` | `create()` + `finish()`, needs roast+roaster for timeline |
-| `BrewService` | — | `create()` enriches via `get_with_details()` for timeline + response |
-| `CupService` | — | `create()` enriches via `get_with_details()` for timeline |
+| Service        | Extra repos                  | Why                                                                  |
+| -------------- | ---------------------------- | -------------------------------------------------------------------- |
+| `RoastService` | `roaster_repo`               | Needs roaster name/slug for timeline                                 |
+| `BagService`   | `roast_repo`, `roaster_repo` | `create()` + `finish()`, needs roast+roaster for timeline            |
+| `BrewService`  | —                            | `create()` enriches via `get_with_details()` for timeline + response |
+| `CupService`   | —                            | `create()` enriches via `get_with_details()` for timeline            |
 
 Timeline events are display-only (not data integrity), so they use fire-and-forget error handling:
 
@@ -226,41 +245,42 @@ if is_datastar_request(&headers) {
 
 Seven detail pages share layout via extracted template macros and Rust helpers:
 
-| Page | Route | Shared macros used |
-|------|-------|--------------------|
-| Bag | `/bags/{id}` | coffee_card, roaster_card, map_with_legend_2 |
-| Brew | `/brews/{id}` | coffee_card, roaster_card, map_with_legend_2 |
-| Cafe | `/cafes/{slug}` | map_with_legend_1 |
-| Cup | `/cups/{id}` | coffee_card, roaster_card, map_with_legend_3 |
-| Gear | `/gear/{id}` | (standalone layout) |
-| Roast | `/roasters/{roaster_slug}/roasts/{roast_slug}` | coffee_card, roaster_card, map_with_legend_2 |
-| Roaster | `/roasters/{slug}` | map_with_legend_1 |
+| Page    | Route                                          | Shared macros used                           |
+| ------- | ---------------------------------------------- | -------------------------------------------- |
+| Bag     | `/bags/{id}`                                   | coffee_card, roaster_card, map_with_legend_2 |
+| Brew    | `/brews/{id}`                                  | coffee_card, roaster_card, map_with_legend_2 |
+| Cafe    | `/cafes/{slug}`                                | map_with_legend_1                            |
+| Cup     | `/cups/{id}`                                   | coffee_card, roaster_card, map_with_legend_3 |
+| Gear    | `/gear/{id}`                                   | (standalone layout)                          |
+| Roast   | `/roasters/{roaster_slug}/roasts/{roast_slug}` | coffee_card, roaster_card, map_with_legend_2 |
+| Roaster | `/roasters/{slug}`                             | map_with_legend_1                            |
 
 **Template macros** — `templates/partials/detail_cards.html` provides:
 
-| Macro | Parameters | Used by |
-|-------|-----------|---------|
-| `share_button()` | — | (defined, currently unused) |
-| `share_script()` | — | (defined, currently unused) |
-| `coffee_card(...)` | roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes | Bag, Brew, Cup, Roast |
-| `roaster_card(...)` | name, country, country_flag, city, homepage | Bag, Brew, Cup, Roast |
-| `map_with_legend_1(...)` | map_countries, map_max, label1, opacity1 | Cafe, Roaster |
-| `map_with_legend_2(...)` | map_countries, map_max, label1, opacity1, label2, opacity2 | Bag, Brew, Roast |
-| `map_with_legend_3(...)` | map_countries, map_max, label1-3, opacity1-3 | Cup |
+| Macro                    | Parameters                                                                              | Used by                     |
+| ------------------------ | --------------------------------------------------------------------------------------- | --------------------------- |
+| `share_button()`         | —                                                                                       | (defined, currently unused) |
+| `share_script()`         | —                                                                                       | (defined, currently unused) |
+| `coffee_card(...)`       | roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes | Bag, Brew, Cup, Roast       |
+| `roaster_card(...)`      | name, country, country_flag, city, homepage                                             | Bag, Brew, Cup, Roast       |
+| `map_with_legend_1(...)` | map_countries, map_max, label1, opacity1                                                | Cafe, Roaster               |
+| `map_with_legend_2(...)` | map_countries, map_max, label1, opacity1, label2, opacity2                              | Bag, Brew, Roast            |
+| `map_with_legend_3(...)` | map_countries, map_max, label1-3, opacity1-3                                            | Cup                         |
 
 Detail page templates import with `{% import "partials/detail_cards.html" as detail %}` and call macros as `{{ detail::coffee_card(...) }}`.
 
 **View model helpers** — `presentation/web/views/mod.rs` provides:
 
-| Helper | Input | Purpose |
-|--------|-------|---------|
-| `build_coffee_info(roast)` | `&Roast` | Extracts origin, flag, region, producer, process, tasting notes |
-| `build_roaster_info(roaster)` | `&Roaster` | Extracts country, flag, city, homepage |
-| `build_map_data(entries)` | `&[(&str, u32)]` | Builds `data-countries` + `data-max` for `<world-map>` |
+| Helper                        | Input            | Purpose                                                         |
+| ----------------------------- | ---------------- | --------------------------------------------------------------- |
+| `build_coffee_info(roast)`    | `&Roast`         | Extracts origin, flag, region, producer, process, tasting notes |
+| `build_roaster_info(roaster)` | `&Roaster`       | Extracts country, flag, city, homepage                          |
+| `build_map_data(entries)`     | `&[(&str, u32)]` | Builds `data-countries` + `data-max` for `<world-map>`          |
 
 Each `*DetailView::from_parts()` calls these helpers and flattens the results into its own struct (Askama needs direct field access).
 
 **Detail page layout** — pages using the shared macros (Bag, Brew, Cup, Roast) follow the same grid structure:
+
 1. Header: page title + subtitle
 2. Row 1 (2-col): Coffee card + Map with legend
 3. Row 2 (2-col): Roaster card + page-specific card (Gear/Recipe for brew, Cafe for cup, Bag Info for bag)
@@ -274,16 +294,16 @@ Cafe, Gear, and Roaster detail pages have simpler standalone layouts.
 
 All macros have doc comments with usage examples. Check the source files for full documentation.
 
-| Macro | Location | Purpose |
-|-------|----------|---------|
-| `define_simple_service!` | `application/services/mod.rs` | Generate service struct with `create()` + timeline |
-| `define_get_handler!` | `application/routes/api/macros.rs` | GET `/api/v1/:entity/:id` → JSON |
-| `define_enriched_get_handler!` | `application/routes/api/macros.rs` | GET with joined related entities → JSON |
-| `define_delete_handler!` | `application/routes/api/macros.rs` | DELETE → fragment for Datastar or 204 for API |
-| `define_list_fragment_renderer!` | `application/routes/api/macros.rs` | Generate fragment renderer for a list page |
-| `define_get_command!` | `presentation/cli/macros.rs` | CLI get-entity command |
-| `define_delete_command!` | `presentation/cli/macros.rs` | CLI delete-entity command |
-| `push_update_field!` | `infrastructure/repositories/macros.rs` | Build dynamic UPDATE queries with `QueryBuilder` |
+| Macro                            | Location                                | Purpose                                            |
+| -------------------------------- | --------------------------------------- | -------------------------------------------------- |
+| `define_simple_service!`         | `application/services/mod.rs`           | Generate service struct with `create()` + timeline |
+| `define_get_handler!`            | `application/routes/api/macros.rs`      | GET `/api/v1/:entity/:id` → JSON                   |
+| `define_enriched_get_handler!`   | `application/routes/api/macros.rs`      | GET with joined related entities → JSON            |
+| `define_delete_handler!`         | `application/routes/api/macros.rs`      | DELETE → fragment for Datastar or 204 for API      |
+| `define_list_fragment_renderer!` | `application/routes/api/macros.rs`      | Generate fragment renderer for a list page         |
+| `define_get_command!`            | `presentation/cli/macros.rs`            | CLI get-entity command                             |
+| `define_delete_command!`         | `presentation/cli/macros.rs`            | CLI delete-entity command                          |
+| `push_update_field!`             | `infrastructure/repositories/macros.rs` | Build dynamic UPDATE queries with `QueryBuilder`   |
 
 ### SQL & Queries
 
@@ -293,10 +313,10 @@ Use `QueryBuilder` for dynamic queries. For UPDATE, use `push_update_field!` (se
 
 `domain/formatting.rs` contains shared formatting helpers with unit tests. Always use these instead of ad-hoc `format!()` calls:
 
-| Function | Signature | Output examples |
-|----------|-----------|-----------------|
+| Function               | Signature                                           | Output examples                                       |
+| ---------------------- | --------------------------------------------------- | ----------------------------------------------------- |
 | `format_relative_time` | `(dt: DateTime<Utc>, now: DateTime<Utc>) -> String` | "Just now", "5m ago", "Yesterday", "2w ago", "Mar 15" |
-| `format_weight` | `(grams: f64) -> String` | "15g", "15.5g", "250g", "1.0kg", "2.3kg" |
+| `format_weight`        | `(grams: f64) -> String`                            | "15g", "15.5g", "250g", "1.0kg", "2.3kg"              |
 
 **`format_relative_time`** — accepts an explicit `now` parameter for testability. Callers pass `Utc::now()` at the call site. Covers seconds through absolute dates, with title case ("Just now", "Yesterday").
 
@@ -315,6 +335,7 @@ Statistics are pre-computed and stored as a single JSON row in `stats_cache`. A 
 **Database reset** clears `stats_cache` along with all other coffee data (see `infrastructure/backup.rs`).
 
 **Adding new stats:**
+
 1. Add the field to the relevant domain struct (`RoastSummaryStats`, `ConsumptionStats`, `BrewingSummaryStats`, or `GeoStats`)
 2. Add the query in `SqlStatsRepository`
 3. The `CachedStats` struct inherits the change via serde
@@ -351,16 +372,16 @@ The web UI uses [Datastar](https://data-star.dev/) for reactive updates without 
 
 Key attributes:
 
-| Attribute | Purpose | Example |
-|-----------|---------|---------|
-| `data-signals:_name="value"` | Declare local signal (underscore = not sent to server) | `data-signals:_show-form="false"` |
-| `data-show="$_signal"` | Conditional visibility | `data-show="$_showForm"` |
-| `data-bind:_signal-name` | Two-way binding to input value | `data-bind:_roaster-name` |
-| `data-on:event="expr"` | Event handler | `data-on:submit="$_submitting = true; @post(...)"` |
-| `data-ref="_name"` | DOM element reference | `data-ref="_form"` |
-| `data-text="$_signal"` | Set text content from signal | `data-text="$_cafeName"` |
-| `data-attr:attr="$_signal"` | Set attribute from signal | `data-attr:value="$_roastId"` |
-| `@get/@post/@put/@delete` | HTTP actions with Datastar headers | `@post('/api/v1/roasters', {contentType: 'form'})` |
+| Attribute                    | Purpose                                                | Example                                            |
+| ---------------------------- | ------------------------------------------------------ | -------------------------------------------------- |
+| `data-signals:_name="value"` | Declare local signal (underscore = not sent to server) | `data-signals:_show-form="false"`                  |
+| `data-show="$_signal"`       | Conditional visibility                                 | `data-show="$_showForm"`                           |
+| `data-bind:_signal-name`     | Two-way binding to input value                         | `data-bind:_roaster-name`                          |
+| `data-on:event="expr"`       | Event handler                                          | `data-on:submit="$_submitting = true; @post(...)"` |
+| `data-ref="_name"`           | DOM element reference                                  | `data-ref="_form"`                                 |
+| `data-text="$_signal"`       | Set text content from signal                           | `data-text="$_cafeName"`                           |
+| `data-attr:attr="$_signal"`  | Set attribute from signal                              | `data-attr:value="$_roastId"`                      |
+| `@get/@post/@put/@delete`    | HTTP actions with Datastar headers                     | `@post('/api/v1/roasters', {contentType: 'form'})` |
 
 ### Signal Naming
 
@@ -372,12 +393,12 @@ Signal names use **kebab-case** in HTML attributes and auto-convert to **camelCa
 
 **Naming conventions for common signals:**
 
-| Signal | Purpose |
-|--------|---------|
-| `_extracting` | AI extraction in progress |
-| `_submitting` | Form save/create in progress |
-| `_extract-error` / `_error` | Error message |
-| `_show-{thing}` | Boolean visibility toggle |
+| Signal                      | Purpose                      |
+| --------------------------- | ---------------------------- |
+| `_extracting`               | AI extraction in progress    |
+| `_submitting`               | Form save/create in progress |
+| `_extract-error` / `_error` | Error message                |
+| `_show-{thing}`             | Boolean visibility toggle    |
 
 ### Response Types
 
@@ -390,6 +411,7 @@ Two response formats exist for Datastar:
 ### Datastar vs JavaScript
 
 **Use Datastar for:**
+
 - Visibility toggling (`data-show` + signals)
 - List CRUD — delete with `confirm() && @delete()`, create with `@post()` + fragment re-render
 - Debounced search — `data-on:input__debounce.300ms` + `@get()` with `responseOverrides`
@@ -398,6 +420,7 @@ Two response formats exist for Datastar:
 - Searchable selection lists — `<searchable-select>` with `data-on:change`
 
 **Use JavaScript for:**
+
 - Browser APIs: WebAuthn, clipboard, geolocation, FileReader
 - Infinite scroll (`IntersectionObserver` in `base.html`)
 - Theme toggle — must run in `<head>` before DOM renders
@@ -410,13 +433,19 @@ Pages with AI-powered form filling use a Datastar-native pattern. Extraction end
 Template structure:
 
 ```html
-<section data-signals:_extracting="false" data-signals:_extract-error="''" data-signals:_submitting="false">
+<section
+  data-signals:_extracting="false"
+  data-signals:_extract-error="''"
+  data-signals:_submitting="false"
+>
   <!-- Extraction form -->
-  <form id="{id}-extract-form"
+  <form
+    id="{id}-extract-form"
     data-on:submit="$_extracting = true; $_extractError = ''; @post('{endpoint}', {contentType: 'form'})"
     data-on:datastar-fetch="if (!$_extracting) return;
       if (evt.detail.type === 'finished') { $_extracting = false }
-      else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed.' }">
+      else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed.' }"
+  >
     <input type="hidden" name="image" id="{id}-image" />
     <div data-show="!$_extracting">
       <brew-photo-capture target-input="{id}-image" target-form="{id}-extract-form" class="...">
@@ -426,7 +455,12 @@ Template structure:
       <button type="submit">Go</button>
     </div>
     <div data-show="$_extracting" style="display:none"><!-- spinner --></div>
-    <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="text-sm text-red-600"></p>
+    <p
+      data-show="$_extractError"
+      data-text="$_extractError"
+      style="display:none"
+      class="text-sm text-red-600"
+    ></p>
   </form>
 
   <!-- Main form with data-bind fields populated by extraction -->
@@ -450,24 +484,24 @@ render_signals_json(&signals)
 
 **`<brew-photo-capture>`** (`static/js/components/photo-capture.js`):
 
-| Attribute | Purpose |
-|-----------|---------|
+| Attribute      | Purpose                                           |
+| -------------- | ------------------------------------------------- |
 | `target-input` | ID of hidden `<input>` that receives the data URL |
-| `target-form` | ID of `<form>` to submit after reading the photo |
+| `target-form`  | ID of `<form>` to submit after reading the photo  |
 
 Clicking the element opens the camera/file picker, reads the file as a data URL, sets the target input, and submits the form.
 
 **`<searchable-select>`** (`static/js/components/searchable-select.js`):
 
-| Attribute | Purpose |
-|-----------|---------|
-| `name` | Name for hidden `<input>` in form submission |
+| Attribute     | Purpose                                                 |
+| ------------- | ------------------------------------------------------- |
+| `name`        | Name for hidden `<input>` in form submission            |
 | `placeholder` | Search input placeholder (default: "Type to search...") |
 
-| Event | Detail |
-|-------|--------|
+| Event    | Detail                                          |
+| -------- | ----------------------------------------------- |
 | `change` | `{ value, display, data }` — fires on selection |
-| `clear` | Fires when selection is cleared |
+| `clear`  | Fires when selection is cleared                 |
 
 Place `<button>` children with `value` and `data-display` attributes. The component handles search filtering, hidden input, and selected-value display internally.
 
@@ -477,11 +511,11 @@ Wraps a horizontal scroll container with floating left/right chevron buttons on 
 
 Required child structure:
 
-| Selector | Purpose |
-|----------|---------|
-| `[data-chip-scroll]` | The scrollable container |
-| `[data-scroll-left]` | Left chevron button |
-| `[data-scroll-right]` | Right chevron button |
+| Selector              | Purpose                  |
+| --------------------- | ------------------------ |
+| `[data-chip-scroll]`  | The scrollable container |
+| `[data-scroll-left]`  | Left chevron button      |
+| `[data-scroll-right]` | Right chevron button     |
 
 Scroll distance and button sizing are set in the template `onclick` handler, not the component — use `scrollBy({left: ±200})` for chips, `±220` for cards. For chips use `p-1` + `h-4 w-4` icons at `left-0`/`right-0`. For cards use `p-1.5` + `h-5 w-5` icons at `-left-4`/`-right-4` (half-overlapping the card edges).
 
@@ -489,11 +523,11 @@ Scroll distance and button sizing are set in the template `onclick` handler, not
 
 Renders an inline SVG choropleth world map colored by country counts.
 
-| Attribute | Purpose |
-|-----------|---------|
-| `data-countries` | Comma-separated `ISO:count` pairs (e.g. `ET:5,CO:3`) |
-| `data-max` | Maximum count value (for color scaling) |
-| `data-selected` | ISO code of the currently selected country (optional) |
+| Attribute        | Purpose                                               |
+| ---------------- | ----------------------------------------------------- |
+| `data-countries` | Comma-separated `ISO:count` pairs (e.g. `ET:5,CO:3`)  |
+| `data-max`       | Maximum count value (for color scaling)               |
+| `data-selected`  | ISO code of the currently selected country (optional) |
 
 Uses `requestAnimationFrame` to defer rendering until after Datastar morphing completes.
 
@@ -501,10 +535,10 @@ Uses `requestAnimationFrame` to defer rendering until after Datastar morphing co
 
 Renders an SVG donut chart with a legend, colored proportionally using the `--highlight-rgb` CSS custom property.
 
-| Attribute | Purpose |
-|-----------|---------|
+| Attribute    | Purpose                                                         |
+| ------------ | --------------------------------------------------------------- |
 | `data-items` | Pipe-separated `label:count` pairs (e.g. `V60:15\|Aeropress:8`) |
-| `data-icon` | Icon key displayed in the center (`"beaker"` or `"grinder"`) |
+| `data-icon`  | Icon key displayed in the center (`"beaker"` or `"grinder"`)    |
 
 Re-renders on theme change via `MutationObserver` on the `data-theme` attribute. Uses `requestAnimationFrame` to defer rendering.
 
@@ -522,19 +556,19 @@ Handlers accept both JSON and form data via `FlexiblePayload<T>`. When form fiel
 
 Colors are defined as CSS custom properties in `static/css/input.css` (`:root` for light, `[data-theme="dark"]` for dark) and mapped to Tailwind utilities via `@theme`. See `input.css` for exact colour values.
 
-| Token | Tailwind classes |
-|-------|-----------------|
-| `--page` | `bg-page` |
-| `--surface` | `bg-surface` |
-| `--surface-alt` | `bg-surface-alt` |
-| `--border` | default `border` / `divide-y` |
-| `--accent` | `bg-accent`, `text-accent` |
-| `--accent-hover` | `bg-accent-hover`, `hover:bg-accent-hover` |
-| `--accent-subtle` | `bg-accent-subtle` |
-| `--accent-text` | `text-accent-text` |
-| `--text` | `text-text` |
-| `--text-secondary` | `text-text-secondary` |
-| `--text-muted` | `text-text-muted` |
+| Token              | Tailwind classes                           |
+| ------------------ | ------------------------------------------ |
+| `--page`           | `bg-page`                                  |
+| `--surface`        | `bg-surface`                               |
+| `--surface-alt`    | `bg-surface-alt`                           |
+| `--border`         | default `border` / `divide-y`              |
+| `--accent`         | `bg-accent`, `text-accent`                 |
+| `--accent-hover`   | `bg-accent-hover`, `hover:bg-accent-hover` |
+| `--accent-subtle`  | `bg-accent-subtle`                         |
+| `--accent-text`    | `text-accent-text`                         |
+| `--text`           | `text-text`                                |
+| `--text-secondary` | `text-text-secondary`                      |
+| `--text-muted`     | `text-text-muted`                          |
 
 Dark mode uses `[data-theme="dark"]` on `<html>`, set via a `<script>` in `<head>` that reads `localStorage` / `prefers-color-scheme` before body render. The `dark:` Tailwind prefix is available as an escape hatch.
 
@@ -542,27 +576,27 @@ Dark mode uses `[data-theme="dark"]` on `<html>`, set via a `<script>` in `<head
 
 Defined in `input.css` — use these instead of ad-hoc utility combinations:
 
-| Class | Use for |
-|-------|---------|
-| `.input-field` | All text/number/select inputs |
-| `.btn-adjust` | +/- stepper buttons flanking a numeric input |
-| `.sticky-submit` | Mobile-fixed / desktop-static submit bar |
-| `.pill` + variant | Tags, status badges (always include `.pill` base) |
-| `.tab` / `.tab-active` | Desktop tab buttons |
-| `.tab-mobile` / `.tab-mobile-active` | Mobile tab dropdown items |
-| `.responsive-table` | Tables that become card layout on mobile |
-| `.scrollbar-hide` | Hide scrollbar on horizontal scroll containers |
-| `.timeline-*` / `.tl-card` | Timeline page layout (line, node, heading, card) |
-| `.text-2xs` | Micro text (0.65rem) — available for fine print |
-| `.small-caps` | Font-variant small-caps — table headers, footer |
+| Class                                | Use for                                           |
+| ------------------------------------ | ------------------------------------------------- |
+| `.input-field`                       | All text/number/select inputs                     |
+| `.btn-adjust`                        | +/- stepper buttons flanking a numeric input      |
+| `.sticky-submit`                     | Mobile-fixed / desktop-static submit bar          |
+| `.pill` + variant                    | Tags, status badges (always include `.pill` base) |
+| `.tab` / `.tab-active`               | Desktop tab buttons                               |
+| `.tab-mobile` / `.tab-mobile-active` | Mobile tab dropdown items                         |
+| `.responsive-table`                  | Tables that become card layout on mobile          |
+| `.scrollbar-hide`                    | Hide scrollbar on horizontal scroll containers    |
+| `.timeline-*` / `.tl-card`           | Timeline page layout (line, node, heading, card)  |
+| `.text-2xs`                          | Micro text (0.65rem) — available for fine print   |
+| `.small-caps`                        | Font-variant small-caps — table headers, footer   |
 
 **Pill variants** (always pair with `.pill` base class):
 
-| Variant | Use |
-|---------|-----|
-| `.pill-muted` | Categories, neutral status |
-| `.pill-success` | Positive status ("Open") |
-| `.pill-warning` | Warning status |
+| Variant                                | Use                            |
+| -------------------------------------- | ------------------------------ |
+| `.pill-muted`                          | Categories, neutral status     |
+| `.pill-success`                        | Positive status ("Open")       |
+| `.pill-warning`                        | Warning status                 |
 | `.pill-floral` through `.pill-vegetal` | Tasting note SCA wheel colours |
 
 Do not override pill colour/border/padding with utilities.
@@ -574,6 +608,7 @@ Do not override pill colour/border/padding with utilities.
 Main container from `base.html`: `mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-4 md:py-10`. All page sections are direct children spaced by `gap-8`.
 
 Cards use `rounded-lg border bg-surface` — no shadows. Padding varies by context:
+
 - `p-4` — compact cards (brew cards, bag cards, stat cards)
 - `p-5` — form sections, admin sections, timeline cards
 - `p-6` — auth pages (login, register)
@@ -582,21 +617,22 @@ Cards use `rounded-lg border bg-surface` — no shadows. Padding varies by conte
 
 #### Typography
 
-| Level | Classes | Use |
-|-------|---------|-----|
-| Page title | `text-3xl font-semibold` | `<h1>` on each page |
-| Auth title | `text-2xl font-semibold text-accent` | Login/register headers |
-| Section title | `text-lg font-semibold text-text` | `<h2>` for page sections |
-| Subsection title | `text-base font-semibold text-text` | `<h3>` within cards |
-| Form subsection | `text-sm font-semibold text-text` | `<h4>` grouping fields (e.g. "Coffee", "Grinder") |
-| Form field label | `text-xs font-semibold text-text-muted uppercase tracking-wide` | `<h4>` / field group headings |
-| Body | `text-sm text-text-secondary` | Description text |
-| Muted | `text-xs text-text-muted` | Metadata, subtext |
-| Micro | `text-2xs text-text-muted` | Fine print (available utility, currently unused) |
+| Level            | Classes                                                         | Use                                               |
+| ---------------- | --------------------------------------------------------------- | ------------------------------------------------- |
+| Page title       | `text-3xl font-semibold`                                        | `<h1>` on each page                               |
+| Auth title       | `text-2xl font-semibold text-accent`                            | Login/register headers                            |
+| Section title    | `text-lg font-semibold text-text`                               | `<h2>` for page sections                          |
+| Subsection title | `text-base font-semibold text-text`                             | `<h3>` within cards                               |
+| Form subsection  | `text-sm font-semibold text-text`                               | `<h4>` grouping fields (e.g. "Coffee", "Grinder") |
+| Form field label | `text-xs font-semibold text-text-muted uppercase tracking-wide` | `<h4>` / field group headings                     |
+| Body             | `text-sm text-text-secondary`                                   | Description text                                  |
+| Muted            | `text-xs text-text-muted`                                       | Metadata, subtext                                 |
+| Micro            | `text-2xs text-text-muted`                                      | Fine print (available utility, currently unused)  |
 
 Page headers: `<header class="flex flex-col gap-2">` with `<h1>` + `<p class="max-w-2xl text-sm text-text-secondary">`.
 
 **Font weight rules:**
+
 - `font-bold` — stat values only (`text-lg font-bold text-text`)
 - `font-semibold` — headings and primary action buttons
 - `font-medium` — card action buttons, link-style actions, tab labels, table content, outlined/secondary buttons
@@ -607,45 +643,47 @@ Page headers: `<header class="flex flex-col gap-2">` with `<h1>` + `<p class="ma
 
 Entity-type icon mapping (consistent across all pages):
 
-| Entity | Icon macro |
-|--------|-----------|
-| brew | `icons::beaker` |
-| roast | `icons::coffee_bean` |
-| roaster | `icons::fire` |
-| bag | `icons::bag` |
-| cup | `icons::cup` |
-| cafe | `icons::location` |
-| gear | `icons::grinder` |
+| Entity  | Icon macro           |
+| ------- | -------------------- |
+| brew    | `icons::beaker`      |
+| roast   | `icons::coffee_bean` |
+| roaster | `icons::fire`        |
+| bag     | `icons::bag`         |
+| cup     | `icons::cup`         |
+| cafe    | `icons::location`    |
+| gear    | `icons::grinder`     |
 
 **Size by context:**
 
-| Size | Context |
-|------|---------|
-| `h-3 w-3` | Timeline card category labels (inline with `text-xs`) |
-| `h-4 w-4` | Buttons with text, tab buttons, admin page actions, list action links, form indicator icons |
+| Size      | Context                                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| `h-3 w-3` | Timeline card category labels (inline with `text-xs`)                                                        |
+| `h-4 w-4` | Buttons with text, tab buttons, admin page actions, list action links, form indicator icons                  |
 | `h-5 w-5` | Nav icons, quick action buttons, loading spinners, homepage activity rows, timeline expand/collapse chevrons |
-| `h-6 w-6` | Stat cards on homepage |
+| `h-6 w-6` | Stat cards on homepage                                                                                       |
 
 Always include `shrink-0` on icons inside flex containers to prevent shrinking.
 
 When an icon appears alongside text in a button or label, use `inline-flex items-center gap-N` on the container:
+
 - `gap-1` — compact inline labels (timeline categories)
 - `gap-1.5` — card action buttons, tab buttons (mobile selected label)
 - `gap-2` — standard buttons with icons
 
 #### Buttons
 
-| Variant | Classes | Use |
-|---------|---------|-----|
-| Primary | `inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover` | Form submits (Save, Log Brew, Check In), New Backup |
-| Outlined | `inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-surface-alt` | Bordered secondary actions. Colour variants: `text-text` for Cancel/Back, `text-accent hover:text-text` for actions (Restore, Reset, Sign Out, Delete, Revoke) |
-| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt` | Compact inline card buttons (e.g., Brew on bag card) |
-| Link | `inline-flex items-center gap-1 text-sm font-medium` | Borderless inline actions. Colour variants: `text-accent hover:text-accent-hover` for actions (View all, Brew Again, Homepage), `text-text-muted hover:text-red-600` for destructive (Delete) |
-| Text-only | `text-xs text-text-muted hover:text-text` | Minimal buttons: Change, Back in summary bars |
-| Nav icon | `rounded-md p-1.5 text-text-muted transition hover:text-text-secondary` | Theme toggle, user menu |
-| Adjustment | `.btn-adjust` CSS class | +/- steppers |
+| Variant     | Classes                                                                                                                                                              | Use                                                                                                                                                                                           |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Primary     | `inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover`               | Form submits (Save, Log Brew, Check In), New Backup                                                                                                                                           |
+| Outlined    | `inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-surface-alt`                                                     | Bordered secondary actions. Colour variants: `text-text` for Cancel/Back, `text-accent hover:text-text` for actions (Restore, Reset, Sign Out, Delete, Revoke)                                |
+| Card action | `inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt` | Compact inline card buttons (e.g., Brew on bag card)                                                                                                                                          |
+| Link        | `inline-flex items-center gap-1 text-sm font-medium`                                                                                                                 | Borderless inline actions. Colour variants: `text-accent hover:text-accent-hover` for actions (View all, Brew Again, Homepage), `text-text-muted hover:text-red-600` for destructive (Delete) |
+| Text-only   | `text-xs text-text-muted hover:text-text`                                                                                                                            | Minimal buttons: Change, Back in summary bars                                                                                                                                                 |
+| Nav icon    | `rounded-md p-1.5 text-text-muted transition hover:text-text-secondary`                                                                                              | Theme toggle, user menu                                                                                                                                                                       |
+| Adjustment  | `.btn-adjust` CSS class                                                                                                                                              | +/- steppers                                                                                                                                                                                  |
 
 **Sizing rules:**
+
 - `w-full` for full-width CTAs (form submits)
 - `py-3` for larger touch targets (login, register, check-in submit)
 - `disabled:opacity-50 disabled:cursor-not-allowed` with `data-attr:disabled` for loading states
@@ -669,13 +707,13 @@ Checkbox: `<label class="inline-flex items-center gap-2 text-sm cursor-pointer">
 
 #### Feedback States
 
-| Variant | Classes |
-|---------|---------|
-| Error text | `text-sm text-red-600` with `data-show`/`data-text` bound to error signal |
-| Error alert | `rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800` |
-| Success alert | `rounded-md bg-green-100 border border-green-300 p-4 text-sm text-green-800` |
-| Warning alert | `rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800` |
-| Info alert | `rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800` |
+| Variant         | Classes                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| Error text      | `text-sm text-red-600` with `data-show`/`data-text` bound to error signal                               |
+| Error alert     | `rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800`                                  |
+| Success alert   | `rounded-md bg-green-100 border border-green-300 p-4 text-sm text-green-800`                            |
+| Warning alert   | `rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800`                         |
+| Info alert      | `rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800`                       |
 | Loading spinner | `flex items-center gap-3 text-sm text-accent` with `{{ icons::spinner("h-5 w-5") }}` + `Saving&hellip;` |
 
 Always pair loading spinners with `data-show` bound to an in-progress signal.
@@ -712,16 +750,16 @@ Tab keys differ between pages: singular on `/add` (brew, roast, bag) vs plural o
 
 #### Spacing
 
-| Context | Gap |
-|---------|-----|
-| Page sections (main) | `gap-8` |
-| Major form sections | `gap-6` |
-| Related field groups | `gap-4` |
-| Button groups | `gap-2` or `gap-3` |
-| Icon + text (buttons) | `gap-2` |
+| Context               | Gap                  |
+| --------------------- | -------------------- |
+| Page sections (main)  | `gap-8`              |
+| Major form sections   | `gap-6`              |
+| Related field groups  | `gap-4`              |
+| Button groups         | `gap-2` or `gap-3`   |
+| Icon + text (buttons) | `gap-2`              |
 | Icon + text (compact) | `gap-1` or `gap-1.5` |
-| Label to input | `gap-1` |
-| Navigation links | `gap-6` |
+| Label to input        | `gap-1`              |
+| Navigation links      | `gap-6`              |
 
 ## Tables & Lists
 
@@ -737,8 +775,7 @@ Each list page has form and list as **separate siblings** under `<main>` (which 
   {% endif %}
 </section>
 
-{% include "partials/lists/{entity}_list.html" %}
-{% endblock %}
+{% include "partials/lists/{entity}_list.html" %} {% endblock %}
 ```
 
 ### List Partial Structure
@@ -756,12 +793,13 @@ List partials live in `templates/partials/lists/`. Each follows:
   {% else %}
   <section class="rounded-lg border bg-surface" ...>
     {% call table::search_header(navigator, "#{entity}-list") %}
-    <table class="responsive-table ...">...</table>
+    <table class="responsive-table ...">
+      ...
+    </table>
     {% if items.is_empty() %}
     <div class="p-8 text-center text-text-muted">No {entities} match your search.</div>
-    {% endif %}
-    {% call table::pagination_header(items, navigator, "#{entity}-list") %}
-    {% if items.has_next() %}
+    {% endif %} {% call table::pagination_header(items, navigator, "#{entity}-list") %} {% if
+    items.has_next() %}
     <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
     {% endif %}
   </section>
@@ -803,9 +841,7 @@ Tables use the `responsive-table` CSS class (card layout on mobile, standard tab
 **Mobile** — separate `<td>` for each sub-field:
 
 ```html
-<td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">
-  {{ brew.roaster_name }}
-</td>
+<td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.roaster_name }}</td>
 ```
 
 ### Pagination & Infinite Scroll
