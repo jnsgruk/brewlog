@@ -71,7 +71,9 @@
                   data-label="Location"
                   class="px-4 py-3 whitespace-nowrap md:hidden"
                 >
-                  {% if !cafe.country_flag.is_empty() %}{{ cafe.country_flag }}{% endif %}{{ cafe.country }}
+                  {% if !cafe.country_flag.is_empty() %}
+                    <span class="mr-1">{{ cafe.country_flag }}</span>
+                  {% endif %}{{ cafe.country }}
                 </td>
                 <td
                   data-label="City"
@@ -83,7 +85,9 @@
                   data-label="Country"
                   class="mobile-hidden px-4 py-3 whitespace-nowrap"
                 >
-                  {% if !cafe.country_flag.is_empty() %}{{ cafe.country_flag }}{% endif %}{{ cafe.country }}
+                  {% if !cafe.country_flag.is_empty() %}
+                    <span class="mr-1">{{ cafe.country_flag }}</span>
+                  {% endif %}{{ cafe.country }}
                 </td>
                 <td
                   data-label="City"

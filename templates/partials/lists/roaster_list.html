@@ -71,7 +71,9 @@
                   data-label="Location"
                   class="px-4 py-3 whitespace-nowrap md:hidden"
                 >
-                  {% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }}{% endif %}{{ roaster.country }}
+                  {% if !roaster.country_flag.is_empty() %}
+                    <span class="mr-1">{{ roaster.country_flag }}</span>
+                  {% endif %}{{ roaster.country }}
                 </td>
                 {% if !roaster.city.is_empty() %}
                   <td
@@ -85,7 +87,9 @@
                   data-label="Country"
                   class="mobile-hidden px-4 py-3 whitespace-nowrap"
                 >
-                  {% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }}{% endif %}{{ roaster.country }}
+                  {% if !roaster.country_flag.is_empty() %}
+                    <span class="mr-1">{{ roaster.country_flag }}</span>
+                  {% endif %}{{ roaster.country }}
                 </td>
                 <td
                   data-label="City"
