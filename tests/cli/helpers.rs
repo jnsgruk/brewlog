@@ -90,6 +90,7 @@ fn ensure_server_started() -> Result<(String, String), String> {
                     &database,
                     AppStateConfig {
                         webauthn: test_webauthn(),
+                        insecure_cookies: true,
                         foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL
                             .to_string(),
                         foursquare_api_key: String::new(),

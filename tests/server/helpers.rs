@@ -76,6 +76,7 @@ fn test_state_config() -> AppStateConfig {
     let (tx, _rx) = tokio::sync::mpsc::channel(1);
     AppStateConfig {
         webauthn: test_webauthn(),
+        insecure_cookies: true,
         foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
         foursquare_api_key: String::new(),
         openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),

@@ -111,11 +111,18 @@ pub struct ServeCommand {
     #[arg(long, env = "BREWLOG_BIND_ADDRESS", default_value = "127.0.0.1:3000")]
     pub bind_address: SocketAddr,
 
-    #[arg(long, env = "BREWLOG_RP_ID")]
-    pub rp_id: Option<String>,
+    #[arg(long, env = "BREWLOG_RP_ID", default_value = "localhost")]
+    pub rp_id: String,
 
-    #[arg(long, env = "BREWLOG_RP_ORIGIN")]
-    pub rp_origin: Option<String>,
+    #[arg(
+        long,
+        env = "BREWLOG_RP_ORIGIN",
+        default_value = "http://localhost:3000"
+    )]
+    pub rp_origin: String,
+
+    #[arg(long, env = "BREWLOG_INSECURE_COOKIES")]
+    pub insecure_cookies: bool,
 
     #[arg(long, env = "BREWLOG_OPENROUTER_API_KEY")]
     pub openrouter_api_key: Option<String>,

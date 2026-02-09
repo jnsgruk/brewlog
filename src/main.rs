@@ -70,19 +70,16 @@ async fn main() -> Result<()> {
 }
 
 async fn run_server(command: ServeCommand) -> Result<()> {
-    let rp_id = command.rp_id.ok_or_else(|| {
-        anyhow::anyhow!(
-            "BREWLOG_RP_ID is required. Set this to the domain where the app is hosted \
-             (e.g. 'brewlog.example.com' or 'localhost')."
-        )
-    })?;
+    let rp_id = command.rp_id;
+    let rp_origin = command.rp_origin;
 
-    let rp_origin = command.rp_origin.ok_or_else(|| {
-        anyhow::anyhow!(
-            "BREWLOG_RP_ORIGIN is required. Set this to the full origin URL \
-             (e.g. 'https://brewlog.example.com' or 'http://localhost:3000')."
-        )
-    })?;
+    let insecure_cookies = command.insecure_cookies
+        || (rp_id == "localhost" && rp_origin.starts_with("http://localhost"));
+    if insecure_cookies {
+        tracing::warn!(
+            "insecure cookies enabled for development/demo setup - do not use in production"
+        );
+    }
 
     let openrouter_api_key = command.openrouter_api_key.ok_or_else(|| {
         anyhow::anyhow!(
@@ -105,6 +102,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         database_url: command.database_url,
         rp_id,
         rp_origin,
+        insecure_cookies,
         openrouter_api_key,
         openrouter_model: command.openrouter_model,
         foursquare_api_key,

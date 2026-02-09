@@ -36,6 +36,7 @@ use crate::infrastructure::webauthn::ChallengeStore;
 /// automatically from the database pool.
 pub struct AppStateConfig {
     pub webauthn: Arc<Webauthn>,
+    pub insecure_cookies: bool,
     pub foursquare_url: String,
     pub foursquare_api_key: String,
     pub openrouter_url: String,
@@ -77,6 +78,7 @@ pub struct AppState {
     pub gear_service: GearService,
     pub cafe_service: CafeService,
     pub cup_service: CupService,
+    pub insecure_cookies: bool,
     pub stats_invalidator: StatsInvalidator,
 }
 
@@ -164,6 +166,7 @@ impl AppState {
             gear_service,
             cafe_service,
             cup_service,
+            insecure_cookies: config.insecure_cookies,
             stats_invalidator: config.stats_invalidator,
         }
     }
