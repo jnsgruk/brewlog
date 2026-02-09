@@ -94,11 +94,9 @@
                     {{ roast.producer }}
                   </td>
                 {% endif %}
-                <td data-label="Tasting Notes" class="px-4 py-3">
+                <td data-label="Tasting Notes" class="card-notes px-4 py-3">
                   {% if !roast.tasting_notes.is_empty() %}
-                    <div
-                      class="flex flex-wrap gap-1 md:justify-start justify-end"
-                    >
+                    <div class="flex flex-wrap gap-1">
                       {% for note in roast.tasting_notes %}
                         <span class="{{ note.pill_class }}"
                           >{{ note.label }}</span

@@ -584,6 +584,7 @@ input.input-field[type="number"] {
     padding: 0.25rem 0;
     white-space: normal;
     font-size: 0.875rem;
+    text-align: end;
     border: none !important;
   }
 
@@ -595,6 +596,7 @@ input.input-field[type="number"] {
     font-weight: 500;
     color: var(--text-secondary);
     margin-right: 0.75rem;
+    text-align: start;
   }
 
   .responsive-table td[data-label=""]::before {
@@ -641,6 +643,19 @@ input.input-field[type="number"] {
     color: var(--text-secondary);
     min-width: auto;
     margin-right: 0.5rem;
+  }
+
+  /* Tasting notes: bottom strip, no label, left-aligned pills */
+  .responsive-table td.card-notes {
+    order: 98;
+    display: flex;
+    justify-content: flex-start;
+    text-align: start;
+    padding-top: 0.5rem !important;
+  }
+
+  .responsive-table td.card-notes::before {
+    display: none;
   }
 
   /* Actions: absolute top-right in header area */
