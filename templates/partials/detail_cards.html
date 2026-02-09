@@ -62,9 +62,11 @@
         <div>
           <dt class="text-text-muted">Origin</dt>
           <dd class="font-medium text-text">
-            {% if !origin_flag.is_empty() %}
-              <span class="mr-1">{{ origin_flag }}</span>
-            {% endif %}{{ origin }}
+            <span
+              >{% if !origin_flag.is_empty() %}
+                <span class="mr-1">{{ origin_flag }}</span>
+              {% endif %}{{ origin }}</span
+            >
           </dd>
         </div>
       {% endif %}
@@ -204,9 +206,11 @@
       <div>
         <dt class="text-text-muted">Country</dt>
         <dd class="font-medium text-text">
-          {% if !country_flag.is_empty() %}
-            <span class="mr-1">{{ country_flag }}</span>
-          {% endif %}{{ country }}
+          <span
+            >{% if !country_flag.is_empty() %}
+              <span class="mr-1">{{ country_flag }}</span>
+            {% endif %}{{ country }}</span
+          >
         </dd>
       </div>
       {% if let Some(c) = city %}

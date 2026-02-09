@@ -33,9 +33,11 @@
         <div>
           <dt class="text-text-muted">Country</dt>
           <dd class="font-medium text-text">
-            {% if !roaster.country_flag.is_empty() %}
-              <span class="mr-1">{{ roaster.country_flag }}</span>
-            {% endif %}{{ roaster.country }}
+            <span
+              >{% if !roaster.country_flag.is_empty() %}
+                <span class="mr-1">{{ roaster.country_flag }}</span>
+              {% endif %}{{ roaster.country }}</span
+            >
           </dd>
         </div>
         {% if let Some(c) = roaster.city %}
