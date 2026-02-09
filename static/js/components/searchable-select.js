@@ -22,11 +22,22 @@ customElements.define(
       search.type = "text";
       search.className = "input-field w-full";
       search.placeholder = placeholder;
+      search.setAttribute("role", "combobox");
+      search.setAttribute("aria-expanded", "false");
+      search.setAttribute("aria-autocomplete", "list");
+
+      const listId = `ss-list-${name}`;
+      search.setAttribute("aria-controls", listId);
 
       const options = document.createElement("div");
       options.className =
         "hidden mt-2 max-h-48 overflow-y-auto rounded-lg border bg-surface";
-      buttons.forEach((btn) => options.appendChild(btn));
+      options.id = listId;
+      options.setAttribute("role", "listbox");
+      buttons.forEach((btn) => {
+        btn.setAttribute("role", "option");
+        options.appendChild(btn);
+      });
 
       const searchWrap = document.createElement("div");
       searchWrap.appendChild(search);
@@ -39,6 +50,7 @@ customElements.define(
       clear.type = "button";
       clear.className =
         "absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition";
+      clear.setAttribute("aria-label", "Clear selection");
       clear.innerHTML =
         '<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>';
 
@@ -74,14 +86,54 @@ customElements.define(
         }
       }
 
+      const updateExpanded = () => {
+        search.setAttribute(
+          "aria-expanded",
+          String(!options.classList.contains("hidden")),
+        );
+      };
+
       search.addEventListener("input", () => {
         const q = search.value.toLowerCase();
         options.classList.toggle("hidden", !q);
+        options.querySelector(".ss-active")?.classList.remove("ss-active");
         buttons.forEach((btn) => {
           btn.style.display = btn.textContent.toLowerCase().includes(q)
             ? ""
             : "none";
         });
+        updateExpanded();
+      });
+
+      search.addEventListener("keydown", (e) => {
+        const visible = buttons.filter(
+          (b) =>
+            b.style.display !== "none" && !options.classList.contains("hidden"),
+        );
+        if (!visible.length) return;
+
+        const active = options.querySelector(".ss-active");
+        let idx = active ? visible.indexOf(active) : -1;
+
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          if (active) active.classList.remove("ss-active");
+          idx = (idx + 1) % visible.length;
+          visible[idx].classList.add("ss-active");
+          visible[idx].scrollIntoView({ block: "nearest" });
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          if (active) active.classList.remove("ss-active");
+          idx = idx <= 0 ? visible.length - 1 : idx - 1;
+          visible[idx].classList.add("ss-active");
+          visible[idx].scrollIntoView({ block: "nearest" });
+        } else if (e.key === "Enter" && active) {
+          e.preventDefault();
+          active.click();
+        } else if (e.key === "Escape") {
+          options.classList.add("hidden");
+          updateExpanded();
+        }
       });
 
       options.addEventListener("click", (e) => {
@@ -92,6 +144,7 @@ customElements.define(
         display.textContent = btn.dataset.display;
         searchWrap.classList.add("hidden");
         selectedWrap.classList.remove("hidden");
+        updateExpanded();
 
         this.dispatchEvent(
           new CustomEvent("change", {
@@ -112,6 +165,7 @@ customElements.define(
         searchWrap.classList.remove("hidden");
         selectedWrap.classList.add("hidden");
         options.classList.add("hidden");
+        updateExpanded();
         setTimeout(() => search.focus(), 0);
 
         this.dispatchEvent(new CustomEvent("clear", { bubbles: true }));
