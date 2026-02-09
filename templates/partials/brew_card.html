@@ -1,9 +1,9 @@
 {% import "partials/icons.html" as icons %}
 {% macro card(brew, is_authenticated) %}
 <a href="/brews/{{ brew.id }}" class="relative w-[45vw] md:w-[200px] h-[279px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col transition hover:border-accent/40">
-  <div class="h-[4.5rem] overflow-hidden">
+  <div class="h-[3.25rem] overflow-hidden">
     <span class="block font-semibold text-text truncate">{{ brew.roast_name }}</span>
-    <p class="mt-0.5 text-sm text-text-muted truncate">{{ brew.roaster_name }}</p>
+    <p class="mt-0.5 text-xs text-text-muted">{{ brew.relative_date_label }}</p>
   </div>
   <div class="mt-1 flex-1 space-y-1 text-text-secondary" style="font-size: 0.8125rem">
     <p>{{ brew.coffee_weight }} &middot; {{ brew.water_volume }}{% if let Some(bt) = brew.brew_time %} &middot; {{ bt }}{% endif %}</p>
