@@ -14,7 +14,8 @@
 
       <div
         id="register-error"
-        class="mt-4 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"
+        class="mt-4 hidden rounded-md bg-error-bg border border-error-border p-3 text-sm text-error-text"
+        role="alert"
       ></div>
 
       <div
@@ -32,6 +33,7 @@
             type="text"
             id="display-name"
             required
+            aria-required="true"
             autofocus
             class="input-field"
             placeholder="Display name"
@@ -44,6 +46,7 @@
             type="text"
             id="passkey-name"
             required
+            aria-required="true"
             class="input-field"
             placeholder="e.g. MacBook Touch ID, iPhone"
           />

@@ -67,8 +67,14 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/nearby-cafes", get(cafes::nearby_cafes))
         .route("/extract-roaster", post(roasters::extract_roaster))
         .route("/extract-roast", post(roasts::extract_roast_info))
-        .route("/extract-bag-scan", post(scan::extract_bag_scan))
-        .route("/scan", post(scan::submit_scan))
+        .route(
+            "/extract-bag-scan",
+            post(scan::extract_bag_scan).layer(DefaultBodyLimit::max(10 * 1024 * 1024)),
+        )
+        .route(
+            "/scan",
+            post(scan::submit_scan).layer(DefaultBodyLimit::max(10 * 1024 * 1024)),
+        )
         .route("/check-in", post(checkin::submit_checkin))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
         .route("/cups/{id}", get(cups::get_cup).delete(cups::delete_cup))

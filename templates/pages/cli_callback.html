@@ -14,12 +14,12 @@
         </div>
       {% else if error.is_some() %}
         <div class="flex flex-col items-center text-center gap-3">
-          {{ icons::x_circle("h-10 w-10 text-red-600 dark:text-red-400") }}
+          {{ icons::x_circle("h-10 w-10 text-error") }}
           <h1 class="text-2xl font-semibold text-accent">
             Authentication Failed
           </h1>
           <div
-            class="w-full rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"
+            class="w-full rounded-md bg-error-bg border border-error-border p-3 text-sm text-error-text"
           >
             {{ error.as_ref().unwrap() }}
           </div>

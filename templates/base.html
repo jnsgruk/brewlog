@@ -48,12 +48,33 @@
       type="module"
       src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"
     ></script>
+    <script defer src="/static/js/location.js"></script>
     <script defer src="/static/js/components/photo-capture.js"></script>
     <script defer src="/static/js/components/searchable-select.js"></script>
     <script defer src="/static/js/components/chip-scroll.js"></script>
     <script defer src="/static/js/components/world-map.js"></script>
     <script defer src="/static/js/components/donut-chart.js"></script>
     {% block head %}{% endblock %}
+    <script>
+      const showToast = (msg, ms = 3000) => {
+        const el = document.getElementById("toast-message");
+        if (!el) return;
+        el.textContent = msg;
+        el.parentElement.classList.remove("hidden");
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(
+          () => el.parentElement.classList.add("hidden"),
+          ms,
+        );
+      };
+      document.addEventListener("DOMContentLoaded", () => {
+        const t = sessionStorage.getItem("toast");
+        if (t) {
+          sessionStorage.removeItem("toast");
+          showToast(t);
+        }
+      });
+    </script>
     <script>
       const toggleRow = (event) => {
         if (event.target.closest(".card-detail")) return;
@@ -184,5 +205,18 @@
         </p>
       </footer>
     </main>
+
+    <div
+      id="toast-container"
+      class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+    >
+      <div
+        class="hidden rounded-lg border border-success-border bg-surface px-4 py-3 text-sm font-medium text-success-text shadow-lg"
+        role="status"
+        aria-live="polite"
+      >
+        <span id="toast-message"></span>
+      </div>
+    </div>
   </body>
 </html>

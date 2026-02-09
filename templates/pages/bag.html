@@ -99,7 +99,7 @@
         {% endif %}
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+          class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
           data-on:click="confirm('Delete this bag? This cannot be undone.') && @delete('/api/v1/bags/{{ bag.id }}')"
         >
           {{ icons::delete("h-4 w-4") }} Delete

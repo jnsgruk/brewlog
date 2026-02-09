@@ -2,16 +2,6 @@
 {% import "partials/location_search.html" as location %}
 {% block title %}Brewlog · Add{% endblock %}
 
-{% block head %}
-  <script>
-    {
-      {
-        location::location_search_js();
-      }
-    }
-  </script>
-{% endblock %}
-
 {% block content %}
   <section
     data-signals:_add-submitting="false"
@@ -127,7 +117,8 @@
           data-show="$_roasterExtractError"
           data-text="$_roasterExtractError"
           style="display:none"
-          class="mt-2 text-sm text-red-600"
+          class="mt-2 text-sm text-error"
+          role="alert"
         ></p>
       </div>
 
@@ -137,6 +128,7 @@
           method="post"
           action="/api/v1/roasters"
           class="flex flex-col gap-4"
+          onsubmit="sessionStorage.setItem('toast', 'Roaster added')"
         >
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="flex flex-col gap-1 text-sm">
@@ -148,6 +140,7 @@
                 type="text"
                 name="name"
                 required
+                aria-required="true"
                 class="input-field"
                 placeholder="Example Coffee Roasters"
                 data-bind:_roaster-name
@@ -162,6 +155,7 @@
                 type="text"
                 name="country"
                 required
+                aria-required="true"
                 class="input-field"
                 placeholder="United States"
                 data-bind:_roaster-country
@@ -216,7 +210,15 @@
         <div class="text-sm text-text-secondary">
           <h3 class="text-lg font-semibold text-text">Add a roaster first</h3>
           <p class="mt-2">
-            Roasts need a roaster. Add a roaster above to enable this form.
+            Roasts need a roaster.
+            <button
+              type="button"
+              class="font-medium text-accent hover:underline"
+              data-on:click="$_addType = 'roaster'"
+            >
+              Add a roaster
+            </button>
+            to enable this form.
           </p>
         </div>
       {% else %}
@@ -270,7 +272,8 @@
             data-show="$_roastExtractError"
             data-text="$_roastExtractError"
             style="display:none"
-            class="mt-2 text-sm text-red-600"
+            class="mt-2 text-sm text-error"
+            role="alert"
           ></p>
         </div>
 
@@ -280,6 +283,7 @@
             method="post"
             action="/api/v1/roasts"
             class="flex flex-col gap-4"
+            onsubmit="sessionStorage.setItem('toast', 'Roast added')"
           >
             <div class="flex flex-col gap-1 text-sm">
               <span
@@ -314,6 +318,7 @@
                   type="text"
                   name="name"
                   required
+                  aria-required="true"
                   class="input-field"
                   placeholder="Ethiopia Yirgacheffe"
                   data-bind:_roast-name
@@ -328,6 +333,7 @@
                   type="text"
                   name="origin"
                   required
+                  aria-required="true"
                   class="input-field"
                   placeholder="Ethiopia"
                   data-bind:_origin
@@ -342,6 +348,7 @@
                   type="text"
                   name="region"
                   required
+                  aria-required="true"
                   class="input-field"
                   placeholder="Guji"
                   data-bind:_region
@@ -356,6 +363,7 @@
                   type="text"
                   name="producer"
                   required
+                  aria-required="true"
                   class="input-field"
                   placeholder="Chelbesa Cooperative"
                   data-bind:_producer
@@ -370,6 +378,7 @@
                   type="text"
                   name="process"
                   required
+                  aria-required="true"
                   class="input-field"
                   placeholder="Washed"
                   data-bind:_process
@@ -384,6 +393,7 @@
                   name="tasting_notes"
                   rows="2"
                   required
+                  aria-required="true"
                   class="input-field"
                   placeholder="Blueberry, Jasmine"
                   data-bind:_tasting-notes
@@ -413,7 +423,15 @@
         <div class="text-sm text-text-secondary">
           <h3 class="text-lg font-semibold text-text">Add a roast first</h3>
           <p class="mt-2">
-            Bags need a roast. Add a roaster and roast to enable this form.
+            Bags need a roast.
+            <button
+              type="button"
+              class="font-medium text-accent hover:underline"
+              data-on:click="$_addType = 'roast'"
+            >
+              Add a roast
+            </button>
+            to enable this form.
           </p>
         </div>
       {% else %}
@@ -427,6 +445,7 @@
           method="post"
           action="/api/v1/bags"
           class="mt-4 flex flex-col gap-4"
+          onsubmit="sessionStorage.setItem('toast', 'Bag added')"
         >
           <div class="flex flex-col gap-1 text-sm">
             <span
@@ -470,6 +489,7 @@
                 name="amount"
                 step="0.1"
                 required
+                aria-required="true"
                 class="input-field"
                 placeholder="250"
               />
@@ -497,14 +517,30 @@
         <div class="text-sm text-text-secondary">
           <h3 class="text-lg font-semibold text-text">Open a bag first</h3>
           <p class="mt-2">
-            Brews need an open bag of coffee. Add a bag to enable this form.
+            Brews need an open bag of coffee.
+            <button
+              type="button"
+              class="font-medium text-accent hover:underline"
+              data-on:click="$_addType = 'bag'"
+            >
+              Add a bag
+            </button>
+            to enable this form.
           </p>
         </div>
       {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
         <div class="text-sm text-text-secondary">
           <h3 class="text-lg font-semibold text-text">Add gear first</h3>
           <p class="mt-2">
-            Brews need a grinder and brewer. Add gear to enable this form.
+            Brews need a grinder and brewer.
+            <button
+              type="button"
+              class="font-medium text-accent hover:underline"
+              data-on:click="$_addType = 'gear'"
+            >
+              Add gear
+            </button>
+            to enable this form.
           </p>
         </div>
       {% else %}
@@ -516,6 +552,7 @@
           method="post"
           action="/api/v1/brews"
           class="mt-4 flex flex-col gap-6 overflow-hidden pb-16 md:pb-0"
+          onsubmit="sessionStorage.setItem('toast', 'Brew added')"
         >
           <!-- Coffee -->
           <div>
@@ -568,6 +605,7 @@
                     step="any"
                     min="1"
                     required
+                    aria-required="true"
                     class="input-field flex-1 text-center"
                     data-bind:_brew-weight
                   />
@@ -616,6 +654,7 @@
                   <select
                     name="grinder_id"
                     required
+                    aria-required="true"
                     class="input-field"
                     data-on:change="$_grinderDisplay = evt.target.options[evt.target.selectedIndex].text"
                   >
@@ -648,6 +687,7 @@
                       step="any"
                       min="0"
                       required
+                      aria-required="true"
                       class="input-field flex-1 text-center"
                       data-bind:_brew-grind
                     />
@@ -707,6 +747,7 @@
                   <select
                     name="brewer_id"
                     required
+                    aria-required="true"
                     class="input-field"
                     data-on:change="$_brewerDisplay = evt.target.options[evt.target.selectedIndex].text"
                   >
@@ -768,6 +809,7 @@
                     step="any"
                     min="10"
                     required
+                    aria-required="true"
                     class="input-field flex-1 text-center"
                     data-bind:_brew-volume
                   />
@@ -800,6 +842,7 @@
                     min="0"
                     max="100"
                     required
+                    aria-required="true"
                     class="input-field flex-1 text-center"
                     data-bind:_brew-temp
                   />
@@ -926,6 +969,7 @@
         method="post"
         action="/api/v1/gear"
         class="mt-4 flex flex-col gap-4"
+        onsubmit="sessionStorage.setItem('toast', 'Gear added')"
       >
         <div class="grid gap-4 sm:grid-cols-3">
           <label class="flex flex-col gap-1 text-sm">
@@ -933,7 +977,12 @@
               class="text-xs font-semibold text-text-muted uppercase tracking-wide"
               >Category*</span
             >
-            <select name="category" required class="input-field">
+            <select
+              name="category"
+              required
+              aria-required="true"
+              class="input-field"
+            >
               <option value="">Select a category</option>
               <option value="grinder">Grinder</option>
               <option value="brewer">Brewer</option>
@@ -949,6 +998,7 @@
               type="text"
               name="make"
               required
+              aria-required="true"
               class="input-field"
               placeholder="Baratza"
             />
@@ -962,6 +1012,7 @@
               type="text"
               name="model"
               required
+              aria-required="true"
               class="input-field"
               placeholder="Encore"
             />
@@ -998,7 +1049,8 @@
           data-show="$_cafeError"
           data-text="$_cafeError"
           style="display:none"
-          class="mt-2 text-sm text-red-600"
+          class="mt-2 text-sm text-error"
+          role="alert"
         ></p>
       </div>
 
@@ -1036,6 +1088,7 @@
         method="post"
         action="/api/v1/cafes"
         class="mt-4 flex flex-col gap-4"
+        onsubmit="sessionStorage.setItem('toast', 'Cafe added')"
       >
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-1 text-sm">
@@ -1047,6 +1100,7 @@
               type="text"
               name="name"
               required
+              aria-required="true"
               class="input-field"
               placeholder="Blue Bottle Coffee"
               data-bind:_cafe-name
@@ -1061,6 +1115,7 @@
               type="text"
               name="city"
               required
+              aria-required="true"
               class="input-field"
               placeholder="San Francisco"
               data-bind:_cafe-city
@@ -1075,6 +1130,7 @@
               type="text"
               name="country"
               required
+              aria-required="true"
               class="input-field"
               placeholder="United States"
               data-bind:_cafe-country
@@ -1103,6 +1159,7 @@
               name="latitude"
               step="any"
               required
+              aria-required="true"
               class="input-field"
               placeholder="37.7749"
               data-bind:_cafe-lat
@@ -1118,6 +1175,7 @@
               name="longitude"
               step="any"
               required
+              aria-required="true"
               class="input-field"
               placeholder="-122.4194"
               data-bind:_cafe-lng
@@ -1147,8 +1205,27 @@
             Add a roast and cafe first
           </h3>
           <p class="mt-2">
-            Cups need both a roast and a cafe. Add them above to enable this
-            form.
+            Cups need both a roast and a cafe.
+            {% if roast_options.is_empty() %}
+              <button
+                type="button"
+                class="font-medium text-accent hover:underline"
+                data-on:click="$_addType = 'roast'"
+              >
+                Add a roast
+              </button>
+            {% endif %}
+            {% if roast_options.is_empty() && cafe_options.is_empty() %}and{% endif %}
+            {% if cafe_options.is_empty() %}
+              <button
+                type="button"
+                class="font-medium text-accent hover:underline"
+                data-on:click="$_addType = 'cafe'"
+              >
+                add a cafe
+              </button>
+            {% endif %}
+            to enable this form.
           </p>
         </div>
       {% else %}
@@ -1162,6 +1239,7 @@
           method="post"
           action="/api/v1/cups"
           class="mt-4 flex flex-col gap-4"
+          onsubmit="sessionStorage.setItem('toast', 'Cup added')"
         >
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-1 text-sm">

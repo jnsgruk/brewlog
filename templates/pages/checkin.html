@@ -7,15 +7,6 @@
 {% block title %}
   Brewlog · Check In
 {% endblock %}
-{% block head %}
-  <script>
-    {
-      {
-        location::location_search_js();
-      }
-    }
-  </script>
-{% endblock %}
 {% block content %}
   <section
     id="checkin-root"
@@ -51,7 +42,11 @@
     </header>
 
     <!-- Step progress -->
-    <div class="relative mx-auto mt-6" style="width: 80%">
+    <nav
+      aria-label="Check-in progress"
+      class="relative mx-auto mt-6"
+      style="width: 80%"
+    >
       <!-- Background track (continuous line through dot centers) -->
       <div
         class="absolute bg-border"
@@ -79,6 +74,7 @@
           <span
             class="mt-2 text-xs font-medium transition-colors"
             data-class="{'text-accent': $_step === 1, 'text-text': $_step > 1}"
+            data-attr:aria-current="$_step === 1 ? 'step' : null"
             >Cafe</span
           >
         </div>
@@ -90,6 +86,7 @@
           <span
             class="mt-2 text-xs font-medium transition-colors"
             data-class="{'text-accent': $_step === 2, 'text-text': $_step > 2, 'text-text-muted': $_step < 2}"
+            data-attr:aria-current="$_step === 2 ? 'step' : null"
             >Coffee</span
           >
         </div>
@@ -101,11 +98,12 @@
           <span
             class="mt-2 text-xs font-medium transition-colors"
             data-class="{'text-accent': $_step === 3, 'text-text-muted': $_step < 3}"
+            data-attr:aria-current="$_step === 3 ? 'step' : null"
             >Submit</span
           >
         </div>
       </div>
-    </div>
+    </nav>
 
     <!-- Selected cafe summary (shown after selection) -->
     <div
@@ -161,10 +159,11 @@
 
     <!-- Error display -->
     <p
-      class="mt-3 text-sm text-red-600"
+      class="mt-3 text-sm text-error"
       data-show="$_error"
       style="display: none"
       data-text="$_error"
+      role="alert"
     ></p>
 
     <!-- Step 1: Cafe selection -->
@@ -189,6 +188,7 @@
                 type="text"
                 data-bind:_cafe-name
                 required
+                aria-required="true"
                 class="input-field"
               />
             </label>
@@ -283,7 +283,7 @@
         </div>
 
         <div
-          class="mb-4 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800"
+          class="mb-4 rounded-md bg-success-bg border border-success-border px-3 py-2 text-sm text-success-text"
           data-show="$_scanSuccess"
           style="display: none"
         >
@@ -345,7 +345,7 @@
 
         <form
           data-on:submit="$_submitting = true; $_error = ''; @post('/api/v1/check-in', {contentType: 'form'})"
-          data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
+          data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'finished') { sessionStorage.setItem('toast', 'Checked in') } else if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
         >
           <input type="hidden" name="cafe_id" data-attr:value="$_cafeId" />
           <input type="hidden" name="cafe_name" data-attr:value="$_cafeName" />

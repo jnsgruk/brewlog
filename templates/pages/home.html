@@ -86,7 +86,8 @@
           data-show="$_extractError"
           data-text="$_extractError"
           style="display:none"
-          class="mt-2 text-sm text-red-600 text-center"
+          class="mt-2 text-sm text-error text-center"
+          role="alert"
         ></p>
       </div>
 
@@ -95,7 +96,7 @@
         <form
           class="rounded-lg border bg-surface p-5 flex flex-col gap-6"
           data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
-          data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
+          data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { sessionStorage.setItem('toast', 'Roast saved'); window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
         >
           {% include "partials/forms/scan_result_form.html" %}
         </form>
