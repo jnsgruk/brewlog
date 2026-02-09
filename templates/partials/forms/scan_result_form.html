@@ -225,11 +225,14 @@
 >
   {{ icons::spinner("h-5 w-5") }} Saving&hellip;
 </div>
-<div data-show="!$_scanSubmitting" class="flex items-center justify-end gap-2">
+<div
+  data-show="!$_scanSubmitting"
+  class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end"
+>
   <button
     type="button"
     data-on:click="$_scanExtracted = false; $_matchedRoasterId = ''; $_matchedRoastId = ''"
-    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
+    class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt sm:w-auto sm:justify-start"
   >
     {{ icons::x_mark("h-4 w-4") }} Cancel
   </button>
@@ -237,7 +240,7 @@
   <button
     type="submit"
     data-show="!$_matchedRoasterId"
-    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+    class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:justify-start"
   >
     {{ icons::plus("h-4 w-4") }} Save Roaster &amp; Roast
   </button>
@@ -245,7 +248,7 @@
   <button
     type="submit"
     data-show="$_matchedRoasterId && !$_matchedRoastId"
-    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+    class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:justify-start"
     style="display:none"
   >
     {{ icons::plus("h-4 w-4") }} Save Roast
@@ -254,7 +257,7 @@
   <button
     type="submit"
     data-show="$_matchedRoastId && $_openBag"
-    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+    class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:justify-start"
     style="display:none"
   >
     {{ icons::bag("h-4 w-4") }} Open Bag
