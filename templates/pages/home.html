@@ -1,376 +1,492 @@
-{% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %} {% import
-"partials/brew_card.html" as brew_card %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog{% endblock %} {% block head %}
-<meta property="og:image" content="{{ base_url }}/static/og-image.png" />
-{% endblock %} {% block content %}
-<!-- Scan Bag -->
-{% if is_authenticated %}
-<section
-  data-signals:_extracting="false"
-  data-signals:_extract-error="''"
-  data-signals:_scan-extracted="false"
-  data-signals:_scan-submitting="false"
-  data-signals:_scan-error="''"
-  data-signals:_roaster-name="''"
-  data-signals:_roaster-country="''"
-  data-signals:_roaster-city="''"
-  data-signals:_roaster-homepage="''"
-  data-signals:_roast-name="''"
-  data-signals:_origin="''"
-  data-signals:_region="''"
-  data-signals:_producer="''"
-  data-signals:_process="''"
-  data-signals:_tasting-notes="''"
-  data-signals:_open-bag="true"
-  data-signals:_bag-amount="250"
-  data-signals:_matched-roaster-id="''"
-  data-signals:_matched-roast-id="''"
->
-  <!-- Quick actions (shown when not yet extracted) -->
-  <div data-show="!$_scanExtracted">
-    <div data-show="!$_extracting" class="grid grid-cols-3 gap-4">
-      <input type="hidden" name="image" id="scan-image" form="scan-extract-form" />
-      <form id="scan-extract-form"
-        data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
-        data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
-        class="hidden"></form>
-      <brew-photo-capture target-input="scan-image" target-form="scan-extract-form"
-        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40 cursor-pointer"
-        aria-label="Scan Bag"
+{% extends "base.html" %} {% import "partials/bag_card.html" as bag_card %}
+{%
+  import
+  "partials/brew_card.html" as brew_card
+%}
+{% import "partials/icons.html" as icons %}
+{% block title %}Brewlog{% endblock %}
+{% block head %}
+  <meta property="og:image" content="{{ base_url }}/static/og-image.png" />
+{% endblock %}
+{% block content %}
+  <!-- Scan Bag -->
+  {% if is_authenticated %}
+    <section
+      data-signals:_extracting="false"
+      data-signals:_extract-error="''"
+      data-signals:_scan-extracted="false"
+      data-signals:_scan-submitting="false"
+      data-signals:_scan-error="''"
+      data-signals:_roaster-name="''"
+      data-signals:_roaster-country="''"
+      data-signals:_roaster-city="''"
+      data-signals:_roaster-homepage="''"
+      data-signals:_roast-name="''"
+      data-signals:_origin="''"
+      data-signals:_region="''"
+      data-signals:_producer="''"
+      data-signals:_process="''"
+      data-signals:_tasting-notes="''"
+      data-signals:_open-bag="true"
+      data-signals:_bag-amount="250"
+      data-signals:_matched-roaster-id="''"
+      data-signals:_matched-roast-id="''"
+    >
+      <!-- Quick actions (shown when not yet extracted) -->
+      <div data-show="!$_scanExtracted">
+        <div data-show="!$_extracting" class="grid grid-cols-3 gap-4">
+          <input
+            type="hidden"
+            name="image"
+            id="scan-image"
+            form="scan-extract-form"
+          />
+          <form
+            id="scan-extract-form"
+            data-on:submit="$_extracting = true; $_extractError = ''; @post('/api/v1/extract-bag-scan', {contentType: 'form'})"
+            data-on:datastar-fetch="if (!$_extracting) return; if (evt.detail.type === 'finished') { $_extracting = false; $_scanExtracted = true; document.getElementById('scan-extract-form').reset() } else if (evt.detail.type === 'error') { $_extracting = false; $_extractError = 'Extraction failed. Please try again.' }"
+            class="hidden"
+          ></form>
+          <brew-photo-capture
+            target-input="scan-image"
+            target-form="scan-extract-form"
+            class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40 cursor-pointer"
+            aria-label="Scan Bag"
+          >
+            {{ icons::camera("h-5 w-5") }}
+            <span class="text-sm font-medium">Scan</span>
+          </brew-photo-capture>
+          <a
+            href="/check-in"
+            class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40"
+            title="Check in at a cafe"
+            aria-label="Check in at a cafe"
+          >
+            {{ icons::location("h-5 w-5") }}
+            <span class="text-sm font-medium">Check In</span>
+          </a>
+          <a
+            href="/add"
+            class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40"
+            title="Add manually"
+            aria-label="Add manually"
+          >
+            {{ icons::plus("h-5 w-5") }}
+            <span class="text-sm font-medium">Add</span>
+          </a>
+        </div>
+        <div
+          data-show="$_extracting"
+          style="display:none"
+          class="flex items-center justify-center gap-3 text-sm text-accent"
+        >
+          {{ icons::spinner("h-5 w-5") }} Waiting for response&hellip;
+        </div>
+        <p
+          data-show="$_extractError"
+          data-text="$_extractError"
+          style="display:none"
+          class="mt-2 text-sm text-red-600 text-center"
+        ></p>
+      </div>
+
+      <!-- Form: pre-filled roaster + roast (shown after extraction) -->
+      <div data-show="$_scanExtracted" style="display: none">
+        <form
+          class="rounded-lg border bg-surface p-5 flex flex-col gap-6"
+          data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
+          data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
+        >
+          {% include "partials/forms/scan_result_form.html" %}
+        </form>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Recent Brews -->
+  <section data-signals:_brewing="false">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-lg font-semibold text-text">Recent Brews</h2>
+      <a
+        href="/data?type=brews"
+        class="text-sm text-accent hover:text-accent-hover font-medium"
+        >View all brews &rarr;</a
       >
-        {{ icons::camera("h-5 w-5") }}
-        <span class="text-sm font-medium">Scan</span>
-      </brew-photo-capture>
-      <a href="/check-in"
-        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40"
-        title="Check in at a cafe"
-        aria-label="Check in at a cafe"
+    </div>
+    {% if !recent_brews.is_empty() %}
+      <chip-scroll class="relative block">
+        <button
+          type="button"
+          aria-label="Scroll left"
+          class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-left
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -220, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_left("h-5 w-5") }}
+        </button>
+        <div
+          class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
+          data-chip-scroll
+        >
+          {% for brew in recent_brews %}{{ brew_card::card(brew, is_authenticated) }}{% endfor %}
+        </div>
+        <button
+          type="button"
+          aria-label="Scroll right"
+          class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-right
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 220, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_right("h-5 w-5") }}
+        </button>
+      </chip-scroll>
+    {% else %}
+      <div class="relative">
+        <div
+          class="flex gap-4 overflow-hidden blur-[2px] select-none pointer-events-none"
+          aria-hidden="true"
+        >
+          {% for _ in 0..6 %}
+            <div
+              class="w-[45vw] md:w-[200px] h-[279px] shrink-0 rounded-lg border bg-surface p-4 flex flex-col"
+            >
+              <div class="h-[4.5rem]">
+                <div class="h-4 w-3/4 rounded bg-surface-alt"></div>
+                <div class="mt-2 h-3 w-1/2 rounded bg-surface-alt"></div>
+              </div>
+              <div class="mt-2 flex-1 space-y-2">
+                <div class="h-3 w-full rounded bg-surface-alt"></div>
+                <div class="h-3 w-5/6 rounded bg-surface-alt"></div>
+                <div class="h-3 w-2/3 rounded bg-surface-alt"></div>
+                <div class="h-3 w-3/4 rounded bg-surface-alt"></div>
+              </div>
+              <div class="mt-3 h-8 rounded-md bg-surface-alt"></div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="absolute inset-0 z-10 flex items-center justify-center">
+          <span class="text-lg font-semibold text-text-muted"
+            >No brews yet</span
+          >
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Open Bags -->
+  <section id="open-bags-section">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-lg font-semibold text-text">Open Bags</h2>
+      <a
+        href="/data?type=bags"
+        class="text-sm text-accent hover:text-accent-hover font-medium"
+        >View all bags &rarr;</a
       >
-        {{ icons::location("h-5 w-5") }}
-        <span class="text-sm font-medium">Check In</span>
-      </a>
-      <a href="/add"
-        class="inline-flex flex-col items-center justify-center gap-1.5 rounded-md border bg-surface px-4 py-3 text-accent transition hover:border-accent/40"
-        title="Add manually"
-        aria-label="Add manually"
+    </div>
+    {% if !open_bags.is_empty() %}
+      <chip-scroll class="relative block">
+        <button
+          type="button"
+          aria-label="Scroll left"
+          class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-left
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -220, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_left("h-5 w-5") }}
+        </button>
+        <div
+          id="open-bags-grid"
+          class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
+          data-chip-scroll
+        >
+          {% for bag in open_bags %}{{ bag_card::card(bag, is_authenticated) }}{% endfor %}
+        </div>
+        <button
+          type="button"
+          aria-label="Scroll right"
+          class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-right
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 220, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_right("h-5 w-5") }}
+        </button>
+      </chip-scroll>
+    {% else %}
+      <div class="relative">
+        <div
+          class="flex gap-4 overflow-hidden blur-[2px] select-none pointer-events-none"
+          aria-hidden="true"
+        >
+          {% for _ in 0..6 %}
+            <div
+              class="w-[45vw] md:w-[200px] h-[200px] shrink-0 rounded-lg border bg-surface p-4 flex flex-col"
+            >
+              <div class="flex-1">
+                <div class="h-4 w-3/4 rounded bg-surface-alt"></div>
+                <div class="mt-2 h-3 w-1/2 rounded bg-surface-alt"></div>
+              </div>
+              <div>
+                <div class="h-2 w-full rounded-full bg-surface-alt"></div>
+                <div class="mt-1 h-2 w-1/3 rounded bg-surface-alt"></div>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <div class="flex-1 h-8 rounded-md bg-surface-alt"></div>
+                <div class="flex-1 h-8 rounded-md bg-surface-alt"></div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="absolute inset-0 z-10 flex items-center justify-center">
+          <span class="text-lg font-semibold text-text-muted"
+            >No open bags</span
+          >
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Recent Activity -->
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-lg font-semibold text-text">Recent Activity</h2>
+      <a
+        href="/timeline"
+        class="text-sm text-accent hover:text-accent-hover font-medium"
+        >View full timeline &rarr;</a
       >
-        {{ icons::plus("h-5 w-5") }}
-        <span class="text-sm font-medium">Add</span>
-      </a>
     </div>
-    <div data-show="$_extracting" style="display:none" class="flex items-center justify-center gap-3 text-sm text-accent">
-      {{ icons::spinner("h-5 w-5") }}
-      Waiting for response&hellip;
-    </div>
-    <p data-show="$_extractError" data-text="$_extractError" style="display:none" class="mt-2 text-sm text-red-600 text-center"></p>
-  </div>
-
-  <!-- Form: pre-filled roaster + roast (shown after extraction) -->
-  <div data-show="$_scanExtracted" style="display: none">
-    <form
-      class="rounded-lg border bg-surface p-5 flex flex-col gap-6"
-      data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
-      data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"
-    >
-      {% include "partials/forms/scan_result_form.html" %}
-    </form>
-  </div>
-</section>
-{% endif %}
-
-<!-- Recent Brews -->
-<section data-signals:_brewing="false">
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-text">Recent Brews</h2>
-    <a href="/data?type=brews" class="text-sm text-accent hover:text-accent-hover font-medium"
-      >View all brews &rarr;</a
-    >
-  </div>
-  {% if !recent_brews.is_empty() %}
-  <chip-scroll class="relative block">
-    <button type="button" aria-label="Scroll left"
-      class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-left
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -220, behavior: 'smooth'})">
-      {{ icons::chevron_left("h-5 w-5") }}
-    </button>
-    <div class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide" data-chip-scroll>
-      {% for brew in recent_brews %} {{ brew_card::card(brew, is_authenticated) }} {% endfor %}
-    </div>
-    <button type="button" aria-label="Scroll right"
-      class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-right
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 220, behavior: 'smooth'})">
-      {{ icons::chevron_right("h-5 w-5") }}
-    </button>
-  </chip-scroll>
-  {% else %}
-  <div class="relative">
-    <div class="flex gap-4 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
-      {% for _ in 0..6 %}
-      <div class="w-[45vw] md:w-[200px] h-[279px] shrink-0 rounded-lg border bg-surface p-4 flex flex-col">
-        <div class="h-[4.5rem]">
-          <div class="h-4 w-3/4 rounded bg-surface-alt"></div>
-          <div class="mt-2 h-3 w-1/2 rounded bg-surface-alt"></div>
-        </div>
-        <div class="mt-2 flex-1 space-y-2">
-          <div class="h-3 w-full rounded bg-surface-alt"></div>
-          <div class="h-3 w-5/6 rounded bg-surface-alt"></div>
-          <div class="h-3 w-2/3 rounded bg-surface-alt"></div>
-          <div class="h-3 w-3/4 rounded bg-surface-alt"></div>
-        </div>
-        <div class="mt-3 h-8 rounded-md bg-surface-alt"></div>
+    {% if !recent_events.is_empty() %}
+      <div class="space-y-2">
+        {% for event in recent_events %}
+          <a
+            href="{{ event.link }}"
+            class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3 transition hover:border-accent/40"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-text-muted shrink-0">
+                {% if event.entity_type == "brew" %}{{ icons::beaker("h-5 w-5") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-5 w-5") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-5 w-5") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-5 w-5") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-5 w-5") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-5 w-5") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-5 w-5") }}{% else %}{{ icons::beaker("h-5 w-5") }}{% endif %}
+              </span>
+              <p class="min-w-0 truncate text-sm">
+                <span class="font-medium text-text">{{ event.title }}</span
+                >{% if let Some(sub) = event.subtitle %}
+                  <span class="text-xs text-text-muted">· {{ sub }}</span>
+                {% endif %}
+              </p>
+            </div>
+            <time class="text-xs text-text-muted whitespace-nowrap shrink-0"
+              >{{ event.relative_date_label }}</time
+            >
+          </a>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-    <div class="absolute inset-0 z-10 flex items-center justify-center">
-      <span class="text-lg font-semibold text-text-muted">No brews yet</span>
-    </div>
-  </div>
-  {% endif %}
-</section>
-
-<!-- Open Bags -->
-<section id="open-bags-section">
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-text">Open Bags</h2>
-    <a href="/data?type=bags" class="text-sm text-accent hover:text-accent-hover font-medium"
-      >View all bags &rarr;</a
-    >
-  </div>
-  {% if !open_bags.is_empty() %}
-  <chip-scroll class="relative block">
-    <button type="button" aria-label="Scroll left"
-      class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-left
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -220, behavior: 'smooth'})">
-      {{ icons::chevron_left("h-5 w-5") }}
-    </button>
-    <div
-      id="open-bags-grid"
-      class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
-      data-chip-scroll
-    >
-      {% for bag in open_bags %} {{ bag_card::card(bag, is_authenticated) }} {% endfor %}
-    </div>
-    <button type="button" aria-label="Scroll right"
-      class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-right
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 220, behavior: 'smooth'})">
-      {{ icons::chevron_right("h-5 w-5") }}
-    </button>
-  </chip-scroll>
-  {% else %}
-  <div class="relative">
-    <div class="flex gap-4 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
-      {% for _ in 0..6 %}
-      <div class="w-[45vw] md:w-[200px] h-[200px] shrink-0 rounded-lg border bg-surface p-4 flex flex-col">
-        <div class="flex-1">
-          <div class="h-4 w-3/4 rounded bg-surface-alt"></div>
-          <div class="mt-2 h-3 w-1/2 rounded bg-surface-alt"></div>
+    {% else %}
+      <div class="relative">
+        <div
+          class="space-y-2 blur-[2px] select-none pointer-events-none"
+          aria-hidden="true"
+        >
+          {% for _ in 0..3 %}
+            <div
+              class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="h-5 w-5 shrink-0 rounded-full bg-surface-alt"></div>
+                <div class="h-4 w-40 rounded bg-surface-alt"></div>
+              </div>
+              <div class="h-3 w-16 shrink-0 rounded bg-surface-alt"></div>
+            </div>
+          {% endfor %}
         </div>
-        <div>
-          <div class="h-2 w-full rounded-full bg-surface-alt"></div>
-          <div class="mt-1 h-2 w-1/3 rounded bg-surface-alt"></div>
-        </div>
-        <div class="mt-3 flex gap-2">
-          <div class="flex-1 h-8 rounded-md bg-surface-alt"></div>
-          <div class="flex-1 h-8 rounded-md bg-surface-alt"></div>
+        <div class="absolute inset-0 z-10 flex items-center justify-center">
+          <span class="text-lg font-semibold text-text-muted"
+            >No activity yet</span
+          >
         </div>
       </div>
-      {% endfor %}
-    </div>
-    <div class="absolute inset-0 z-10 flex items-center justify-center">
-      <span class="text-lg font-semibold text-text-muted">No open bags</span>
-    </div>
-  </div>
-  {% endif %}
-</section>
+    {% endif %}
+  </section>
 
-<!-- Recent Activity -->
-<section>
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="text-lg font-semibold text-text">Recent Activity</h2>
-    <a href="/timeline" class="text-sm text-accent hover:text-accent-hover font-medium"
-      >View full timeline &rarr;</a
-    >
-  </div>
-  {% if !recent_events.is_empty() %}
-  <div class="space-y-2">
-    {% for event in recent_events %}
-    <a href="{{ event.link }}" class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3 transition hover:border-accent/40">
-      <div class="flex items-center gap-3 min-w-0">
-        <span class="text-text-muted shrink-0">
-          {% if event.entity_type == "brew" %}{{ icons::beaker("h-5 w-5") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-5 w-5") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-5 w-5") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-5 w-5") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-5 w-5") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-5 w-5") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-5 w-5") }}{% else %}{{ icons::beaker("h-5 w-5") }}{% endif %}
-        </span>
-        <p class="min-w-0 truncate text-sm">
-          <span class="font-medium text-text">{{ event.title }}</span>{% if let Some(sub) = event.subtitle %}
-          <span class="text-xs text-text-muted">· {{ sub }}</span>{% endif %}
-        </p>
-      </div>
-      <time class="text-xs text-text-muted whitespace-nowrap shrink-0"
-        >{{ event.relative_date_label }}</time
+  <!-- Stats -->
+  <section>
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-semibold text-text">Stats</h2>
+      <a
+        href="/stats"
+        class="text-sm text-accent hover:text-accent-hover font-medium"
+        >View all stats &rarr;</a
       >
-    </a>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="relative">
-    <div class="space-y-2 blur-[2px] select-none pointer-events-none" aria-hidden="true">
-      {% for _ in 0..3 %}
-      <div class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="h-5 w-5 shrink-0 rounded-full bg-surface-alt"></div>
-          <div class="h-4 w-40 rounded bg-surface-alt"></div>
+    </div>
+    {% if !stats.is_empty() && !stat_cards.is_empty() %}
+      <chip-scroll class="relative block">
+        <button
+          type="button"
+          aria-label="Scroll left"
+          class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-left
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -200, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_left("h-5 w-5") }}
+        </button>
+        <div
+          class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-x-auto scroll-smooth scrollbar-hide"
+          data-chip-scroll
+        >
+          {% for card in stat_cards %}
+            <a
+              href="/stats"
+              class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+            >
+              {% if card.icon == "coffee_bean" %}{{ icons::coffee_bean("h-6 w-6 text-accent") }}{% else if card.icon == "beaker" %}{{ icons::beaker("h-6 w-6 text-accent") }}{% else if card.icon == "map" %}{{ icons::map("h-6 w-6 text-accent") }}{% else if card.icon == "location" %}{{ icons::location("h-6 w-6 text-accent") }}{% else if card.icon == "fire" %}{{ icons::fire("h-6 w-6 text-accent") }}{% endif %}
+              <span class="text-lg font-bold text-text whitespace-nowrap"
+                >{{ card.value }}</span
+              >
+              <span class="text-sm font-medium text-accent"
+                >{{ card.label }}</span
+              >
+            </a>
+          {% endfor %}
         </div>
-        <div class="h-3 w-16 shrink-0 rounded bg-surface-alt"></div>
+        <button
+          type="button"
+          aria-label="Scroll right"
+          class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-right
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 200, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_right("h-5 w-5") }}
+        </button>
+      </chip-scroll>
+    {% else %}
+      <div class="relative">
+        <div
+          class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none"
+          aria-hidden="true"
+        >
+          {% for _ in 0..6 %}
+            <div
+              class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
+            >
+              <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
+              <div class="h-5 w-16 rounded bg-surface-alt"></div>
+              <div class="h-4 w-20 rounded bg-surface-alt"></div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="absolute inset-0 z-10 flex items-center justify-center">
+          <span class="text-lg font-semibold text-text-muted"
+            >No stats yet</span
+          >
+        </div>
       </div>
-      {% endfor %}
-    </div>
-    <div class="absolute inset-0 z-10 flex items-center justify-center">
-      <span class="text-lg font-semibold text-text-muted">No activity yet</span>
-    </div>
-  </div>
-  {% endif %}
-</section>
+    {% endif %}
+  </section>
 
-<!-- Stats -->
-<section>
-  <div class="flex items-center justify-between mb-5">
-    <h2 class="text-lg font-semibold text-text">Stats</h2>
-    <a href="/stats" class="text-sm text-accent hover:text-accent-hover font-medium"
-      >View all stats &rarr;</a
-    >
-  </div>
-  {% if !stats.is_empty() && !stat_cards.is_empty() %}
-  <chip-scroll class="relative block">
-    <button type="button" aria-label="Scroll left"
-      class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-left
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -200, behavior: 'smooth'})">
-      {{ icons::chevron_left("h-5 w-5") }}
-    </button>
-    <div class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-x-auto scroll-smooth scrollbar-hide" data-chip-scroll>
-    {% for card in stat_cards %}
-    <a href="/stats" class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40">
-      {% if card.icon == "coffee_bean" %}{{ icons::coffee_bean("h-6 w-6 text-accent") }}{% else if card.icon == "beaker" %}{{ icons::beaker("h-6 w-6 text-accent") }}{% else if card.icon == "map" %}{{ icons::map("h-6 w-6 text-accent") }}{% else if card.icon == "location" %}{{ icons::location("h-6 w-6 text-accent") }}{% else if card.icon == "fire" %}{{ icons::fire("h-6 w-6 text-accent") }}{% endif %}
-      <span class="text-lg font-bold text-text whitespace-nowrap">{{ card.value }}</span>
-      <span class="text-sm font-medium text-accent">{{ card.label }}</span>
-    </a>
-    {% endfor %}
+  <!-- Data Cards -->
+  <section>
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-semibold text-text">Data</h2>
+      <a
+        href="/data"
+        class="text-sm text-accent hover:text-accent-hover font-medium"
+        >View all data &rarr;</a
+      >
     </div>
-    <button type="button" aria-label="Scroll right"
-      class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-right
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 200, behavior: 'smooth'})">
-      {{ icons::chevron_right("h-5 w-5") }}
-    </button>
-  </chip-scroll>
-  {% else %}
-  <div class="relative">
-    <div class="grid grid-flow-col auto-cols-[minmax(45vw,max-content)] md:auto-cols-[minmax(200px,max-content)] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
-      {% for _ in 0..6 %}
-      <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
-        <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
-        <div class="h-5 w-16 rounded bg-surface-alt"></div>
-        <div class="h-4 w-20 rounded bg-surface-alt"></div>
+    {% if !stats.is_empty() %}
+      <chip-scroll class="relative block">
+        <button
+          type="button"
+          aria-label="Scroll left"
+          class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-left
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -200, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_left("h-5 w-5") }}
+        </button>
+        <div
+          class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-x-auto scroll-smooth scrollbar-hide"
+          data-chip-scroll
+        >
+          <a
+            href="/data?type=brews"
+            class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+          >
+            {{ icons::beaker("h-6 w-6 text-accent") }}
+            <span class="text-lg font-bold text-text">{{ stats.brews }}</span>
+            <span class="text-sm font-medium text-accent">Brews</span>
+          </a>
+          <a
+            href="/data?type=roasts"
+            class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+          >
+            {{ icons::coffee_bean("h-6 w-6 text-accent") }}
+            <span class="text-lg font-bold text-text">{{ stats.roasts }}</span>
+            <span class="text-sm font-medium text-accent">Roasts</span>
+          </a>
+          <a
+            href="/data?type=roasters"
+            class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+          >
+            {{ icons::fire("h-6 w-6 text-accent") }}
+            <span class="text-lg font-bold text-text"
+              >{{ stats.roasters }}</span
+            >
+            <span class="text-sm font-medium text-accent">Roasters</span>
+          </a>
+          <a
+            href="/data?type=bags"
+            class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+          >
+            {{ icons::bag("h-6 w-6 text-accent") }}
+            <span class="text-lg font-bold text-text">{{ stats.bags }}</span>
+            <span class="text-sm font-medium text-accent">Bags</span>
+          </a>
+          <a
+            href="/data?type=cups"
+            class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+          >
+            {{ icons::cup("h-6 w-6 text-accent") }}
+            <span class="text-lg font-bold text-text">{{ stats.cups }}</span>
+            <span class="text-sm font-medium text-accent">Cups</span>
+          </a>
+          <a
+            href="/data?type=cafes"
+            class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
+          >
+            {{ icons::location("h-6 w-6 text-accent") }}
+            <span class="text-lg font-bold text-text">{{ stats.cafes }}</span>
+            <span class="text-sm font-medium text-accent">Cafes</span>
+          </a>
+        </div>
+        <button
+          type="button"
+          aria-label="Scroll right"
+          class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
+          data-scroll-right
+          onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 200, behavior: 'smooth'})"
+        >
+          {{ icons::chevron_right("h-5 w-5") }}
+        </button>
+      </chip-scroll>
+    {% else %}
+      <div class="relative">
+        <div
+          class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none"
+          aria-hidden="true"
+        >
+          {% for _ in 0..6 %}
+            <div
+              class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
+            >
+              <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
+              <div class="h-5 w-8 rounded bg-surface-alt"></div>
+              <div class="h-4 w-16 rounded bg-surface-alt"></div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="absolute inset-0 z-10 flex items-center justify-center">
+          <span class="text-lg font-semibold text-text-muted">No data yet</span>
+        </div>
       </div>
-      {% endfor %}
-    </div>
-    <div class="absolute inset-0 z-10 flex items-center justify-center">
-      <span class="text-lg font-semibold text-text-muted">No stats yet</span>
-    </div>
-  </div>
-  {% endif %}
-</section>
-
-<!-- Data Cards -->
-<section>
-  <div class="flex items-center justify-between mb-5">
-    <h2 class="text-lg font-semibold text-text">Data</h2>
-    <a href="/data" class="text-sm text-accent hover:text-accent-hover font-medium"
-      >View all data &rarr;</a
-    >
-  </div>
-  {% if !stats.is_empty() %}
-  <chip-scroll class="relative block">
-    <button type="button" aria-label="Scroll left"
-      class="hidden absolute -left-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-left
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -200, behavior: 'smooth'})">
-      {{ icons::chevron_left("h-5 w-5") }}
-    </button>
-    <div class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-x-auto scroll-smooth scrollbar-hide" data-chip-scroll>
-    <a
-      href="/data?type=brews"
-      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
-    >
-      {{ icons::beaker("h-6 w-6 text-accent") }}
-      <span class="text-lg font-bold text-text">{{ stats.brews }}</span>
-      <span class="text-sm font-medium text-accent">Brews</span>
-    </a>
-    <a
-      href="/data?type=roasts"
-      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
-    >
-      {{ icons::coffee_bean("h-6 w-6 text-accent") }}
-      <span class="text-lg font-bold text-text">{{ stats.roasts }}</span>
-      <span class="text-sm font-medium text-accent">Roasts</span>
-    </a>
-    <a
-      href="/data?type=roasters"
-      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
-    >
-      {{ icons::fire("h-6 w-6 text-accent") }}
-      <span class="text-lg font-bold text-text">{{ stats.roasters }}</span>
-      <span class="text-sm font-medium text-accent">Roasters</span>
-    </a>
-    <a
-      href="/data?type=bags"
-      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
-    >
-      {{ icons::bag("h-6 w-6 text-accent") }}
-      <span class="text-lg font-bold text-text">{{ stats.bags }}</span>
-      <span class="text-sm font-medium text-accent">Bags</span>
-    </a>
-    <a
-      href="/data?type=cups"
-      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
-    >
-      {{ icons::cup("h-6 w-6 text-accent") }}
-      <span class="text-lg font-bold text-text">{{ stats.cups }}</span>
-      <span class="text-sm font-medium text-accent">Cups</span>
-    </a>
-    <a
-      href="/data?type=cafes"
-      class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
-    >
-      {{ icons::location("h-6 w-6 text-accent") }}
-      <span class="text-lg font-bold text-text">{{ stats.cafes }}</span>
-      <span class="text-sm font-medium text-accent">Cafes</span>
-    </a>
-    </div>
-    <button type="button" aria-label="Scroll right"
-      class="hidden absolute -right-4 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1.5 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-right
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 200, behavior: 'smooth'})">
-      {{ icons::chevron_right("h-5 w-5") }}
-    </button>
-  </chip-scroll>
-  {% else %}
-  <div class="relative">
-    <div class="grid grid-flow-col auto-cols-[45vw] md:auto-cols-[200px] gap-3 overflow-hidden blur-[2px] select-none pointer-events-none" aria-hidden="true">
-      {% for _ in 0..6 %}
-      <div class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4">
-        <div class="h-6 w-6 rounded-full bg-surface-alt"></div>
-        <div class="h-5 w-8 rounded bg-surface-alt"></div>
-        <div class="h-4 w-16 rounded bg-surface-alt"></div>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="absolute inset-0 z-10 flex items-center justify-center">
-      <span class="text-lg font-semibold text-text-muted">No data yet</span>
-    </div>
-  </div>
-  {% endif %}
-</section>
+    {% endif %}
+  </section>
 {% endblock %}

@@ -3,34 +3,42 @@
 {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ roast.name }}{% endblock %}
 {% block og_title %}{{ roast.name }} — Brewlog{% endblock %}
-{% block og_description %}{{ roast.name }} by {{ roast.roaster_name }} — {{ roast.origin }}{% endblock %}
-{% block head %}<meta property="og:image" content="{{ base_url }}/static/og-image.png" />{% endblock %}
+{% block og_description %}
+  {{ roast.name }}
+  by {{ roast.roaster_name }} — {{ roast.origin }}
+{% endblock %}
+{% block head %}
+  <meta property="og:image" content="{{ base_url }}/static/og-image.png" />
+{% endblock %}
 {% block content %}
-<header class="flex items-start justify-between gap-4">
-  <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-semibold">{{ roast.name }}</h1>
-    <p class="text-sm text-text-secondary">
-      {{ roast.roaster_name }} · {{ roast.origin_flag }} {{ roast.origin }} · Added {{ roast.created_date }}
-    </p>
+  <header class="flex items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">{{ roast.name }}</h1>
+      <p class="text-sm text-text-secondary">
+        {{ roast.roaster_name }} · {{ roast.origin_flag }} {{ roast.origin }} ·
+        Added {{ roast.created_date }}
+      </p>
+    </div>
+  </header>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes) }}
+    {{ detail::map_with_legend_2(roast.map_countries, roast.map_max, "Origin", "", "Roaster", "opacity-50") }}
   </div>
-</header>
 
-<div class="grid gap-6 md:grid-cols-2">
-  {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes) }}
-  {{ detail::map_with_legend_2(roast.map_countries, roast.map_max, "Origin", "", "Roaster", "opacity-50") }}
-</div>
+  <div class="grid gap-6 md:grid-cols-2">
+    {{ detail::roaster_card(roast.roaster_name, roast.roaster_country, roast.roaster_country_flag, roast.roaster_city, roast.roaster_homepage) }}
+  </div>
 
-<div class="grid gap-6 md:grid-cols-2">
-  {{ detail::roaster_card(roast.roaster_name, roast.roaster_country, roast.roaster_country_flag, roast.roaster_city, roast.roaster_homepage) }}
-</div>
-
-{% if is_authenticated %}
-<div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-  <button type="button"
-    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
-    data-on:click="confirm('Delete this roast? This cannot be undone.') && @delete('/api/v1/roasts/{{ roast.id }}')">
-    {{ icons::delete("h-4 w-4") }} Delete
-  </button>
-</div>
-{% endif %}
+  {% if is_authenticated %}
+    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+        data-on:click="confirm('Delete this roast? This cannot be undone.') && @delete('/api/v1/roasts/{{ roast.id }}')"
+      >
+        {{ icons::delete("h-4 w-4") }} Delete
+      </button>
+    </div>
+  {% endif %}
 {% endblock %}

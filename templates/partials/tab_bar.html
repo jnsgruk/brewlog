@@ -1,16 +1,26 @@
 {% import "partials/icons.html" as icons %}
 
-<div data-signals:{{ tab_signal }}="'{{ active_type }}'" data-signals:_tabs-open="false">
+<div
+  data-signals:{{ tab_signal }}="'{{ active_type }}'"
+  data-signals:_tabs-open="false"
+>
   <!-- Desktop tabs -->
   <nav class="hidden md:flex gap-1.5" role="tablist">
     {% for tab in tabs %}
-    <button
-      type="button"
-      role="tab"
-      class="tab"
-      data-class:tab-active="{{ tab_signal_js }} === '{{ tab.key }}'"
-      data-on:click="{{ tab_signal_js }} = '{{ tab.key }}'{% if !tab_base_url.is_empty() %}; history.pushState(null, '', '{{ tab_base_url }}{{ tab.key }}'); @get('{{ tab_base_url }}{{ tab.key }}', {responseOverrides: {selector: '{{ tab_fetch_target }}', mode: '{{ tab_fetch_mode }}'}}){% endif %}"
-    >{% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %} {{ tab.label }}</button>
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        data-class:tab-active="{{ tab_signal_js }} === '{{ tab.key }}'"
+        data-on:click="{{ tab_signal_js }} = '{{ tab.key }}'{% if !tab_base_url.is_empty() %}
+          ; history.pushState(null, '', '{{ tab_base_url }}{{ tab.key }}');
+          @get('{{ tab_base_url }}{{ tab.key }}', {responseOverrides: {selector:
+          '{{ tab_fetch_target }}', mode: '{{ tab_fetch_mode }}'}})
+        {% endif %}"
+      >
+        {% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %}
+        {{ tab.label }}
+      </button>
     {% endfor %}
   </nav>
   <!-- Mobile tab selector -->
@@ -22,20 +32,38 @@
     >
       <span>
         {% for tab in tabs %}
-        <span data-show="{{ tab_signal_js }} === '{{ tab.key }}'" class="inline-flex items-center gap-1.5">{% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %} {{ tab.label }}</span>
+          <span
+            data-show="{{ tab_signal_js }} === '{{ tab.key }}'"
+            class="inline-flex items-center gap-1.5"
+            >{% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %}
+            {{ tab.label }}</span
+          >
         {% endfor %}
       </span>
       <span data-show="!$_tabsOpen">{{ icons::chevron_down("h-5 w-5") }}</span>
-      <span data-show="$_tabsOpen" style="display:none">{{ icons::chevron_up("h-5 w-5") }}</span>
+      <span data-show="$_tabsOpen" style="display:none"
+        >{{ icons::chevron_up("h-5 w-5") }}</span
+      >
     </button>
-    <div class="mt-1 flex flex-col rounded-md border overflow-hidden" data-show="$_tabsOpen" style="display:none">
+    <div
+      class="mt-1 flex flex-col rounded-md border overflow-hidden"
+      data-show="$_tabsOpen"
+      style="display:none"
+    >
       {% for tab in tabs %}
-      <button
-        type="button"
-        class="tab-mobile"
-        data-class:tab-mobile-active="{{ tab_signal_js }} === '{{ tab.key }}'"
-        data-on:click="{{ tab_signal_js }} = '{{ tab.key }}'; $_tabsOpen = false{% if !tab_base_url.is_empty() %}; history.pushState(null, '', '{{ tab_base_url }}{{ tab.key }}'); @get('{{ tab_base_url }}{{ tab.key }}', {responseOverrides: {selector: '{{ tab_fetch_target }}', mode: '{{ tab_fetch_mode }}'}}){% endif %}"
-      >{% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %} {{ tab.label }}</button>
+        <button
+          type="button"
+          class="tab-mobile"
+          data-class:tab-mobile-active="{{ tab_signal_js }} === '{{ tab.key }}'"
+          data-on:click="{{ tab_signal_js }} = '{{ tab.key }}'; $_tabsOpen = false{% if !tab_base_url.is_empty() %}
+            ; history.pushState(null, '', '{{ tab_base_url }}{{ tab.key }}');
+            @get('{{ tab_base_url }}{{ tab.key }}', {responseOverrides:
+            {selector: '{{ tab_fetch_target }}', mode: '{{ tab_fetch_mode }}'}})
+          {% endif %}"
+        >
+          {% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %}
+          {{ tab.label }}
+        </button>
       {% endfor %}
     </div>
   </div>

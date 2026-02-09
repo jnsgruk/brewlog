@@ -1,56 +1,80 @@
 {% import "partials/icons.html" as icons %}
 <div class="flex flex-col gap-4">
   {% if geo_stats.entries.is_empty() %}
-  <div class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary">
-    <p class="text-center">No data recorded yet.</p>
-  </div>
-  {% else %}
-  <div class="rounded-lg border bg-surface overflow-hidden">
-    <world-map
-      class="block w-full"
-      data-countries="{% for entry in geo_stats.entries %}{% if !entry.iso_code.is_empty() %}{% if !loop.first %},{% endif %}{{ entry.iso_code }}:{{ entry.count }}{% endif %}{% endfor %}"
-      data-max="{{ geo_stats.max_count }}"
-    ></world-map>
-  </div>
-
-  <chip-scroll class="relative block">
-    <button type="button" aria-label="Scroll left"
-      class="hidden absolute left-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-left
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -200, behavior: 'smooth'})">
-      {{ icons::chevron_left("h-4 w-4") }}
-    </button>
-    <div class="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide" data-chip-scroll>
-      {% for entry in geo_stats.entries %}
-      {% if !entry.iso_code.is_empty() %}
-      <button type="button"
-        class="inline-flex shrink-0 snap-start items-center rounded-full border bg-surface text-sm transition cursor-pointer hover:border-accent/40"
-        data-iso="{{ entry.iso_code|lower }}"
-        onclick="const map = document.querySelector('world-map'); const iso = this.dataset.iso; const cur = map.getAttribute('data-selected'); if (cur === iso) { map.removeAttribute('data-selected'); } else { map.setAttribute('data-selected', iso); } document.querySelectorAll('[data-iso]').forEach(b => b.classList.toggle('bg-accent-subtle', b.dataset.iso === map.getAttribute('data-selected')));">
-        <span class="inline-flex items-center gap-1.5 py-1.5 pl-3 pr-2">
-          {% if !entry.flag_emoji.is_empty() %}
-          <span>{{ entry.flag_emoji }}</span>
-          {% endif %}
-          <span class="font-semibold text-highlight whitespace-nowrap">{{ entry.country_name }}</span>
-        </span>
-        <span class="border-l py-1.5 pl-2 pr-3 font-semibold text-highlight">{{ entry.count }}</span>
-      </button>
-      {% else %}
-      <div class="inline-flex shrink-0 snap-start items-center rounded-full border bg-surface text-sm">
-        <span class="inline-flex items-center gap-1.5 py-1.5 pl-3 pr-2">
-          <span class="text-text whitespace-nowrap">{{ entry.country_name }}</span>
-        </span>
-        <span class="border-l py-1.5 pl-2 pr-3 font-medium text-text">{{ entry.count }}</span>
-      </div>
-      {% endif %}
-      {% endfor %}
+    <div
+      class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
+    >
+      <p class="text-center">No data recorded yet.</p>
     </div>
-    <button type="button" aria-label="Scroll right"
-      class="hidden absolute right-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1 text-text-muted shadow-sm transition hover:text-text"
-      data-scroll-right
-      onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 200, behavior: 'smooth'})">
-      {{ icons::chevron_right("h-4 w-4") }}
-    </button>
-  </chip-scroll>
+  {% else %}
+    <div class="rounded-lg border bg-surface overflow-hidden">
+      <world-map
+        class="block w-full"
+        data-countries="{% for entry in geo_stats.entries %}{% if !entry.iso_code.is_empty() %}{% if !loop.first %},{% endif %}{{ entry.iso_code }}:{{ entry.count }}{% endif %}{% endfor %}"
+        data-max="{{ geo_stats.max_count }}"
+      ></world-map>
+    </div>
+
+    <chip-scroll class="relative block">
+      <button
+        type="button"
+        aria-label="Scroll left"
+        class="hidden absolute left-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1 text-text-muted shadow-sm transition hover:text-text"
+        data-scroll-left
+        onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: -200, behavior: 'smooth'})"
+      >
+        {{ icons::chevron_left("h-4 w-4") }}
+      </button>
+      <div
+        class="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
+        data-chip-scroll
+      >
+        {% for entry in geo_stats.entries %}
+          {% if !entry.iso_code.is_empty() %}
+            <button
+              type="button"
+              class="inline-flex shrink-0 snap-start items-center rounded-full border bg-surface text-sm transition cursor-pointer hover:border-accent/40"
+              data-iso="{{ entry.iso_code|lower }}"
+              onclick="const map = document.querySelector('world-map'); const iso = this.dataset.iso; const cur = map.getAttribute('data-selected'); if (cur === iso) { map.removeAttribute('data-selected'); } else { map.setAttribute('data-selected', iso); } document.querySelectorAll('[data-iso]').forEach(b => b.classList.toggle('bg-accent-subtle', b.dataset.iso === map.getAttribute('data-selected')));"
+            >
+              <span class="inline-flex items-center gap-1.5 py-1.5 pl-3 pr-2">
+                {% if !entry.flag_emoji.is_empty() %}
+                  <span>{{ entry.flag_emoji }}</span>
+                {% endif %}
+                <span class="font-semibold text-highlight whitespace-nowrap"
+                  >{{ entry.country_name }}</span
+                >
+              </span>
+              <span
+                class="border-l py-1.5 pl-2 pr-3 font-semibold text-highlight"
+                >{{ entry.count }}</span
+              >
+            </button>
+          {% else %}
+            <div
+              class="inline-flex shrink-0 snap-start items-center rounded-full border bg-surface text-sm"
+            >
+              <span class="inline-flex items-center gap-1.5 py-1.5 pl-3 pr-2">
+                <span class="text-text whitespace-nowrap"
+                  >{{ entry.country_name }}</span
+                >
+              </span>
+              <span class="border-l py-1.5 pl-2 pr-3 font-medium text-text"
+                >{{ entry.count }}</span
+              >
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <button
+        type="button"
+        aria-label="Scroll right"
+        class="hidden absolute right-0 top-1/2 z-10 -translate-y-1/2 items-center justify-center rounded-full border bg-surface p-1 text-text-muted shadow-sm transition hover:text-text"
+        data-scroll-right
+        onclick="this.closest('chip-scroll').querySelector('[data-chip-scroll]').scrollBy({left: 200, behavior: 'smooth'})"
+      >
+        {{ icons::chevron_right("h-4 w-4") }}
+      </button>
+    </chip-scroll>
   {% endif %}
 </div>

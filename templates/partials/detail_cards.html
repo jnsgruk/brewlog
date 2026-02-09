@@ -1,167 +1,208 @@
 {% import "partials/icons.html" as icons %}
 
 {% macro share_button() %}
-<button onclick="shareLink(this)" class="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-text-muted transition hover:bg-surface-alt hover:text-text shrink-0">
-  <span class="share-icon">{{ icons::clipboard("h-4 w-4 shrink-0") }}</span>
-  <span class="share-icon-check hidden">{{ icons::check("h-4 w-4 shrink-0") }}</span>
-  <span class="share-label">Share</span>
-</button>
+  <button
+    onclick="shareLink(this)"
+    class="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-text-muted transition hover:bg-surface-alt hover:text-text shrink-0"
+  >
+    <span class="share-icon">{{ icons::clipboard("h-4 w-4 shrink-0") }}</span>
+    <span class="share-icon-check hidden"
+      >{{ icons::check("h-4 w-4 shrink-0") }}</span
+    >
+    <span class="share-label">Share</span>
+  </button>
 {% endmacro %}
 
 {% macro share_script() %}
-<script>
-const shareLink = (btn) => {
-  navigator.clipboard.writeText(window.location.href).then(() => {
-    btn.querySelector('.share-icon').classList.add('hidden');
-    btn.querySelector('.share-icon-check').classList.remove('hidden');
-    btn.querySelector('.share-label').textContent = 'Copied';
-    setTimeout(() => {
-      btn.querySelector('.share-icon').classList.remove('hidden');
-      btn.querySelector('.share-icon-check').classList.add('hidden');
-      btn.querySelector('.share-label').textContent = 'Share';
-    }, 2000);
-  });
-};
-</script>
+  <script>
+    const shareLink = (btn) => {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        btn.querySelector(".share-icon").classList.add("hidden");
+        btn.querySelector(".share-icon-check").classList.remove("hidden");
+        btn.querySelector(".share-label").textContent = "Copied";
+        setTimeout(() => {
+          btn.querySelector(".share-icon").classList.remove("hidden");
+          btn.querySelector(".share-icon-check").classList.add("hidden");
+          btn.querySelector(".share-label").textContent = "Share";
+        }, 2000);
+      });
+    };
+  </script>
 {% endmacro %}
 
 {% macro coffee_card(roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes) %}
-<div class="rounded-lg border bg-surface p-5">
-  <h2 class="text-lg font-semibold text-text mb-4">Coffee</h2>
-  <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-    <div>
-      <dt class="text-text-muted">Roast</dt>
-      <dd class="font-medium text-text">{{ roast_name }}</dd>
-    </div>
-    <div>
-      <dt class="text-text-muted">Roaster</dt>
-      <dd class="font-medium text-text">{{ roaster_name }}</dd>
-    </div>
-    {% if origin != "\u{2014}" %}
-    <div>
-      <dt class="text-text-muted">Origin</dt>
-      <dd class="font-medium text-text">
-        {% if !origin_flag.is_empty() %}{{ origin_flag }} {% endif %}{{ origin }}
-      </dd>
-    </div>
+  <div class="rounded-lg border bg-surface p-5">
+    <h2 class="text-lg font-semibold text-text mb-4">Coffee</h2>
+    <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <dt class="text-text-muted">Roast</dt>
+        <dd class="font-medium text-text">{{ roast_name }}</dd>
+      </div>
+      <div>
+        <dt class="text-text-muted">Roaster</dt>
+        <dd class="font-medium text-text">{{ roaster_name }}</dd>
+      </div>
+      {% if origin != "\u{2014}" %}
+        <div>
+          <dt class="text-text-muted">Origin</dt>
+          <dd class="font-medium text-text">
+            {% if !origin_flag.is_empty() %}{{ origin_flag }}{% endif %}{{ origin }}
+          </dd>
+        </div>
+      {% endif %}
+      {% if region != "\u{2014}" %}
+        <div>
+          <dt class="text-text-muted">Region</dt>
+          <dd class="font-medium text-text">{{ region }}</dd>
+        </div>
+      {% endif %}
+      {% if producer != "\u{2014}" %}
+        <div>
+          <dt class="text-text-muted">Producer</dt>
+          <dd class="font-medium text-text">{{ producer }}</dd>
+        </div>
+      {% endif %}
+      {% if process != "\u{2014}" %}
+        <div>
+          <dt class="text-text-muted">Process</dt>
+          <dd class="font-medium text-text">{{ process }}</dd>
+        </div>
+      {% endif %}
+    </dl>
+    {% if !tasting_notes.is_empty() %}
+      <div class="mt-4 flex flex-wrap gap-1.5">
+        {% for note in tasting_notes %}
+          <span class="{{ note.pill_class }}">{{ note.label }}</span>
+        {% endfor %}
+      </div>
     {% endif %}
-    {% if region != "\u{2014}" %}
-    <div>
-      <dt class="text-text-muted">Region</dt>
-      <dd class="font-medium text-text">{{ region }}</dd>
-    </div>
-    {% endif %}
-    {% if producer != "\u{2014}" %}
-    <div>
-      <dt class="text-text-muted">Producer</dt>
-      <dd class="font-medium text-text">{{ producer }}</dd>
-    </div>
-    {% endif %}
-    {% if process != "\u{2014}" %}
-    <div>
-      <dt class="text-text-muted">Process</dt>
-      <dd class="font-medium text-text">{{ process }}</dd>
-    </div>
-    {% endif %}
-  </dl>
-  {% if !tasting_notes.is_empty() %}
-  <div class="mt-4 flex flex-wrap gap-1.5">
-    {% for note in tasting_notes %}
-    <span class="{{ note.pill_class }}">{{ note.label }}</span>
-    {% endfor %}
   </div>
-  {% endif %}
-</div>
 {% endmacro %}
 
 {% macro map_with_legend_1(map_countries, map_max, label1, opacity1) %}
-{% if !map_countries.is_empty() %}
-<div class="relative rounded-lg border bg-surface overflow-hidden flex items-center">
-  <world-map
-    class="block w-full"
-    data-countries="{{ map_countries }}"
-    data-max="{{ map_max }}"
-  ></world-map>
-  <div class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted">
-    <span class="inline-flex items-center gap-1">
-      <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"></span> {{ label1 }}
-    </span>
-  </div>
-</div>
-{% endif %}
+  {% if !map_countries.is_empty() %}
+    <div
+      class="relative rounded-lg border bg-surface overflow-hidden flex items-center"
+    >
+      <world-map
+        class="block w-full"
+        data-countries="{{ map_countries }}"
+        data-max="{{ map_max }}"
+      ></world-map>
+      <div
+        class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted"
+      >
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"
+          ></span>
+          {{ label1 }}
+        </span>
+      </div>
+    </div>
+  {% endif %}
 {% endmacro %}
 
 {% macro map_with_legend_2(map_countries, map_max, label1, opacity1, label2, opacity2) %}
-{% if !map_countries.is_empty() %}
-<div class="relative rounded-lg border bg-surface overflow-hidden flex items-center">
-  <world-map
-    class="block w-full"
-    data-countries="{{ map_countries }}"
-    data-max="{{ map_max }}"
-  ></world-map>
-  <div class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted">
-    <span class="inline-flex items-center gap-1">
-      <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"></span> {{ label1 }}
-    </span>
-    <span class="inline-flex items-center gap-1">
-      <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity2 }}"></span> {{ label2 }}
-    </span>
-  </div>
-</div>
-{% endif %}
+  {% if !map_countries.is_empty() %}
+    <div
+      class="relative rounded-lg border bg-surface overflow-hidden flex items-center"
+    >
+      <world-map
+        class="block w-full"
+        data-countries="{{ map_countries }}"
+        data-max="{{ map_max }}"
+      ></world-map>
+      <div
+        class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted"
+      >
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"
+          ></span>
+          {{ label1 }}
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity2 }}"
+          ></span>
+          {{ label2 }}
+        </span>
+      </div>
+    </div>
+  {% endif %}
 {% endmacro %}
 
 {% macro map_with_legend_3(map_countries, map_max, label1, opacity1, label2, opacity2, label3, opacity3) %}
-{% if !map_countries.is_empty() %}
-<div class="relative rounded-lg border bg-surface overflow-hidden flex items-center">
-  <world-map
-    class="block w-full"
-    data-countries="{{ map_countries }}"
-    data-max="{{ map_max }}"
-  ></world-map>
-  <div class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted">
-    <span class="inline-flex items-center gap-1">
-      <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"></span> {{ label1 }}
-    </span>
-    <span class="inline-flex items-center gap-1">
-      <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity2 }}"></span> {{ label2 }}
-    </span>
-    <span class="inline-flex items-center gap-1">
-      <span class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity3 }}"></span> {{ label3 }}
-    </span>
-  </div>
-</div>
-{% endif %}
+  {% if !map_countries.is_empty() %}
+    <div
+      class="relative rounded-lg border bg-surface overflow-hidden flex items-center"
+    >
+      <world-map
+        class="block w-full"
+        data-countries="{{ map_countries }}"
+        data-max="{{ map_max }}"
+      ></world-map>
+      <div
+        class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted"
+      >
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"
+          ></span>
+          {{ label1 }}
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity2 }}"
+          ></span>
+          {{ label2 }}
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity3 }}"
+          ></span>
+          {{ label3 }}
+        </span>
+      </div>
+    </div>
+  {% endif %}
 {% endmacro %}
 
 {% macro roaster_card(name, country, country_flag, city, homepage) %}
-<div class="rounded-lg border bg-surface p-5">
-  <h2 class="text-lg font-semibold text-text mb-4">Roaster</h2>
-  <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-    <div>
-      <dt class="text-text-muted">Name</dt>
-      <dd class="font-medium text-text">{{ name }}</dd>
-    </div>
-    <div>
-      <dt class="text-text-muted">Country</dt>
-      <dd class="font-medium text-text">
-        {% if !country_flag.is_empty() %}{{ country_flag }} {% endif %}{{ country }}
-      </dd>
-    </div>
-    {% if let Some(c) = city %}
-    <div>
-      <dt class="text-text-muted">City</dt>
-      <dd class="font-medium text-text">{{ c }}</dd>
-    </div>
-    {% endif %}
-    {% if let Some(url) = homepage %}
-    <div>
-      <dt class="text-text-muted">Website</dt>
-      <dd class="font-medium">
-        <a href="{{ url }}" target="_blank" rel="noreferrer noopener" class="text-accent hover:text-accent-hover transition">Visit Website</a>
-      </dd>
-    </div>
-    {% endif %}
-  </dl>
-</div>
+  <div class="rounded-lg border bg-surface p-5">
+    <h2 class="text-lg font-semibold text-text mb-4">Roaster</h2>
+    <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <dt class="text-text-muted">Name</dt>
+        <dd class="font-medium text-text">{{ name }}</dd>
+      </div>
+      <div>
+        <dt class="text-text-muted">Country</dt>
+        <dd class="font-medium text-text">
+          {% if !country_flag.is_empty() %}{{ country_flag }}{% endif %}{{ country }}
+        </dd>
+      </div>
+      {% if let Some(c) = city %}
+        <div>
+          <dt class="text-text-muted">City</dt>
+          <dd class="font-medium text-text">{{ c }}</dd>
+        </div>
+      {% endif %}
+      {% if let Some(url) = homepage %}
+        <div>
+          <dt class="text-text-muted">Website</dt>
+          <dd class="font-medium">
+            <a
+              href="{{ url }}"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="text-accent hover:text-accent-hover transition"
+              >Visit Website</a
+            >
+          </dd>
+        </div>
+      {% endif %}
+    </dl>
+  </div>
 {% endmacro %}

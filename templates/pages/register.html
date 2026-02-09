@@ -1,107 +1,118 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Register{% endblock %}
 {% block head %}
-<script src="/static/js/webauthn.js"></script>
+  <script src="/static/js/webauthn.js"></script>
 {% endblock %}
 {% block content %}
-<div class="mx-auto max-w-md">
-  <div class="rounded-lg border bg-surface p-6">
-    <h1 class="text-2xl font-semibold text-accent">Register</h1>
-    <p class="mt-2 text-sm text-text-secondary">
-      Create an account by registering a passkey. This will be used to sign in going forward.
-    </p>
+  <div class="mx-auto max-w-md">
+    <div class="rounded-lg border bg-surface p-6">
+      <h1 class="text-2xl font-semibold text-accent">Register</h1>
+      <p class="mt-2 text-sm text-text-secondary">
+        Create an account by registering a passkey. This will be used to sign in
+        going forward.
+      </p>
 
-    <div id="register-error" class="mt-4 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"></div>
+      <div
+        id="register-error"
+        class="mt-4 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"
+      ></div>
 
-    <div id="register-unsupported" class="mt-4 hidden rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800">
-      This browser does not support passkeys. Please use a modern browser (Chrome, Firefox, Safari, or Edge).
-    </div>
+      <div
+        id="register-unsupported"
+        class="mt-4 hidden rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800"
+      >
+        This browser does not support passkeys. Please use a modern browser
+        (Chrome, Firefox, Safari, or Edge).
+      </div>
 
-    <div id="register-form" class="mt-6 flex flex-col gap-4">
-      <label class="flex flex-col gap-1 text-sm">
-        <span class="text-text">Display Name</span>
-        <input
-          type="text"
-          id="display-name"
-          required
-          autofocus
-          class="input-field"
-          placeholder="Display name"
-        />
-      </label>
+      <div id="register-form" class="mt-6 flex flex-col gap-4">
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-text">Display Name</span>
+          <input
+            type="text"
+            id="display-name"
+            required
+            autofocus
+            class="input-field"
+            placeholder="Display name"
+          />
+        </label>
 
-      <label class="flex flex-col gap-1 text-sm">
-        <span class="text-text">Passkey Name</span>
-        <input
-          type="text"
-          id="passkey-name"
-          required
-          class="input-field"
-          placeholder="e.g. MacBook Touch ID, iPhone"
-        />
-      </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-text">Passkey Name</span>
+          <input
+            type="text"
+            id="passkey-name"
+            required
+            class="input-field"
+            placeholder="e.g. MacBook Touch ID, iPhone"
+          />
+        </label>
 
-      <button
-        id="register-button"
-        type="button"
-        class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"      >
-        {{ icons::key("h-4 w-4") }} Register Passkey
-      </button>
+        <button
+          id="register-button"
+          type="button"
+          class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ icons::key("h-4 w-4") }} Register Passkey
+        </button>
 
-      <div id="register-loading" class="mt-2 hidden text-center text-sm text-text-muted">
-        <p>Follow the prompts from the browser or device...</p>
+        <div
+          id="register-loading"
+          class="mt-2 hidden text-center text-sm text-text-muted"
+        >
+          <p>Follow the prompts from the browser or device...</p>
+        </div>
       </div>
     </div>
-
   </div>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const token = "{{ token }}";
-    const button = document.getElementById("register-button");
-    const displayNameInput = document.getElementById("display-name");
-    const passkeyNameInput = document.getElementById("passkey-name");
-    const errorDiv = document.getElementById("register-error");
-    const loadingDiv = document.getElementById("register-loading");
-    const unsupportedDiv = document.getElementById("register-unsupported");
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const token = "{{ token }}";
+      const button = document.getElementById("register-button");
+      const displayNameInput = document.getElementById("display-name");
+      const passkeyNameInput = document.getElementById("passkey-name");
+      const errorDiv = document.getElementById("register-error");
+      const loadingDiv = document.getElementById("register-loading");
+      const unsupportedDiv = document.getElementById("register-unsupported");
 
-    // Check WebAuthn support
-    if (!window.PublicKeyCredential) {
-      button.disabled = true;
-      unsupportedDiv.classList.remove("hidden");
-      return;
-    }
-
-    button.addEventListener("click", async function () {
-      const displayName = displayNameInput.value.trim();
-      if (!displayName) {
-        errorDiv.textContent = "Please enter a display name.";
-        errorDiv.classList.remove("hidden");
+      // Check WebAuthn support
+      if (!window.PublicKeyCredential) {
+        button.disabled = true;
+        unsupportedDiv.classList.remove("hidden");
         return;
       }
 
-      const passkeyName = passkeyNameInput.value.trim();
-      if (!passkeyName) {
-        errorDiv.textContent = "Please enter a name for this passkey.";
-        errorDiv.classList.remove("hidden");
-        return;
-      }
+      button.addEventListener("click", async function () {
+        const displayName = displayNameInput.value.trim();
+        if (!displayName) {
+          errorDiv.textContent = "Please enter a display name.";
+          errorDiv.classList.remove("hidden");
+          return;
+        }
 
-      errorDiv.classList.add("hidden");
-      loadingDiv.classList.remove("hidden");
-      button.disabled = true;
+        const passkeyName = passkeyNameInput.value.trim();
+        if (!passkeyName) {
+          errorDiv.textContent = "Please enter a name for this passkey.";
+          errorDiv.classList.remove("hidden");
+          return;
+        }
 
-      try {
-        await startPasskeyRegistration(token, displayName, passkeyName);
-        window.location.href = "/";
-      } catch (err) {
-        errorDiv.textContent = err.message;
-        errorDiv.classList.remove("hidden");
-        loadingDiv.classList.add("hidden");
-        button.disabled = false;
-      }
+        errorDiv.classList.add("hidden");
+        loadingDiv.classList.remove("hidden");
+        button.disabled = true;
+
+        try {
+          await startPasskeyRegistration(token, displayName, passkeyName);
+          window.location.href = "/";
+        } catch (err) {
+          errorDiv.textContent = err.message;
+          errorDiv.classList.remove("hidden");
+          loadingDiv.classList.add("hidden");
+          button.disabled = false;
+        }
+      });
     });
-  });
-</script>
+  </script>
 {% endblock %}

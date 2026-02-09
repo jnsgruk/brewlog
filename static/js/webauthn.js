@@ -16,7 +16,10 @@ const bufferToBase64url = (buffer) => {
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 };
 
 // Convert server challenge options to format navigator.credentials expects
@@ -26,7 +29,7 @@ const prepareCreationOptions = (options) => {
   publicKey.user.id = base64urlToBuffer(publicKey.user.id);
   if (publicKey.excludeCredentials) {
     publicKey.excludeCredentials = publicKey.excludeCredentials.map((cred) =>
-      Object.assign({}, cred, { id: base64urlToBuffer(cred.id) })
+      Object.assign({}, cred, { id: base64urlToBuffer(cred.id) }),
     );
   }
   return options;
@@ -37,7 +40,7 @@ const prepareRequestOptions = (options) => {
   publicKey.challenge = base64urlToBuffer(publicKey.challenge);
   if (publicKey.allowCredentials) {
     publicKey.allowCredentials = publicKey.allowCredentials.map((cred) =>
-      Object.assign({}, cred, { id: base64urlToBuffer(cred.id) })
+      Object.assign({}, cred, { id: base64urlToBuffer(cred.id) }),
     );
   }
   return options;
@@ -67,7 +70,9 @@ const serializeAuthenticationCredential = (credential) => {
       authenticatorData: bufferToBase64url(response.authenticatorData),
       clientDataJSON: bufferToBase64url(response.clientDataJSON),
       signature: bufferToBase64url(response.signature),
-      userHandle: response.userHandle ? bufferToBase64url(response.userHandle) : null,
+      userHandle: response.userHandle
+        ? bufferToBase64url(response.userHandle)
+        : null,
     },
   };
 };
@@ -78,13 +83,18 @@ const startPasskeyRegistration = async (token, displayName, passkeyName) => {
   const startResponse = await fetch("/api/v1/webauthn/register/start", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, display_name: displayName, passkey_name: passkeyName }),
+    body: JSON.stringify({
+      token,
+      display_name: displayName,
+      passkey_name: passkeyName,
+    }),
   });
 
   if (!startResponse.ok) {
     const status = startResponse.status;
     if (status === 401) throw new Error("Invalid registration token.");
-    if (status === 410) throw new Error("Registration token has expired or already been used.");
+    if (status === 410)
+      throw new Error("Registration token has expired or already been used.");
     throw new Error(`Failed to start registration (HTTP ${status}).`);
   }
 
@@ -106,7 +116,9 @@ const startPasskeyRegistration = async (token, displayName, passkeyName) => {
   });
 
   if (!finishResponse.ok) {
-    throw new Error(`Failed to complete registration (HTTP ${finishResponse.status}).`);
+    throw new Error(
+      `Failed to complete registration (HTTP ${finishResponse.status}).`,
+    );
   }
 
   return finishResponse.json();
@@ -120,7 +132,8 @@ const startPasskeyAuthentication = async (queryParams) => {
 
   if (!startResponse.ok) {
     const status = startResponse.status;
-    if (status === 404) throw new Error("No passkeys registered. Please register first.");
+    if (status === 404)
+      throw new Error("No passkeys registered. Please register first.");
     throw new Error(`Failed to start authentication (HTTP ${status}).`);
   }
 
@@ -157,7 +170,9 @@ const addPasskey = async (name) => {
   });
 
   if (!startResponse.ok) {
-    throw new Error(`Failed to start passkey registration (HTTP ${startResponse.status}).`);
+    throw new Error(
+      `Failed to start passkey registration (HTTP ${startResponse.status}).`,
+    );
   }
 
   const { challenge_id, options } = await startResponse.json();
@@ -178,6 +193,8 @@ const addPasskey = async (name) => {
   });
 
   if (!finishResponse.ok) {
-    throw new Error(`Failed to complete passkey registration (HTTP ${finishResponse.status}).`);
+    throw new Error(
+      `Failed to complete passkey registration (HTTP ${finishResponse.status}).`,
+    );
   }
 };

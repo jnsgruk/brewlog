@@ -1,73 +1,103 @@
 {% import "partials/icons.html" as icons %}
 <nav class="border-b pb-4 text-sm">
-    <div class="flex items-center justify-between">
-        <div class="font-semibold uppercase tracking-[0.25em] text-accent"><a href="/" class="-m-2 inline-block p-2">B{rew}log</a></div>
-        <div class="flex items-center gap-1">
-            {% if is_authenticated %}
-            <a class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary" href="/add" title="Add" aria-label="Add">
-                {{ icons::plus("h-5 w-5") }}
-            </a>
-            {% endif %}
-            <button type="button" class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary" title="Toggle theme" aria-label="Toggle theme" onclick="toggleTheme()">
-                <span class="theme-icon-light">{{ icons::moon("h-5 w-5") }}</span>
-                <span class="theme-icon-dark hidden">{{ icons::sun("h-5 w-5") }}</span>
-            </button>
-            {% if is_authenticated %}
-            <a class="rounded-md p-1.5 transition {% if nav_active == "admin" %}text-accent{% else %}text-text-muted hover:text-text-secondary{% endif %}" href="/admin" title="Admin" aria-label="Admin">
-                {{ icons::user("h-5 w-5") }}
-            </a>
-            {% else %}
-            <a class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary" href="/login" title="Login" aria-label="Login">
-                {{ icons::user("h-5 w-5") }}
-            </a>
-            {% endif %}
-        </div>
+  <div class="flex items-center justify-between">
+    <div class="font-semibold uppercase tracking-[0.25em] text-accent">
+      <a href="/" class="-m-2 inline-block p-2">B{rew}log</a>
     </div>
+    <div class="flex items-center gap-1">
+      {% if is_authenticated %}
+        <a
+          class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary"
+          href="/add"
+          title="Add"
+          aria-label="Add"
+        >
+          {{ icons::plus("h-5 w-5") }}
+        </a>
+      {% endif %}
+      <button
+        type="button"
+        class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary"
+        title="Toggle theme"
+        aria-label="Toggle theme"
+        onclick="toggleTheme()"
+      >
+        <span class="theme-icon-light">{{ icons::moon("h-5 w-5") }}</span>
+        <span class="theme-icon-dark hidden">{{ icons::sun("h-5 w-5") }}</span>
+      </button>
+      {% if is_authenticated %}
+        <a
+          class="rounded-md p-1.5 transition {% if nav_active == "admin" %}
+            text-accent
+          {% else %}
+            text-text-muted hover:text-text-secondary
+          {% endif %}"
+          href="/admin"
+          title="Admin"
+          aria-label="Admin"
+        >
+          {{ icons::user("h-5 w-5") }}
+        </a>
+      {% else %}
+        <a
+          class="rounded-md p-1.5 text-text-muted transition hover:text-text-secondary"
+          href="/login"
+          title="Login"
+          aria-label="Login"
+        >
+          {{ icons::user("h-5 w-5") }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
 </nav>
 <script>
-    const toggleTheme = () => {
-        const html = document.documentElement;
-        const isDark = html.getAttribute("data-theme") === "dark";
-        const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
-        if (isDark) {
-            html.removeAttribute("data-theme");
-            // Only persist if this choice differs from OS preference
-            if (osDark) localStorage.setItem("theme", "light");
-            else localStorage.removeItem("theme");
-        } else {
-            html.setAttribute("data-theme", "dark");
-            if (!osDark) localStorage.setItem("theme", "dark");
-            else localStorage.removeItem("theme");
-        }
-        updateThemeIcons();
-    };
-
-    const updateThemeIcons = () => {
-        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-        document.querySelectorAll(".theme-icon-light").forEach((el) => {
-            el.classList.toggle("hidden", isDark);
-        });
-        document.querySelectorAll(".theme-icon-dark").forEach((el) => {
-            el.classList.toggle("hidden", !isDark);
-        });
-        const favicon = document.getElementById("favicon");
-        if (favicon) {
-            favicon.href = isDark ? "/static/favicon-dark.svg" : "/static/favicon-light.svg";
-        }
-    };
-
-    // Set correct icon state on load
+  const toggleTheme = () => {
+    const html = document.documentElement;
+    const isDark = html.getAttribute("data-theme") === "dark";
+    const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
+    if (isDark) {
+      html.removeAttribute("data-theme");
+      // Only persist if this choice differs from OS preference
+      if (osDark) localStorage.setItem("theme", "light");
+      else localStorage.removeItem("theme");
+    } else {
+      html.setAttribute("data-theme", "dark");
+      if (!osDark) localStorage.setItem("theme", "dark");
+      else localStorage.removeItem("theme");
+    }
     updateThemeIcons();
+  };
 
-    // Follow OS theme changes when the user hasn't manually chosen
-    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-        if (localStorage.getItem("theme")) return;
-        const html = document.documentElement;
-        if (e.matches) {
-            html.setAttribute("data-theme", "dark");
-        } else {
-            html.removeAttribute("data-theme");
-        }
-        updateThemeIcons();
+  const updateThemeIcons = () => {
+    const isDark =
+      document.documentElement.getAttribute("data-theme") === "dark";
+    document.querySelectorAll(".theme-icon-light").forEach((el) => {
+      el.classList.toggle("hidden", isDark);
     });
+    document.querySelectorAll(".theme-icon-dark").forEach((el) => {
+      el.classList.toggle("hidden", !isDark);
+    });
+    const favicon = document.getElementById("favicon");
+    if (favicon) {
+      favicon.href = isDark
+        ? "/static/favicon-dark.svg"
+        : "/static/favicon-light.svg";
+    }
+  };
+
+  // Set correct icon state on load
+  updateThemeIcons();
+
+  // Follow OS theme changes when the user hasn't manually chosen
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (localStorage.getItem("theme")) return;
+    const html = document.documentElement;
+    if (e.matches) {
+      html.setAttribute("data-theme", "dark");
+    } else {
+      html.removeAttribute("data-theme");
+    }
+    updateThemeIcons();
+  });
 </script>

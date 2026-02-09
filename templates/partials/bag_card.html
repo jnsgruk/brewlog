@@ -1,27 +1,41 @@
 {% import "partials/icons.html" as icons %}
 {% macro card(bag, is_authenticated) %}
-<a href="/bags/{{ bag.id }}" id="bag-card-{{ bag.id }}" class="relative w-[45vw] md:w-[200px] h-[200px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col transition hover:border-accent/40">
-  <div class="flex-1">
-    <span class="block font-semibold text-text truncate">{{ bag.roast_name }}</span>
-    <p class="mt-1 text-sm text-text-muted truncate">{{ bag.roaster_name }}</p>
-  </div>
-  <div class="flex flex-col items-center">
-    <div class="w-full">
-      <div class="h-2 rounded-full bg-surface-alt overflow-hidden">
-        <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
-      </div>
-      <p class="mt-1 text-text-muted" style="font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}</p>
+  <a
+    href="/bags/{{ bag.id }}"
+    id="bag-card-{{ bag.id }}"
+    class="relative w-[45vw] md:w-[200px] h-[200px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col transition hover:border-accent/40"
+  >
+    <div class="flex-1">
+      <span class="block font-semibold text-text truncate"
+        >{{ bag.roast_name }}</span
+      >
+      <p class="mt-1 text-sm text-text-muted truncate">
+        {{ bag.roaster_name }}
+      </p>
     </div>
-  </div>
-  {% if is_authenticated %}
-  <div class="relative z-10 mt-3">
-    <span onclick="event.preventDefault(); window.location.href='/add?type=brew&bag_id={{ bag.id }}';"
-      title="Brew"
-      class="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt cursor-pointer">
-      {{ icons::beaker("h-4 w-4") }}
-      Brew
-    </span>
-  </div>
-  {% endif %}
-</a>
+    <div class="flex flex-col items-center">
+      <div class="w-full">
+        <div class="h-2 rounded-full bg-surface-alt overflow-hidden">
+          <div
+            class="h-full rounded-full bg-accent"
+            style="width: {{ bag.used_percent }}%"
+          ></div>
+        </div>
+        <p class="mt-1 text-text-muted" style="font-size: 0.7rem">
+          {{ bag.remaining }} / {{ bag.amount }}
+        </p>
+      </div>
+    </div>
+    {% if is_authenticated %}
+      <div class="relative z-10 mt-3">
+        <span
+          onclick="event.preventDefault(); window.location.href='/add?type=brew&bag_id={{ bag.id }}';"
+          title="Brew"
+          class="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt cursor-pointer"
+        >
+          {{ icons::beaker("h-4 w-4") }} Brew
+        </span>
+      </div>
+    {% endif %}
+  </a>
 {% endmacro %}

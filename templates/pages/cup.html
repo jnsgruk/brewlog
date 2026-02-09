@@ -2,66 +2,83 @@
 {% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ cup.roast_name }} at {{ cup.cafe_name }}{% endblock %}
-{% block description %}{{ cup.roast_name }} by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.{% endblock %}
+{% block description %}
+  {{ cup.roast_name }}
+  by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.
+{% endblock %}
 {% block og_title %}{{ cup.roast_name }} at {{ cup.cafe_name }} — Brewlog{% endblock %}
-{% block og_description %}{{ cup.roast_name }} by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.{% endblock %}
-{% block head %}<meta property="og:image" content="{{ base_url }}/static/og-image.png" />{% endblock %}
+{% block og_description %}
+  {{ cup.roast_name }}
+  by {{ cup.roaster_name }} at {{ cup.cafe_name }}, {{ cup.cafe_city }}.
+{% endblock %}
+{% block head %}
+  <meta property="og:image" content="{{ base_url }}/static/og-image.png" />
+{% endblock %}
 {% block content %}
-<header class="flex items-start justify-between gap-4">
-  <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-semibold">{{ cup.roast_name }}</h1>
-    <p class="text-sm text-text-secondary">
-      {{ cup.roaster_name }} · {{ cup.cafe_name }}, {{ cup.cafe_city }} · {{ cup.created_date }}
-    </p>
+  <header class="flex items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">{{ cup.roast_name }}</h1>
+      <p class="text-sm text-text-secondary">
+        {{ cup.roaster_name }} · {{ cup.cafe_name }}, {{ cup.cafe_city }} ·
+        {{ cup.created_date }}
+      </p>
+    </div>
+  </header>
+
+  {# ── Coffee + map ── #}
+  <div class="grid gap-6 md:grid-cols-2">
+    {{ detail::coffee_card(cup.roast_name, cup.roaster_name, cup.origin, cup.origin_flag, cup.region, cup.producer, cup.process, cup.tasting_notes) }}
+    {{ detail::map_with_legend_3(cup.map_countries, cup.map_max, "Cafe", "", "Origin", "opacity-65", "Roaster", "opacity-35") }}
   </div>
-</header>
 
-{# ── Coffee + map ── #}
-<div class="grid gap-6 md:grid-cols-2">
-  {{ detail::coffee_card(cup.roast_name, cup.roaster_name, cup.origin, cup.origin_flag, cup.region, cup.producer, cup.process, cup.tasting_notes) }}
-  {{ detail::map_with_legend_3(cup.map_countries, cup.map_max, "Cafe", "", "Origin", "opacity-65", "Roaster", "opacity-35") }}
-</div>
+  {# ── Roaster & cafe ── #}
+  <div class="grid gap-6 md:grid-cols-2">
+    {{ detail::roaster_card(cup.roaster_name, cup.roaster_country, cup.roaster_country_flag, cup.roaster_city, cup.roaster_homepage) }}
 
-{# ── Roaster & cafe ── #}
-<div class="grid gap-6 md:grid-cols-2">
-  {{ detail::roaster_card(cup.roaster_name, cup.roaster_country, cup.roaster_country_flag, cup.roaster_city, cup.roaster_homepage) }}
-
-  <div class="rounded-lg border bg-surface p-5">
-    <h2 class="text-lg font-semibold text-text mb-4">Cafe</h2>
-    <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-      <div>
-        <dt class="text-text-muted">Name</dt>
-        <dd class="font-medium text-text">{{ cup.cafe_name }}</dd>
-      </div>
-      <div>
-        <dt class="text-text-muted">Country</dt>
-        <dd class="font-medium text-text">
-          {% if !cup.cafe_country_flag.is_empty() %}{{ cup.cafe_country_flag }} {% endif %}{{ cup.cafe_country }}
-        </dd>
-      </div>
-      <div>
-        <dt class="text-text-muted">City</dt>
-        <dd class="font-medium text-text">{{ cup.cafe_city }}</dd>
-      </div>
-      {% if let Some(url) = cup.cafe_website %}
-      <div>
-        <dt class="text-text-muted">Website</dt>
-        <dd class="font-medium">
-          <a href="{{ url }}" target="_blank" rel="noreferrer noopener" class="text-accent hover:text-accent-hover transition">Visit Website</a>
-        </dd>
-      </div>
-      {% endif %}
-    </dl>
+    <div class="rounded-lg border bg-surface p-5">
+      <h2 class="text-lg font-semibold text-text mb-4">Cafe</h2>
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        <div>
+          <dt class="text-text-muted">Name</dt>
+          <dd class="font-medium text-text">{{ cup.cafe_name }}</dd>
+        </div>
+        <div>
+          <dt class="text-text-muted">Country</dt>
+          <dd class="font-medium text-text">
+            {% if !cup.cafe_country_flag.is_empty() %}{{ cup.cafe_country_flag }}{% endif %}{{ cup.cafe_country }}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-text-muted">City</dt>
+          <dd class="font-medium text-text">{{ cup.cafe_city }}</dd>
+        </div>
+        {% if let Some(url) = cup.cafe_website %}
+          <div>
+            <dt class="text-text-muted">Website</dt>
+            <dd class="font-medium">
+              <a
+                href="{{ url }}"
+                target="_blank"
+                rel="noreferrer noopener"
+                class="text-accent hover:text-accent-hover transition"
+                >Visit Website</a
+              >
+            </dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
   </div>
-</div>
 
-{% if is_authenticated %}
-<div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-  <button type="button"
-    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
-    data-on:click="confirm('Delete this cup? This cannot be undone.') && @delete('/api/v1/cups/{{ cup.id }}')">
-    {{ icons::delete("h-4 w-4") }} Delete
-  </button>
-</div>
-{% endif %}
+  {% if is_authenticated %}
+    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+        data-on:click="confirm('Delete this cup? This cannot be undone.') && @delete('/api/v1/cups/{{ cup.id }}')"
+      >
+        {{ icons::delete("h-4 w-4") }} Delete
+      </button>
+    </div>
+  {% endif %}
 {% endblock %}

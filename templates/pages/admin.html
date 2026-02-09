@@ -1,476 +1,568 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Admin{% endblock %}
 {% block head %}
-<script src="/static/js/webauthn.js"></script>
+  <script src="/static/js/webauthn.js"></script>
 {% endblock %}
 {% block content %}
-<header class="flex flex-col gap-2">
-  <h1 class="text-3xl font-semibold">Admin</h1>
-  <p class="max-w-2xl text-sm text-text-secondary">Manage passkeys, API tokens, and data.</p>
-</header>
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Admin</h1>
+    <p class="max-w-2xl text-sm text-text-secondary">
+      Manage passkeys, API tokens, and data.
+    </p>
+  </header>
 
-<!-- Passkeys -->
-<section data-signals:_show-passkey-form="false" class="rounded-lg border bg-surface p-5">
-  <div class="flex flex-col gap-4">
-    <div>
-      <h2 class="text-lg font-semibold text-text">Passkeys</h2>
-      <p class="mt-1 text-sm text-text-secondary">Passkeys enable secure sign-in without a password.</p>
-    </div>
+  <!-- Passkeys -->
+  <section
+    data-signals:_show-passkey-form="false"
+    class="rounded-lg border bg-surface p-5"
+  >
+    <div class="flex flex-col gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-text">Passkeys</h2>
+        <p class="mt-1 text-sm text-text-secondary">
+          Passkeys enable secure sign-in without a password.
+        </p>
+      </div>
 
-    <div class="flex flex-col gap-2">
-      {% for passkey in passkeys %}
-      <div class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3">
-        <div class="flex items-center gap-3 min-w-0">
-          {{ icons::key("h-4 w-4 text-accent shrink-0") }}
-          <div class="min-w-0">
-            <span class="block text-sm font-semibold text-text">{{ passkey.name }}</span>
-            <span class="block text-xs text-text-muted">
-              Added {{ passkey.created_at }}
-              · {% if let Some(last_used) = passkey.last_used_at %}Last used {{ last_used }}{% else %}Never used{% endif %}
-            </span>
+      <div class="flex flex-col gap-2">
+        {% for passkey in passkeys %}
+          <div
+            class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              {{ icons::key("h-4 w-4 text-accent shrink-0") }}
+              <div class="min-w-0">
+                <span class="block text-sm font-semibold text-text"
+                  >{{ passkey.name }}</span
+                >
+                <span class="block text-xs text-text-muted">
+                  Added {{ passkey.created_at }} ·
+                  {% if let Some(last_used) = passkey.last_used_at %}
+                    Last used {{ last_used }}
+                  {% else %}
+                    Never used
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+            {% if passkeys.len() > 1 %}
+              <button
+                type="button"
+                class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+                onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
+              >
+                {{ icons::delete("h-4 w-4") }} Delete
+              </button>
+            {% endif %}
           </div>
-        </div>
-        {% if passkeys.len() > 1 %}
-        <button
-          type="button"
-          class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
-          onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
-        >
-          {{ icons::delete("h-4 w-4") }}
-          Delete
-        </button>
-        {% endif %}
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
 
-    {% if passkeys.len() <= 1 %}
-    <p class="text-xs text-text-muted">Add another passkey before removing the only one.</p>
-    {% endif %}
+      {% if passkeys.len() <= 1 %}
+        <p class="text-xs text-text-muted">
+          Add another passkey before removing the only one.
+        </p>
+      {% endif %}
 
-    <!-- Add passkey form -->
-    <div id="add-passkey-form" class="rounded-md border bg-surface-alt p-4"
-      data-show="$_showPasskeyForm" style="display: none">
-      <div id="add-passkey-error" class="mb-3 hidden rounded-md bg-red-100 border border-red-300 p-2 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"></div>
-      <div class="flex items-end gap-3">
-        <label class="flex-1 flex flex-col gap-1 text-sm">
-          <span class="text-text">Passkey Name</span>
-          <input
-            type="text"
-            id="passkey-name"
-            required
-            class="input-field"
-            placeholder="e.g. MacBook Touch ID, iPhone"
-          />
-        </label>
-        <button
-          id="add-passkey-btn"
-          type="button"
-          onclick="registerPasskey()"
-          class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ icons::key("h-4 w-4") }} Register
-        </button>
-        <button
-          type="button"
-          data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
-          class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
-        >
-          {{ icons::x_mark("h-4 w-4") }} Cancel
-        </button>
-      </div>
-      <div id="add-passkey-loading" class="mt-3 hidden flex items-center gap-3 text-sm text-accent">
-        {{ icons::spinner("h-5 w-5") }}
-        Follow the prompts from the browser or device...
-      </div>
-    </div>
-
-    <div>
-      <button
-        type="button"
-        data-show="!$_showPasskeyForm"
-        data-on:click="$_showPasskeyForm = true; setTimeout(() => document.getElementById('passkey-name').focus(), 50)"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
+      <!-- Add passkey form -->
+      <div
+        id="add-passkey-form"
+        class="rounded-md border bg-surface-alt p-4"
+        data-show="$_showPasskeyForm"
+        style="display: none"
       >
-        {{ icons::key("h-4 w-4") }}
-        New Passkey
-      </button>
-    </div>
-  </div>
-</section>
-
-<!-- API Tokens -->
-<section
-  class="rounded-lg border bg-surface p-5"
-  data-signals:_show-token-form="false"
-  data-signals:_creating-token="false"
-  data-signals:_token-created="false"
-  data-signals:_token-value="''"
-  data-signals:_token-error="''"
->
-  <div class="flex flex-col gap-4">
-    <div>
-      <h2 class="text-lg font-semibold text-text">API Tokens</h2>
-      <p class="mt-1 text-sm text-text-secondary">Use tokens to authenticate the CLI or REST API.</p>
-    </div>
-
-    {% if tokens.is_empty() %}
-    <p class="text-sm text-text-muted">No active tokens.</p>
-    {% else %}
-    <div class="flex flex-col gap-2">
-      {% for token in tokens %}
-      <div id="token-row-{{ token.id }}" class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3">
-        <div class="flex items-center gap-3 min-w-0">
-          {{ icons::terminal("h-4 w-4 text-accent shrink-0") }}
-          <div class="min-w-0">
-            <span class="block text-sm font-semibold text-text">{{ token.name }}</span>
-            <span class="block text-xs text-text-muted">
-              Created {{ token.created_at }}
-              · {% if let Some(last_used) = token.last_used_at %}Last used {{ last_used }}{% else %}Never used{% endif %}
-            </span>
-          </div>
-        </div>
-        <button
-          type="button"
-          class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
-          onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
-        >
-          {{ icons::delete("h-4 w-4") }}
-          Revoke
-        </button>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Create token form -->
-    <div class="rounded-md border bg-surface-alt p-4"
-      data-show="$_showTokenForm && !$_tokenCreated" style="display: none">
-      <p data-show="$_tokenError" data-text="$_tokenError" style="display: none"
-        class="mb-3 rounded-md bg-red-100 border border-red-300 p-2 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"></p>
-      <form
-        data-on:submit="$_creatingToken = true; $_tokenError = ''; @post('/api/v1/tokens', {contentType: 'form'})"
-        data-on:datastar-fetch="if (!$_creatingToken) return;
-          if (evt.detail.type === 'finished') { $_creatingToken = false; document.getElementById('token-name').value = '' }
-          else if (evt.detail.type === 'error') { $_creatingToken = false; $_tokenError = 'Failed to create token.' }"
-      >
+        <div
+          id="add-passkey-error"
+          class="mb-3 hidden rounded-md bg-red-100 border border-red-300 p-2 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"
+        ></div>
         <div class="flex items-end gap-3">
           <label class="flex-1 flex flex-col gap-1 text-sm">
-            <span class="text-text">Token Name</span>
+            <span class="text-text">Passkey Name</span>
             <input
               type="text"
-              name="name"
-              id="token-name"
+              id="passkey-name"
               required
               class="input-field"
-              placeholder="e.g. laptop-cli, ci-server"
+              placeholder="e.g. MacBook Touch ID, iPhone"
             />
           </label>
           <button
-            type="submit"
+            id="add-passkey-btn"
+            type="button"
+            onclick="registerPasskey()"
             class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
-            data-attr:disabled="$_creatingToken"
           >
-            {{ icons::plus("h-4 w-4") }} Create
+            {{ icons::key("h-4 w-4") }} Register
           </button>
           <button
             type="button"
-            data-on:click="$_showTokenForm = false; $_tokenError = ''"
+            data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
             class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
           >
             {{ icons::x_mark("h-4 w-4") }} Cancel
           </button>
         </div>
-      </form>
-    </div>
+        <div
+          id="add-passkey-loading"
+          class="mt-3 hidden flex items-center gap-3 text-sm text-accent"
+        >
+          {{ icons::spinner("h-5 w-5") }} Follow the prompts from the browser or
+          device...
+        </div>
+      </div>
 
-    <!-- One-time token display -->
-    <div data-show="$_tokenCreated" style="display: none"
-      class="relative rounded-md border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/40 p-4">
-      <button
-        type="button"
-        onclick="window.location.reload()"
-        class="absolute top-3.5 right-3 inline-flex h-6 w-6 items-center justify-center rounded text-green-800 dark:text-green-300 transition hover:text-green-600 dark:hover:text-green-100"
-        aria-label="Dismiss"
-      >
-        {{ icons::x_mark("h-4 w-4") }}
-      </button>
-      <p class="pr-6 text-sm font-medium text-green-800 dark:text-green-300">Token created! Copy it now — it will not be shown again.</p>
-      <div class="mt-3 flex items-center gap-2">
-        <code id="token-value" data-text="$_tokenValue"
-          class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 dark:border-green-800 break-all select-all"></code>
+      <div>
         <button
           type="button"
-          onclick="copyToken(this)"
-          class="shrink-0 inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-green-50 transition hover:bg-green-500"
+          data-show="!$_showPasskeyForm"
+          data-on:click="$_showPasskeyForm = true; setTimeout(() => document.getElementById('passkey-name').focus(), 50)"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
         >
-          {{ icons::clipboard("h-4 w-4") }} Copy
+          {{ icons::key("h-4 w-4") }} New Passkey
         </button>
       </div>
     </div>
+  </section>
 
-    <div>
-      <button
-        type="button"
-        data-show="!$_showTokenForm && !$_tokenCreated"
-        data-on:click="$_showTokenForm = true; setTimeout(() => document.getElementById('token-name').focus(), 50)"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
+  <!-- API Tokens -->
+  <section
+    class="rounded-lg border bg-surface p-5"
+    data-signals:_show-token-form="false"
+    data-signals:_creating-token="false"
+    data-signals:_token-created="false"
+    data-signals:_token-value="''"
+    data-signals:_token-error="''"
+  >
+    <div class="flex flex-col gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-text">API Tokens</h2>
+        <p class="mt-1 text-sm text-text-secondary">
+          Use tokens to authenticate the CLI or REST API.
+        </p>
+      </div>
+
+      {% if tokens.is_empty() %}
+        <p class="text-sm text-text-muted">No active tokens.</p>
+      {% else %}
+        <div class="flex flex-col gap-2">
+          {% for token in tokens %}
+            <div
+              id="token-row-{{ token.id }}"
+              class="flex items-center justify-between gap-4 rounded-md bg-surface-alt px-4 py-3"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                {{ icons::terminal("h-4 w-4 text-accent shrink-0") }}
+                <div class="min-w-0">
+                  <span class="block text-sm font-semibold text-text"
+                    >{{ token.name }}</span
+                  >
+                  <span class="block text-xs text-text-muted">
+                    Created {{ token.created_at }} ·
+                    {% if let Some(last_used) = token.last_used_at %}
+                      Last used {{ last_used }}
+                    {% else %}
+                      Never used
+                    {% endif %}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+                onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
+              >
+                {{ icons::delete("h-4 w-4") }} Revoke
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Create token form -->
+      <div
+        class="rounded-md border bg-surface-alt p-4"
+        data-show="$_showTokenForm && !$_tokenCreated"
+        style="display: none"
       >
-        {{ icons::terminal("h-4 w-4") }}
-        New Token
-      </button>
+        <p
+          data-show="$_tokenError"
+          data-text="$_tokenError"
+          style="display: none"
+          class="mb-3 rounded-md bg-red-100 border border-red-300 p-2 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"
+        ></p>
+        <form
+          data-on:submit="$_creatingToken = true; $_tokenError = ''; @post('/api/v1/tokens', {contentType: 'form'})"
+          data-on:datastar-fetch="if (!$_creatingToken) return;
+          if (evt.detail.type === 'finished') { $_creatingToken = false; document.getElementById('token-name').value = '' }
+          else if (evt.detail.type === 'error') { $_creatingToken = false; $_tokenError = 'Failed to create token.' }"
+        >
+          <div class="flex items-end gap-3">
+            <label class="flex-1 flex flex-col gap-1 text-sm">
+              <span class="text-text">Token Name</span>
+              <input
+                type="text"
+                name="name"
+                id="token-name"
+                required
+                class="input-field"
+                placeholder="e.g. laptop-cli, ci-server"
+              />
+            </label>
+            <button
+              type="submit"
+              class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              data-attr:disabled="$_creatingToken"
+            >
+              {{ icons::plus("h-4 w-4") }} Create
+            </button>
+            <button
+              type="button"
+              data-on:click="$_showTokenForm = false; $_tokenError = ''"
+              class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
+            >
+              {{ icons::x_mark("h-4 w-4") }} Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- One-time token display -->
+      <div
+        data-show="$_tokenCreated"
+        style="display: none"
+        class="relative rounded-md border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/40 p-4"
+      >
+        <button
+          type="button"
+          onclick="window.location.reload()"
+          class="absolute top-3.5 right-3 inline-flex h-6 w-6 items-center justify-center rounded text-green-800 dark:text-green-300 transition hover:text-green-600 dark:hover:text-green-100"
+          aria-label="Dismiss"
+        >
+          {{ icons::x_mark("h-4 w-4") }}
+        </button>
+        <p class="pr-6 text-sm font-medium text-green-800 dark:text-green-300">
+          Token created! Copy it now — it will not be shown again.
+        </p>
+        <div class="mt-3 flex items-center gap-2">
+          <code
+            id="token-value"
+            data-text="$_tokenValue"
+            class="flex-1 rounded bg-surface px-3 py-2 text-sm font-mono text-text border border-green-200 dark:border-green-800 break-all select-all"
+          ></code>
+          <button
+            type="button"
+            onclick="copyToken(this)"
+            class="shrink-0 inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-green-50 transition hover:bg-green-500"
+          >
+            {{ icons::clipboard("h-4 w-4") }} Copy
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          data-show="!$_showTokenForm && !$_tokenCreated"
+          data-on:click="$_showTokenForm = true; setTimeout(() => document.getElementById('token-name').focus(), 50)"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
+        >
+          {{ icons::terminal("h-4 w-4") }} New Token
+        </button>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- Data -->
-<section class="rounded-lg border bg-surface p-5">
-  <div class="flex flex-col gap-4">
-    <div>
-      <h2 class="text-lg font-semibold text-text">Data</h2>
-      <p class="mt-1 text-sm text-text-secondary">Export all coffee data as JSON, restore from a previous backup, or reset to start fresh.</p>
-    </div>
+  <!-- Data -->
+  <section class="rounded-lg border bg-surface p-5">
+    <div class="flex flex-col gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-text">Data</h2>
+        <p class="mt-1 text-sm text-text-secondary">
+          Export all coffee data as JSON, restore from a previous backup, or
+          reset to start fresh.
+        </p>
+      </div>
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-      <a
-        href="/api/v1/backup"
-        download
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
-      >
-        {{ icons::arrow_down_tray("h-4 w-4") }}
-        New Backup
-      </a>
-      <button
-        type="button"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
-        onclick="document.getElementById('restore-file-input').click()"
-      >
-        {{ icons::arrow_up_tray("h-4 w-4") }}
-        Restore
-      </button>
-      <button
-        type="button"
-        data-signals:_recomputing="false"
-        data-on:click="$_recomputing = true; @post('/api/v1/stats/recompute')"
-        data-on:datastar-fetch="if (!$_recomputing) return;
+      <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <a
+          href="/api/v1/backup"
+          download
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover sm:w-auto sm:min-w-44"
+        >
+          {{ icons::arrow_down_tray("h-4 w-4") }} New Backup
+        </a>
+        <button
+          type="button"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
+          onclick="document.getElementById('restore-file-input').click()"
+        >
+          {{ icons::arrow_up_tray("h-4 w-4") }} Restore
+        </button>
+        <button
+          type="button"
+          data-signals:_recomputing="false"
+          data-on:click="$_recomputing = true; @post('/api/v1/stats/recompute')"
+          data-on:datastar-fetch="if (!$_recomputing) return;
           if (evt.detail.type === 'finished') { $_recomputing = false; document.getElementById('backup-status').textContent = 'Stats recomputed successfully.'; document.getElementById('backup-status').classList.remove('hidden') }
           else if (evt.detail.type === 'error') { $_recomputing = false; document.getElementById('backup-error').textContent = 'Stats recompute failed.'; document.getElementById('backup-error').classList.remove('hidden') }"
-        data-attr:disabled="$_recomputing"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto sm:min-w-44"
-      >
-        <span data-show="!$_recomputing">{{ icons::refresh("h-4 w-4") }}</span>
-        <span data-show="$_recomputing" style="display:none">{{ icons::spinner("h-4 w-4") }}</span>
-        Recompute Stats
-      </button>
-      <button
-        type="button"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
-        onclick="resetDatabase()"
-      >
-        {{ icons::delete("h-4 w-4") }}
-        Reset
-      </button>
-    </div>
-
-    <input type="file" id="restore-file-input" accept=".json" class="hidden"
-      onchange="restoreFromFile(this)" />
-
-    <div id="backup-status" class="hidden rounded-md border border-green-300 bg-green-50 p-4 text-sm text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300"></div>
-    <div id="backup-error" class="hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"></div>
-  </div>
-</section>
-
-<!-- AI Usage -->
-{% if let Some(usage) = ai_usage %}
-<section class="rounded-lg border bg-surface p-5">
-  <div class="flex flex-col gap-4">
-    <h2 class="text-lg font-semibold text-text">AI Usage</h2>
-
-    <div class="grid grid-cols-3 gap-4">
-      <div>
-        <span class="block text-sm text-text-muted">Total Cost</span>
-        <span class="mt-1 block text-lg font-semibold text-text">{{ usage.cost }}</span>
-      </div>
-      <div>
-        <span class="block text-sm text-text-muted">API Calls</span>
-        <span class="mt-1 block text-lg font-semibold text-text">{{ usage.calls }}</span>
-      </div>
-      <div>
-        <span class="block text-sm text-text-muted">Total Tokens</span>
-        <span class="mt-1 block text-lg font-semibold text-text">{{ usage.tokens }}</span>
-      </div>
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- Sign Out -->
-<section class="rounded-lg border bg-surface p-5">
-  <div class="flex flex-col gap-4">
-    <div>
-      <h2 class="text-lg font-semibold text-text">Sign Out</h2>
-      <p class="mt-1 text-sm text-text-secondary">Sign out on this device.</p>
-    </div>
-    <div>
-      <form method="post" action="/logout">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44">
-          {{ icons::logout("h-4 w-4") }}
-          Sign Out
+          data-attr:disabled="$_recomputing"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto sm:min-w-44"
+        >
+          <span data-show="!$_recomputing"
+            >{{ icons::refresh("h-4 w-4") }}</span
+          >
+          <span data-show="$_recomputing" style="display:none"
+            >{{ icons::spinner("h-4 w-4") }}</span
+          >
+          Recompute Stats
         </button>
-      </form>
+        <button
+          type="button"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
+          onclick="resetDatabase()"
+        >
+          {{ icons::delete("h-4 w-4") }} Reset
+        </button>
+      </div>
+
+      <input
+        type="file"
+        id="restore-file-input"
+        accept=".json"
+        class="hidden"
+        onchange="restoreFromFile(this)"
+      />
+
+      <div
+        id="backup-status"
+        class="hidden rounded-md border border-green-300 bg-green-50 p-4 text-sm text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300"
+      ></div>
+      <div
+        id="backup-error"
+        class="hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"
+      ></div>
     </div>
-  </div>
-</section>
+  </section>
 
-<script>
-  // --- Passkey form ---
+  <!-- AI Usage -->
+  {% if let Some(usage) = ai_usage %}
+    <section class="rounded-lg border bg-surface p-5">
+      <div class="flex flex-col gap-4">
+        <h2 class="text-lg font-semibold text-text">AI Usage</h2>
 
-  const registerPasskey = async () => {
-    const name = document.getElementById("passkey-name").value.trim();
-    const errorEl = document.getElementById("add-passkey-error");
-    const loadingEl = document.getElementById("add-passkey-loading");
-    const btn = document.getElementById("add-passkey-btn");
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <span class="block text-sm text-text-muted">Total Cost</span>
+            <span class="mt-1 block text-lg font-semibold text-text"
+              >{{ usage.cost }}</span
+            >
+          </div>
+          <div>
+            <span class="block text-sm text-text-muted">API Calls</span>
+            <span class="mt-1 block text-lg font-semibold text-text"
+              >{{ usage.calls }}</span
+            >
+          </div>
+          <div>
+            <span class="block text-sm text-text-muted">Total Tokens</span>
+            <span class="mt-1 block text-lg font-semibold text-text"
+              >{{ usage.tokens }}</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
 
-    if (!name) {
-      errorEl.textContent = "Please enter a name for this passkey.";
-      errorEl.classList.remove("hidden");
-      return;
-    }
+  <!-- Sign Out -->
+  <section class="rounded-lg border bg-surface p-5">
+    <div class="flex flex-col gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-text">Sign Out</h2>
+        <p class="mt-1 text-sm text-text-secondary">Sign out on this device.</p>
+      </div>
+      <div>
+        <form method="post" action="/logout">
+          <button
+            type="submit"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt sm:w-auto sm:min-w-44"
+          >
+            {{ icons::logout("h-4 w-4") }} Sign Out
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    errorEl.classList.add("hidden");
-    loadingEl.classList.remove("hidden");
-    btn.disabled = true;
+  <script>
+    // --- Passkey form ---
 
-    try {
-      await addPasskey(name);
-      window.location.reload();
-    } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.classList.remove("hidden");
-      loadingEl.classList.add("hidden");
-      btn.disabled = false;
-    }
-  };
+    const registerPasskey = async () => {
+      const name = document.getElementById("passkey-name").value.trim();
+      const errorEl = document.getElementById("add-passkey-error");
+      const loadingEl = document.getElementById("add-passkey-loading");
+      const btn = document.getElementById("add-passkey-btn");
 
-  // --- Token ---
-
-  const copyToken = (btn) => {
-    const token = document.getElementById("token-value").textContent;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(token).then(() => {
-        btn.textContent = "Copied!";
-        setTimeout(() => { btn.textContent = "Copy"; }, 2000);
-      });
-    } else {
-      const range = document.createRange();
-      range.selectNodeContents(document.getElementById("token-value"));
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  };
-
-  // --- Data management ---
-
-  const restoreFromFile = async (input) => {
-    const file = input.files[0];
-    if (!file) return;
-    input.value = "";
-
-    if (!confirm("Restore from backup? This will replace all data.\n\nThe database must be empty for restore to succeed.")) {
-      return;
-    }
-
-    const status = document.getElementById("backup-status");
-    const error = document.getElementById("backup-error");
-    status.classList.add("hidden");
-    error.classList.add("hidden");
-
-    try {
-      const text = await file.text();
-      JSON.parse(text);
-
-      const response = await fetch("/api/v1/backup/restore", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: text,
-      });
-
-      if (response.status === 409) {
-        throw new Error("Database is not empty. Restore requires an empty database.");
-      }
-      if (!response.ok) {
-        throw new Error(`Restore failed (HTTP ${response.status}).`);
+      if (!name) {
+        errorEl.textContent = "Please enter a name for this passkey.";
+        errorEl.classList.remove("hidden");
+        return;
       }
 
-      status.textContent = "Backup restored successfully.";
-      status.classList.remove("hidden");
-    } catch (err) {
-      error.textContent = err instanceof SyntaxError ? "Invalid JSON file." : err.message;
-      error.classList.remove("hidden");
-    }
-  };
+      errorEl.classList.add("hidden");
+      loadingEl.classList.remove("hidden");
+      btn.disabled = true;
 
-  const resetDatabase = async () => {
-    if (!confirm("Reset all coffee data?\n\nThis will permanently delete all roasters, roasts, bags, gear, brews, cafes, cups, and timeline events.\n\nThis cannot be undone.")) {
-      return;
-    }
-
-    if (!confirm("Confirm? All coffee data will be permanently deleted.")) {
-      return;
-    }
-
-    const status = document.getElementById("backup-status");
-    const error = document.getElementById("backup-error");
-    status.classList.add("hidden");
-    error.classList.add("hidden");
-
-    try {
-      const response = await fetch("/api/v1/backup/reset", { method: "POST" });
-
-      if (!response.ok) {
-        throw new Error(`Reset failed (HTTP ${response.status}).`);
-      }
-
-      status.textContent = "Database reset successfully. All coffee data has been deleted.";
-      status.classList.remove("hidden");
-    } catch (err) {
-      error.textContent = err.message;
-      error.classList.remove("hidden");
-    }
-  };
-
-  const deletePasskey = async (id, name) => {
-    if (!confirm(`Delete passkey "${name}"? This cannot be undone.`)) return;
-
-    try {
-      const response = await fetch(`/api/v1/passkeys/${id}`, { method: "DELETE" });
-      if (response.ok) {
+      try {
+        await addPasskey(name);
         window.location.reload();
-      } else if (response.status === 409) {
-        alert("Cannot delete the only passkey. Add another passkey first.");
-      } else {
-        alert("Failed to delete passkey.");
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove("hidden");
+        loadingEl.classList.add("hidden");
+        btn.disabled = false;
       }
-    } catch (err) {
-      alert(`Failed to delete passkey: ${err.message}`);
-    }
-  };
+    };
 
-  const revokeToken = async (id, name) => {
-    if (!confirm(`Revoke token "${name}"? This cannot be undone.`)) return;
+    // --- Token ---
 
-    try {
-      const response = await fetch(`/api/v1/tokens/${id}/revoke`, { method: "POST" });
-      if (response.ok) {
-        const row = document.getElementById(`token-row-${id}`);
-        if (row) row.remove();
+    const copyToken = (btn) => {
+      const token = document.getElementById("token-value").textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(token).then(() => {
+          btn.textContent = "Copied!";
+          setTimeout(() => {
+            btn.textContent = "Copy";
+          }, 2000);
+        });
       } else {
-        alert("Failed to revoke token.");
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById("token-value"));
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
-    } catch (err) {
-      alert(`Failed to revoke token: ${err.message}`);
-    }
-  };
-</script>
+    };
+
+    // --- Data management ---
+
+    const restoreFromFile = async (input) => {
+      const file = input.files[0];
+      if (!file) return;
+      input.value = "";
+
+      if (
+        !confirm(
+          "Restore from backup? This will replace all data.\n\nThe database must be empty for restore to succeed.",
+        )
+      ) {
+        return;
+      }
+
+      const status = document.getElementById("backup-status");
+      const error = document.getElementById("backup-error");
+      status.classList.add("hidden");
+      error.classList.add("hidden");
+
+      try {
+        const text = await file.text();
+        JSON.parse(text);
+
+        const response = await fetch("/api/v1/backup/restore", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: text,
+        });
+
+        if (response.status === 409) {
+          throw new Error(
+            "Database is not empty. Restore requires an empty database.",
+          );
+        }
+        if (!response.ok) {
+          throw new Error(`Restore failed (HTTP ${response.status}).`);
+        }
+
+        status.textContent = "Backup restored successfully.";
+        status.classList.remove("hidden");
+      } catch (err) {
+        error.textContent =
+          err instanceof SyntaxError ? "Invalid JSON file." : err.message;
+        error.classList.remove("hidden");
+      }
+    };
+
+    const resetDatabase = async () => {
+      if (
+        !confirm(
+          "Reset all coffee data?\n\nThis will permanently delete all roasters, roasts, bags, gear, brews, cafes, cups, and timeline events.\n\nThis cannot be undone.",
+        )
+      ) {
+        return;
+      }
+
+      if (!confirm("Confirm? All coffee data will be permanently deleted.")) {
+        return;
+      }
+
+      const status = document.getElementById("backup-status");
+      const error = document.getElementById("backup-error");
+      status.classList.add("hidden");
+      error.classList.add("hidden");
+
+      try {
+        const response = await fetch("/api/v1/backup/reset", {
+          method: "POST",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Reset failed (HTTP ${response.status}).`);
+        }
+
+        status.textContent =
+          "Database reset successfully. All coffee data has been deleted.";
+        status.classList.remove("hidden");
+      } catch (err) {
+        error.textContent = err.message;
+        error.classList.remove("hidden");
+      }
+    };
+
+    const deletePasskey = async (id, name) => {
+      if (!confirm(`Delete passkey "${name}"? This cannot be undone.`)) return;
+
+      try {
+        const response = await fetch(`/api/v1/passkeys/${id}`, {
+          method: "DELETE",
+        });
+        if (response.ok) {
+          window.location.reload();
+        } else if (response.status === 409) {
+          alert("Cannot delete the only passkey. Add another passkey first.");
+        } else {
+          alert("Failed to delete passkey.");
+        }
+      } catch (err) {
+        alert(`Failed to delete passkey: ${err.message}`);
+      }
+    };
+
+    const revokeToken = async (id, name) => {
+      if (!confirm(`Revoke token "${name}"? This cannot be undone.`)) return;
+
+      try {
+        const response = await fetch(`/api/v1/tokens/${id}/revoke`, {
+          method: "POST",
+        });
+        if (response.ok) {
+          const row = document.getElementById(`token-row-${id}`);
+          if (row) row.remove();
+        } else {
+          alert("Failed to revoke token.");
+        }
+      } catch (err) {
+        alert(`Failed to revoke token: ${err.message}`);
+      }
+    };
+  </script>
 {% endblock %}

@@ -1,219 +1,241 @@
-{% extends "base.html" %} {% block title %}Brewlog · Timeline{% endblock %} {% block content %}
-<div>
-  <section
-    id="timeline-events"
-    data-signals:_expanded-card="''"
-    data-signals:_expanded-months="''"
-    data-signals:_collapsed-cards="''"
-    data-empty="{{ months.is_empty() }}"
-  >
-    {% if months.is_empty() %}
-    <p
-      class="rounded-lg border border-dashed p-6 text-sm text-text-secondary"
-      data-role="timeline-empty-state"
-    >
-      No events yet.
-    </p>
-    {% else %}
-    <div class="timeline-list relative" id="timeline-items">
-      {# Single central timeline line for all months #}
-      <div class="timeline-line absolute top-0 bottom-0 w-1 bg-border" aria-hidden="true"></div>
-      {% for month in months %} {% include "partials/timeline_month.html" %} {% endfor %}
-    </div>
-    {% endif %}
-
-    <div
-      id="timeline-loader"
-      class="mt-8 flex flex-col items-center gap-3"
-      data-next-url="{% if events.has_next() %}{{ navigator.fragment_page_href(events.next_page().unwrap()) }}{% else %}{% endif %}"
-      data-has-more="{{ events.has_next() }}"
+{% extends "base.html" %} {% block title %}Brewlog · Timeline{% endblock %}
+{% block content %}
+  <div>
+    <section
+      id="timeline-events"
+      data-signals:_expanded-card="''"
+      data-signals:_expanded-months="''"
+      data-signals:_collapsed-cards="''"
       data-empty="{{ months.is_empty() }}"
     >
-      <button
-        id="timeline-load-more"
-        type="button"
-        class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-accent transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
-        style="{% if months.is_empty() || !events.has_next() %}display: none{% endif %}"
+      {% if months.is_empty() %}
+        <p
+          class="rounded-lg border border-dashed p-6 text-sm text-text-secondary"
+          data-role="timeline-empty-state"
+        >
+          No events yet.
+        </p>
+      {% else %}
+        <div class="timeline-list relative" id="timeline-items">
+          {# Single central timeline line for all months #}
+          <div
+            class="timeline-line absolute top-0 bottom-0 w-1 bg-border"
+            aria-hidden="true"
+          ></div>
+          {% for month in months %}{% include "partials/timeline_month.html" %}{% endfor %}
+        </div>
+      {% endif %}
+
+      <div
+        id="timeline-loader"
+        class="mt-8 flex flex-col items-center gap-3"
+        data-next-url="{% if events.has_next() %}{{ navigator.fragment_page_href(events.next_page().unwrap()) }}{% else %}{% endif %}"
+        data-has-more="{{ events.has_next() }}"
+        data-empty="{{ months.is_empty() }}"
       >
-        <span aria-hidden="true">↓</span>
-        Load more
-      </button>
-      <p id="timeline-status" class="text-xs text-text-muted" hidden>Loading…</p>
-      <p id="timeline-end" class="text-sm text-text-muted" style="{% if events.has_next() || months.is_empty() %}display: none{% endif %}">No more events.</p>
-      <p id="timeline-error" class="text-sm text-red-600" hidden></p>
-    </div>
-    <div id="timeline-sentinel" class="h-1"></div>
-  </section>
-</div>
+        <button
+          id="timeline-load-more"
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-accent transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+          style="{% if months.is_empty() || !events.has_next() %}display: none{% endif %}"
+        >
+          <span aria-hidden="true">↓</span>
+          Load more
+        </button>
+        <p id="timeline-status" class="text-xs text-text-muted" hidden>
+          Loading…
+        </p>
+        <p
+          id="timeline-end"
+          class="text-sm text-text-muted"
+          style="{% if events.has_next() || months.is_empty() %}display: none{% endif %}"
+        >
+          No more events.
+        </p>
+        <p id="timeline-error" class="text-sm text-red-600" hidden></p>
+      </div>
+      <div id="timeline-sentinel" class="h-1"></div>
+    </section>
+  </div>
 
-<script type="module">
-  const loader = document.getElementById("timeline-loader")
-  const itemsContainer = document.getElementById("timeline-items")
-  const loadMoreButton = document.getElementById("timeline-load-more")
-  const statusLine = document.getElementById("timeline-status")
-  const endLine = document.getElementById("timeline-end")
-  const errorLine = document.getElementById("timeline-error")
-  const sentinel = document.getElementById("timeline-sentinel")
-  const emptyState = document.querySelector('[data-role="timeline-empty-state"]')
-  const section = document.getElementById("timeline-events")
+  <script type="module">
+    const loader = document.getElementById("timeline-loader");
+    const itemsContainer = document.getElementById("timeline-items");
+    const loadMoreButton = document.getElementById("timeline-load-more");
+    const statusLine = document.getElementById("timeline-status");
+    const endLine = document.getElementById("timeline-end");
+    const errorLine = document.getElementById("timeline-error");
+    const sentinel = document.getElementById("timeline-sentinel");
+    const emptyState = document.querySelector(
+      '[data-role="timeline-empty-state"]',
+    );
+    const section = document.getElementById("timeline-events");
 
-  if (loader && sentinel) {
-    let nextUrl = loader.dataset.nextUrl || ""
-    let hasMorePages = loader.dataset.hasMore === "true"
-    let loading = false
+    if (loader && sentinel) {
+      let nextUrl = loader.dataset.nextUrl || "";
+      let hasMorePages = loader.dataset.hasMore === "true";
+      let loading = false;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting) && hasMorePages && nextUrl) {
-          void loadMore()
-        }
-      },
-      { rootMargin: "200px" }
-    )
-
-    const setHasMore = (hasMore, url) => {
-      hasMorePages = hasMore
-      nextUrl = url || ""
-      loader.dataset.hasMore = hasMore ? "true" : "false"
-      loader.dataset.nextUrl = nextUrl
-
-      if (!hasMore) {
-        if (loadMoreButton) loadMoreButton.style.display = "none"
-        if (endLine) endLine.style.display = ""
-        observer.disconnect()
-      }
-    }
-
-    const ensureItemsContainer = () => {
-      if (itemsContainer) return itemsContainer
-      // First load on a previously empty timeline: create the container
-      const container = document.createElement("div")
-      container.className = "timeline-list relative"
-      container.id = "timeline-items"
-      const line = document.createElement("div")
-      line.className = "timeline-line absolute top-0 bottom-0 w-1 bg-border"
-      line.setAttribute("aria-hidden", "true")
-      container.appendChild(line)
-      section.insertBefore(container, loader)
-      return container
-    }
-
-    const appendMonths = (chunk) => {
-      const monthsFragment = chunk.querySelector("[data-chunk-months]")
-      if (!monthsFragment) return
-
-      const container = ensureItemsContainer()
-
-      for (const node of Array.from(monthsFragment.children)) {
-        // Skip duplicate month headings (same month spanning a page boundary)
-        if (node.hasAttribute("data-timeline-month") && document.getElementById(node.id)) {
-          continue
-        }
-        container.appendChild(node)
-      }
-    }
-
-    const clearEmptyState = () => {
-      if (emptyState && !emptyState.hidden) {
-        emptyState.hidden = true
-        loader.dataset.empty = "false"
-      }
-    }
-
-    const loadMore = async () => {
-      if (loading || !hasMorePages || !nextUrl) return
-
-      loading = true
-      if (statusLine) {
-        statusLine.hidden = false
-      }
-      if (errorLine) {
-        errorLine.hidden = true
-      }
-
-      try {
-        const response = await fetch(nextUrl, {
-          headers: {
-            "X-Requested-With": "fetch",
-            "datastar-request": "true",
-          },
-        })
-        if (!response.ok) {
-          throw new Error(`Unexpected response: ${response.status}`)
-        }
-        const html = await response.text()
-        const template = document.createElement("template")
-        template.innerHTML = html.trim()
-        const chunk = template.content.querySelector("[data-timeline-chunk]")
-        if (!chunk) {
-          throw new Error("Invalid timeline chunk payload")
-        }
-
-        appendMonths(chunk)
-        clearEmptyState()
-
-        const hasMore = chunk.dataset.hasMore === "true"
-        const url = chunk.dataset.nextUrl || ""
-        setHasMore(hasMore, url)
-      } catch (error) {
-        console.error(error)
-        if (errorLine) {
-          errorLine.textContent = "Failed to load more events. Please try again."
-          errorLine.hidden = false
-        }
-      } finally {
-        loading = false
-        if (statusLine) {
-          statusLine.hidden = true
-        }
-      }
-    }
-
-    if (loadMoreButton) {
-      loadMoreButton.addEventListener("click", () => {
-        void loadMore()
-      })
-    }
-
-    if (hasMorePages && loader.dataset.empty !== "true") {
-      observer.observe(sentinel)
-    }
-  }
-
-  // Sticky header detection - observe all current and future headings
-  const stickyObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        entry.target.classList.toggle("is-stuck", !entry.isIntersecting)
-      })
-    },
-    { rootMargin: "-1px 0px 0px 0px", threshold: 1 }
-  )
-
-  // Use MutationObserver to watch for new month headings being added
-  const timelineItems = document.getElementById("timeline-items")
-  if (timelineItems) {
-    const mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            if (node.matches?.(".timeline-heading")) {
-              stickyObserver.observe(node)
-            }
-            const heading = node.querySelector?.(".timeline-heading")
-            if (heading) {
-              stickyObserver.observe(heading)
-            }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (
+            entries.some((entry) => entry.isIntersecting) &&
+            hasMorePages &&
+            nextUrl
+          ) {
+            void loadMore();
           }
-        })
-      })
-    })
-    mutationObserver.observe(timelineItems, { childList: true })
-  }
+        },
+        { rootMargin: "200px" },
+      );
 
-  // Observe existing headings
-  document.querySelectorAll(".timeline-heading").forEach((heading) => {
-    stickyObserver.observe(heading)
-  })
-</script>
+      const setHasMore = (hasMore, url) => {
+        hasMorePages = hasMore;
+        nextUrl = url || "";
+        loader.dataset.hasMore = hasMore ? "true" : "false";
+        loader.dataset.nextUrl = nextUrl;
+
+        if (!hasMore) {
+          if (loadMoreButton) loadMoreButton.style.display = "none";
+          if (endLine) endLine.style.display = "";
+          observer.disconnect();
+        }
+      };
+
+      const ensureItemsContainer = () => {
+        if (itemsContainer) return itemsContainer;
+        // First load on a previously empty timeline: create the container
+        const container = document.createElement("div");
+        container.className = "timeline-list relative";
+        container.id = "timeline-items";
+        const line = document.createElement("div");
+        line.className = "timeline-line absolute top-0 bottom-0 w-1 bg-border";
+        line.setAttribute("aria-hidden", "true");
+        container.appendChild(line);
+        section.insertBefore(container, loader);
+        return container;
+      };
+
+      const appendMonths = (chunk) => {
+        const monthsFragment = chunk.querySelector("[data-chunk-months]");
+        if (!monthsFragment) return;
+
+        const container = ensureItemsContainer();
+
+        for (const node of Array.from(monthsFragment.children)) {
+          // Skip duplicate month headings (same month spanning a page boundary)
+          if (
+            node.hasAttribute("data-timeline-month") &&
+            document.getElementById(node.id)
+          ) {
+            continue;
+          }
+          container.appendChild(node);
+        }
+      };
+
+      const clearEmptyState = () => {
+        if (emptyState && !emptyState.hidden) {
+          emptyState.hidden = true;
+          loader.dataset.empty = "false";
+        }
+      };
+
+      const loadMore = async () => {
+        if (loading || !hasMorePages || !nextUrl) return;
+
+        loading = true;
+        if (statusLine) {
+          statusLine.hidden = false;
+        }
+        if (errorLine) {
+          errorLine.hidden = true;
+        }
+
+        try {
+          const response = await fetch(nextUrl, {
+            headers: {
+              "X-Requested-With": "fetch",
+              "datastar-request": "true",
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`Unexpected response: ${response.status}`);
+          }
+          const html = await response.text();
+          const template = document.createElement("template");
+          template.innerHTML = html.trim();
+          const chunk = template.content.querySelector("[data-timeline-chunk]");
+          if (!chunk) {
+            throw new Error("Invalid timeline chunk payload");
+          }
+
+          appendMonths(chunk);
+          clearEmptyState();
+
+          const hasMore = chunk.dataset.hasMore === "true";
+          const url = chunk.dataset.nextUrl || "";
+          setHasMore(hasMore, url);
+        } catch (error) {
+          console.error(error);
+          if (errorLine) {
+            errorLine.textContent =
+              "Failed to load more events. Please try again.";
+            errorLine.hidden = false;
+          }
+        } finally {
+          loading = false;
+          if (statusLine) {
+            statusLine.hidden = true;
+          }
+        }
+      };
+
+      if (loadMoreButton) {
+        loadMoreButton.addEventListener("click", () => {
+          void loadMore();
+        });
+      }
+
+      if (hasMorePages && loader.dataset.empty !== "true") {
+        observer.observe(sentinel);
+      }
+    }
+
+    // Sticky header detection - observe all current and future headings
+    const stickyObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle("is-stuck", !entry.isIntersecting);
+        });
+      },
+      { rootMargin: "-1px 0px 0px 0px", threshold: 1 },
+    );
+
+    // Use MutationObserver to watch for new month headings being added
+    const timelineItems = document.getElementById("timeline-items");
+    if (timelineItems) {
+      const mutationObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (node.matches?.(".timeline-heading")) {
+                stickyObserver.observe(node);
+              }
+              const heading = node.querySelector?.(".timeline-heading");
+              if (heading) {
+                stickyObserver.observe(heading);
+              }
+            }
+          });
+        });
+      });
+      mutationObserver.observe(timelineItems, { childList: true });
+    }
+
+    // Observe existing headings
+    document.querySelectorAll(".timeline-heading").forEach((heading) => {
+      stickyObserver.observe(heading);
+    });
+  </script>
 {% endblock %}

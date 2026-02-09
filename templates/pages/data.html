@@ -1,28 +1,27 @@
-{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% block title %}Brewlog · Data{% endblock %}
+{% extends "base.html" %} {% import "partials/icons.html" as icons %}
+{% block title %}Brewlog · Data{% endblock %}
 {% block content %}
-<header class="flex flex-col gap-2">
-  <h1 class="text-3xl font-semibold">Data</h1>
-  <p class="max-w-2xl text-sm text-text-secondary">Browse all coffee data.</p>
-</header>
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Data</h1>
+    <p class="max-w-2xl text-sm text-text-secondary">Browse all coffee data.</p>
+  </header>
 
-<div class="flex flex-col gap-4">
-  {% include "partials/tab_bar.html" %}
-  <!-- Search -->
-  <div data-signals:_data-search="'{{ search_value }}'">
-    <input
-      type="search"
-      data-bind:_data-search
-      placeholder="Filter..."
-      class="input-field w-full text-sm"
-      data-on:input__debounce.300ms="history.pushState(null, '', '/data?type=' + $_activeTab + '&q=' + encodeURIComponent($_dataSearch)); @get('/data?type=' + $_activeTab + '&q=' + encodeURIComponent($_dataSearch), {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
-      {% if !search_value.is_empty() %}autofocus{% endif %}
-    />
+  <div class="flex flex-col gap-4">
+    {% include "partials/tab_bar.html" %}
+    <!-- Search -->
+    <div data-signals:_data-search="'{{ search_value }}'">
+      <input
+        type="search"
+        data-bind:_data-search
+        placeholder="Filter..."
+        class="input-field w-full text-sm"
+        data-on:input__debounce.300ms="history.pushState(null, '', '/data?type=' + $_activeTab + '&q=' + encodeURIComponent($_dataSearch)); @get('/data?type=' + $_activeTab + '&q=' + encodeURIComponent($_dataSearch), {responseOverrides: {selector: '#data-content', mode: 'inner'}})"
+        {% if !search_value.is_empty() %}autofocus{% endif %}
+      />
+    </div>
+
+    <div id="data-content" class="data-page-content">{{ content|safe }}</div>
   </div>
 
-  <div id="data-content" class="data-page-content">
-    {{ content|safe }}
-  </div>
-</div>
-
-<div id="detail-panel"></div>
+  <div id="detail-panel"></div>
 {% endblock %}

@@ -1,591 +1,1228 @@
-{% extends "base.html" %} {% import "partials/icons.html" as icons %} {% import "partials/location_search.html" as location %} {% block title %}Brewlog · Add{% endblock %}
+{% extends "base.html" %} {% import "partials/icons.html" as icons %}
+{% import "partials/location_search.html" as location %}
+{% block title %}Brewlog · Add{% endblock %}
 
 {% block head %}
-<script>
-  {{ location::location_search_js() }}
-</script>
+  <script>
+    {
+      {
+        location::location_search_js();
+      }
+    }
+  </script>
 {% endblock %}
 
 {% block content %}
-<section
-  data-signals:_add-submitting="false"
-  data-signals:_roaster-extracting="false"
-  data-signals:_roaster-extract-error="''"
-  data-signals:_roaster-name="''"
-  data-signals:_roaster-country="''"
-  data-signals:_roaster-city="''"
-  data-signals:_roaster-homepage="''"
-  data-signals:_roast-extracting="false"
-  data-signals:_roast-extract-error="''"
-  data-signals:_roast-name="''"
-  data-signals:_origin="''"
-  data-signals:_region="''"
-  data-signals:_producer="''"
-  data-signals:_process="''"
-  data-signals:_tasting-notes="''"
-  data-signals:_brew-temp="{{ defaults.water_temp }}"
-  data-signals:_brew-grind="{{ defaults.grind_setting }}"
-  data-signals:_brew-volume="{{ defaults.water_volume }}"
-  data-signals:_brew-weight="{{ defaults.coffee_weight }}"
-  data-signals:_brew-time="{{ defaults.brew_time.unwrap_or(120) }}"
-  data-signals:_edit-grinder="{% if defaults.grinder_name.is_empty() %}true{% else %}false{% endif %}"
-  data-signals:_edit-brewer="{% if defaults.brewer_name.is_empty() %}true{% else %}false{% endif %}"
-  data-signals:_grinder-display="'{{ defaults.grinder_name }}'"
-  data-signals:_brewer-display="'{{ defaults.brewer_name }}'"
-  data-signals:_filter-display="'{{ defaults.filter_paper_name }}'"
-  data-signals:_cafe-id="''"
-  data-signals:_cafe-name="''"
-  data-signals:_cafe-city="''"
-  data-signals:_cafe-country="''"
-  data-signals:_cafe-lat="''"
-  data-signals:_cafe-lng="''"
-  data-signals:_cafe-website="''"
-  data-signals:_cafe-search="''"
-  data-signals:_cafe-error="''"
-  data-signals:_city-name="''"
-  data-signals:_locating="false"
-  data-signals:_location-found="false"
-  data-signals:_user-lat="0"
-  data-signals:_user-lng="0"
-  data-signals:_reviewing-cafe="false"
-  data-signals:_qn-good="{% if defaults.quick_notes_raw.contains("good") %}true{% else %}false{% endif %}"
-  data-signals:_qn-too-fast="{% if defaults.quick_notes_raw.contains("too-fast") %}true{% else %}false{% endif %}"
-  data-signals:_qn-too-slow="{% if defaults.quick_notes_raw.contains("too-slow") %}true{% else %}false{% endif %}"
-  data-signals:_qn-too-hot="{% if defaults.quick_notes_raw.contains("too-hot") %}true{% else %}false{% endif %}"
-  data-signals:_qn-under-extracted="{% if defaults.quick_notes_raw.contains("under-extracted") %}true{% else %}false{% endif %}"
-  data-signals:_qn-over-extracted="{% if defaults.quick_notes_raw.contains("over-extracted") %}true{% else %}false{% endif %}"
->
-  <header class="flex flex-col gap-2 mb-6">
-    <h1 class="text-3xl font-semibold">Add</h1>
-    <p class="max-w-2xl text-sm text-text-secondary">Add new coffee data manually or by scanning a bag.</p>
-  </header>
+  <section
+    data-signals:_add-submitting="false"
+    data-signals:_roaster-extracting="false"
+    data-signals:_roaster-extract-error="''"
+    data-signals:_roaster-name="''"
+    data-signals:_roaster-country="''"
+    data-signals:_roaster-city="''"
+    data-signals:_roaster-homepage="''"
+    data-signals:_roast-extracting="false"
+    data-signals:_roast-extract-error="''"
+    data-signals:_roast-name="''"
+    data-signals:_origin="''"
+    data-signals:_region="''"
+    data-signals:_producer="''"
+    data-signals:_process="''"
+    data-signals:_tasting-notes="''"
+    data-signals:_brew-temp="{{ defaults.water_temp }}"
+    data-signals:_brew-grind="{{ defaults.grind_setting }}"
+    data-signals:_brew-volume="{{ defaults.water_volume }}"
+    data-signals:_brew-weight="{{ defaults.coffee_weight }}"
+    data-signals:_brew-time="{{ defaults.brew_time.unwrap_or(120) }}"
+    data-signals:_edit-grinder="{% if defaults.grinder_name.is_empty() %}true{% else %}false{% endif %}"
+    data-signals:_edit-brewer="{% if defaults.brewer_name.is_empty() %}true{% else %}false{% endif %}"
+    data-signals:_grinder-display="'{{ defaults.grinder_name }}'"
+    data-signals:_brewer-display="'{{ defaults.brewer_name }}'"
+    data-signals:_filter-display="'{{ defaults.filter_paper_name }}'"
+    data-signals:_cafe-id="''"
+    data-signals:_cafe-name="''"
+    data-signals:_cafe-city="''"
+    data-signals:_cafe-country="''"
+    data-signals:_cafe-lat="''"
+    data-signals:_cafe-lng="''"
+    data-signals:_cafe-website="''"
+    data-signals:_cafe-search="''"
+    data-signals:_cafe-error="''"
+    data-signals:_city-name="''"
+    data-signals:_locating="false"
+    data-signals:_location-found="false"
+    data-signals:_user-lat="0"
+    data-signals:_user-lng="0"
+    data-signals:_reviewing-cafe="false"
+    data-signals:_qn-good="{% if defaults.quick_notes_raw.contains("good") %}true{% else %}false{% endif %}"
+    data-signals:_qn-too-fast="{% if defaults.quick_notes_raw.contains("too-fast") %}true{% else %}false{% endif %}"
+    data-signals:_qn-too-slow="{% if defaults.quick_notes_raw.contains("too-slow") %}true{% else %}false{% endif %}"
+    data-signals:_qn-too-hot="{% if defaults.quick_notes_raw.contains("too-hot") %}true{% else %}false{% endif %}"
+    data-signals:_qn-under-extracted="{% if defaults.quick_notes_raw.contains("under-extracted") %}true{% else %}false{% endif %}"
+    data-signals:_qn-over-extracted="{% if defaults.quick_notes_raw.contains("over-extracted") %}true{% else %}false{% endif %}"
+  >
+    <header class="flex flex-col gap-2 mb-6">
+      <h1 class="text-3xl font-semibold">Add</h1>
+      <p class="max-w-2xl text-sm text-text-secondary">
+        Add new coffee data manually or by scanning a bag.
+      </p>
+    </header>
 
-  <!-- Entity type selector -->
-  <div class="mb-4">
-    {% include "partials/tab_bar.html" %}
-  </div>
+    <!-- Entity type selector -->
+    <div class="mb-4">{% include "partials/tab_bar.html" %}</div>
 
-  <!-- ========== ROASTER FORM ========== -->
-  <div data-show="$_addType === 'roaster'" style="display:none" class="rounded-lg border bg-surface p-5">
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Roaster</h3>
-      <p class="mt-1 text-sm text-text-secondary">Describe or take a photo of a coffee bag to extract roaster details.</p>
-    </div>
-
-    <!-- Extraction bar -->
-    <div class="mt-4">
-      <input type="hidden" name="image" id="roaster-extract-image" form="roaster-extract-form" />
-      <form id="roaster-extract-form"
-        data-on:submit="$_roasterExtracting = true; $_roasterExtractError = ''; @post('/api/v1/extract-roaster', {contentType: 'form'})"
-        data-on:datastar-fetch="if (!$_roasterExtracting) return; if (evt.detail.type === 'finished') { $_roasterExtracting = false; document.getElementById('roaster-extract-form').reset() } else if (evt.detail.type === 'error') { $_roasterExtracting = false; $_roasterExtractError = 'Extraction failed. Please try again.' }"
-        class="hidden"></form>
-      <div data-show="!$_roasterExtracting" class="flex items-center gap-2">
-        <brew-photo-capture target-input="roaster-extract-image" target-form="roaster-extract-form"
-          class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 text-accent transition hover:bg-surface-alt cursor-pointer"
-          aria-label="Take Photo"
-        >
-          {{ icons::camera("h-5 w-5") }}
-        </brew-photo-capture>
-        <span class="text-xs text-text-muted" >or</span>
-        <input type="text" name="prompt" form="roaster-extract-form" class="input-field w-full" placeholder="Describe a roaster&hellip;" />
-      </div>
-      <div data-show="$_roasterExtracting" style="display:none" class="flex items-center gap-3 text-sm text-accent">
-        {{ icons::spinner("h-5 w-5") }}
-        Extracting&hellip;
-      </div>
-      <p data-show="$_roasterExtractError" data-text="$_roasterExtractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
-    </div>
-
-    <div class="mt-3 border-t pt-3">
-      <p class="mb-2 text-sm text-text-secondary">Or add manually:</p>
-    <form method="post" action="/api/v1/roasters" class="flex flex-col gap-4">
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Name*</span>
-          <input type="text" name="name" required class="input-field" placeholder="Example Coffee Roasters" data-bind:_roaster-name />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Country*</span>
-          <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_roaster-country />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">City</span>
-          <input type="text" name="city" class="input-field" placeholder="Portland" data-bind:_roaster-city />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Homepage</span>
-          <input type="url" name="homepage" class="input-field" placeholder="https://example.coffee" data-bind:_roaster-homepage />
-        </label>
-      </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::plus("h-4 w-4") }} Save Roaster
-        </button>
-      </div>
-    </form>
-    </div>
-  </div>
-
-  <!-- ========== ROAST FORM ========== -->
-  <div data-show="$_addType === 'roast'" style="display:none" class="rounded-lg border bg-surface p-5">
-    {% if roaster_options.is_empty() %}
-    <div class="text-sm text-text-secondary">
-      <h3 class="text-lg font-semibold text-text">Add a roaster first</h3>
-      <p class="mt-2">Roasts need a roaster. Add a roaster above to enable this form.</p>
-    </div>
-    {% else %}
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Roast</h3>
-      <p class="mt-1 text-sm text-text-secondary">Describe or take a photo of a coffee bag to extract roast details.</p>
-    </div>
-
-    <!-- Extraction bar -->
-    <div class="mt-4">
-      <input type="hidden" name="image" id="roast-extract-image" form="roast-extract-form" />
-      <form id="roast-extract-form"
-        data-on:submit="$_roastExtracting = true; $_roastExtractError = ''; @post('/api/v1/extract-roast', {contentType: 'form'})"
-        data-on:datastar-fetch="if (!$_roastExtracting) return; if (evt.detail.type === 'finished') { $_roastExtracting = false; document.getElementById('roast-extract-form').reset() } else if (evt.detail.type === 'error') { $_roastExtracting = false; $_roastExtractError = 'Extraction failed. Please try again.' }"
-        class="hidden"></form>
-      <div data-show="!$_roastExtracting" class="flex items-center gap-2">
-        <brew-photo-capture target-input="roast-extract-image" target-form="roast-extract-form"
-          class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 text-accent transition hover:bg-surface-alt cursor-pointer"
-          aria-label="Take Photo"
-        >
-          {{ icons::camera("h-5 w-5") }}
-        </brew-photo-capture>
-        <span class="text-xs text-text-muted" >or</span>
-        <input type="text" name="prompt" form="roast-extract-form" class="input-field w-full" placeholder="Describe a coffee bag&hellip;" />
-      </div>
-      <div data-show="$_roastExtracting" style="display:none" class="flex items-center gap-3 text-sm text-accent">
-        {{ icons::spinner("h-5 w-5") }}
-        Extracting&hellip;
-      </div>
-      <p data-show="$_roastExtractError" data-text="$_roastExtractError" style="display:none" class="mt-2 text-sm text-red-600"></p>
-    </div>
-
-    <div class="mt-3 border-t pt-3">
-      <p class="mb-2 text-sm text-text-secondary">Or add manually:</p>
-    <form method="post" action="/api/v1/roasts" class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1 text-sm">
-        <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roaster*</span>
-        <searchable-select name="roaster_id" placeholder="Type to search roasters&hellip;">
-          {% for roaster in roaster_options %}
-          <button type="button" value="{{ roaster.id }}" data-display="{{ roaster.name }}"
-            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-            <span class="font-medium text-text">{{ roaster.name }}</span>
-          </button>
-          {% endfor %}
-        </searchable-select>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roast Name*</span>
-          <input type="text" name="name" required class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_roast-name />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Origin*</span>
-          <input type="text" name="origin" required class="input-field" placeholder="Ethiopia" data-bind:_origin />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Region*</span>
-          <input type="text" name="region" required class="input-field" placeholder="Guji" data-bind:_region />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Producer*</span>
-          <input type="text" name="producer" required class="input-field" placeholder="Chelbesa Cooperative" data-bind:_producer />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Process*</span>
-          <input type="text" name="process" required class="input-field" placeholder="Washed" data-bind:_process />
-        </label>
-        <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Tasting Notes* (comma or newline separated)</span>
-          <textarea name="tasting_notes" rows="2" required class="input-field" placeholder="Blueberry, Jasmine" data-bind:_tasting-notes></textarea>
-        </label>
-      </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::plus("h-4 w-4") }} Save Roast
-        </button>
-      </div>
-    </form>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- ========== BAG FORM ========== -->
-  <div data-show="$_addType === 'bag'" style="display:none" class="rounded-lg border bg-surface p-5">
-    {% if roast_options.is_empty() %}
-    <div class="text-sm text-text-secondary">
-      <h3 class="text-lg font-semibold text-text">Add a roast first</h3>
-      <p class="mt-2">Bags need a roast. Add a roaster and roast to enable this form.</p>
-    </div>
-    {% else %}
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Bag</h3>
-      <p class="mt-1 text-sm text-text-secondary">Select a roast and enter the details.</p>
-    </div>
-    <form method="post" action="/api/v1/bags" class="mt-4 flex flex-col gap-4">
-      <div class="flex flex-col gap-1 text-sm">
-        <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roast*</span>
-        <searchable-select name="roast_id" placeholder="Type to search roasts&hellip;">
-          {% for roast in roast_options %}
-          <button type="button" value="{{ roast.id }}" data-display="{{ roast.label }}"
-            class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-            <span class="font-medium text-text">{{ roast.name }}</span>
-            <span class="ml-2 text-xs text-text-muted">{{ roast.roaster_name }}</span>
-          </button>
-          {% endfor %}
-        </searchable-select>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Roast Date</span>
-          <input type="date" name="roast_date" class="input-field" />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Amount (g)*</span>
-          <input type="number" name="amount" step="0.1" required class="input-field" placeholder="250" />
-        </label>
-      </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::plus("h-4 w-4") }} Save Bag
-        </button>
-      </div>
-    </form>
-    {% endif %}
-  </div>
-
-  <!-- ========== BREW FORM ========== -->
-  <div data-show="$_addType === 'brew'" style="display:none" class="rounded-lg border bg-surface p-5">
-    {% if bag_options.is_empty() %}
-    <div class="text-sm text-text-secondary">
-      <h3 class="text-lg font-semibold text-text">Open a bag first</h3>
-      <p class="mt-2">Brews need an open bag of coffee. Add a bag to enable this form.</p>
-    </div>
-    {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
-    <div class="text-sm text-text-secondary">
-      <h3 class="text-lg font-semibold text-text">Add gear first</h3>
-      <p class="mt-2">Brews need a grinder and brewer. Add gear to enable this form.</p>
-    </div>
-    {% else %}
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Brew</h3>
-      <p class="mt-1 text-sm text-text-secondary">Log a cup of coffee.</p>
-    </div>
-    <form method="post" action="/api/v1/brews" class="mt-4 flex flex-col gap-6 overflow-hidden pb-16 md:pb-0">
-      <!-- Coffee -->
+    <!-- ========== ROASTER FORM ========== -->
+    <div
+      data-show="$_addType === 'roaster'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
       <div>
-        <h4 class="text-sm font-semibold text-text mb-3">Coffee</h4>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div class="flex flex-col gap-1 text-sm">
-            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Bag*</span>
-            <searchable-select name="bag_id" placeholder="Type to search bags&hellip;"{% if let Some(bag_id) = pre_select_bag_id %} initial-value="{{ bag_id }}"{% endif %}>
-              {% for bag in bag_options %}
-              <button type="button" value="{{ bag.id }}" data-display="{{ bag.roast_name }}"
-                class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-                <span class="font-medium text-text">{{ bag.roast_name }}</span>
-                <span class="ml-2 text-xs text-text-muted">{{ bag.roaster_name }} &middot; {{ bag.remaining }}</span>
+        <h3 class="text-lg font-semibold text-text">New Roaster</h3>
+        <p class="mt-1 text-sm text-text-secondary">
+          Describe or take a photo of a coffee bag to extract roaster details.
+        </p>
+      </div>
+
+      <!-- Extraction bar -->
+      <div class="mt-4">
+        <input
+          type="hidden"
+          name="image"
+          id="roaster-extract-image"
+          form="roaster-extract-form"
+        />
+        <form
+          id="roaster-extract-form"
+          data-on:submit="$_roasterExtracting = true; $_roasterExtractError = ''; @post('/api/v1/extract-roaster', {contentType: 'form'})"
+          data-on:datastar-fetch="if (!$_roasterExtracting) return; if (evt.detail.type === 'finished') { $_roasterExtracting = false; document.getElementById('roaster-extract-form').reset() } else if (evt.detail.type === 'error') { $_roasterExtracting = false; $_roasterExtractError = 'Extraction failed. Please try again.' }"
+          class="hidden"
+        ></form>
+        <div data-show="!$_roasterExtracting" class="flex items-center gap-2">
+          <brew-photo-capture
+            target-input="roaster-extract-image"
+            target-form="roaster-extract-form"
+            class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 text-accent transition hover:bg-surface-alt cursor-pointer"
+            aria-label="Take Photo"
+          >
+            {{ icons::camera("h-5 w-5") }}
+          </brew-photo-capture>
+          <span class="text-xs text-text-muted">or</span>
+          <input
+            type="text"
+            name="prompt"
+            form="roaster-extract-form"
+            class="input-field w-full"
+            placeholder="Describe a roaster&hellip;"
+          />
+        </div>
+        <div
+          data-show="$_roasterExtracting"
+          style="display:none"
+          class="flex items-center gap-3 text-sm text-accent"
+        >
+          {{ icons::spinner("h-5 w-5") }} Extracting&hellip;
+        </div>
+        <p
+          data-show="$_roasterExtractError"
+          data-text="$_roasterExtractError"
+          style="display:none"
+          class="mt-2 text-sm text-red-600"
+        ></p>
+      </div>
+
+      <div class="mt-3 border-t pt-3">
+        <p class="mb-2 text-sm text-text-secondary">Or add manually:</p>
+        <form
+          method="post"
+          action="/api/v1/roasters"
+          class="flex flex-col gap-4"
+        >
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Name*</span
+              >
+              <input
+                type="text"
+                name="name"
+                required
+                class="input-field"
+                placeholder="Example Coffee Roasters"
+                data-bind:_roaster-name
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Country*</span
+              >
+              <input
+                type="text"
+                name="country"
+                required
+                class="input-field"
+                placeholder="United States"
+                data-bind:_roaster-country
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >City</span
+              >
+              <input
+                type="text"
+                name="city"
+                class="input-field"
+                placeholder="Portland"
+                data-bind:_roaster-city
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Homepage</span
+              >
+              <input
+                type="url"
+                name="homepage"
+                class="input-field"
+                placeholder="https://example.coffee"
+                data-bind:_roaster-homepage
+              />
+            </label>
+          </div>
+          <div class="flex items-center justify-end">
+            <button
+              type="submit"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+            >
+              {{ icons::plus("h-4 w-4") }} Save Roaster
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========== ROAST FORM ========== -->
+    <div
+      data-show="$_addType === 'roast'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
+      {% if roaster_options.is_empty() %}
+        <div class="text-sm text-text-secondary">
+          <h3 class="text-lg font-semibold text-text">Add a roaster first</h3>
+          <p class="mt-2">
+            Roasts need a roaster. Add a roaster above to enable this form.
+          </p>
+        </div>
+      {% else %}
+        <div>
+          <h3 class="text-lg font-semibold text-text">New Roast</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            Describe or take a photo of a coffee bag to extract roast details.
+          </p>
+        </div>
+
+        <!-- Extraction bar -->
+        <div class="mt-4">
+          <input
+            type="hidden"
+            name="image"
+            id="roast-extract-image"
+            form="roast-extract-form"
+          />
+          <form
+            id="roast-extract-form"
+            data-on:submit="$_roastExtracting = true; $_roastExtractError = ''; @post('/api/v1/extract-roast', {contentType: 'form'})"
+            data-on:datastar-fetch="if (!$_roastExtracting) return; if (evt.detail.type === 'finished') { $_roastExtracting = false; document.getElementById('roast-extract-form').reset() } else if (evt.detail.type === 'error') { $_roastExtracting = false; $_roastExtractError = 'Extraction failed. Please try again.' }"
+            class="hidden"
+          ></form>
+          <div data-show="!$_roastExtracting" class="flex items-center gap-2">
+            <brew-photo-capture
+              target-input="roast-extract-image"
+              target-form="roast-extract-form"
+              class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 text-accent transition hover:bg-surface-alt cursor-pointer"
+              aria-label="Take Photo"
+            >
+              {{ icons::camera("h-5 w-5") }}
+            </brew-photo-capture>
+            <span class="text-xs text-text-muted">or</span>
+            <input
+              type="text"
+              name="prompt"
+              form="roast-extract-form"
+              class="input-field w-full"
+              placeholder="Describe a coffee bag&hellip;"
+            />
+          </div>
+          <div
+            data-show="$_roastExtracting"
+            style="display:none"
+            class="flex items-center gap-3 text-sm text-accent"
+          >
+            {{ icons::spinner("h-5 w-5") }} Extracting&hellip;
+          </div>
+          <p
+            data-show="$_roastExtractError"
+            data-text="$_roastExtractError"
+            style="display:none"
+            class="mt-2 text-sm text-red-600"
+          ></p>
+        </div>
+
+        <div class="mt-3 border-t pt-3">
+          <p class="mb-2 text-sm text-text-secondary">Or add manually:</p>
+          <form
+            method="post"
+            action="/api/v1/roasts"
+            class="flex flex-col gap-4"
+          >
+            <div class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Roaster*</span
+              >
+              <searchable-select
+                name="roaster_id"
+                placeholder="Type to search roasters&hellip;"
+              >
+                {% for roaster in roaster_options %}
+                  <button
+                    type="button"
+                    value="{{ roaster.id }}"
+                    data-display="{{ roaster.name }}"
+                    class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+                  >
+                    <span class="font-medium text-text"
+                      >{{ roaster.name }}</span
+                    >
+                  </button>
+                {% endfor %}
+              </searchable-select>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Roast Name*</span
+                >
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  class="input-field"
+                  placeholder="Ethiopia Yirgacheffe"
+                  data-bind:_roast-name
+                />
+              </label>
+              <label class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Origin*</span
+                >
+                <input
+                  type="text"
+                  name="origin"
+                  required
+                  class="input-field"
+                  placeholder="Ethiopia"
+                  data-bind:_origin
+                />
+              </label>
+              <label class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Region*</span
+                >
+                <input
+                  type="text"
+                  name="region"
+                  required
+                  class="input-field"
+                  placeholder="Guji"
+                  data-bind:_region
+                />
+              </label>
+              <label class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Producer*</span
+                >
+                <input
+                  type="text"
+                  name="producer"
+                  required
+                  class="input-field"
+                  placeholder="Chelbesa Cooperative"
+                  data-bind:_producer
+                />
+              </label>
+              <label class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Process*</span
+                >
+                <input
+                  type="text"
+                  name="process"
+                  required
+                  class="input-field"
+                  placeholder="Washed"
+                  data-bind:_process
+                />
+              </label>
+              <label class="sm:col-span-2 flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Tasting Notes* (comma or newline separated)</span
+                >
+                <textarea
+                  name="tasting_notes"
+                  rows="2"
+                  required
+                  class="input-field"
+                  placeholder="Blueberry, Jasmine"
+                  data-bind:_tasting-notes
+                ></textarea>
+              </label>
+            </div>
+            <div class="flex items-center justify-end">
+              <button
+                type="submit"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+              >
+                {{ icons::plus("h-4 w-4") }} Save Roast
               </button>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ========== BAG FORM ========== -->
+    <div
+      data-show="$_addType === 'bag'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
+      {% if roast_options.is_empty() %}
+        <div class="text-sm text-text-secondary">
+          <h3 class="text-lg font-semibold text-text">Add a roast first</h3>
+          <p class="mt-2">
+            Bags need a roast. Add a roaster and roast to enable this form.
+          </p>
+        </div>
+      {% else %}
+        <div>
+          <h3 class="text-lg font-semibold text-text">New Bag</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            Select a roast and enter the details.
+          </p>
+        </div>
+        <form
+          method="post"
+          action="/api/v1/bags"
+          class="mt-4 flex flex-col gap-4"
+        >
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Roast*</span
+            >
+            <searchable-select
+              name="roast_id"
+              placeholder="Type to search roasts&hellip;"
+            >
+              {% for roast in roast_options %}
+                <button
+                  type="button"
+                  value="{{ roast.id }}"
+                  data-display="{{ roast.label }}"
+                  class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+                >
+                  <span class="font-medium text-text">{{ roast.name }}</span>
+                  <span class="ml-2 text-xs text-text-muted"
+                    >{{ roast.roaster_name }}</span
+                  >
+                </button>
               {% endfor %}
             </searchable-select>
           </div>
-          <div class="flex flex-col gap-1 text-sm">
-            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Weight (g)*</span>
-            <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Math.max(1, Number($_brewWeight) - 0.5)">-</button>
-              <input type="number" name="coffee_weight" step="any" min="1" required class="input-field flex-1 text-center" data-bind:_brew-weight />
-              <button type="button" class="btn-adjust" data-on:click="$_brewWeight = Number($_brewWeight) + 0.5">+</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Grinder -->
-      <div>
-        <h4 class="text-sm font-semibold text-text mb-3">Grinder</h4>
-        <!-- Summary bar (collapsed) -->
-        <div data-show="!$_editGrinder" class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_editGrinder = true">
-          <div class="flex items-center gap-1.5 text-sm text-text min-w-0">
-            <span class="truncate" data-text="$_grinderDisplay"></span>
-            <span class="text-text-muted shrink-0">&middot;</span>
-            <span class="shrink-0" data-text="$_brewGrind"></span>
-          </div>
-          <button type="button" class="shrink-0 ml-3 inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
-            data-on:click="$_editGrinder = true">{{ icons::pencil("h-3 w-3") }} Change</button>
-        </div>
-        <!-- Full grinder fields (expanded) -->
-        <div data-show="$_editGrinder" style="display:none">
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="flex flex-col gap-1 text-sm">
-              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Grinder*</span>
-              <select name="grinder_id" required class="input-field"
-                data-on:change="$_grinderDisplay = evt.target.options[evt.target.selectedIndex].text">
-                {% for grinder in grinder_options %}
-                <option value="{{ grinder.id }}"{% if grinder.id == defaults.grinder_id %} selected{% endif %}>{{ grinder.label }}</option>
-                {% endfor %}
-              </select>
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Roast Date</span
+              >
+              <input type="date" name="roast_date" class="input-field" />
             </label>
-            <div class="flex flex-col gap-1 text-sm">
-              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Grind Setting*</span>
-              <div class="flex items-center gap-2">
-                <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Math.max(0, Number($_brewGrind) - 0.5)">-</button>
-                <input type="number" name="grind_setting" step="any" min="0" required class="input-field flex-1 text-center" data-bind:_brew-grind />
-                <button type="button" class="btn-adjust" data-on:click="$_brewGrind = Number($_brewGrind) + 0.5">+</button>
+            <label class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Amount (g)*</span
+              >
+              <input
+                type="number"
+                name="amount"
+                step="0.1"
+                required
+                class="input-field"
+                placeholder="250"
+              />
+            </label>
+          </div>
+          <div class="flex items-center justify-end">
+            <button
+              type="submit"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+            >
+              {{ icons::plus("h-4 w-4") }} Save Bag
+            </button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- ========== BREW FORM ========== -->
+    <div
+      data-show="$_addType === 'brew'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
+      {% if bag_options.is_empty() %}
+        <div class="text-sm text-text-secondary">
+          <h3 class="text-lg font-semibold text-text">Open a bag first</h3>
+          <p class="mt-2">
+            Brews need an open bag of coffee. Add a bag to enable this form.
+          </p>
+        </div>
+      {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
+        <div class="text-sm text-text-secondary">
+          <h3 class="text-lg font-semibold text-text">Add gear first</h3>
+          <p class="mt-2">
+            Brews need a grinder and brewer. Add gear to enable this form.
+          </p>
+        </div>
+      {% else %}
+        <div>
+          <h3 class="text-lg font-semibold text-text">New Brew</h3>
+          <p class="mt-1 text-sm text-text-secondary">Log a cup of coffee.</p>
+        </div>
+        <form
+          method="post"
+          action="/api/v1/brews"
+          class="mt-4 flex flex-col gap-6 overflow-hidden pb-16 md:pb-0"
+        >
+          <!-- Coffee -->
+          <div>
+            <h4 class="text-sm font-semibold text-text mb-3">Coffee</h4>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Bag*</span
+                >
+                <searchable-select
+                  name="bag_id"
+                  placeholder="Type to search bags&hellip;"
+                  {% if let Some(bag_id) = pre_select_bag_id %}initial-value="{{ bag_id }}"{% endif %}
+                >
+                  {% for bag in bag_options %}
+                    <button
+                      type="button"
+                      value="{{ bag.id }}"
+                      data-display="{{ bag.roast_name }}"
+                      class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+                    >
+                      <span class="font-medium text-text"
+                        >{{ bag.roast_name }}</span
+                      >
+                      <span class="ml-2 text-xs text-text-muted"
+                        >{{ bag.roaster_name }} &middot;
+                        {{ bag.remaining }}</span
+                      >
+                    </button>
+                  {% endfor %}
+                </searchable-select>
+              </div>
+              <div class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Weight (g)*</span
+                >
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewWeight = Math.max(1, Number($_brewWeight) - 0.5)"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    name="coffee_weight"
+                    step="any"
+                    min="1"
+                    required
+                    class="input-field flex-1 text-center"
+                    data-bind:_brew-weight
+                  />
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewWeight = Number($_brewWeight) + 0.5"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Brewer -->
-      <div>
-        <h4 class="text-sm font-semibold text-text mb-3">Brewer</h4>
-        <!-- Summary bar (collapsed) -->
-        <div data-show="!$_editBrewer" class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_editBrewer = true">
-          <div class="flex items-center gap-1.5 text-sm text-text min-w-0">
-            <span class="truncate" data-text="$_brewerDisplay"></span>
-            <span data-show="$_filterDisplay" class="text-text-muted shrink-0" style="display:none">&middot;</span>
-            <span data-show="$_filterDisplay" class="truncate" data-text="$_filterDisplay" style="display:none"></span>
+          <!-- Grinder -->
+          <div>
+            <h4 class="text-sm font-semibold text-text mb-3">Grinder</h4>
+            <!-- Summary bar (collapsed) -->
+            <div
+              data-show="!$_editGrinder"
+              class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer"
+              data-on:click="$_editGrinder = true"
+            >
+              <div class="flex items-center gap-1.5 text-sm text-text min-w-0">
+                <span class="truncate" data-text="$_grinderDisplay"></span>
+                <span class="text-text-muted shrink-0">&middot;</span>
+                <span class="shrink-0" data-text="$_brewGrind"></span>
+              </div>
+              <button
+                type="button"
+                class="shrink-0 ml-3 inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+                data-on:click="$_editGrinder = true"
+              >
+                {{ icons::pencil("h-3 w-3") }} Change
+              </button>
+            </div>
+            <!-- Full grinder fields (expanded) -->
+            <div data-show="$_editGrinder" style="display:none">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="flex flex-col gap-1 text-sm">
+                  <span
+                    class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                    >Grinder*</span
+                  >
+                  <select
+                    name="grinder_id"
+                    required
+                    class="input-field"
+                    data-on:change="$_grinderDisplay = evt.target.options[evt.target.selectedIndex].text"
+                  >
+                    {% for grinder in grinder_options %}
+                      <option
+                        value="{{ grinder.id }}"
+                        {% if grinder.id == defaults.grinder_id %}selected{% endif %}
+                      >
+                        {{ grinder.label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <div class="flex flex-col gap-1 text-sm">
+                  <span
+                    class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                    >Grind Setting*</span
+                  >
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      class="btn-adjust"
+                      data-on:click="$_brewGrind = Math.max(0, Number($_brewGrind) - 0.5)"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      name="grind_setting"
+                      step="any"
+                      min="0"
+                      required
+                      class="input-field flex-1 text-center"
+                      data-bind:_brew-grind
+                    />
+                    <button
+                      type="button"
+                      class="btn-adjust"
+                      data-on:click="$_brewGrind = Number($_brewGrind) + 0.5"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <button type="button" class="shrink-0 ml-3 inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
-            data-on:click="$_editBrewer = true">{{ icons::pencil("h-3 w-3") }} Change</button>
-        </div>
-        <!-- Full brewer fields (expanded) -->
-        <div data-show="$_editBrewer" style="display:none">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="flex flex-col gap-1 text-sm">
-              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Brewer*</span>
-              <select name="brewer_id" required class="input-field"
-                data-on:change="$_brewerDisplay = evt.target.options[evt.target.selectedIndex].text">
-                {% for brewer in brewer_options %}
-                <option value="{{ brewer.id }}"{% if brewer.id == defaults.brewer_id %} selected{% endif %}>{{ brewer.label }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            <label class="flex flex-col gap-1 text-sm">
-              <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Filter Paper</span>
-              <select name="filter_paper_id" class="input-field"
-                data-on:change="const o = evt.target.options[evt.target.selectedIndex]; $_filterDisplay = o.value ? o.text : ''">
-                <option value="">None</option>
-                {% for fp in filter_paper_options %}
-                <option value="{{ fp.id }}"{% if fp.id == defaults.filter_paper_id %} selected{% endif %}>{{ fp.label }}</option>
-                {% endfor %}
-              </select>
-            </label>
-          </div>
-        </div>
-      </div>
 
-      <!-- Recipe -->
+          <!-- Brewer -->
+          <div>
+            <h4 class="text-sm font-semibold text-text mb-3">Brewer</h4>
+            <!-- Summary bar (collapsed) -->
+            <div
+              data-show="!$_editBrewer"
+              class="rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer"
+              data-on:click="$_editBrewer = true"
+            >
+              <div class="flex items-center gap-1.5 text-sm text-text min-w-0">
+                <span class="truncate" data-text="$_brewerDisplay"></span>
+                <span
+                  data-show="$_filterDisplay"
+                  class="text-text-muted shrink-0"
+                  style="display:none"
+                  >&middot;</span
+                >
+                <span
+                  data-show="$_filterDisplay"
+                  class="truncate"
+                  data-text="$_filterDisplay"
+                  style="display:none"
+                ></span>
+              </div>
+              <button
+                type="button"
+                class="shrink-0 ml-3 inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+                data-on:click="$_editBrewer = true"
+              >
+                {{ icons::pencil("h-3 w-3") }} Change
+              </button>
+            </div>
+            <!-- Full brewer fields (expanded) -->
+            <div data-show="$_editBrewer" style="display:none">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="flex flex-col gap-1 text-sm">
+                  <span
+                    class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                    >Brewer*</span
+                  >
+                  <select
+                    name="brewer_id"
+                    required
+                    class="input-field"
+                    data-on:change="$_brewerDisplay = evt.target.options[evt.target.selectedIndex].text"
+                  >
+                    {% for brewer in brewer_options %}
+                      <option
+                        value="{{ brewer.id }}"
+                        {% if brewer.id == defaults.brewer_id %}selected{% endif %}
+                      >
+                        {{ brewer.label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label class="flex flex-col gap-1 text-sm">
+                  <span
+                    class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                    >Filter Paper</span
+                  >
+                  <select
+                    name="filter_paper_id"
+                    class="input-field"
+                    data-on:change="const o = evt.target.options[evt.target.selectedIndex]; $_filterDisplay = o.value ? o.text : ''"
+                  >
+                    <option value="">None</option>
+                    {% for fp in filter_paper_options %}
+                      <option
+                        value="{{ fp.id }}"
+                        {% if fp.id == defaults.filter_paper_id %}selected{% endif %}
+                      >
+                        {{ fp.label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipe -->
+          <div>
+            <h4 class="text-sm font-semibold text-text mb-3">Recipe</h4>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Volume (ml)*</span
+                >
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewVolume = Math.max(10, Number($_brewVolume) - 10)"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    name="water_volume"
+                    step="any"
+                    min="10"
+                    required
+                    class="input-field flex-1 text-center"
+                    data-bind:_brew-volume
+                  />
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewVolume = Number($_brewVolume) + 10"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Temp (&deg;C)*</span
+                >
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewTemp = Math.max(0, Number($_brewTemp) - 0.5)"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    name="water_temp"
+                    step="any"
+                    min="0"
+                    max="100"
+                    required
+                    class="input-field flex-1 text-center"
+                    data-bind:_brew-temp
+                  />
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewTemp = Math.min(100, Number($_brewTemp) + 0.5)"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 text-sm">
+                <span
+                  class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                  >Time</span
+                >
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewTime = Math.max(5, $_brewTime - 5)"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="hidden"
+                    name="brew_time"
+                    data-attr:value="$_brewTime"
+                  />
+                  <input
+                    type="text"
+                    readonly
+                    class="input-field flex-1 text-center"
+                    data-attr:value="Math.floor($_brewTime / 60) + ':' + String($_brewTime % 60).padStart(2, '0')"
+                  />
+                  <button
+                    type="button"
+                    class="btn-adjust"
+                    data-on:click="$_brewTime = $_brewTime + 5"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Quick Notes -->
+          <div>
+            <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                data-on:click="$_qnGood = !$_qnGood"
+                data-attr:class="$_qnGood ? 'pill pill-success cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+              >
+                Good
+              </button>
+              <button
+                type="button"
+                data-on:click="$_qnTooFast = !$_qnTooFast"
+                data-attr:class="$_qnTooFast ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+              >
+                Too Fast
+              </button>
+              <button
+                type="button"
+                data-on:click="$_qnTooSlow = !$_qnTooSlow"
+                data-attr:class="$_qnTooSlow ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+              >
+                Too Slow
+              </button>
+              <button
+                type="button"
+                data-on:click="$_qnTooHot = !$_qnTooHot"
+                data-attr:class="$_qnTooHot ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+              >
+                Too Hot
+              </button>
+              <button
+                type="button"
+                data-on:click="$_qnUnderExtracted = !$_qnUnderExtracted"
+                data-attr:class="$_qnUnderExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+              >
+                Under Extracted
+              </button>
+              <button
+                type="button"
+                data-on:click="$_qnOverExtracted = !$_qnOverExtracted"
+                data-attr:class="$_qnOverExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+              >
+                Over Extracted
+              </button>
+            </div>
+            <input
+              type="hidden"
+              name="quick_notes"
+              data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')"
+            />
+          </div>
+          <div class="sticky-submit flex items-center justify-end">
+            <button
+              type="submit"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+            >
+              {{ icons::beaker("h-4 w-4") }} Save Brew
+            </button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- ========== GEAR FORM ========== -->
+    <div
+      data-show="$_addType === 'gear'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
       <div>
-        <h4 class="text-sm font-semibold text-text mb-3">Recipe</h4>
+        <h3 class="text-lg font-semibold text-text">New Gear</h3>
+        <p class="mt-1 text-sm text-text-secondary">Add brewing equipment.</p>
+      </div>
+      <form
+        method="post"
+        action="/api/v1/gear"
+        class="mt-4 flex flex-col gap-4"
+      >
         <div class="grid gap-4 sm:grid-cols-3">
-          <div class="flex flex-col gap-1 text-sm">
-            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Volume (ml)*</span>
-            <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Math.max(10, Number($_brewVolume) - 10)">-</button>
-              <input type="number" name="water_volume" step="any" min="10" required class="input-field flex-1 text-center" data-bind:_brew-volume />
-              <button type="button" class="btn-adjust" data-on:click="$_brewVolume = Number($_brewVolume) + 10">+</button>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1 text-sm">
-            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Temp (&deg;C)*</span>
-            <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.max(0, Number($_brewTemp) - 0.5)">-</button>
-              <input type="number" name="water_temp" step="any" min="0" max="100" required class="input-field flex-1 text-center" data-bind:_brew-temp />
-              <button type="button" class="btn-adjust" data-on:click="$_brewTemp = Math.min(100, Number($_brewTemp) + 0.5)">+</button>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1 text-sm">
-            <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Time</span>
-            <div class="flex items-center gap-2">
-              <button type="button" class="btn-adjust" data-on:click="$_brewTime = Math.max(5, $_brewTime - 5)">-</button>
-              <input type="hidden" name="brew_time" data-attr:value="$_brewTime" />
-              <input type="text" readonly class="input-field flex-1 text-center"
-                data-attr:value="Math.floor($_brewTime / 60) + ':' + String($_brewTime % 60).padStart(2, '0')" />
-              <button type="button" class="btn-adjust" data-on:click="$_brewTime = $_brewTime + 5">+</button>
-            </div>
-          </div>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Category*</span
+            >
+            <select name="category" required class="input-field">
+              <option value="">Select a category</option>
+              <option value="grinder">Grinder</option>
+              <option value="brewer">Brewer</option>
+              <option value="filter_paper">Filter Paper</option>
+            </select>
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Make*</span
+            >
+            <input
+              type="text"
+              name="make"
+              required
+              class="input-field"
+              placeholder="Baratza"
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Model*</span
+            >
+            <input
+              type="text"
+              name="model"
+              required
+              class="input-field"
+              placeholder="Encore"
+            />
+          </label>
         </div>
-      </div>
-      <!-- Quick Notes -->
+        <div class="flex items-center justify-end">
+          <button
+            type="submit"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+          >
+            {{ icons::plus("h-4 w-4") }} Save Gear
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ========== CAFE FORM ========== -->
+    <div
+      data-show="$_addType === 'cafe'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
       <div>
-        <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
-        <div class="flex flex-wrap gap-2">
-          <button type="button"
-            data-on:click="$_qnGood = !$_qnGood"
-            data-attr:class="$_qnGood ? 'pill pill-success cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'">Good</button>
-          <button type="button"
-            data-on:click="$_qnTooFast = !$_qnTooFast"
-            data-attr:class="$_qnTooFast ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'">Too Fast</button>
-          <button type="button"
-            data-on:click="$_qnTooSlow = !$_qnTooSlow"
-            data-attr:class="$_qnTooSlow ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'">Too Slow</button>
-          <button type="button"
-            data-on:click="$_qnTooHot = !$_qnTooHot"
-            data-attr:class="$_qnTooHot ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'">Too Hot</button>
-          <button type="button"
-            data-on:click="$_qnUnderExtracted = !$_qnUnderExtracted"
-            data-attr:class="$_qnUnderExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'">Under Extracted</button>
-          <button type="button"
-            data-on:click="$_qnOverExtracted = !$_qnOverExtracted"
-            data-attr:class="$_qnOverExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'">Over Extracted</button>
-        </div>
-        <input type="hidden" name="quick_notes"
-          data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')" />
+        <h3 class="text-lg font-semibold text-text">New Cafe</h3>
+        <p class="mt-1 text-sm text-text-secondary">
+          Search for a nearby cafe or enter details manually.
+        </p>
       </div>
-      <div class="sticky-submit flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::beaker("h-4 w-4") }} Save Brew
-        </button>
-      </div>
-    </form>
-    {% endif %}
-  </div>
 
-  <!-- ========== GEAR FORM ========== -->
-  <div data-show="$_addType === 'gear'" style="display:none" class="rounded-lg border bg-surface p-5">
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Gear</h3>
-      <p class="mt-1 text-sm text-text-secondary">Add brewing equipment.</p>
-    </div>
-    <form method="post" action="/api/v1/gear" class="mt-4 flex flex-col gap-4">
-      <div class="grid gap-4 sm:grid-cols-3">
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Category*</span>
-          <select name="category" required class="input-field">
-            <option value="">Select a category</option>
-            <option value="grinder">Grinder</option>
-            <option value="brewer">Brewer</option>
-            <option value="filter_paper">Filter Paper</option>
-          </select>
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Make*</span>
-          <input type="text" name="make" required class="input-field" placeholder="Baratza" />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Model*</span>
-          <input type="text" name="model" required class="input-field" placeholder="Encore" />
-        </label>
+      <!-- Location search -->
+      <div class="mt-4 border-b pb-4" data-show="!$_reviewingCafe">
+        {{ location::location_search("$_cafeError") }}
+        <p
+          data-show="$_cafeError"
+          data-text="$_cafeError"
+          style="display:none"
+          class="mt-2 text-sm text-red-600"
+        ></p>
       </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::plus("h-4 w-4") }} Save Gear
-        </button>
-      </div>
-    </form>
-  </div>
 
-  <!-- ========== CAFE FORM ========== -->
-  <div data-show="$_addType === 'cafe'" style="display:none" class="rounded-lg border bg-surface p-5">
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Cafe</h3>
-      <p class="mt-1 text-sm text-text-secondary">Search for a nearby cafe or enter details manually.</p>
-    </div>
-
-    <!-- Location search -->
-    <div class="mt-4 border-b pb-4" data-show="!$_reviewingCafe">
-      {{ location::location_search("$_cafeError") }}
-      <p data-show="$_cafeError" data-text="$_cafeError" style="display:none" class="mt-2 text-sm text-red-600"></p>
-    </div>
-
-    <!-- Selected cafe indicator -->
-    <div class="mt-4 border-b pb-4 flex items-center justify-between cursor-pointer" data-show="$_reviewingCafe" style="display:none" data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = ''; $_cafeLng = ''; $_cafeWebsite = ''">
-      <div class="flex items-center gap-2">
-        {{ icons::location("h-4 w-4 text-accent shrink-0") }}
-        <span class="text-sm font-medium text-text" data-text="$_cafeName"></span>
-        <span class="text-xs text-text-muted" data-show="$_cafeCity" data-text="$_cafeCity" style="display:none"></span>
-      </div>
-      <button type="button"
-        class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+      <!-- Selected cafe indicator -->
+      <div
+        class="mt-4 border-b pb-4 flex items-center justify-between cursor-pointer"
+        data-show="$_reviewingCafe"
+        style="display:none"
         data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = ''; $_cafeLng = ''; $_cafeWebsite = ''"
-      >{{ icons::x_mark("h-3 w-3") }} Back</button>
-    </div>
-
-    <form id="cafe-form" method="post" action="/api/v1/cafes" class="mt-4 flex flex-col gap-4">
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Name*</span>
-          <input type="text" name="name" required class="input-field" placeholder="Blue Bottle Coffee" data-bind:_cafe-name />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">City*</span>
-          <input type="text" name="city" required class="input-field" placeholder="San Francisco" data-bind:_cafe-city />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Country*</span>
-          <input type="text" name="country" required class="input-field" placeholder="United States" data-bind:_cafe-country />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Website</span>
-          <input type="url" name="website" class="input-field" placeholder="https://bluebottlecoffee.com" data-bind:_cafe-website />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Latitude*</span>
-          <input type="number" name="latitude" step="any" required class="input-field" placeholder="37.7749" data-bind:_cafe-lat />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Longitude*</span>
-          <input type="number" name="longitude" step="any" required class="input-field" placeholder="-122.4194" data-bind:_cafe-lng />
-        </label>
-      </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::plus("h-4 w-4") }} Save Cafe
+      >
+        <div class="flex items-center gap-2">
+          {{ icons::location("h-4 w-4 text-accent shrink-0") }}
+          <span
+            class="text-sm font-medium text-text"
+            data-text="$_cafeName"
+          ></span>
+          <span
+            class="text-xs text-text-muted"
+            data-show="$_cafeCity"
+            data-text="$_cafeCity"
+            style="display:none"
+          ></span>
+        </div>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+          data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = ''; $_cafeLng = ''; $_cafeWebsite = ''"
+        >
+          {{ icons::x_mark("h-3 w-3") }} Back
         </button>
       </div>
-    </form>
-  </div>
 
-  <!-- ========== CUP FORM ========== -->
-  <div data-show="$_addType === 'cup'" style="display:none" class="rounded-lg border bg-surface p-5">
-    {% if roast_options.is_empty() || cafe_options.is_empty() %}
-    <div class="text-sm text-text-secondary">
-      <h3 class="text-lg font-semibold text-text">Add a roast and cafe first</h3>
-      <p class="mt-2">Cups need both a roast and a cafe. Add them above to enable this form.</p>
-    </div>
-    {% else %}
-    <div>
-      <h3 class="text-lg font-semibold text-text">New Cup</h3>
-      <p class="mt-1 text-sm text-text-secondary">Record a coffee from a cafe visit.</p>
-    </div>
-    <form method="post" action="/api/v1/cups" class="mt-4 flex flex-col gap-4">
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Coffee*</span>
-          <searchable-select name="roast_id" placeholder="Type to search roasts&hellip;">
-            {% for roast in roast_options %}
-            <button type="button" value="{{ roast.id }}" data-display="{{ roast.name }}"
-              class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-              <span class="font-medium text-text">{{ roast.name }}</span>
-              <span class="ml-2 text-xs text-text-muted">{{ roast.roaster_name }}</span>
-            </button>
-            {% endfor %}
-          </searchable-select>
+      <form
+        id="cafe-form"
+        method="post"
+        action="/api/v1/cafes"
+        class="mt-4 flex flex-col gap-4"
+      >
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Name*</span
+            >
+            <input
+              type="text"
+              name="name"
+              required
+              class="input-field"
+              placeholder="Blue Bottle Coffee"
+              data-bind:_cafe-name
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >City*</span
+            >
+            <input
+              type="text"
+              name="city"
+              required
+              class="input-field"
+              placeholder="San Francisco"
+              data-bind:_cafe-city
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Country*</span
+            >
+            <input
+              type="text"
+              name="country"
+              required
+              class="input-field"
+              placeholder="United States"
+              data-bind:_cafe-country
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Website</span
+            >
+            <input
+              type="url"
+              name="website"
+              class="input-field"
+              placeholder="https://bluebottlecoffee.com"
+              data-bind:_cafe-website
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Latitude*</span
+            >
+            <input
+              type="number"
+              name="latitude"
+              step="any"
+              required
+              class="input-field"
+              placeholder="37.7749"
+              data-bind:_cafe-lat
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Longitude*</span
+            >
+            <input
+              type="number"
+              name="longitude"
+              step="any"
+              required
+              class="input-field"
+              placeholder="-122.4194"
+              data-bind:_cafe-lng
+            />
+          </label>
         </div>
-        <div class="flex flex-col gap-1 text-sm">
-          <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Cafe*</span>
-          <searchable-select name="cafe_id" placeholder="Type to search cafes&hellip;">
-            {% for cafe in cafe_options %}
-            <button type="button" value="{{ cafe.id }}" data-display="{{ cafe.name }}"
-              class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition">
-              <span class="font-medium text-text">{{ cafe.name }}</span>
-              <span class="ml-2 text-xs text-text-muted">{{ cafe.city }}</span>
-            </button>
-            {% endfor %}
-          </searchable-select>
+        <div class="flex items-center justify-end">
+          <button
+            type="submit"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+          >
+            {{ icons::plus("h-4 w-4") }} Save Cafe
+          </button>
         </div>
-      </div>
-      <div class="flex items-center justify-end">
-        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover">
-          {{ icons::plus("h-4 w-4") }} Save Cup
-        </button>
-      </div>
-    </form>
-    {% endif %}
-  </div>
-</section>
+      </form>
+    </div>
+
+    <!-- ========== CUP FORM ========== -->
+    <div
+      data-show="$_addType === 'cup'"
+      style="display:none"
+      class="rounded-lg border bg-surface p-5"
+    >
+      {% if roast_options.is_empty() || cafe_options.is_empty() %}
+        <div class="text-sm text-text-secondary">
+          <h3 class="text-lg font-semibold text-text">
+            Add a roast and cafe first
+          </h3>
+          <p class="mt-2">
+            Cups need both a roast and a cafe. Add them above to enable this
+            form.
+          </p>
+        </div>
+      {% else %}
+        <div>
+          <h3 class="text-lg font-semibold text-text">New Cup</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            Record a coffee from a cafe visit.
+          </p>
+        </div>
+        <form
+          method="post"
+          action="/api/v1/cups"
+          class="mt-4 flex flex-col gap-4"
+        >
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Coffee*</span
+              >
+              <searchable-select
+                name="roast_id"
+                placeholder="Type to search roasts&hellip;"
+              >
+                {% for roast in roast_options %}
+                  <button
+                    type="button"
+                    value="{{ roast.id }}"
+                    data-display="{{ roast.name }}"
+                    class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+                  >
+                    <span class="font-medium text-text">{{ roast.name }}</span>
+                    <span class="ml-2 text-xs text-text-muted"
+                      >{{ roast.roaster_name }}</span
+                    >
+                  </button>
+                {% endfor %}
+              </searchable-select>
+            </div>
+            <div class="flex flex-col gap-1 text-sm">
+              <span
+                class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+                >Cafe*</span
+              >
+              <searchable-select
+                name="cafe_id"
+                placeholder="Type to search cafes&hellip;"
+              >
+                {% for cafe in cafe_options %}
+                  <button
+                    type="button"
+                    value="{{ cafe.id }}"
+                    data-display="{{ cafe.name }}"
+                    class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+                  >
+                    <span class="font-medium text-text">{{ cafe.name }}</span>
+                    <span class="ml-2 text-xs text-text-muted"
+                      >{{ cafe.city }}</span
+                    >
+                  </button>
+                {% endfor %}
+              </searchable-select>
+            </div>
+          </div>
+          <div class="flex items-center justify-end">
+            <button
+              type="submit"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+            >
+              {{ icons::plus("h-4 w-4") }} Save Cup
+            </button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </section>
 {% endblock %}

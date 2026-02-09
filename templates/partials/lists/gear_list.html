@@ -3,71 +3,106 @@
 
 <div id="gear-list" class="mt-6" data-star-scope="gear">
   {% if gear.items.is_empty() && !navigator.has_search() %}
-  <div
-    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
-  >
-    <p class="text-center">
-      {% if is_authenticated %}
-      No gear added yet. Click Add to add the first piece of equipment.
-      {% else %}
-      No gear added yet.
-      {% endif %}
-    </p>
-  </div>
-  {% else %}
-  <section class="rounded-lg border bg-surface"
-    {% if gear.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(gear.next_page().unwrap())|safe }}" data-target="#gear-list"{% endif %}
-  >
-    {{ table::search_header(navigator, "#gear-list") }}
-
-    <div class="overflow-x-auto">
-      <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold text-text-secondary">
-          <tr>
-            {{ table::sortable_header("Added", "created-at", navigator, "#gear-list") }}
-            {{ table::sortable_header("Category", "category", navigator, "#gear-list") }}
-            {{ table::sortable_header("Make", "make", navigator, "#gear-list") }}
-            {{ table::sortable_header("Model", "model", navigator, "#gear-list") }}
-            <th scope="col" class="actions-col px-4 py-3 text-right"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y/70">
-          {% for item in gear.items %}
-          <tr class="transition hover:bg-surface-alt"
-            onclick="window.location.href='/gear/{{ item.id }}'"
-          >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
-              <div>{{ item.created_date }}</div>
-              <div class="hidden md:block text-xs font-normal text-text-muted">{{ item.created_time }}</div>
-            </td>
-            <td data-label="" class="card-title px-4 py-3 whitespace-nowrap md:hidden">{{ item.make }} {{ item.model }}</td>
-            <td data-label="Category" class="px-4 py-3 whitespace-nowrap">
-              {{ item.category_label }}
-            </td>
-            <td data-label="Make" class="mobile-hidden px-4 py-3 whitespace-nowrap font-medium text-text-secondary">
-              {{ item.make }}
-            </td>
-            <td data-label="Model" class="mobile-hidden px-4 py-3 whitespace-nowrap">
-              {{ item.model }}
-            </td>
-            <td data-label="" class="card-actions px-4 py-3 text-right">
-              <a href="/gear/{{ item.id }}"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt">
-                {{ icons::chevron_right("h-5 w-5") }}
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div
+      class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
+    >
+      <p class="text-center">
+        {% if is_authenticated %}
+          No gear added yet. Click Add to add the first piece of equipment.
+        {% else %}
+          No gear added yet.
+        {% endif %}
+      </p>
     </div>
-    {% if gear.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No gear matches the search.</div>
-    {% endif %}
-    {{ table::pagination_header(gear, navigator, "#gear-list") }}
-    {% if gear.has_next() %}
-    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
-    {% endif %}
-  </section>
+  {% else %}
+    <section
+      class="rounded-lg border bg-surface"
+      {% if gear.has_next() %}
+        data-infinite-scroll
+        data-next-url="{{ navigator.fragment_page_href(gear.next_page().unwrap())|safe }}"
+        data-target="#gear-list"
+      {% endif %}
+    >
+      {{ table::search_header(navigator, "#gear-list") }}
+
+      <div class="overflow-x-auto">
+        <table
+          class="responsive-table min-w-full divide-y text-left text-sm text-text"
+        >
+          <thead
+            class="bg-surface-alt text-xs font-semibold text-text-secondary"
+          >
+            <tr>
+              {{ table::sortable_header("Added", "created-at", navigator, "#gear-list") }}
+              {{ table::sortable_header("Category", "category", navigator, "#gear-list") }}
+              {{ table::sortable_header("Make", "make", navigator, "#gear-list") }}
+              {{ table::sortable_header("Model", "model", navigator, "#gear-list") }}
+              <th scope="col" class="actions-col px-4 py-3 text-right"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y/70">
+            {% for item in gear.items %}
+              <tr
+                class="transition hover:bg-surface-alt"
+                onclick="window.location.href='/gear/{{ item.id }}'"
+              >
+                <td
+                  data-label="Added"
+                  class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary"
+                >
+                  <div>{{ item.created_date }}</div>
+                  <div
+                    class="hidden md:block text-xs font-normal text-text-muted"
+                  >
+                    {{ item.created_time }}
+                  </div>
+                </td>
+                <td
+                  data-label=""
+                  class="card-title px-4 py-3 whitespace-nowrap md:hidden"
+                >
+                  {{ item.make }} {{ item.model }}
+                </td>
+                <td data-label="Category" class="px-4 py-3 whitespace-nowrap">
+                  {{ item.category_label }}
+                </td>
+                <td
+                  data-label="Make"
+                  class="mobile-hidden px-4 py-3 whitespace-nowrap font-medium text-text-secondary"
+                >
+                  {{ item.make }}
+                </td>
+                <td
+                  data-label="Model"
+                  class="mobile-hidden px-4 py-3 whitespace-nowrap"
+                >
+                  {{ item.model }}
+                </td>
+                <td data-label="" class="card-actions px-4 py-3 text-right">
+                  <a
+                    href="/gear/{{ item.id }}"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
+                  >
+                    {{ icons::chevron_right("h-5 w-5") }}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if gear.items.is_empty() %}
+        <div class="p-8 text-center text-text-muted">
+          No gear matches the search.
+        </div>
+      {% endif %}
+      {{ table::pagination_header(gear, navigator, "#gear-list") }}
+      {% if gear.has_next() %}
+        <div
+          class="infinite-scroll-sentinel h-4 md:hidden"
+          aria-hidden="true"
+        ></div>
+      {% endif %}
+    </section>
   {% endif %}
 </div>

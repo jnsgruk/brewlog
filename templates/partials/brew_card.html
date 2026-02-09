@@ -1,25 +1,43 @@
 {% import "partials/icons.html" as icons %}
 {% macro card(brew, is_authenticated) %}
-<a href="/brews/{{ brew.id }}" class="relative w-[45vw] md:w-[200px] h-[279px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col transition hover:border-accent/40">
-  <div class="h-[3.25rem] overflow-hidden">
-    <span class="block font-semibold text-text truncate">{{ brew.roast_name }}</span>
-    <p class="mt-0.5 text-xs text-text-muted">{{ brew.relative_date_label }}</p>
-  </div>
-  <div class="mt-1 flex-1 space-y-1 text-text-secondary" style="font-size: 0.8125rem">
-    <p>{{ brew.coffee_weight }} &middot; {{ brew.water_volume }}{% if let Some(bt) = brew.brew_time %} &middot; {{ bt }}{% endif %}</p>
-    <p>{{ brew.grinder_model }} &middot; {{ brew.grind_setting }}</p>
-    <p>{{ brew.brewer_name }}</p>
-    {% if let Some(fp) = brew.filter_paper_name %}<p>{{ fp }}</p>{% endif %}
-    {% if !brew.quick_notes.is_empty() %}<p class="truncate">{{ brew.quick_notes_label }}</p>{% endif %}
-  </div>
-  {% if is_authenticated %}
-  <div class="relative z-10 mt-3">
-    <span onclick="event.preventDefault(); window.location.href='{{ brew.brew_again_url() }}';"
-      class="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt cursor-pointer">
-      {{ icons::beaker("h-4 w-4") }}
-      Brew Again
-    </span>
-  </div>
-  {% endif %}
-</a>
+  <a
+    href="/brews/{{ brew.id }}"
+    class="relative w-[45vw] md:w-[200px] h-[279px] shrink-0 snap-start rounded-lg border bg-surface p-4 flex flex-col transition hover:border-accent/40"
+  >
+    <div class="h-[3.25rem] overflow-hidden">
+      <span class="block font-semibold text-text truncate"
+        >{{ brew.roast_name }}</span
+      >
+      <p class="mt-0.5 text-xs text-text-muted">
+        {{ brew.relative_date_label }}
+      </p>
+    </div>
+    <div
+      class="mt-1 flex-1 space-y-1 text-text-secondary"
+      style="font-size: 0.8125rem"
+    >
+      <p>
+        {{ brew.coffee_weight }} &middot;
+        {{ brew.water_volume }}{% if let Some(bt) = brew.brew_time %}
+          &middot; {{ bt }}
+        {% endif %}
+      </p>
+      <p>{{ brew.grinder_model }} &middot; {{ brew.grind_setting }}</p>
+      <p>{{ brew.brewer_name }}</p>
+      {% if let Some(fp) = brew.filter_paper_name %}<p>{{ fp }}</p>{% endif %}
+      {% if !brew.quick_notes.is_empty() %}
+        <p class="truncate">{{ brew.quick_notes_label }}</p>
+      {% endif %}
+    </div>
+    {% if is_authenticated %}
+      <div class="relative z-10 mt-3">
+        <span
+          onclick="event.preventDefault(); window.location.href='{{ brew.brew_again_url() }}';"
+          class="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-medium text-accent transition hover:text-accent-hover hover:bg-surface-alt cursor-pointer"
+        >
+          {{ icons::beaker("h-4 w-4") }} Brew Again
+        </span>
+      </div>
+    {% endif %}
+  </a>
 {% endmacro %}

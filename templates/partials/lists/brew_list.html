@@ -3,106 +3,164 @@
 
 <div id="brew-list" class="mt-6" data-star-scope="brews">
   {% if brews.items.is_empty() && !navigator.has_search() %}
-  <div
-    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
-  >
-    <p class="text-center">
-      {% if is_authenticated %}
-      No brews logged yet. Click Add to log the first brew.
-      {% else %}
-      No brews logged yet.
-      {% endif %}
-    </p>
-  </div>
+    <div
+      class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
+    >
+      <p class="text-center">
+        {% if is_authenticated %}
+          No brews logged yet. Click Add to log the first brew.
+        {% else %}
+          No brews logged yet.
+        {% endif %}
+      </p>
+    </div>
   {% else %}
-  <section class="rounded-lg border bg-surface"
-    {% if brews.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(brews.next_page().unwrap())|safe }}" data-target="#brew-list"{% endif %}
-  >
-    {{ table::search_header(navigator, "#brew-list") }}
+    <section
+      class="rounded-lg border bg-surface"
+      {% if brews.has_next() %}
+        data-infinite-scroll
+        data-next-url="{{ navigator.fragment_page_href(brews.next_page().unwrap())|safe }}"
+        data-target="#brew-list"
+      {% endif %}
+    >
+      {{ table::search_header(navigator, "#brew-list") }}
 
-    <div class="overflow-x-auto">
-      <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold text-text-secondary">
-          <tr>
-            {{ table::sortable_header("Added", "created-at", navigator, "#brew-list") }}
-            <th scope="col" class="px-4 py-3">Coffee</th>
-            <th scope="col" class="px-4 py-3">Grind</th>
-            <th scope="col" class="px-4 py-3">Recipe</th>
-            <th scope="col" class="px-4 py-3">Brewer</th>
-            <th scope="col" class="px-4 py-3">Notes</th>
-            <th scope="col" class="actions-col px-4 py-3 text-right"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y/70">
-          {% for brew in brews.items %}
-          <tr class="transition hover:bg-surface-alt"
-            onclick="window.location.href='/brews/{{ brew.id }}'"
+      <div class="overflow-x-auto">
+        <table
+          class="responsive-table min-w-full divide-y text-left text-sm text-text"
+        >
+          <thead
+            class="bg-surface-alt text-xs font-semibold text-text-secondary"
           >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
-              <div>{{ brew.created_date }}</div>
-              <div class="hidden md:block text-xs font-normal text-text-muted">{{ brew.created_time }}</div>
-            </td>
-            <td data-label="Coffee" class="card-title px-4 py-3 whitespace-nowrap">
-              <div class="font-medium text-text">{{ brew.roast_name }}</div>
-              <div class="hidden md:block text-xs text-text-muted">{{ brew.roaster_name }}</div>
-            </td>
-            <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.roaster_name }}</td>
-            <td data-label="Grind" class="px-4 py-3 whitespace-nowrap">
-              <div>{{ brew.grind_setting }}</div>
-              <div class="hidden md:block text-xs text-text-muted">{{ brew.grinder_name }}</div>
-            </td>
-            <td data-label="Grinder" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.grinder_name }}</td>
-            <td data-label="Recipe" class="px-4 py-3 whitespace-nowrap">
-              <div>{{ brew.coffee_weight }} · {{ brew.water_volume }}</div>
-              <div class="hidden md:block text-xs text-text-muted">{% if let Some(bt) = brew.brew_time %}{{ bt }} · {% endif %}{{ brew.water_temp }}</div>
-            </td>
-            {% if let Some(bt) = brew.brew_time %}
-            <td data-label="Brew Time" class="px-4 py-3 whitespace-nowrap md:hidden">{{ bt }}</td>
-            {% endif %}
-            <td data-label="Temp" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.water_temp }}</td>
-            <td data-label="Brewer" class="px-4 py-3 whitespace-nowrap">
-              <div>{{ brew.brewer_name }}</div>
-              {% if let Some(fp_name) = brew.filter_paper_name %}
-              <div class="hidden md:block text-xs text-text-muted">{{ fp_name }}</div>
-              {% endif %}
-            </td>
-            {% if let Some(fp_name) = brew.filter_paper_name %}
-            <td data-label="Filter" class="px-4 py-3 whitespace-nowrap md:hidden">{{ fp_name }}</td>
-            {% endif %}
-            <td data-label="Notes" class="px-4 py-3">
-              {% if !brew.quick_notes.is_empty() %}
-              <div class="flex flex-wrap gap-1">
-                {% for qn in brew.quick_notes %}
-                <span class="{{ qn.pill_class }}">{{ qn.label }}</span>
-                {% endfor %}
-              </div>
-              {% else %}
-              <span class="pill pill-muted">No Notes</span>
-              {% endif %}
-            </td>
-            <td data-label="" class="card-actions px-4 py-3 text-right">
-              <a href="/brews/{{ brew.id }}"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt">
-                {{ icons::chevron_right("h-5 w-5") }}
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            <tr>
+              {{ table::sortable_header("Added", "created-at", navigator, "#brew-list") }}
+              <th scope="col" class="px-4 py-3">Coffee</th>
+              <th scope="col" class="px-4 py-3">Grind</th>
+              <th scope="col" class="px-4 py-3">Recipe</th>
+              <th scope="col" class="px-4 py-3">Brewer</th>
+              <th scope="col" class="px-4 py-3">Notes</th>
+              <th scope="col" class="actions-col px-4 py-3 text-right"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y/70">
+            {% for brew in brews.items %}
+              <tr
+                class="transition hover:bg-surface-alt"
+                onclick="window.location.href='/brews/{{ brew.id }}'"
+              >
+                <td
+                  data-label="Added"
+                  class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary"
+                >
+                  <div>{{ brew.created_date }}</div>
+                  <div
+                    class="hidden md:block text-xs font-normal text-text-muted"
+                  >
+                    {{ brew.created_time }}
+                  </div>
+                </td>
+                <td
+                  data-label="Coffee"
+                  class="card-title px-4 py-3 whitespace-nowrap"
+                >
+                  <div class="font-medium text-text">{{ brew.roast_name }}</div>
+                  <div class="hidden md:block text-xs text-text-muted">
+                    {{ brew.roaster_name }}
+                  </div>
+                </td>
+                <td
+                  data-label="Roaster"
+                  class="px-4 py-3 whitespace-nowrap md:hidden"
+                >
+                  {{ brew.roaster_name }}
+                </td>
+                <td data-label="Grind" class="px-4 py-3 whitespace-nowrap">
+                  <div>{{ brew.grind_setting }}</div>
+                  <div class="hidden md:block text-xs text-text-muted">
+                    {{ brew.grinder_name }}
+                  </div>
+                </td>
+                <td
+                  data-label="Grinder"
+                  class="px-4 py-3 whitespace-nowrap md:hidden"
+                >
+                  {{ brew.grinder_name }}
+                </td>
+                <td data-label="Recipe" class="px-4 py-3 whitespace-nowrap">
+                  <div>{{ brew.coffee_weight }} · {{ brew.water_volume }}</div>
+                  <div class="hidden md:block text-xs text-text-muted">
+                    {% if let Some(bt) = brew.brew_time %}{{ bt }} ·{% endif %}{{ brew.water_temp }}
+                  </div>
+                </td>
+                {% if let Some(bt) = brew.brew_time %}
+                  <td
+                    data-label="Brew Time"
+                    class="px-4 py-3 whitespace-nowrap md:hidden"
+                  >
+                    {{ bt }}
+                  </td>
+                {% endif %}
+                <td
+                  data-label="Temp"
+                  class="px-4 py-3 whitespace-nowrap md:hidden"
+                >
+                  {{ brew.water_temp }}
+                </td>
+                <td data-label="Brewer" class="px-4 py-3 whitespace-nowrap">
+                  <div>{{ brew.brewer_name }}</div>
+                  {% if let Some(fp_name) = brew.filter_paper_name %}
+                    <div class="hidden md:block text-xs text-text-muted">
+                      {{ fp_name }}
+                    </div>
+                  {% endif %}
+                </td>
+                {% if let Some(fp_name) = brew.filter_paper_name %}
+                  <td
+                    data-label="Filter"
+                    class="px-4 py-3 whitespace-nowrap md:hidden"
+                  >
+                    {{ fp_name }}
+                  </td>
+                {% endif %}
+                <td data-label="Notes" class="px-4 py-3">
+                  {% if !brew.quick_notes.is_empty() %}
+                    <div class="flex flex-wrap gap-1">
+                      {% for qn in brew.quick_notes %}
+                        <span class="{{ qn.pill_class }}">{{ qn.label }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <span class="pill pill-muted">No Notes</span>
+                  {% endif %}
+                </td>
+                <td data-label="" class="card-actions px-4 py-3 text-right">
+                  <a
+                    href="/brews/{{ brew.id }}"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
+                  >
+                    {{ icons::chevron_right("h-5 w-5") }}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-    {% if brews.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">
-      No brews match the search.
-    </div>
-    {% endif %}
+      {% if brews.items.is_empty() %}
+        <div class="p-8 text-center text-text-muted">
+          No brews match the search.
+        </div>
+      {% endif %}
 
-    {{ table::pagination_header(brews, navigator, "#brew-list") }}
+      {{ table::pagination_header(brews, navigator, "#brew-list") }}
 
-    {% if brews.has_next() %}
-    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
-    {% endif %}
-  </section>
+      {% if brews.has_next() %}
+        <div
+          class="infinite-scroll-sentinel h-4 md:hidden"
+          aria-hidden="true"
+        ></div>
+      {% endif %}
+    </section>
   {% endif %}
 </div>

@@ -1,25 +1,36 @@
 {% import "partials/icons.html" as icons %}
 
 {% macro scan_input(form_id, image_input_id, extracting_signal, error_signal, placeholder, spinner_text) %}
-<input type="hidden" name="image" id="{{ image_input_id }}" />
-<div data-show="!{{ extracting_signal }}" class="flex items-center gap-2">
-  <brew-photo-capture target-input="{{ image_input_id }}" target-form="{{ form_id }}"
-    class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 text-accent transition hover:bg-surface-alt cursor-pointer"
-    aria-label="Take Photo"
+  <input type="hidden" name="image" id="{{ image_input_id }}" />
+  <div data-show="!{{ extracting_signal }}" class="flex items-center gap-2">
+    <brew-photo-capture
+      target-input="{{ image_input_id }}"
+      target-form="{{ form_id }}"
+      class="shrink-0 inline-flex items-center justify-center rounded-md border p-2.5 text-accent transition hover:bg-surface-alt cursor-pointer"
+      aria-label="Take Photo"
+    >
+      {{ icons::camera("h-5 w-5") }}
+    </brew-photo-capture>
+    <span class="text-xs text-text-muted">or</span>
+    <input
+      type="text"
+      name="prompt"
+      class="input-field w-full"
+      placeholder="{{ placeholder }}"
+    />
+  </div>
+  <div
+    data-show="{{ extracting_signal }}"
+    style="display:none"
+    class="flex items-center gap-3 text-sm text-accent"
   >
-    {{ icons::camera("h-5 w-5") }}
-  </brew-photo-capture>
-  <span class="text-xs text-text-muted">or</span>
-  <input
-    type="text"
-    name="prompt"
-    class="input-field w-full"
-    placeholder="{{ placeholder }}"
-  />
-</div>
-<div data-show="{{ extracting_signal }}" style="display:none" class="flex items-center gap-3 text-sm text-accent">
-  {{ icons::spinner("h-5 w-5") }}
-  {{ spinner_text }}
-</div>
-<p data-show="{{ error_signal }}" data-text="{{ error_signal }}" style="display:none" class="mt-2 text-sm text-red-600"></p>
+    {{ icons::spinner("h-5 w-5") }}
+    {{ spinner_text }}
+  </div>
+  <p
+    data-show="{{ error_signal }}"
+    data-text="{{ error_signal }}"
+    style="display:none"
+    class="mt-2 text-sm text-red-600"
+  ></p>
 {% endmacro %}

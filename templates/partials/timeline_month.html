@@ -1,7 +1,16 @@
 {% import "partials/icons.html" as icons %}
-<h2 id="{{ month.anchor }}" class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-text" data-timeline-month>
+<h2
+  id="{{ month.anchor }}"
+  class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-text"
+  data-timeline-month
+>
   {{ month.heading }}
-  <button type="button" class="timeline-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
+  <button
+    type="button"
+    class="timeline-top-btn"
+    onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+    aria-label="Back to top"
+  >
     {{ icons::arrow_up("h-5 w-5") }}
   </button>
   <button
@@ -9,107 +18,150 @@
     class="block mx-auto mt-1 text-xs font-normal text-text-muted uppercase tracking-wide hover:text-accent transition"
     data-on:click="if ($_expandedMonths.includes(',{{ month.anchor }}')) { $_expandedMonths = $_expandedMonths.replace(',{{ month.anchor }}', ''); $_expandedCard = ''; $_collapsedCards = '' } else { $_expandedMonths = $_expandedMonths + ',{{ month.anchor }}'; $_collapsedCards = '' }"
   >
-    <span data-show="!$_expandedMonths.includes(',{{ month.anchor }}')">Expand all</span>
-    <span data-show="$_expandedMonths.includes(',{{ month.anchor }}')" style="display:none">Collapse all</span>
+    <span data-show="!$_expandedMonths.includes(',{{ month.anchor }}')"
+      >Expand all</span
+    >
+    <span
+      data-show="$_expandedMonths.includes(',{{ month.anchor }}')"
+      style="display:none"
+      >Collapse all</span
+    >
   </button>
 </h2>
 {% for event in month.events %}
-<div class="timeline-item relative mb-8" data-timeline-event>
-  {# Timeline node/bullet #}
-  <span
-    class="timeline-node absolute h-5 w-5 rounded-full border-[3px] border-accent bg-page"
-    aria-hidden="true"
-  ></span>
-  <div
-    class="tl-card rounded-lg border bg-surface p-5 text-left"
-    data-on:click="if (!evt.target.closest('a, button, form')) { if ($_expandedMonths.includes(',{{ month.anchor }}')) { $_collapsedCards = $_collapsedCards.includes(',{{ event.id }}') ? $_collapsedCards.replace(',{{ event.id }}', '') : $_collapsedCards + ',{{ event.id }}' } else { $_expandedCard = $_expandedCard.includes(',{{ event.id }}') ? $_expandedCard.replace(',{{ event.id }}', '') : $_expandedCard + ',{{ event.id }}' } }"
-  >
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      {# Category — always visible #}
-      <span class="inline-flex items-center gap-1 text-xs text-text-muted">
-        {% if event.entity_type == "brew" %}{{ icons::beaker("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-3 w-3 shrink-0") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-3 w-3 shrink-0") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-3 w-3 shrink-0") }}{% endif %}
-        <span class="uppercase tracking-wide">{{ event.kind_label }}</span>
-        {# Relative date — shown when collapsed #}
-        <span class="tl-condensed uppercase tracking-wide" data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"> · {{ event.relative_date_label }}</span>
-        {# Full timestamp — shown when expanded #}
-        <time
-          datetime="{{ event.iso_timestamp }}"
-          class="tl-detail uppercase tracking-wide"
+  <div class="timeline-item relative mb-8" data-timeline-event>
+    {# Timeline node/bullet #}
+    <span
+      class="timeline-node absolute h-5 w-5 rounded-full border-[3px] border-accent bg-page"
+      aria-hidden="true"
+    ></span>
+    <div
+      class="tl-card rounded-lg border bg-surface p-5 text-left"
+      data-on:click="if (!evt.target.closest('a, button, form')) { if ($_expandedMonths.includes(',{{ month.anchor }}')) { $_collapsedCards = $_collapsedCards.includes(',{{ event.id }}') ? $_collapsedCards.replace(',{{ event.id }}', '') : $_collapsedCards + ',{{ event.id }}' } else { $_expandedCard = $_expandedCard.includes(',{{ event.id }}') ? $_expandedCard.replace(',{{ event.id }}', '') : $_expandedCard + ',{{ event.id }}' } }"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        {# Category — always visible #}
+        <span class="inline-flex items-center gap-1 text-xs text-text-muted">
+          {% if event.entity_type == "brew" %}{{ icons::beaker("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-3 w-3 shrink-0") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-3 w-3 shrink-0") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-3 w-3 shrink-0") }}{% endif %}
+          <span class="uppercase tracking-wide">{{ event.kind_label }}</span>
+          {# Relative date — shown when collapsed #}
+          <span
+            class="tl-condensed uppercase tracking-wide"
+            data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"
+          >
+            · {{ event.relative_date_label }}</span
+          >
+          {# Full timestamp — shown when expanded #}
+          <time
+            datetime="{{ event.iso_timestamp }}"
+            class="tl-detail uppercase tracking-wide"
+            data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
+            style="display:none"
+          >
+            ·
+            {{ event.date_label }}{% if let Some(label) = event.time_label %}
+              · {{ label }}
+            {% endif %}</time
+          >
+        </span>
+        {# Expand/collapse chevron #}
+        <span
+          class="tl-chevron text-text-muted"
+          data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"
+        >
+          {{ icons::chevron_down("h-4 w-4") }}
+        </span>
+        <span
+          class="tl-chevron text-text-muted"
           data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
           style="display:none"
-        > · {{ event.date_label }}{% if let Some(label) = event.time_label %} · {{ label }}{% endif %}</time>
-      </span>
-      {# Expand/collapse chevron #}
-      <span class="tl-chevron text-text-muted" data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')">
-        {{ icons::chevron_down("h-4 w-4") }}
-      </span>
-      <span class="tl-chevron text-text-muted" data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')" style="display:none">
-        {{ icons::chevron_up("h-4 w-4") }}
-      </span>
-    </div>
-    <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-text">
-      <a href="{{ event.link }}" class="hover:text-accent">{{ event.title }}</a>
-      {# External link — shown when expanded #}
-      {% if let Some(url) = event.external_link %}
-      <a
-        href="{{ url }}"
-        class="tl-detail ml-auto text-accent transition hover:text-accent-hover"
-        data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
-        style="display:none"
-        target="_blank"
-        rel="noreferrer noopener"
-        aria-label="Open external link"
-      >
-        {{ icons::external_link("h-4 w-4") }}
-        <span class="sr-only">Open external link</span>
-      </a>
-      {% endif %}
-    </h3>
-    {# Subtitle — shown when collapsed #}
-    {% if let Some(sub) = event.subtitle %}
-    <p
-      class="tl-condensed mt-1 text-sm text-text-muted"
-      data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"
-    >{{ sub }}</p>
-    {% endif %}
-    {# Detail rows — shown when expanded #}
-    {% if event.details.len() > 0 %}
-    <dl
-      class="tl-detail mt-4 flex flex-col gap-2 text-sm text-text-secondary"
-      data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
-      style="display:none"
-    >
-      {% for detail in event.details %}
-      <div class="flex justify-between gap-2">
-        <dt class="font-medium text-text-muted">{{ detail.label }}</dt>
-        {% if detail.label.eq_ignore_ascii_case("position") && detail.link.is_some() %}
-        <dd class="text-right flex items-center justify-end gap-1.5">
-          {{ detail.value }}
-          <a href="{{ detail.link.as_ref().unwrap() }}" target="_blank" rel="noreferrer noopener" class="text-accent hover:text-accent-hover" aria-label="View on map">
-            {{ icons::map("h-4 w-4") }}
+        >
+          {{ icons::chevron_up("h-4 w-4") }}
+        </span>
+      </div>
+      <h3 class="mt-3 flex items-center gap-2 text-lg font-semibold text-text">
+        <a href="{{ event.link }}" class="hover:text-accent"
+          >{{ event.title }}</a
+        >
+        {# External link — shown when expanded #}
+        {% if let Some(url) = event.external_link %}
+          <a
+            href="{{ url }}"
+            class="tl-detail ml-auto text-accent transition hover:text-accent-hover"
+            data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
+            style="display:none"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Open external link"
+          >
+            {{ icons::external_link("h-4 w-4") }}
+            <span class="sr-only">Open external link</span>
           </a>
-        </dd>
-        {% else if let Some(url) = detail.link %}
-        <dd class="text-right"><a href="{{ url }}" target="_blank" rel="noreferrer noopener" class="text-accent hover:text-accent-hover">{{ detail.value }}</a></dd>
-        {% else %}
-        <dd class="text-right">{{ detail.value }}</dd>
         {% endif %}
-      </div>
-      {% endfor %}
-      {% if let Some(notes) = event.tasting_notes %}
-      {% if !notes.is_empty() %}
-      <div class="flex justify-between gap-2">
-        <dt class="shrink-0 font-medium text-text-muted">Tasting Notes</dt>
-        <dd class="flex flex-wrap gap-1 justify-end">
-          {% for note in notes %}
-          <span class="{{ note.pill_class }}">{{ note.label }}</span>
+      </h3>
+      {# Subtitle — shown when collapsed #}
+      {% if let Some(sub) = event.subtitle %}
+        <p
+          class="tl-condensed mt-1 text-sm text-text-muted"
+          data-show="(!$_expandedCard.includes(',{{ event.id }}') && !$_expandedMonths.includes(',{{ month.anchor }}')) || $_collapsedCards.includes(',{{ event.id }}')"
+        >
+          {{ sub }}
+        </p>
+      {% endif %}
+      {# Detail rows — shown when expanded #}
+      {% if event.details.len() > 0 %}
+        <dl
+          class="tl-detail mt-4 flex flex-col gap-2 text-sm text-text-secondary"
+          data-show="($_expandedCard.includes(',{{ event.id }}') || $_expandedMonths.includes(',{{ month.anchor }}')) && !$_collapsedCards.includes(',{{ event.id }}')"
+          style="display:none"
+        >
+          {% for detail in event.details %}
+            <div class="flex justify-between gap-2">
+              <dt class="font-medium text-text-muted">{{ detail.label }}</dt>
+              {% if detail.label.eq_ignore_ascii_case("position") && detail.link.is_some() %}
+                <dd class="text-right flex items-center justify-end gap-1.5">
+                  {{ detail.value }}
+                  <a
+                    href="{{ detail.link.as_ref().unwrap() }}"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    class="text-accent hover:text-accent-hover"
+                    aria-label="View on map"
+                  >
+                    {{ icons::map("h-4 w-4") }}
+                  </a>
+                </dd>
+              {% else if let Some(url) = detail.link %}
+                <dd class="text-right">
+                  <a
+                    href="{{ url }}"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    class="text-accent hover:text-accent-hover"
+                    >{{ detail.value }}</a
+                  >
+                </dd>
+              {% else %}
+                <dd class="text-right">{{ detail.value }}</dd>
+              {% endif %}
+            </div>
           {% endfor %}
-        </dd>
-      </div>
+          {% if let Some(notes) = event.tasting_notes %}
+            {% if !notes.is_empty() %}
+              <div class="flex justify-between gap-2">
+                <dt class="shrink-0 font-medium text-text-muted">
+                  Tasting Notes
+                </dt>
+                <dd class="flex flex-wrap gap-1 justify-end">
+                  {% for note in notes %}
+                    <span class="{{ note.pill_class }}">{{ note.label }}</span>
+                  {% endfor %}
+                </dd>
+              </div>
+            {% endif %}
+          {% endif %}
+        </dl>
       {% endif %}
-      {% endif %}
-    </dl>
-    {% endif %}
+    </div>
   </div>
-</div>
 {% endfor %}

@@ -2,89 +2,109 @@
 {% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ bag.roast_name }}{% endblock %}
-{% block description %}{{ bag.roast_name }} by {{ bag.roaster_name }} — {{ bag.amount }} bag.{% endblock %}
+{% block description %}
+  {{ bag.roast_name }}
+  by {{ bag.roaster_name }} — {{ bag.amount }} bag.
+{% endblock %}
 {% block og_title %}{{ bag.roast_name }} — Brewlog{% endblock %}
-{% block og_description %}{{ bag.roast_name }} by {{ bag.roaster_name }} — {{ bag.amount }} bag.{% endblock %}
-{% block head %}<meta property="og:image" content="{{ base_url }}/static/og-image.png" />{% endblock %}
+{% block og_description %}
+  {{ bag.roast_name }}
+  by {{ bag.roaster_name }} — {{ bag.amount }} bag.
+{% endblock %}
+{% block head %}
+  <meta property="og:image" content="{{ base_url }}/static/og-image.png" />
+{% endblock %}
 {% block content %}
-<header class="flex items-start justify-between gap-4">
-  <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-semibold">{{ bag.roast_name }}</h1>
-    <p class="text-sm text-text-secondary">
-      {{ bag.roaster_name }} · {{ bag.amount }} · Opened {{ bag.created_date }}
-    </p>
+  <header class="flex items-start justify-between gap-4">
+    <div class="flex flex-col gap-2">
+      <h1 class="text-3xl font-semibold">{{ bag.roast_name }}</h1>
+      <p class="text-sm text-text-secondary">
+        {{ bag.roaster_name }} · {{ bag.amount }} · Opened
+        {{ bag.created_date }}
+      </p>
+    </div>
+  </header>
+
+  {# ── Coffee + map ── #}
+  <div class="grid gap-6 md:grid-cols-2">
+    {{ detail::coffee_card(bag.roast_name, bag.roaster_name, bag.origin, bag.origin_flag, bag.region, bag.producer, bag.process, bag.tasting_notes) }}
+    {{ detail::map_with_legend_2(bag.map_countries, bag.map_max, "Origin", "", "Roaster", "opacity-50") }}
   </div>
-</header>
 
-{# ── Coffee + map ── #}
-<div class="grid gap-6 md:grid-cols-2">
-  {{ detail::coffee_card(bag.roast_name, bag.roaster_name, bag.origin, bag.origin_flag, bag.region, bag.producer, bag.process, bag.tasting_notes) }}
-  {{ detail::map_with_legend_2(bag.map_countries, bag.map_max, "Origin", "", "Roaster", "opacity-50") }}
-</div>
+  {# ── Roaster & bag info ── #}
+  <div class="grid gap-6 md:grid-cols-2">
+    {{ detail::roaster_card(bag.roaster_name, bag.roaster_country, bag.roaster_country_flag, bag.roaster_city, bag.roaster_homepage) }}
 
-{# ── Roaster & bag info ── #}
-<div class="grid gap-6 md:grid-cols-2">
-  {{ detail::roaster_card(bag.roaster_name, bag.roaster_country, bag.roaster_country_flag, bag.roaster_city, bag.roaster_homepage) }}
-
-  <div class="rounded-lg border bg-surface p-5">
-    <h2 class="text-lg font-semibold text-text mb-4">Bag</h2>
-    <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-      <div>
-        <dt class="text-text-muted">Amount</dt>
-        <dd class="font-medium text-text">{{ bag.amount }}</dd>
-      </div>
-      <div>
-        <dt class="text-text-muted">Status</dt>
-        <dd>
-          {% if bag.closed %}
-          <span class="font-medium text-text">Closed</span>
-          {% else %}
-          <div class="mt-1">
-            <div class="h-2 rounded-full bg-surface-alt overflow-hidden">
-              <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
-            </div>
-            <p class="mt-1 text-text-muted" style="font-size: 0.7rem">{{ bag.remaining }} / {{ bag.amount }}</p>
+    <div class="rounded-lg border bg-surface p-5">
+      <h2 class="text-lg font-semibold text-text mb-4">Bag</h2>
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        <div>
+          <dt class="text-text-muted">Amount</dt>
+          <dd class="font-medium text-text">{{ bag.amount }}</dd>
+        </div>
+        <div>
+          <dt class="text-text-muted">Status</dt>
+          <dd>
+            {% if bag.closed %}
+              <span class="font-medium text-text">Closed</span>
+            {% else %}
+              <div class="mt-1">
+                <div class="h-2 rounded-full bg-surface-alt overflow-hidden">
+                  <div
+                    class="h-full rounded-full bg-accent"
+                    style="width: {{ bag.used_percent }}%"
+                  ></div>
+                </div>
+                <p class="mt-1 text-text-muted" style="font-size: 0.7rem">
+                  {{ bag.remaining }} / {{ bag.amount }}
+                </p>
+              </div>
+            {% endif %}
+          </dd>
+        </div>
+        {% if let Some(rd) = bag.roast_date %}
+          <div>
+            <dt class="text-text-muted">Roast Date</dt>
+            <dd class="font-medium text-text">{{ rd }}</dd>
           </div>
-          {% endif %}
-        </dd>
-      </div>
-      {% if let Some(rd) = bag.roast_date %}
-      <div>
-        <dt class="text-text-muted">Roast Date</dt>
-        <dd class="font-medium text-text">{{ rd }}</dd>
-      </div>
-      {% endif %}
-      <div>
-        <dt class="text-text-muted">Opened</dt>
-        <dd class="font-medium text-text">{{ bag.created_date }}</dd>
-      </div>
-      {% if let Some(fd) = bag.finished_date %}
-      <div>
-        <dt class="text-text-muted">Finished</dt>
-        <dd class="font-medium text-text">{{ fd }}</dd>
-      </div>
-      {% endif %}
-    </dl>
+        {% endif %}
+        <div>
+          <dt class="text-text-muted">Opened</dt>
+          <dd class="font-medium text-text">{{ bag.created_date }}</dd>
+        </div>
+        {% if let Some(fd) = bag.finished_date %}
+          <div>
+            <dt class="text-text-muted">Finished</dt>
+            <dd class="font-medium text-text">{{ fd }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
   </div>
-</div>
 
-{% if is_authenticated %}
-{# ── Actions ── #}
-<div class="grid gap-6 md:grid-cols-2">
-  <div class="rounded-lg border bg-surface p-5 md:col-span-2 flex items-center gap-2">
-    {% if !bag.closed %}
-    <button type="button"
-      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
-      data-on:click="confirm('Close this bag? This will mark it as finished.') && @put('/api/v1/bags/{{ bag.id }}?closed=true&remaining=0')">
-      {{ icons::x_mark("h-4 w-4") }} Close Bag
-    </button>
-    {% endif %}
-    <button type="button"
-      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
-      data-on:click="confirm('Delete this bag? This cannot be undone.') && @delete('/api/v1/bags/{{ bag.id }}')">
-      {{ icons::delete("h-4 w-4") }} Delete
-    </button>
-  </div>
-</div>
-{% endif %}
+  {% if is_authenticated %}
+    {# ── Actions ── #}
+    <div class="grid gap-6 md:grid-cols-2">
+      <div
+        class="rounded-lg border bg-surface p-5 md:col-span-2 flex items-center gap-2"
+      >
+        {% if !bag.closed %}
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+            data-on:click="confirm('Close this bag? This will mark it as finished.') && @put('/api/v1/bags/{{ bag.id }}?closed=true&remaining=0')"
+          >
+            {{ icons::x_mark("h-4 w-4") }} Close Bag
+          </button>
+        {% endif %}
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-surface-alt"
+          data-on:click="confirm('Delete this bag? This cannot be undone.') && @delete('/api/v1/bags/{{ bag.id }}')"
+        >
+          {{ icons::delete("h-4 w-4") }} Delete
+        </button>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}

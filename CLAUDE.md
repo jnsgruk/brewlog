@@ -448,7 +448,11 @@ Template structure:
   >
     <input type="hidden" name="image" id="{id}-image" />
     <div data-show="!$_extracting">
-      <brew-photo-capture target-input="{id}-image" target-form="{id}-extract-form" class="...">
+      <brew-photo-capture
+        target-input="{id}-image"
+        target-form="{id}-extract-form"
+        class="..."
+      >
         Take Photo
       </brew-photo-capture>
       <input name="prompt" type="text" placeholder="Or describe..." />
@@ -697,7 +701,13 @@ Label + input pattern:
 ```html
 <label class="flex flex-col gap-1 text-sm">
   <span class="text-text">Field Name *</span>
-  <input type="text" name="field" required class="input-field" placeholder="Example" />
+  <input
+    type="text"
+    name="field"
+    required
+    class="input-field"
+    placeholder="Example"
+  />
 </label>
 ```
 
@@ -787,7 +797,9 @@ List partials live in `templates/partials/lists/`. Each follows:
 
 <div id="{entity}-list" class="mt-6" data-star-scope="{entity}">
   {% if items.is_empty() && !navigator.has_search() %}
-  <div class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary">
+  <div
+    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
+  >
     <p class="text-center">No {entities} recorded yet.</p>
   </div>
   {% else %}
@@ -797,10 +809,15 @@ List partials live in `templates/partials/lists/`. Each follows:
       ...
     </table>
     {% if items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No {entities} match your search.</div>
-    {% endif %} {% call table::pagination_header(items, navigator, "#{entity}-list") %} {% if
-    items.has_next() %}
-    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
+    <div class="p-8 text-center text-text-muted">
+      No {entities} match your search.
+    </div>
+    {% endif %} {% call table::pagination_header(items, navigator,
+    "#{entity}-list") %} {% if items.has_next() %}
+    <div
+      class="infinite-scroll-sentinel h-4 md:hidden"
+      aria-hidden="true"
+    ></div>
     {% endif %}
   </section>
   {% endif %}
@@ -834,14 +851,18 @@ Tables use the `responsive-table` CSS class (card layout on mobile, standard tab
 ```html
 <td data-label="Coffee" class="px-4 py-3 whitespace-nowrap">
   <div class="font-medium">{{ brew.roast_name }}</div>
-  <div class="hidden md:block text-xs text-text-muted">{{ brew.roaster_name }}</div>
+  <div class="hidden md:block text-xs text-text-muted">
+    {{ brew.roaster_name }}
+  </div>
 </td>
 ```
 
 **Mobile** — separate `<td>` for each sub-field:
 
 ```html
-<td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">{{ brew.roaster_name }}</td>
+<td data-label="Roaster" class="px-4 py-3 whitespace-nowrap md:hidden">
+  {{ brew.roaster_name }}
+</td>
 ```
 
 ### Pagination & Infinite Scroll

@@ -1,150 +1,270 @@
-      <!-- Hidden inputs for submission (always present, bound to signals) -->
-      <input type="hidden" name="matched_roast_id" data-attr:value="$_matchedRoastId" />
-      <input type="hidden" name="roaster_name" data-attr:value="$_roasterName" />
-      <input type="hidden" name="roaster_country" data-attr:value="$_roasterCountry" />
-      <input type="hidden" name="roaster_city" data-attr:value="$_roasterCity" />
-      <input type="hidden" name="roaster_homepage" data-attr:value="$_roasterHomepage" />
-      <input type="hidden" name="roast_name" data-attr:value="$_roastName" />
-      <input type="hidden" name="origin" data-attr:value="$_origin" />
-      <input type="hidden" name="region" data-attr:value="$_region" />
-      <input type="hidden" name="producer" data-attr:value="$_producer" />
-      <input type="hidden" name="process" data-attr:value="$_process" />
-      <input type="hidden" name="tasting_notes" data-attr:value="$_tastingNotes" />
+<!-- Hidden inputs for submission (always present, bound to signals) -->
+<input
+  type="hidden"
+  name="matched_roast_id"
+  data-attr:value="$_matchedRoastId"
+/>
+<input type="hidden" name="roaster_name" data-attr:value="$_roasterName" />
+<input
+  type="hidden"
+  name="roaster_country"
+  data-attr:value="$_roasterCountry"
+/>
+<input type="hidden" name="roaster_city" data-attr:value="$_roasterCity" />
+<input
+  type="hidden"
+  name="roaster_homepage"
+  data-attr:value="$_roasterHomepage"
+/>
+<input type="hidden" name="roast_name" data-attr:value="$_roastName" />
+<input type="hidden" name="origin" data-attr:value="$_origin" />
+<input type="hidden" name="region" data-attr:value="$_region" />
+<input type="hidden" name="producer" data-attr:value="$_producer" />
+<input type="hidden" name="process" data-attr:value="$_process" />
+<input type="hidden" name="tasting_notes" data-attr:value="$_tastingNotes" />
 
-      <!-- Roaster: card (matched) -->
-      <div data-show="$_matchedRoasterId">
-        <h3 class="text-base font-semibold text-text">Roaster</h3>
-        <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''">
-          <div class="flex items-center gap-2">
-            {{ icons::fire("h-4 w-4 text-accent shrink-0") }}
-            <span class="font-medium text-text" data-text="$_roasterName"></span>
-            <span class="text-xs text-text-muted" data-show="$_roasterCountry" data-text="$_roasterCountry" style="display:none"></span>
-          </div>
-          <button type="button" class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
-            data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''">{{ icons::pencil("h-3 w-3") }} Change</button>
-        </div>
-      </div>
-      <!-- Roaster: form (not matched) -->
-      <div data-show="!$_matchedRoasterId" style="display:none">
-        <h3 class="text-base font-semibold text-text">Roaster</h3>
-        <p class="mt-1 text-sm text-text-secondary">If this roaster already exists, it will be matched automatically.</p>
-        <div class="mt-4 grid gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Name *</span>
-            <input type="text" class="input-field" placeholder="Example Coffee Roasters" data-bind:_roaster-name />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Country *</span>
-            <input type="text" class="input-field" placeholder="United States" data-bind:_roaster-country />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">City</span>
-            <input type="text" class="input-field" placeholder="Portland" data-bind:_roaster-city />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Homepage</span>
-            <input type="url" class="input-field" placeholder="https://example.coffee" data-bind:_roaster-homepage />
-          </label>
-        </div>
-      </div>
+<!-- Roaster: card (matched) -->
+<div data-show="$_matchedRoasterId">
+  <h3 class="text-base font-semibold text-text">Roaster</h3>
+  <div
+    class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer"
+    data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''"
+  >
+    <div class="flex items-center gap-2">
+      {{ icons::fire("h-4 w-4 text-accent shrink-0") }}
+      <span class="font-medium text-text" data-text="$_roasterName"></span>
+      <span
+        class="text-xs text-text-muted"
+        data-show="$_roasterCountry"
+        data-text="$_roasterCountry"
+        style="display:none"
+      ></span>
+    </div>
+    <button
+      type="button"
+      class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+      data-on:click="$_matchedRoasterId = ''; $_matchedRoastId = ''"
+    >
+      {{ icons::pencil("h-3 w-3") }} Change
+    </button>
+  </div>
+</div>
+<!-- Roaster: form (not matched) -->
+<div data-show="!$_matchedRoasterId" style="display:none">
+  <h3 class="text-base font-semibold text-text">Roaster</h3>
+  <p class="mt-1 text-sm text-text-secondary">
+    If this roaster already exists, it will be matched automatically.
+  </p>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Name *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Example Coffee Roasters"
+        data-bind:_roaster-name
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Country *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="United States"
+        data-bind:_roaster-country
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">City</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Portland"
+        data-bind:_roaster-city
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Homepage</span>
+      <input
+        type="url"
+        class="input-field"
+        placeholder="https://example.coffee"
+        data-bind:_roaster-homepage
+      />
+    </label>
+  </div>
+</div>
 
-      <!-- Roast: card (matched) -->
-      <div data-show="$_matchedRoastId">
-        <h3 class="text-base font-semibold text-text">Roast</h3>
-        <div class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer" data-on:click="$_matchedRoastId = ''">
-          <div class="flex items-center gap-2">
-            {{ icons::coffee_bean("h-4 w-4 text-accent shrink-0") }}
-            <span class="font-medium text-text" data-text="$_roastName"></span>
-            <span class="text-xs text-text-muted" data-show="$_origin" data-text="$_origin" style="display:none"></span>
-          </div>
-          <button type="button" class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
-            data-on:click="$_matchedRoastId = ''">{{ icons::pencil("h-3 w-3") }} Change</button>
-        </div>
-      </div>
-      <!-- Roast: form (not matched) -->
-      <div data-show="!$_matchedRoastId" style="display:none">
-        <h3 class="text-base font-semibold text-text">Roast</h3>
-        <p class="mt-1 text-sm text-text-secondary">Details about this specific coffee.</p>
-        <div class="mt-4 grid gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Roast Name *</span>
-            <input type="text" class="input-field" placeholder="Ethiopia Yirgacheffe" data-bind:_roast-name />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Origin *</span>
-            <input type="text" class="input-field" placeholder="Ethiopia" data-bind:_origin />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Region *</span>
-            <input type="text" class="input-field" placeholder="Guji" data-bind:_region />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Producer *</span>
-            <input type="text" class="input-field" placeholder="Chelbesa Cooperative" data-bind:_producer />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Process *</span>
-            <input type="text" class="input-field" placeholder="Washed" data-bind:_process />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Tasting Notes * (comma separated)</span>
-            <textarea rows="2" class="input-field" placeholder="Blueberry, Jasmine" data-bind:_tasting-notes></textarea>
-          </label>
-        </div>
-      </div>
+<!-- Roast: card (matched) -->
+<div data-show="$_matchedRoastId">
+  <h3 class="text-base font-semibold text-text">Roast</h3>
+  <div
+    class="mt-2 rounded-lg border bg-surface px-4 py-3 flex items-center justify-between cursor-pointer"
+    data-on:click="$_matchedRoastId = ''"
+  >
+    <div class="flex items-center gap-2">
+      {{ icons::coffee_bean("h-4 w-4 text-accent shrink-0") }}
+      <span class="font-medium text-text" data-text="$_roastName"></span>
+      <span
+        class="text-xs text-text-muted"
+        data-show="$_origin"
+        data-text="$_origin"
+        style="display:none"
+      ></span>
+    </div>
+    <button
+      type="button"
+      class="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text"
+      data-on:click="$_matchedRoastId = ''"
+    >
+      {{ icons::pencil("h-3 w-3") }} Change
+    </button>
+  </div>
+</div>
+<!-- Roast: form (not matched) -->
+<div data-show="!$_matchedRoastId" style="display:none">
+  <h3 class="text-base font-semibold text-text">Roast</h3>
+  <p class="mt-1 text-sm text-text-secondary">
+    Details about this specific coffee.
+  </p>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Roast Name *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Ethiopia Yirgacheffe"
+        data-bind:_roast-name
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Origin *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Ethiopia"
+        data-bind:_origin
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Region *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Guji"
+        data-bind:_region
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Producer *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Chelbesa Cooperative"
+        data-bind:_producer
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Process *</span>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Washed"
+        data-bind:_process
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Tasting Notes * (comma separated)</span>
+      <textarea
+        rows="2"
+        class="input-field"
+        placeholder="Blueberry, Jasmine"
+        data-bind:_tasting-notes
+      ></textarea>
+    </label>
+  </div>
+</div>
 
-      <div>
-        <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" name="open_bag" value="true" class="accent-orange-700" data-bind:_open-bag />
-          <span class="font-semibold text-text">Open a bag of this coffee</span>
-        </label>
-        <div data-show="$_openBag" class="mt-3 grid gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-text">Amount (grams)</span>
-            <input type="number" name="bag_amount" min="1" step="any" class="input-field" placeholder="250" data-bind:_bag-amount />
-          </label>
-        </div>
-      </div>
-      <p data-show="$_scanError" data-text="$_scanError" style="display:none" class="text-sm text-red-600"></p>
-      <div data-show="$_scanSubmitting" style="display:none" class="flex items-center gap-3 text-sm text-accent">
-        {{ icons::spinner("h-5 w-5") }}
-        Saving&hellip;
-      </div>
-      <div data-show="!$_scanSubmitting" class="flex items-center justify-end gap-2">
-        <button
-          type="button"
-          data-on:click="$_scanExtracted = false; $_matchedRoasterId = ''; $_matchedRoastId = ''"
-          class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
-        >
-          {{ icons::x_mark("h-4 w-4") }} Cancel
-        </button>
-        <!-- Neither matched: full create -->
-        <button
-          type="submit"
-          data-show="!$_matchedRoasterId"
-          class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-        >
-          {{ icons::plus("h-4 w-4") }} Save Roaster &amp; Roast
-        </button>
-        <!-- Roaster matched, roast not: create roast only -->
-        <button
-          type="submit"
-          data-show="$_matchedRoasterId && !$_matchedRoastId"
-          class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover" style="display:none"
-        >
-          {{ icons::plus("h-4 w-4") }} Save Roast
-        </button>
-        <!-- Both matched + open bag: create bag only -->
-        <button
-          type="submit"
-          data-show="$_matchedRoastId && $_openBag"
-          class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover" style="display:none"
-        >
-          {{ icons::bag("h-4 w-4") }} Open Bag
-        </button>
-        <!-- Both matched + no bag: nothing to do -->
-        <p data-show="$_matchedRoastId && !$_openBag" style="display:none"
-          class="text-sm text-text-secondary">
-          This roast already exists. Check &ldquo;Open a bag&rdquo; above to add a new bag.
-        </p>
-      </div>
+<div>
+  <label class="inline-flex items-center gap-2 text-sm cursor-pointer">
+    <input
+      type="checkbox"
+      name="open_bag"
+      value="true"
+      class="accent-orange-700"
+      data-bind:_open-bag
+    />
+    <span class="font-semibold text-text">Open a bag of this coffee</span>
+  </label>
+  <div data-show="$_openBag" class="mt-3 grid gap-4 sm:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm">
+      <span class="text-text">Amount (grams)</span>
+      <input
+        type="number"
+        name="bag_amount"
+        min="1"
+        step="any"
+        class="input-field"
+        placeholder="250"
+        data-bind:_bag-amount
+      />
+    </label>
+  </div>
+</div>
+<p
+  data-show="$_scanError"
+  data-text="$_scanError"
+  style="display:none"
+  class="text-sm text-red-600"
+></p>
+<div
+  data-show="$_scanSubmitting"
+  style="display:none"
+  class="flex items-center gap-3 text-sm text-accent"
+>
+  {{ icons::spinner("h-5 w-5") }} Saving&hellip;
+</div>
+<div data-show="!$_scanSubmitting" class="flex items-center justify-end gap-2">
+  <button
+    type="button"
+    data-on:click="$_scanExtracted = false; $_matchedRoasterId = ''; $_matchedRoastId = ''"
+    class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
+  >
+    {{ icons::x_mark("h-4 w-4") }} Cancel
+  </button>
+  <!-- Neither matched: full create -->
+  <button
+    type="submit"
+    data-show="!$_matchedRoasterId"
+    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+  >
+    {{ icons::plus("h-4 w-4") }} Save Roaster &amp; Roast
+  </button>
+  <!-- Roaster matched, roast not: create roast only -->
+  <button
+    type="submit"
+    data-show="$_matchedRoasterId && !$_matchedRoastId"
+    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+    style="display:none"
+  >
+    {{ icons::plus("h-4 w-4") }} Save Roast
+  </button>
+  <!-- Both matched + open bag: create bag only -->
+  <button
+    type="submit"
+    data-show="$_matchedRoastId && $_openBag"
+    class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+    style="display:none"
+  >
+    {{ icons::bag("h-4 w-4") }} Open Bag
+  </button>
+  <!-- Both matched + no bag: nothing to do -->
+  <p
+    data-show="$_matchedRoastId && !$_openBag"
+    style="display:none"
+    class="text-sm text-text-secondary"
+  >
+    This roast already exists. Check &ldquo;Open a bag&rdquo; above to add a new
+    bag.
+  </p>
+</div>

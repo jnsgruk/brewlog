@@ -3,75 +3,121 @@
 
 <div id="roaster-list" class="mt-6" data-star-scope="roasters">
   {% if roasters.items.is_empty() && !navigator.has_search() %}
-  <div
-    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
-  >
-    <p class="text-center">
-      {% if is_authenticated %}
-      No roasters added yet. Click Add to create the first roaster.
-      {% else %}
-      No roasters added yet.
-      {% endif %}
-    </p>
-  </div>
-  {% else %}
-  <section class="rounded-lg border bg-surface"
-    {% if roasters.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(roasters.next_page().unwrap())|safe }}" data-target="#roaster-list"{% endif %}
-  >
-    {{ table::search_header(navigator, "#roaster-list") }}
-    <div class="overflow-x-auto">
-      <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold text-text-secondary">
-          <tr>
-            {{ table::sortable_header("Added", "created-at", navigator, "#roaster-list") }}
-            {{ table::sortable_header("Name", "name", navigator, "#roaster-list") }}
-            {{ table::sortable_header("Country", "country", navigator, "#roaster-list") }}
-            {{ table::sortable_header("City", "city", navigator, "#roaster-list") }}
-            <th scope="col" class="actions-col px-4 py-3 text-right"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y/70">
-          {% for roaster in roasters.items %}
-          <tr
-            data-star-key="{{ roaster.id }}"
-            data-sort-created-at="{{ roaster.created_at_sort_key }}"
-            data-sort-name="{{ roaster.name }}"
-            data-sort-country="{{ roaster.country }}"
-            data-sort-city="{{ roaster.city }}"
-            class="transition hover:bg-surface-alt"
-            onclick="window.location.href='{{ roaster.detail_path }}'"
-          >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
-              <div>{{ roaster.created_date }}</div>
-              <div class="hidden md:block text-xs font-normal text-text-muted">{{ roaster.created_time }}</div>
-            </td>
-            <td data-label="Name" class="card-title px-4 py-3 font-medium text-text">
-              {{ roaster.name }}
-            </td>
-            <td data-label="Location" class="px-4 py-3 whitespace-nowrap md:hidden">{% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }} {% endif %}{{ roaster.country }}</td>
-            {% if !roaster.city.is_empty() %}
-            <td data-label="City" class="px-4 py-3 whitespace-nowrap md:hidden">{{ roaster.city }}</td>
-            {% endif %}
-            <td data-label="Country" class="mobile-hidden px-4 py-3 whitespace-nowrap">{% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }} {% endif %}{{ roaster.country }}</td>
-            <td data-label="City" class="mobile-hidden px-4 py-3 whitespace-nowrap">{{ roaster.city }}</td>
-            <td data-label="" class="card-actions px-4 py-3 text-right">
-              <a href="{{ roaster.detail_path }}"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt">
-                {{ icons::chevron_right("h-5 w-5") }}
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div
+      class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
+    >
+      <p class="text-center">
+        {% if is_authenticated %}
+          No roasters added yet. Click Add to create the first roaster.
+        {% else %}
+          No roasters added yet.
+        {% endif %}
+      </p>
     </div>
-    {% if roasters.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No roasters match the search.</div>
-    {% endif %}
-    {{ table::pagination_header(roasters, navigator, "#roaster-list") }}
-    {% if roasters.has_next() %}
-    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
-    {% endif %}
-  </section>
+  {% else %}
+    <section
+      class="rounded-lg border bg-surface"
+      {% if roasters.has_next() %}
+        data-infinite-scroll
+        data-next-url="{{ navigator.fragment_page_href(roasters.next_page().unwrap())|safe }}"
+        data-target="#roaster-list"
+      {% endif %}
+    >
+      {{ table::search_header(navigator, "#roaster-list") }}
+      <div class="overflow-x-auto">
+        <table
+          class="responsive-table min-w-full divide-y text-left text-sm text-text"
+        >
+          <thead
+            class="bg-surface-alt text-xs font-semibold text-text-secondary"
+          >
+            <tr>
+              {{ table::sortable_header("Added", "created-at", navigator, "#roaster-list") }}
+              {{ table::sortable_header("Name", "name", navigator, "#roaster-list") }}
+              {{ table::sortable_header("Country", "country", navigator, "#roaster-list") }}
+              {{ table::sortable_header("City", "city", navigator, "#roaster-list") }}
+              <th scope="col" class="actions-col px-4 py-3 text-right"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y/70">
+            {% for roaster in roasters.items %}
+              <tr
+                data-star-key="{{ roaster.id }}"
+                data-sort-created-at="{{ roaster.created_at_sort_key }}"
+                data-sort-name="{{ roaster.name }}"
+                data-sort-country="{{ roaster.country }}"
+                data-sort-city="{{ roaster.city }}"
+                class="transition hover:bg-surface-alt"
+                onclick="window.location.href='{{ roaster.detail_path }}'"
+              >
+                <td
+                  data-label="Added"
+                  class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary"
+                >
+                  <div>{{ roaster.created_date }}</div>
+                  <div
+                    class="hidden md:block text-xs font-normal text-text-muted"
+                  >
+                    {{ roaster.created_time }}
+                  </div>
+                </td>
+                <td
+                  data-label="Name"
+                  class="card-title px-4 py-3 font-medium text-text"
+                >
+                  {{ roaster.name }}
+                </td>
+                <td
+                  data-label="Location"
+                  class="px-4 py-3 whitespace-nowrap md:hidden"
+                >
+                  {% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }}{% endif %}{{ roaster.country }}
+                </td>
+                {% if !roaster.city.is_empty() %}
+                  <td
+                    data-label="City"
+                    class="px-4 py-3 whitespace-nowrap md:hidden"
+                  >
+                    {{ roaster.city }}
+                  </td>
+                {% endif %}
+                <td
+                  data-label="Country"
+                  class="mobile-hidden px-4 py-3 whitespace-nowrap"
+                >
+                  {% if !roaster.country_flag.is_empty() %}{{ roaster.country_flag }}{% endif %}{{ roaster.country }}
+                </td>
+                <td
+                  data-label="City"
+                  class="mobile-hidden px-4 py-3 whitespace-nowrap"
+                >
+                  {{ roaster.city }}
+                </td>
+                <td data-label="" class="card-actions px-4 py-3 text-right">
+                  <a
+                    href="{{ roaster.detail_path }}"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
+                  >
+                    {{ icons::chevron_right("h-5 w-5") }}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if roasters.items.is_empty() %}
+        <div class="p-8 text-center text-text-muted">
+          No roasters match the search.
+        </div>
+      {% endif %}
+      {{ table::pagination_header(roasters, navigator, "#roaster-list") }}
+      {% if roasters.has_next() %}
+        <div
+          class="infinite-scroll-sentinel h-4 md:hidden"
+          aria-hidden="true"
+        ></div>
+      {% endif %}
+    </section>
   {% endif %}
 </div>

@@ -1,98 +1,145 @@
 {% macro search_header(navigator, target_selector) %}
-    <div class="border-b px-4 py-3">
-      <input
-        type="search"
-        placeholder="Search..."
-        value="{{ navigator.search_value() }}"
-        class="input-field w-full text-sm"
-        data-search-url="{{ navigator.search_href_prefix()|safe }}"
-        data-on:input__debounce.300ms="history.pushState(null, '', el.dataset.searchUrl + el.value); @get(el.dataset.searchUrl + el.value, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
-        {% if navigator.has_search() %}data-init="el.focus(); el.selectionStart = el.value.length"{% endif %}
-      />
-    </div>
+  <div class="border-b px-4 py-3">
+    <input
+      type="search"
+      placeholder="Search..."
+      value="{{ navigator.search_value() }}"
+      class="input-field w-full text-sm"
+      data-search-url="{{ navigator.search_href_prefix()|safe }}"
+      data-on:input__debounce.300ms="history.pushState(null, '', el.dataset.searchUrl + el.value); @get(el.dataset.searchUrl + el.value, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
+      {% if navigator.has_search() %}
+        data-init="el.focus(); el.selectionStart = el.value.length"
+      {% endif %}
+    />
+  </div>
 {% endmacro %}
 
 {% macro pagination_header(items, navigator, target_selector) %}
-    <div
-      class="pagination-controls hidden md:flex flex-wrap items-center justify-between gap-x-3 border-t px-4 py-1.5 text-xs leading-none text-text-secondary"
-    >
-      <span>
-        Showing {{ items.start_index() }}&ndash;{{ items.end_index() }} of {{ items.total }}
-        results
-      </span>
-      <div class="flex flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold text-accent transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
-            {% if items.has_previous() %}
-            data-on:click="history.pushState(null, '', '{{ navigator.page_href(items.previous_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(items.previous_page().unwrap())|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
-            {% else %}
-            disabled
-            {% endif %}
-          >
-            <span aria-hidden="true">←</span>
-            <span>Prev</span>
-          </button>
-          {% if items.is_showing_all() %}
-          <span class="font-semibold text-text">Showing all results</span>
+  <div
+    class="pagination-controls hidden md:flex flex-wrap items-center justify-between gap-x-3 border-t px-4 py-1.5 text-xs leading-none text-text-secondary"
+  >
+    <span>
+      Showing {{ items.start_index() }}&ndash;{{ items.end_index() }} of
+      {{ items.total }} results
+    </span>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold text-accent transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
+          {% if items.has_previous() %}
+            data-on:click="history.pushState(null, '',
+            '{{ navigator.page_href(items.previous_page().unwrap())|safe }}');
+            @get('{{ navigator.fragment_page_href(items.previous_page().unwrap())|safe }}',
+            {responseOverrides: {selector: '{{ target_selector }}', mode:
+            'replace'}})"
           {% else %}
+            disabled
+          {% endif %}
+        >
+          <span aria-hidden="true">←</span>
+          <span>Prev</span>
+        </button>
+        {% if items.is_showing_all() %}
+          <span class="font-semibold text-text">Showing all results</span>
+        {% else %}
           <span class="font-semibold text-text"
             >Page {{ items.page }} of {{ items.total_pages() }}</span
           >
-          {% endif %}
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold text-accent transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
-            {% if items.has_next() %}
-            data-on:click="history.pushState(null, '', '{{ navigator.page_href(items.next_page().unwrap())|safe }}'); @get('{{ navigator.fragment_page_href(items.next_page().unwrap())|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
-            {% else %}
+        {% endif %}
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold text-accent transition hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-40"
+          {% if items.has_next() %}
+            data-on:click="history.pushState(null, '',
+            '{{ navigator.page_href(items.next_page().unwrap())|safe }}');
+            @get('{{ navigator.fragment_page_href(items.next_page().unwrap())|safe }}',
+            {responseOverrides: {selector: '{{ target_selector }}', mode:
+            'replace'}})"
+          {% else %}
             disabled
-            {% endif %}
-          >
-            <span>Next</span>
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
-        <label class="flex items-center gap-2 text-xs font-semibold text-text-secondary">
-          <span>Rows</span>
-          <select
-            class="rounded-md border bg-surface px-2 py-1 text-xs font-semibold text-accent transition hover:border-accent"
-            data-on:change="history.pushState(null, '', evt.target.selectedOptions[0].dataset.url); @get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
-          >
-            <option value="5" data-href="{{ navigator.fragment_rows_href("5")|safe }}" data-url="{{ navigator.rows_href("5")|safe }}" {% if items.is_page_size(5) %}selected{% endif %}>5</option>
-            <option value="10" data-href="{{ navigator.fragment_rows_href("10")|safe }}" data-url="{{ navigator.rows_href("10")|safe }}" {% if items.is_page_size(10) %}selected{% endif %}>10</option>
-            <option value="20" data-href="{{ navigator.fragment_rows_href("20")|safe }}" data-url="{{ navigator.rows_href("20")|safe }}" {% if items.is_page_size(20) %}selected{% endif %}>20</option>
-            <option value="50" data-href="{{ navigator.fragment_rows_href("50")|safe }}" data-url="{{ navigator.rows_href("50")|safe }}" {% if items.is_page_size(50) %}selected{% endif %}>50</option>
-            <option value="all" data-href="{{ navigator.fragment_rows_href("all")|safe }}" data-url="{{ navigator.rows_href("all")|safe }}" {% if items.is_showing_all() %}selected{% endif %}>All</option>
-          </select>
-        </label>
+          {% endif %}
+        >
+          <span>Next</span>
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
+      <label
+        class="flex items-center gap-2 text-xs font-semibold text-text-secondary"
+      >
+        <span>Rows</span>
+        <select
+          class="rounded-md border bg-surface px-2 py-1 text-xs font-semibold text-accent transition hover:border-accent"
+          data-on:change="history.pushState(null, '', evt.target.selectedOptions[0].dataset.url); @get(evt.target.selectedOptions[0].dataset.href, {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
+        >
+          <option
+            value="5"
+            data-href="{{ navigator.fragment_rows_href("5")|safe }}"
+            data-url="{{ navigator.rows_href("5")|safe }}"
+            {% if items.is_page_size(5) %}selected{% endif %}
+          >
+            5
+          </option>
+          <option
+            value="10"
+            data-href="{{ navigator.fragment_rows_href("10")|safe }}"
+            data-url="{{ navigator.rows_href("10")|safe }}"
+            {% if items.is_page_size(10) %}selected{% endif %}
+          >
+            10
+          </option>
+          <option
+            value="20"
+            data-href="{{ navigator.fragment_rows_href("20")|safe }}"
+            data-url="{{ navigator.rows_href("20")|safe }}"
+            {% if items.is_page_size(20) %}selected{% endif %}
+          >
+            20
+          </option>
+          <option
+            value="50"
+            data-href="{{ navigator.fragment_rows_href("50")|safe }}"
+            data-url="{{ navigator.rows_href("50")|safe }}"
+            {% if items.is_page_size(50) %}selected{% endif %}
+          >
+            50
+          </option>
+          <option
+            value="all"
+            data-href="{{ navigator.fragment_rows_href("all")|safe }}"
+            data-url="{{ navigator.rows_href("all")|safe }}"
+            {% if items.is_showing_all() %}selected{% endif %}
+          >
+            All
+          </option>
+        </select>
+      </label>
     </div>
+  </div>
 {% endmacro %}
 
 {% macro sortable_header(label, key, navigator, target_selector) %}
-    {% set is_sorted = navigator.is_sorted_by(key) %}
-    <th
-      scope="col"
-      class="px-4 py-3"
-      aria-sort="{% if is_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+  {% set is_sorted = navigator.is_sorted_by(key) %}
+  <th
+    scope="col"
+    class="px-4 py-3"
+    aria-sort="{% if is_sorted %}{% if navigator.sort_direction() == "asc" %}ascending{% else %}descending{% endif %}{% else %}none{% endif %}"
+  >
+    <button
+      type="button"
+      class="flex items-center gap-1 text-text hover:text-accent"
+      data-on:click="history.pushState(null, '', '{{ navigator.sort_href(key)|safe }}'); @get('{{ navigator.fragment_sort_href(key)|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
     >
-      <button
-        type="button"
-        class="flex items-center gap-1 text-text hover:text-accent"
-        data-on:click="history.pushState(null, '', '{{ navigator.sort_href(key)|safe }}'); @get('{{ navigator.fragment_sort_href(key)|safe }}', {responseOverrides: {selector: '{{ target_selector }}', mode: 'replace'}})"
-      >
-        <span>{{ label }}</span>
-        {% if is_sorted %}
+      <span>{{ label }}</span>
+      {% if is_sorted %}
         {% if navigator.sort_direction() == "asc" %}
-        <span aria-hidden="true">↑</span>
+          <span aria-hidden="true">↑</span>
         {% else %}
-        <span aria-hidden="true">↓</span>
+          <span aria-hidden="true">↓</span>
         {% endif %}
-        {% else %}
+      {% else %}
         <span aria-hidden="true">↕</span>
-        {% endif %}
-      </button>
-    </th>
+      {% endif %}
+    </button>
+  </th>
 {% endmacro %}

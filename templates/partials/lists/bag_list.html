@@ -3,102 +3,155 @@
 
 <div id="bag-list" class="mt-6" data-star-scope="bags">
   {% if bags.items.is_empty() && !navigator.has_search() %}
-  <div
-    class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
-  >
-    <p class="text-center">
-      {% if is_authenticated %}
-      No bags added yet. Click Add to create the first bag.
-      {% else %}
-      No bags added yet.
-      {% endif %}
-    </p>
-  </div>
-  {% else %}
-  <section class="rounded-lg border bg-surface"
-    {% if bags.has_next() %}data-infinite-scroll data-next-url="{{ navigator.fragment_page_href(bags.next_page().unwrap())|safe }}" data-target="#bag-list"{% endif %}
-  >
-    {{ table::search_header(navigator, "#bag-list") }}
-    <div class="overflow-x-auto">
-      <table class="responsive-table min-w-full divide-y text-left text-sm text-text">
-        <thead class="bg-surface-alt text-xs font-semibold text-text-secondary">
-          <tr>
-            {{ table::sortable_header("Added", "created-at", navigator, "#bag-list") }}
-            {{ table::sortable_header("Roaster", "roaster", navigator, "#bag-list") }}
-            {{ table::sortable_header("Roast", "roast", navigator, "#bag-list") }}
-            {{ table::sortable_header("Status", "status", navigator, "#bag-list") }}
-            {{ table::sortable_header("Finished", "finished-at", navigator, "#bag-list") }}
-            <th scope="col" class="actions-col px-4 py-3 text-right"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y/70">
-          {% for bag in bags.items %}
-          <tr class="transition hover:bg-surface-alt"
-            onclick="window.location.href='/bags/{{ bag.id }}'"
-          >
-            <td data-label="Added" class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
-              <div>{{ bag.created_date }}</div>
-              <div class="hidden md:block text-xs font-normal text-text-muted">{{ bag.created_time }}</div>
-            </td>
-            <td data-label="Roaster" class="px-4 py-3 whitespace-nowrap font-medium text-text-secondary">
-              {{ bag.roaster_name }}
-            </td>
-            <td data-label="Roast" class="card-title px-4 py-3 whitespace-nowrap">
-              {{ bag.roast_name }}
-            </td>
-            <td data-label="Status" class="mobile-hidden px-4 py-3 whitespace-nowrap">
-              {% if bag.closed %}
-              <span class="text-text-muted">Closed</span>
-              {% else %}
-              <div>
-                <div class="h-2.5 rounded-full bg-surface-alt overflow-hidden">
-                  <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
-                </div>
-                <div class="mt-0.5 text-xs text-text-muted">{{ bag.remaining }} / {{ bag.amount }}</div>
-              </div>
-              {% endif %}
-            </td>
-            {% if !bag.closed %}
-            <td data-label="" class="card-progress md:hidden">
-              <div class="h-1.5 rounded-full bg-surface-alt overflow-hidden">
-                <div class="h-full rounded-full bg-accent" style="width: {{ bag.used_percent }}%"></div>
-              </div>
-              <div class="mt-0.5 text-right text-xs text-text-muted">{{ bag.remaining }} / {{ bag.amount }}</div>
-            </td>
-            {% endif %}
-            <td data-label="Finished" class="mobile-hidden whitespace-nowrap px-4 py-3 font-medium text-text-secondary">
-              <div>{{ bag.finished_date }}</div>
-            </td>
-            {% if bag.closed %}
-            <td data-label="Finished" class="whitespace-nowrap px-4 py-3 font-medium text-text-secondary md:hidden">
-              <div>{{ bag.finished_date }}</div>
-            </td>
-            {% endif %}
-            <td data-label="" class="card-actions px-4 py-3 text-right">
-              <div class="inline-flex items-center gap-2">
-                <span class="md:hidden">
-                {% if bag.closed %}
-                <span class="text-text-muted">Closed</span>
-                {% endif %}
-                </span>
-                <a href="/bags/{{ bag.id }}"
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt">
-                  {{ icons::chevron_right("h-5 w-5") }}
-                </a>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div
+      class="rounded-lg border border-dashed px-4 py-6 text-sm text-text-secondary"
+    >
+      <p class="text-center">
+        {% if is_authenticated %}
+          No bags added yet. Click Add to create the first bag.
+        {% else %}
+          No bags added yet.
+        {% endif %}
+      </p>
     </div>
-    {% if bags.items.is_empty() %}
-    <div class="p-8 text-center text-text-muted">No bags match the search.</div>
-    {% endif %}
-    {{ table::pagination_header(bags, navigator, "#bag-list") }}
-    {% if bags.has_next() %}
-    <div class="infinite-scroll-sentinel h-4 md:hidden" aria-hidden="true"></div>
-    {% endif %}
-  </section>
+  {% else %}
+    <section
+      class="rounded-lg border bg-surface"
+      {% if bags.has_next() %}
+        data-infinite-scroll
+        data-next-url="{{ navigator.fragment_page_href(bags.next_page().unwrap())|safe }}"
+        data-target="#bag-list"
+      {% endif %}
+    >
+      {{ table::search_header(navigator, "#bag-list") }}
+      <div class="overflow-x-auto">
+        <table
+          class="responsive-table min-w-full divide-y text-left text-sm text-text"
+        >
+          <thead
+            class="bg-surface-alt text-xs font-semibold text-text-secondary"
+          >
+            <tr>
+              {{ table::sortable_header("Added", "created-at", navigator, "#bag-list") }}
+              {{ table::sortable_header("Roaster", "roaster", navigator, "#bag-list") }}
+              {{ table::sortable_header("Roast", "roast", navigator, "#bag-list") }}
+              {{ table::sortable_header("Status", "status", navigator, "#bag-list") }}
+              {{ table::sortable_header("Finished", "finished-at", navigator, "#bag-list") }}
+              <th scope="col" class="actions-col px-4 py-3 text-right"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y/70">
+            {% for bag in bags.items %}
+              <tr
+                class="transition hover:bg-surface-alt"
+                onclick="window.location.href='/bags/{{ bag.id }}'"
+              >
+                <td
+                  data-label="Added"
+                  class="card-date whitespace-nowrap px-4 py-3 font-medium text-text-secondary"
+                >
+                  <div>{{ bag.created_date }}</div>
+                  <div
+                    class="hidden md:block text-xs font-normal text-text-muted"
+                  >
+                    {{ bag.created_time }}
+                  </div>
+                </td>
+                <td
+                  data-label="Roaster"
+                  class="px-4 py-3 whitespace-nowrap font-medium text-text-secondary"
+                >
+                  {{ bag.roaster_name }}
+                </td>
+                <td
+                  data-label="Roast"
+                  class="card-title px-4 py-3 whitespace-nowrap"
+                >
+                  {{ bag.roast_name }}
+                </td>
+                <td
+                  data-label="Status"
+                  class="mobile-hidden px-4 py-3 whitespace-nowrap"
+                >
+                  {% if bag.closed %}
+                    <span class="text-text-muted">Closed</span>
+                  {% else %}
+                    <div>
+                      <div
+                        class="h-2.5 rounded-full bg-surface-alt overflow-hidden"
+                      >
+                        <div
+                          class="h-full rounded-full bg-accent"
+                          style="width: {{ bag.used_percent }}%"
+                        ></div>
+                      </div>
+                      <div class="mt-0.5 text-xs text-text-muted">
+                        {{ bag.remaining }} / {{ bag.amount }}
+                      </div>
+                    </div>
+                  {% endif %}
+                </td>
+                {% if !bag.closed %}
+                  <td data-label="" class="card-progress md:hidden">
+                    <div
+                      class="h-1.5 rounded-full bg-surface-alt overflow-hidden"
+                    >
+                      <div
+                        class="h-full rounded-full bg-accent"
+                        style="width: {{ bag.used_percent }}%"
+                      ></div>
+                    </div>
+                    <div class="mt-0.5 text-right text-xs text-text-muted">
+                      {{ bag.remaining }} / {{ bag.amount }}
+                    </div>
+                  </td>
+                {% endif %}
+                <td
+                  data-label="Finished"
+                  class="mobile-hidden whitespace-nowrap px-4 py-3 font-medium text-text-secondary"
+                >
+                  <div>{{ bag.finished_date }}</div>
+                </td>
+                {% if bag.closed %}
+                  <td
+                    data-label="Finished"
+                    class="whitespace-nowrap px-4 py-3 font-medium text-text-secondary md:hidden"
+                  >
+                    <div>{{ bag.finished_date }}</div>
+                  </td>
+                {% endif %}
+                <td data-label="" class="card-actions px-4 py-3 text-right">
+                  <div class="inline-flex items-center gap-2">
+                    <span class="md:hidden">
+                      {% if bag.closed %}
+                        <span class="text-text-muted">Closed</span>
+                      {% endif %}
+                    </span>
+                    <a
+                      href="/bags/{{ bag.id }}"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted transition hover:text-accent hover:bg-surface-alt"
+                    >
+                      {{ icons::chevron_right("h-5 w-5") }}
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if bags.items.is_empty() %}
+        <div class="p-8 text-center text-text-muted">
+          No bags match the search.
+        </div>
+      {% endif %}
+      {{ table::pagination_header(bags, navigator, "#bag-list") }}
+      {% if bags.has_next() %}
+        <div
+          class="infinite-scroll-sentinel h-4 md:hidden"
+          aria-hidden="true"
+        ></div>
+      {% endif %}
+    </section>
   {% endif %}
 </div>

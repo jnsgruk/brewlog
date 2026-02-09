@@ -1,78 +1,89 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Login{% endblock %}
 {% block head %}
-<script src="/static/js/webauthn.js"></script>
+  <script src="/static/js/webauthn.js"></script>
 {% endblock %}
 {% block content %}
-<div class="mx-auto max-w-md">
-  <div class="rounded-lg border bg-surface p-6">
-    <h1 class="text-2xl font-semibold text-accent">Login</h1>
-    <p class="mt-2 text-sm text-text-secondary">
-      Sign in with a passkey to access the coffee log.
-    </p>
+  <div class="mx-auto max-w-md">
+    <div class="rounded-lg border bg-surface p-6">
+      <h1 class="text-2xl font-semibold text-accent">Login</h1>
+      <p class="mt-2 text-sm text-text-secondary">
+        Sign in with a passkey to access the coffee log.
+      </p>
 
-    <div id="login-error" class="mt-4 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"></div>
+      <div
+        id="login-error"
+        class="mt-4 hidden rounded-md bg-red-100 border border-red-300 p-3 text-sm text-red-800"
+      ></div>
 
-    <div id="login-unsupported" class="mt-4 hidden rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800">
-      This browser does not support passkeys. Please use a modern browser (Chrome, Firefox, Safari, or Edge).
-    </div>
+      <div
+        id="login-unsupported"
+        class="mt-4 hidden rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800"
+      >
+        This browser does not support passkeys. Please use a modern browser
+        (Chrome, Firefox, Safari, or Edge).
+      </div>
 
-    <div class="mt-6">
-      <button
-        id="login-button"
-        type="button"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"      >
-        {{ icons::key("h-4 w-4") }} Sign in with Passkey
-      </button>
+      <div class="mt-6">
+        <button
+          id="login-button"
+          type="button"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ icons::key("h-4 w-4") }} Sign in with Passkey
+        </button>
 
-      <div id="login-loading" class="mt-4 hidden text-center text-sm text-text-muted">
-        <p>Waiting for passkey...</p>
+        <div
+          id="login-loading"
+          class="mt-4 hidden text-center text-sm text-text-muted"
+        >
+          <p>Waiting for passkey...</p>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const button = document.getElementById("login-button");
-    const errorDiv = document.getElementById("login-error");
-    const loadingDiv = document.getElementById("login-loading");
-    const unsupportedDiv = document.getElementById("login-unsupported");
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const button = document.getElementById("login-button");
+      const errorDiv = document.getElementById("login-error");
+      const loadingDiv = document.getElementById("login-loading");
+      const unsupportedDiv = document.getElementById("login-unsupported");
 
-    // Check WebAuthn support
-    if (!window.PublicKeyCredential) {
-      button.disabled = true;
-      unsupportedDiv.classList.remove("hidden");
-      return;
-    }
-
-    // Check for CLI callback query params
-    const params = new URLSearchParams(window.location.search);
-    let queryString = "";
-    if (params.has("cli_callback")) {
-      queryString = "?" + params.toString();
-    }
-
-    button.addEventListener("click", async function () {
-      errorDiv.classList.add("hidden");
-      loadingDiv.classList.remove("hidden");
-      button.disabled = true;
-
-      try {
-        const result = await startPasskeyAuthentication(queryString);
-
-        if (result.redirect) {
-          window.location.href = result.redirect;
-        } else {
-          window.location.href = "/";
-        }
-      } catch (err) {
-        errorDiv.textContent = err.message;
-        errorDiv.classList.remove("hidden");
-        loadingDiv.classList.add("hidden");
-        button.disabled = false;
+      // Check WebAuthn support
+      if (!window.PublicKeyCredential) {
+        button.disabled = true;
+        unsupportedDiv.classList.remove("hidden");
+        return;
       }
+
+      // Check for CLI callback query params
+      const params = new URLSearchParams(window.location.search);
+      let queryString = "";
+      if (params.has("cli_callback")) {
+        queryString = "?" + params.toString();
+      }
+
+      button.addEventListener("click", async function () {
+        errorDiv.classList.add("hidden");
+        loadingDiv.classList.remove("hidden");
+        button.disabled = true;
+
+        try {
+          const result = await startPasskeyAuthentication(queryString);
+
+          if (result.redirect) {
+            window.location.href = result.redirect;
+          } else {
+            window.location.href = "/";
+          }
+        } catch (err) {
+          errorDiv.textContent = err.message;
+          errorDiv.classList.remove("hidden");
+          loadingDiv.classList.add("hidden");
+          button.disabled = false;
+        }
+      });
     });
-  });
-</script>
+  </script>
 {% endblock %}
