@@ -33,6 +33,16 @@
 
   /* Data-viz highlight (RGB triplet for alpha usage in JS) */
   --highlight-rgb: 194, 65, 12; /* orange-700, matches --accent */
+
+  /* Feedback */
+  --error: #dc2626; /* red-600 */
+  --error-bg: #fef2f2; /* red-50 */
+  --error-border: rgba(220, 38, 38, 0.3);
+  --error-text: #991b1b; /* red-800 */
+  --success: #059669; /* green-600 */
+  --success-bg: #ecfdf5; /* green-50 */
+  --success-border: rgba(5, 150, 105, 0.3);
+  --success-text: #065f46; /* green-800 */
 }
 
 [data-theme="dark"] {
@@ -55,6 +65,15 @@
   --text-muted: #a8a29e;
 
   --highlight-rgb: 234, 88, 12; /* orange-600, matches --accent */
+
+  --error: #ef4444;
+  --error-bg: rgba(220, 38, 38, 0.1);
+  --error-border: rgba(220, 38, 38, 0.4);
+  --error-text: #fca5a5;
+  --success: #34d399;
+  --success-bg: rgba(5, 150, 105, 0.1);
+  --success-border: rgba(5, 150, 105, 0.4);
+  --success-text: #6ee7b7;
 }
 
 /* ── Theme: map raw vars to Tailwind utilities ─────────────────── */
@@ -72,6 +91,14 @@
   --color-text-muted: var(--text-muted);
   --color-border: var(--border);
   --color-highlight: rgb(var(--highlight-rgb));
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+  --color-error-border: var(--error-border);
+  --color-error-text: var(--error-text);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-success-text: var(--success-text);
 }
 
 /* ── Base: default border color ────────────────────────────────── */
@@ -171,6 +198,19 @@ input.input-field[type="number"] {
 .btn-adjust:hover {
   background-color: var(--surface-alt);
   color: var(--accent-hover);
+}
+
+@media (max-width: 767px) {
+  .btn-adjust {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+}
+
+/* ── Searchable-select keyboard highlight ─────────────────────── */
+
+.ss-active {
+  background-color: var(--accent-subtle);
 }
 
 /* ── Sticky Submit ────────────────────────────────────────────── */
