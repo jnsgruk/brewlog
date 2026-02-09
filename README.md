@@ -1,4 +1,4 @@
-# B{rew}log
+![cover image](./static/og-image.png)
 
 **B{rew}log** is a self-hosted specialty coffee logging platform optimised for filter brewing
 enthusiasts. B{rew}log can be used for tracking roasters, roasts, brews, cafes and brewing gear.
