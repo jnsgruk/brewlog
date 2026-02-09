@@ -49,6 +49,11 @@
             ];
           };
 
+          prettierWithJinja = pkgs.writeShellScriptBin "prettier" ''
+            export NODE_PATH="${pkgs.prettier}/lib/node_modules"
+            exec ${pkgs.prettier}/bin/prettier "$@"
+          '';
+
           cargoToml = lib.trivial.importTOML ./Cargo.toml;
           version = cargoToml.package.version;
         in
@@ -151,6 +156,13 @@
             programs = {
               deadnix.enable = true;
               nixfmt.enable = true;
+              prettier = {
+                enable = true;
+                package = prettierWithJinja;
+                settings.plugins = [
+                  "${pkgs.prettier-plugin-jinja-template}/lib/node_modules/prettier-plugin-jinja-template/lib/index.js"
+                ];
+              };
               rustfmt.enable = true;
               shfmt.enable = true;
             };
