@@ -63,6 +63,10 @@ pub struct CupDetailView {
     // Map
     pub map_countries: String,
     pub map_max: u32,
+    // Slugs (for breadcrumbs)
+    pub roaster_slug: String,
+    pub roast_slug: String,
+    pub cafe_slug: String,
     // Dates
     pub created_date: String,
     pub created_time: String,
@@ -106,6 +110,9 @@ impl CupDetailView {
             cafe_country: cafe.country.clone(),
             cafe_country_flag,
             cafe_website: cafe.website.clone(),
+            roaster_slug: roaster.slug.clone(),
+            roast_slug: roast.slug.clone(),
+            cafe_slug: cafe.slug.clone(),
             map_countries,
             map_max,
             created_date: cup.cup.created_at.format("%Y-%m-%d").to_string(),

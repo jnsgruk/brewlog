@@ -30,17 +30,33 @@
   </script>
 {% endmacro %}
 
-{% macro coffee_card(roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes) %}
+{% macro coffee_card(roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes, roaster_slug, roast_slug) %}
   <div class="rounded-lg border bg-surface p-5">
     <h2 class="text-lg font-semibold text-text mb-4">Coffee</h2>
     <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
         <dt class="text-text-muted">Roast</dt>
-        <dd class="font-medium text-text">{{ roast_name }}</dd>
+        <dd class="font-medium">
+          {% if !roast_slug.is_empty() %}
+            <a
+              href="/roasters/{{ roaster_slug }}/roasts/{{ roast_slug }}"
+              class="text-accent hover:text-accent-hover transition"
+              >{{ roast_name }}</a
+            >
+          {% else %}
+            <span class="text-text">{{ roast_name }}</span>
+          {% endif %}
+        </dd>
       </div>
       <div>
         <dt class="text-text-muted">Roaster</dt>
-        <dd class="font-medium text-text">{{ roaster_name }}</dd>
+        <dd class="font-medium">
+          <a
+            href="/roasters/{{ roaster_slug }}"
+            class="text-accent hover:text-accent-hover transition"
+            >{{ roaster_name }}</a
+          >
+        </dd>
       </div>
       {% if origin != "\u{2014}" %}
         <div>
@@ -169,13 +185,19 @@
   {% endif %}
 {% endmacro %}
 
-{% macro roaster_card(name, country, country_flag, city, homepage) %}
+{% macro roaster_card(name, country, country_flag, city, homepage, roaster_slug) %}
   <div class="rounded-lg border bg-surface p-5">
     <h2 class="text-lg font-semibold text-text mb-4">Roaster</h2>
     <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
         <dt class="text-text-muted">Name</dt>
-        <dd class="font-medium text-text">{{ name }}</dd>
+        <dd class="font-medium">
+          <a
+            href="/roasters/{{ roaster_slug }}"
+            class="text-accent hover:text-accent-hover transition"
+            >{{ name }}</a
+          >
+        </dd>
       </div>
       <div>
         <dt class="text-text-muted">Country</dt>

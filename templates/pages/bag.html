@@ -27,13 +27,13 @@
 
   {# ── Coffee + map ── #}
   <div class="grid gap-6 md:grid-cols-2">
-    {{ detail::coffee_card(bag.roast_name, bag.roaster_name, bag.origin, bag.origin_flag, bag.region, bag.producer, bag.process, bag.tasting_notes) }}
+    {{ detail::coffee_card(bag.roast_name, bag.roaster_name, bag.origin, bag.origin_flag, bag.region, bag.producer, bag.process, bag.tasting_notes, roaster_slug, roast_slug) }}
     {{ detail::map_with_legend_2(bag.map_countries, bag.map_max, "Origin", "", "Roaster", "opacity-50") }}
   </div>
 
   {# ── Roaster & bag info ── #}
   <div class="grid gap-6 md:grid-cols-2">
-    {{ detail::roaster_card(bag.roaster_name, bag.roaster_country, bag.roaster_country_flag, bag.roaster_city, bag.roaster_homepage) }}
+    {{ detail::roaster_card(bag.roaster_name, bag.roaster_country, bag.roaster_country_flag, bag.roaster_city, bag.roaster_homepage, roaster_slug) }}
 
     <div class="rounded-lg border bg-surface p-5">
       <h2 class="text-lg font-semibold text-text mb-4">Bag</h2>
@@ -49,7 +49,14 @@
               <span class="font-medium text-text">Closed</span>
             {% else %}
               <div class="mt-1">
-                <div class="h-2 rounded-full bg-surface-alt overflow-hidden">
+                <div
+                  class="h-2 rounded-full bg-surface-alt overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow="{{ bag.used_percent }}"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  aria-label="Coffee used"
+                >
                   <div
                     class="h-full rounded-full bg-accent"
                     style="width: {{ bag.used_percent }}%"

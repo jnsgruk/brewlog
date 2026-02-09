@@ -219,6 +219,8 @@ pub struct BagDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub bag: BagDetailView,
+    pub roaster_slug: String,
+    pub roast_slug: String,
 }
 
 #[derive(Template)]
@@ -229,6 +231,8 @@ pub struct BrewDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub brew: BrewDetailView,
+    pub roaster_slug: String,
+    pub roast_slug: String,
 }
 
 #[derive(Template)]
@@ -239,6 +243,9 @@ pub struct CupDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub cup: CupDetailView,
+    pub roaster_slug: String,
+    pub roast_slug: String,
+    pub cafe_slug: String,
 }
 
 #[derive(Template)]
@@ -249,6 +256,7 @@ pub struct RoastDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub roast: RoastDetailView,
+    pub roaster_slug: String,
 }
 
 #[derive(Template)]

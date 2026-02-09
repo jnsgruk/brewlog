@@ -22,12 +22,12 @@
   </header>
 
   <div class="grid gap-6 md:grid-cols-2">
-    {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes) }}
+    {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes, roaster_slug, "") }}
     {{ detail::map_with_legend_2(roast.map_countries, roast.map_max, "Origin", "", "Roaster", "opacity-50") }}
   </div>
 
   <div class="grid gap-6 md:grid-cols-2">
-    {{ detail::roaster_card(roast.roaster_name, roast.roaster_country, roast.roaster_country_flag, roast.roaster_city, roast.roaster_homepage) }}
+    {{ detail::roaster_card(roast.roaster_name, roast.roaster_country, roast.roaster_country_flag, roast.roaster_city, roast.roaster_homepage, roaster_slug) }}
   </div>
 
   {% if is_authenticated %}

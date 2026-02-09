@@ -55,6 +55,9 @@ pub(crate) async fn cup_detail_page(
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
         cup: view,
+        roaster_slug: roaster.slug.clone(),
+        roast_slug: roast.slug.clone(),
+        cafe_slug: cafe.slug.clone(),
     };
 
     render_html(template).map(IntoResponse::into_response)

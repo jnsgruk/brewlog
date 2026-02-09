@@ -89,6 +89,9 @@ pub struct BagDetailView {
     // Map
     pub map_countries: String,
     pub map_max: u32,
+    // Slugs (for breadcrumbs)
+    pub roaster_slug: String,
+    pub roast_slug: String,
     // Dates
     pub created_date: String,
     pub created_time: String,
@@ -112,6 +115,8 @@ impl BagDetailView {
             id: bag.bag.id.to_string(),
             roast_name: bag.roast_name,
             roaster_name: bag.roaster_name,
+            roaster_slug: roaster.slug.clone(),
+            roast_slug: roast.slug.clone(),
             origin: coffee.origin,
             origin_flag: coffee.origin_flag,
             region: coffee.region,

@@ -44,6 +44,8 @@ pub(crate) async fn bag_detail_page(
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
         bag: view,
+        roaster_slug: roaster.slug.clone(),
+        roast_slug: roast.slug.clone(),
     };
 
     render_html(template).map(IntoResponse::into_response)

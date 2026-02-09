@@ -27,20 +27,26 @@
 
   {# ── Coffee + map ── #}
   <div class="grid gap-6 md:grid-cols-2">
-    {{ detail::coffee_card(cup.roast_name, cup.roaster_name, cup.origin, cup.origin_flag, cup.region, cup.producer, cup.process, cup.tasting_notes) }}
+    {{ detail::coffee_card(cup.roast_name, cup.roaster_name, cup.origin, cup.origin_flag, cup.region, cup.producer, cup.process, cup.tasting_notes, roaster_slug, roast_slug) }}
     {{ detail::map_with_legend_3(cup.map_countries, cup.map_max, "Cafe", "", "Origin", "opacity-65", "Roaster", "opacity-35") }}
   </div>
 
   {# ── Roaster & cafe ── #}
   <div class="grid gap-6 md:grid-cols-2">
-    {{ detail::roaster_card(cup.roaster_name, cup.roaster_country, cup.roaster_country_flag, cup.roaster_city, cup.roaster_homepage) }}
+    {{ detail::roaster_card(cup.roaster_name, cup.roaster_country, cup.roaster_country_flag, cup.roaster_city, cup.roaster_homepage, roaster_slug) }}
 
     <div class="rounded-lg border bg-surface p-5">
       <h2 class="text-lg font-semibold text-text mb-4">Cafe</h2>
       <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
         <div>
           <dt class="text-text-muted">Name</dt>
-          <dd class="font-medium text-text">{{ cup.cafe_name }}</dd>
+          <dd class="font-medium">
+            <a
+              href="/cafes/{{ cafe_slug }}"
+              class="text-accent hover:text-accent-hover transition"
+              >{{ cup.cafe_name }}</a
+            >
+          </dd>
         </div>
         <div>
           <dt class="text-text-muted">Country</dt>

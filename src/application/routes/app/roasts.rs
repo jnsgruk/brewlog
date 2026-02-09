@@ -37,6 +37,7 @@ pub(crate) async fn roast_detail_page(
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
         roast: view,
+        roaster_slug,
     };
 
     render_html(template).map(IntoResponse::into_response)
