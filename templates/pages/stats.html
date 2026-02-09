@@ -38,29 +38,29 @@
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::map("h-6 w-6 text-accent") }}
+          {{ icons::map("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text"
             >{{ roast_summary.unique_origins }}</span
           >
-          <span class="text-sm font-medium text-accent">Origins</span>
+          <span class="text-sm font-medium text-text-muted">Origins</span>
         </div>
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::location("h-6 w-6 text-accent") }}
+          {{ icons::location("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text truncate max-w-full"
             >{% match roast_summary.top_origin %}{% when Some with (v) %}{{ v }}{% when None %}&mdash;{% endmatch %}</span
           >
-          <span class="text-sm font-medium text-accent">Top Origin</span>
+          <span class="text-sm font-medium text-text-muted">Top Origin</span>
         </div>
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::fire("h-6 w-6 text-accent") }}
+          {{ icons::fire("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text truncate max-w-full"
             >{% match roast_summary.top_roaster %}{% when Some with (v) %}{{ v }}{% when None %}&mdash;{% endmatch %}</span
           >
-          <span class="text-sm font-medium text-accent">Top Roaster</span>
+          <span class="text-sm font-medium text-text-muted">Top Roaster</span>
         </div>
       </div>
       {% if !roast_summary.origin_counts.is_empty() || !roast_summary.flavour_counts.is_empty() %}
@@ -93,38 +93,40 @@
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::coffee_bean("h-6 w-6 text-accent") }}
+          {{ icons::coffee_bean("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text"
             >{{ consumption_30d_weight }}</span
           >
-          <span class="text-sm font-medium text-accent">Last 30 Days</span>
+          <span class="text-sm font-medium text-text-muted">Last 30 Days</span>
         </div>
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::coffee_bean("h-6 w-6 text-accent") }}
+          {{ icons::coffee_bean("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text"
             >{{ consumption_all_time_weight }}</span
           >
-          <span class="text-sm font-medium text-accent">All Time</span>
+          <span class="text-sm font-medium text-text-muted">All Time</span>
         </div>
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::beaker("h-6 w-6 text-accent") }}
+          {{ icons::beaker("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text"
             >{{ consumption.brews_last_30_days }}</span
           >
-          <span class="text-sm font-medium text-accent">Brews (30d)</span>
+          <span class="text-sm font-medium text-text-muted">Brews (30d)</span>
         </div>
         <div
           class="flex flex-col items-center gap-1 rounded-lg border bg-surface p-4"
         >
-          {{ icons::beaker("h-6 w-6 text-accent") }}
+          {{ icons::beaker("h-6 w-6 text-text-muted") }}
           <span class="text-lg font-bold text-text"
             >{{ consumption.brews_all_time }}</span
           >
-          <span class="text-sm font-medium text-accent">Brews (All Time)</span>
+          <span class="text-sm font-medium text-text-muted"
+            >Brews (All Time)</span
+          >
         </div>
       </div>
     </section>
