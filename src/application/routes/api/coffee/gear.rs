@@ -125,30 +125,72 @@ pub(crate) async fn list_gear(
 
 define_get_handler!(get_gear, GearId, Gear, gear_repo);
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateGearSubmission {
+    #[serde(default)]
+    make: Option<String>,
+    #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateGearSubmission {
+    fn into_parts(self) -> (UpdateGear, Option<String>) {
+        let update = UpdateGear {
+            make: self.make,
+            model: self.model,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_gear(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Path(id): Path<GearId>,
-    Query(query): Query<ListQuery>,
-    payload: Json<UpdateGear>,
+    payload: FlexiblePayload<UpdateGearSubmission>,
 ) -> Result<Response, ApiError> {
-    let (request, search) = query.into_request_and_search::<GearSortKey>();
+    let (submission, source) = payload.into_parts();
+    let (update, image_data_url) = submission.into_parts();
+
+    let has_changes = update.make.is_some()
+        || update.model.is_some()
+        || update.created_at.is_some()
+        || image_data_url.is_some();
+
+    if !has_changes {
+        return Err(AppError::validation("no changes provided").into());
+    }
 
     let gear = state
         .gear_repo
-        .update(id, payload.0)
+        .update(id, update)
         .await
         .map_err(AppError::from)?;
 
     info!(%id, "gear updated");
     state.stats_invalidator.invalidate();
 
+    save_deferred_image(
+        &state,
+        "gear",
+        i64::from(gear.id),
+        image_data_url.as_deref(),
+    )
+    .await;
+
+    let detail_url = format!("/gear/{}", gear.id);
+
     if is_datastar_request(&headers) {
-        render_gear_list_fragment(state, request, search, true)
-            .await
-            .map_err(ApiError::from)
+        render_redirect_script(&detail_url).map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&detail_url).into_response())
     } else {
         Ok(Json(gear).into_response())
     }

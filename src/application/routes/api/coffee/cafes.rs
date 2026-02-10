@@ -140,20 +140,60 @@ pub(crate) async fn create_cafe(
 
 define_get_handler!(get_cafe, CafeId, Cafe, cafe_repo);
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateCafeSubmission {
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    city: Option<String>,
+    #[serde(default)]
+    country: Option<String>,
+    #[serde(default)]
+    latitude: Option<f64>,
+    #[serde(default)]
+    longitude: Option<f64>,
+    #[serde(default)]
+    website: Option<String>,
+    #[serde(default)]
+    created_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateCafeSubmission {
+    fn into_parts(self) -> (UpdateCafe, Option<String>) {
+        let update = UpdateCafe {
+            name: self.name,
+            city: self.city,
+            country: self.country,
+            latitude: self.latitude,
+            longitude: self.longitude,
+            website: self.website,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_cafe(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
     Path(id): Path<CafeId>,
-    Json(payload): Json<UpdateCafe>,
-) -> Result<Json<Cafe>, ApiError> {
-    let has_changes = payload.name.is_some()
-        || payload.city.is_some()
-        || payload.country.is_some()
-        || payload.latitude.is_some()
-        || payload.longitude.is_some()
-        || payload.website.is_some()
-        || payload.created_at.is_some();
+    payload: FlexiblePayload<UpdateCafeSubmission>,
+) -> Result<Response, ApiError> {
+    let (submission, source) = payload.into_parts();
+    let (update, image_data_url) = submission.into_parts();
+
+    let has_changes = update.name.is_some()
+        || update.city.is_some()
+        || update.country.is_some()
+        || update.latitude.is_some()
+        || update.longitude.is_some()
+        || update.website.is_some()
+        || update.created_at.is_some()
+        || image_data_url.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());
@@ -161,12 +201,29 @@ pub(crate) async fn update_cafe(
 
     let cafe = state
         .cafe_repo
-        .update(id, payload)
+        .update(id, update)
         .await
         .map_err(AppError::from)?;
     info!(%id, "cafe updated");
     state.stats_invalidator.invalidate();
-    Ok(Json(cafe))
+
+    save_deferred_image(
+        &state,
+        "cafe",
+        i64::from(cafe.id),
+        image_data_url.as_deref(),
+    )
+    .await;
+
+    let detail_url = format!("/cafes/{}", cafe.slug);
+
+    if is_datastar_request(&headers) {
+        render_redirect_script(&detail_url).map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&detail_url).into_response())
+    } else {
+        Ok(Json(cafe).into_response())
+    }
 }
 
 define_delete_handler!(

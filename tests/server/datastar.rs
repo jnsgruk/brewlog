@@ -4,9 +4,9 @@
 //! Datastar headers when the `datastar-request: true` header is present.
 
 use crate::helpers::{
-    TestApp, assert_datastar_headers, assert_full_page, assert_html_fragment, create_default_bag,
-    create_default_cafe, create_default_gear, create_default_roast, create_default_roaster,
-    spawn_app_with_auth,
+    TestApp, assert_datastar_headers, assert_datastar_headers_with_mode, assert_full_page,
+    assert_html_fragment, create_default_bag, create_default_cafe, create_default_gear,
+    create_default_roast, create_default_roaster, spawn_app_with_auth,
 };
 use crate::test_macros::define_datastar_entity_tests;
 use brewlog::domain::bags::UpdateBag;
@@ -459,7 +459,7 @@ async fn gear_create_without_datastar_header_returns_json() {
 }
 
 #[tokio::test]
-async fn gear_update_with_datastar_header_returns_fragment() {
+async fn gear_update_with_datastar_header_returns_redirect_script() {
     let app = spawn_app_with_auth().await;
     let client = Client::new();
 
@@ -479,11 +479,9 @@ async fn gear_update_with_datastar_header_returns_fragment() {
 
     let gear: brewlog::domain::gear::Gear = create_response.json().await.unwrap();
 
-    let update = brewlog::domain::gear::UpdateGear {
-        make: Some("Updated Make".to_string()),
-        model: None,
-        created_at: None,
-    };
+    let update = serde_json::json!({
+        "make": "Updated Make",
+    });
 
     let response = client
         .put(app.api_url(&format!("/gear/{}", gear.id)))
@@ -495,10 +493,13 @@ async fn gear_update_with_datastar_header_returns_fragment() {
         .expect("failed to update gear");
 
     assert_eq!(response.status(), 200);
-    assert_datastar_headers(&response, "#gear-list");
+    assert_datastar_headers_with_mode(&response, "body", "append");
 
     let body = response.text().await.expect("failed to read body");
-    assert_html_fragment(&body);
+    assert!(
+        body.contains("window.location"),
+        "Expected redirect script in body"
+    );
 }
 
 #[tokio::test]

@@ -8,6 +8,7 @@ use tracing::info;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
@@ -120,6 +121,41 @@ pub(crate) async fn list_bags(
 
 define_enriched_get_handler!(get_bag, BagId, BagWithRoast, bag_repo, get_with_roast);
 
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateBagSubmission {
+    #[serde(default)]
+    roast_id: Option<RoastId>,
+    #[serde(default)]
+    roast_date: Option<chrono::NaiveDate>,
+    #[serde(default)]
+    amount: Option<f64>,
+    #[serde(default)]
+    remaining: Option<f64>,
+    #[serde(default)]
+    closed: Option<bool>,
+    #[serde(default)]
+    finished_at: Option<chrono::NaiveDate>,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateBagSubmission {
+    fn into_parts(self) -> (UpdateBag, Option<String>) {
+        let update = UpdateBag {
+            roast_id: self.roast_id,
+            roast_date: self.roast_date,
+            amount: self.amount,
+            remaining: self.remaining,
+            closed: self.closed,
+            finished_at: self.finished_at,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn update_bag(
     State(state): State<AppState>,
@@ -128,11 +164,11 @@ pub(crate) async fn update_bag(
     Path(id): Path<BagId>,
     Query(query): Query<ListQuery>,
     Query(update_params): Query<UpdateBag>,
-    payload: Option<Json<UpdateBag>>,
+    payload: FlexiblePayload<UpdateBagSubmission>,
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<BagSortKey>();
-
-    let body_update = payload.map_or(UpdateBag::default(), |Json(p)| p);
+    let (submission, source) = payload.into_parts();
+    let (body_update, image_data_url) = submission.into_parts();
 
     let update = UpdateBag {
         roast_id: body_update.roast_id.or(update_params.roast_id),
@@ -161,6 +197,8 @@ pub(crate) async fn update_bag(
     info!(%id, closed = ?update.closed, "bag updated");
     state.stats_invalidator.invalidate();
 
+    save_deferred_image(&state, "bag", i64::from(bag.id), image_data_url.as_deref()).await;
+
     if is_datastar_request(&headers) {
         let from_bag_page = headers
             .get("referer")
@@ -176,6 +214,9 @@ pub(crate) async fn update_bag(
             crate::application::routes::support::render_redirect_script(&detail_url)
                 .map_err(ApiError::from)
         }
+    } else if matches!(source, PayloadSource::Form) {
+        let detail_url = format!("/bags/{id}");
+        Ok(Redirect::to(&detail_url).into_response())
     } else {
         let enriched = state
             .bag_repo

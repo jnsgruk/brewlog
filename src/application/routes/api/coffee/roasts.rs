@@ -176,21 +176,64 @@ define_delete_handler!(
     image_type: "roast"
 );
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateRoastSubmission {
+    #[serde(default)]
+    roaster_id: Option<RoasterId>,
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    origin: Option<String>,
+    #[serde(default)]
+    region: Option<String>,
+    #[serde(default)]
+    producer: Option<String>,
+    #[serde(default)]
+    tasting_notes: Option<TastingNotesInput>,
+    #[serde(default)]
+    process: Option<String>,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateRoastSubmission {
+    fn into_parts(self) -> (UpdateRoast, Option<String>) {
+        let update = UpdateRoast {
+            roaster_id: self.roaster_id,
+            name: self.name,
+            origin: self.origin,
+            region: self.region,
+            producer: self.producer,
+            tasting_notes: self.tasting_notes.map(TastingNotesInput::into_vec),
+            process: self.process,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_roast(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
     Path(id): Path<RoastId>,
-    Json(payload): Json<UpdateRoast>,
-) -> Result<Json<RoastWithRoaster>, ApiError> {
-    let has_changes = payload.roaster_id.is_some()
-        || payload.name.is_some()
-        || payload.origin.is_some()
-        || payload.region.is_some()
-        || payload.producer.is_some()
-        || payload.tasting_notes.is_some()
-        || payload.process.is_some()
-        || payload.created_at.is_some();
+    payload: FlexiblePayload<UpdateRoastSubmission>,
+) -> Result<Response, ApiError> {
+    let (submission, source) = payload.into_parts();
+    let (update, image_data_url) = submission.into_parts();
+
+    let has_changes = update.roaster_id.is_some()
+        || update.name.is_some()
+        || update.origin.is_some()
+        || update.region.is_some()
+        || update.producer.is_some()
+        || update.tasting_notes.is_some()
+        || update.process.is_some()
+        || update.created_at.is_some()
+        || image_data_url.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());
@@ -198,12 +241,14 @@ pub(crate) async fn update_roast(
 
     state
         .roast_repo
-        .update(id, payload)
+        .update(id, update)
         .await
         .map_err(AppError::from)?;
 
     info!(%id, "roast updated");
     state.stats_invalidator.invalidate();
+
+    save_deferred_image(&state, "roast", i64::from(id), image_data_url.as_deref()).await;
 
     let enriched = state
         .roast_repo
@@ -211,7 +256,18 @@ pub(crate) async fn update_roast(
         .await
         .map_err(AppError::from)?;
 
-    Ok(Json(enriched))
+    let detail_url = format!(
+        "/roasters/{}/roasts/{}",
+        enriched.roaster_slug, enriched.roast.slug
+    );
+
+    if is_datastar_request(&headers) {
+        render_redirect_script(&detail_url).map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&detail_url).into_response())
+    } else {
+        Ok(Json(enriched).into_response())
+    }
 }
 
 #[derive(Debug, Deserialize)]

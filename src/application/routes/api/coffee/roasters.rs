@@ -139,19 +139,53 @@ pub(crate) async fn create_roaster(
 
 define_get_handler!(get_roaster, RoasterId, Roaster, roaster_repo);
 
-#[tracing::instrument(skip(state, _auth_user))]
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateRoasterSubmission {
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    country: Option<String>,
+    #[serde(default)]
+    city: Option<String>,
+    #[serde(default)]
+    homepage: Option<String>,
+    #[serde(default)]
+    created_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateRoasterSubmission {
+    fn into_parts(self) -> (UpdateRoaster, Option<String>) {
+        let update = UpdateRoaster {
+            name: self.name,
+            country: self.country,
+            city: self.city,
+            homepage: self.homepage,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
     Path(id): Path<RoasterId>,
-    Json(payload): Json<UpdateRoaster>,
-) -> Result<Json<Roaster>, ApiError> {
-    let payload = payload.normalize();
-    let has_changes = payload.name.is_some()
-        || payload.country.is_some()
-        || payload.city.is_some()
-        || payload.homepage.is_some()
-        || payload.created_at.is_some();
+    payload: FlexiblePayload<UpdateRoasterSubmission>,
+) -> Result<Response, ApiError> {
+    let (submission, source) = payload.into_parts();
+    let (update, image_data_url) = submission.into_parts();
+    let update = update.normalize();
+
+    let has_changes = update.name.is_some()
+        || update.country.is_some()
+        || update.city.is_some()
+        || update.homepage.is_some()
+        || update.created_at.is_some()
+        || image_data_url.is_some();
 
     if !has_changes {
         return Err(AppError::validation("no changes provided").into());
@@ -159,12 +193,29 @@ pub(crate) async fn update_roaster(
 
     let roaster = state
         .roaster_repo
-        .update(id, payload)
+        .update(id, update)
         .await
         .map_err(AppError::from)?;
     info!(%id, "roaster updated");
     state.stats_invalidator.invalidate();
-    Ok(Json(roaster))
+
+    save_deferred_image(
+        &state,
+        "roaster",
+        i64::from(roaster.id),
+        image_data_url.as_deref(),
+    )
+    .await;
+
+    let detail_url = format!("/roasters/{}", roaster.slug);
+
+    if is_datastar_request(&headers) {
+        render_redirect_script(&detail_url).map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&detail_url).into_response())
+    } else {
+        Ok(Json(roaster).into_response())
+    }
 }
 
 define_delete_handler!(
