@@ -271,6 +271,8 @@ pub(crate) async fn save_deferred_image(
     };
     if let Err(err) = state.image_repo.upsert(image).await {
         tracing::warn!(entity_type, entity_id, error = %err, "failed to save deferred image");
+    } else {
+        info!(entity_type, entity_id, "deferred image saved");
     }
 }
 
