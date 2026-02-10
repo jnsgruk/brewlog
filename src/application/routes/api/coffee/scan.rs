@@ -7,6 +7,7 @@ use tracing::info;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::{resolve_image_url, save_deferred_image};
 use crate::application::routes::api::roasts::TastingNotesInput;
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
 use crate::application::state::AppState;
@@ -184,6 +185,8 @@ pub(crate) struct BagScanSubmission {
     bag_amount: Option<f64>,
     #[serde(default)]
     matched_roast_id: Option<String>,
+    #[serde(default)]
+    scan_image: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -258,12 +261,21 @@ pub(crate) async fn submit_scan(
 
     // If the roast already exists (matched during extraction), skip creation
     if let Some(roast_id) = parse_matched_roast_id(submission.matched_roast_id.as_ref()) {
-        return submit_existing_roast(&state, &headers, roast_id, &submission).await;
+        let scan_image = submission.scan_image.take();
+        return submit_existing_roast(&state, &headers, roast_id, &submission, scan_image).await;
     }
 
     // Check for raw input (image/prompt triggers extraction first)
     let has_raw_input = submission.image.as_deref().is_some_and(|s| !s.is_empty())
         || submission.prompt.as_deref().is_some_and(|s| !s.is_empty());
+
+    // Preserve scan image: either from the dedicated field (two-step Datastar flow)
+    // or from the raw image input (one-step API flow, before extraction consumes it)
+    let scan_image = submission
+        .scan_image
+        .take()
+        .or_else(|| submission.image.clone())
+        .filter(|s| !s.is_empty());
 
     if has_raw_input {
         let usage = extract_into_submission(&state, &mut submission).await?;
@@ -351,6 +363,14 @@ pub(crate) async fn submit_scan(
 
     info!(roaster_id = %roaster.id, roast_id = %roast.id, roast_name = %roast.name, "scan created roast");
 
+    save_deferred_image(
+        &state,
+        "roast",
+        roast.id.into_inner(),
+        scan_image.as_deref(),
+    )
+    .await;
+
     // Optionally create a bag
     let wants_bag = submission
         .open_bag
@@ -401,6 +421,7 @@ async fn submit_existing_roast(
     headers: &HeaderMap,
     roast_id: RoastId,
     submission: &BagScanSubmission,
+    scan_image: Option<String>,
 ) -> Result<Response, ApiError> {
     let roast_with_roaster = state
         .roast_repo
@@ -410,6 +431,14 @@ async fn submit_existing_roast(
 
     let roast = &roast_with_roaster.roast;
     let roaster_slug = &roast_with_roaster.roaster_slug;
+
+    // Save scan image if roast doesn't have one yet
+    if resolve_image_url(state, "roast", roast.id.into_inner())
+        .await
+        .is_none()
+    {
+        save_deferred_image(state, "roast", roast.id.into_inner(), scan_image.as_deref()).await;
+    }
 
     let wants_bag = submission
         .open_bag

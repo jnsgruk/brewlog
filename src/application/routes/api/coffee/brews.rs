@@ -8,6 +8,7 @@ use tracing::info;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
@@ -193,6 +194,8 @@ pub(crate) struct NewBrewSubmission {
     brew_time: Option<i32>,
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
 }
 
 impl NewBrewSubmission {
@@ -243,6 +246,7 @@ pub(crate) async fn create_brew(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<BrewSortKey>();
     let (submission, source) = payload.into_parts();
+    let image_data_url = submission.image.clone();
     let new_brew = submission.into_new_brew().map_err(ApiError::from)?;
 
     let enriched = state
@@ -253,6 +257,14 @@ pub(crate) async fn create_brew(
 
     info!(brew_id = %enriched.brew.id, "brew created");
     state.stats_invalidator.invalidate();
+
+    save_deferred_image(
+        &state,
+        "brew",
+        i64::from(enriched.brew.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/brews/{}", enriched.brew.id);
 
@@ -317,7 +329,8 @@ define_delete_handler!(
     brew_repo,
     render_brew_list_fragment,
     "type=brews",
-    "/data?type=brews"
+    "/data?type=brews",
+    image_type: "brew"
 );
 
 async fn render_brew_list_fragment(

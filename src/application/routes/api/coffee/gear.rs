@@ -10,6 +10,7 @@ use tracing::info;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_get_handler, define_list_fragment_renderer,
 };
@@ -58,6 +59,7 @@ pub(crate) async fn create_gear(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<GearSortKey>();
     let (submission, source) = payload.into_parts();
+    let image_data_url = submission.image.clone();
     let new_gear = submission.into_new_gear().map_err(ApiError::from)?;
 
     let gear = state
@@ -68,6 +70,14 @@ pub(crate) async fn create_gear(
 
     info!(gear_id = %gear.id, make = %gear.make, model = %gear.model, "gear created");
     state.stats_invalidator.invalidate();
+
+    save_deferred_image(
+        &state,
+        "gear",
+        i64::from(gear.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/gear/{}", gear.id);
 
@@ -151,7 +161,8 @@ define_delete_handler!(
     gear_repo,
     render_gear_list_fragment,
     "type=gear",
-    "/data?type=gear"
+    "/data?type=gear",
+    image_type: "gear"
 );
 
 #[derive(Debug, Deserialize)]
@@ -166,6 +177,8 @@ pub(crate) struct NewGearSubmission {
     model: String,
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
 }
 
 impl NewGearSubmission {

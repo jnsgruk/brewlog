@@ -2,9 +2,11 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use serde::Deserialize;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_get_handler, define_list_fragment_renderer,
 };
@@ -57,16 +59,44 @@ pub(crate) async fn list_roasters(
     Ok(Json(roasters))
 }
 
+#[derive(Debug, Deserialize)]
+pub(crate) struct NewRoasterSubmission {
+    name: String,
+    country: String,
+    #[serde(default)]
+    city: Option<String>,
+    #[serde(default)]
+    homepage: Option<String>,
+    #[serde(default)]
+    created_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl NewRoasterSubmission {
+    fn into_parts(self) -> (NewRoaster, Option<String>) {
+        let roaster = NewRoaster {
+            name: self.name,
+            country: self.country,
+            city: self.city,
+            homepage: self.homepage,
+            created_at: self.created_at,
+        };
+        (roaster, self.image)
+    }
+}
+
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
-    payload: FlexiblePayload<NewRoaster>,
+    payload: FlexiblePayload<NewRoasterSubmission>,
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<RoasterSortKey>();
-    let (new_roaster, source) = payload.into_parts();
+    let (submission, source) = payload.into_parts();
+    let (new_roaster, image_data_url) = submission.into_parts();
     let new_roaster = new_roaster.normalize();
     let roaster = state
         .roaster_service
@@ -76,6 +106,14 @@ pub(crate) async fn create_roaster(
 
     info!(roaster_id = %roaster.id, name = %roaster.name, "roaster created");
     state.stats_invalidator.invalidate();
+
+    save_deferred_image(
+        &state,
+        "roaster",
+        i64::from(roaster.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/roasters/{}", roaster.slug);
 
@@ -136,7 +174,8 @@ define_delete_handler!(
     roaster_repo,
     render_roaster_list_fragment,
     "type=roasters",
-    "/data?type=roasters"
+    "/data?type=roasters",
+    image_type: "roaster"
 );
 
 #[tracing::instrument(skip(state, auth_user, headers, payload))]

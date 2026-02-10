@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::support::{
     FlexiblePayload, PayloadSource, is_datastar_request, render_redirect_script,
 };
@@ -31,6 +32,10 @@ pub(crate) struct CheckInSubmission {
     #[serde(default)]
     cafe_website: Option<String>,
     roast_id: String,
+    #[serde(default)]
+    cafe_image: Option<String>,
+    #[serde(default)]
+    cup_image: Option<String>,
 }
 
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
@@ -76,6 +81,15 @@ pub(crate) async fn submit_checkin(
             .create(new_cafe)
             .await
             .map_err(AppError::from)?;
+
+        save_deferred_image(
+            &state,
+            "cafe",
+            i64::from(cafe.id),
+            submission.cafe_image.as_deref(),
+        )
+        .await;
+
         cafe.id
     };
 
@@ -90,6 +104,14 @@ pub(crate) async fn submit_checkin(
         .create(new_cup)
         .await
         .map_err(AppError::from)?;
+
+    save_deferred_image(
+        &state,
+        "cup",
+        i64::from(cup.id),
+        submission.cup_image.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/cups/{}", cup.id);
 

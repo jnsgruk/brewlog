@@ -7,6 +7,7 @@ use serde::Deserialize;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
 };
@@ -57,6 +58,7 @@ pub(crate) async fn create_roast(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<RoastSortKey>();
     let (submission, source) = payload.into_parts();
+    let image_data_url = submission.image.clone();
     let new_roast = submission.into_new_roast().map_err(ApiError::from)?;
 
     state
@@ -73,6 +75,14 @@ pub(crate) async fn create_roast(
 
     info!(roast_id = %roast.id, name = %roast.name, "roast created");
     state.stats_invalidator.invalidate();
+
+    save_deferred_image(
+        &state,
+        "roast",
+        i64::from(roast.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let roaster = state
         .roaster_repo
@@ -162,7 +172,8 @@ define_delete_handler!(
     roast_repo,
     render_roast_list_fragment,
     "type=roasts",
-    "/data?type=roasts"
+    "/data?type=roasts",
+    image_type: "roast"
 );
 
 #[tracing::instrument(skip(state, _auth_user))]
@@ -219,6 +230,8 @@ pub(crate) struct NewRoastSubmission {
     process: String,
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
 }
 
 impl NewRoastSubmission {

@@ -1,4 +1,5 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
 {% import "partials/location_search.html" as location %}
 {% block title %}Brewlog · Add{% endblock %}
 
@@ -85,7 +86,7 @@
         <form
           id="roaster-extract-form"
           data-on:submit="$_roasterExtracting = true; $_roasterExtractError = ''; @post('/api/v1/extract-roaster', {contentType: 'form'})"
-          data-on:datastar-fetch="if (!$_roasterExtracting) return; if (evt.detail.type === 'finished') { $_roasterExtracting = false; document.getElementById('roaster-extract-form').reset() } else if (evt.detail.type === 'error') { $_roasterExtracting = false; $_roasterExtractError = 'Extraction failed. Please try again.' }"
+          data-on:datastar-fetch="if (!$_roasterExtracting) return; if (evt.detail.type === 'finished') { $_roasterExtracting = false; const img = document.getElementById('roaster-extract-image').value; document.getElementById('roaster-extract-form').reset(); if (img) { document.getElementById('roaster-image').value = img; const el = document.querySelector('image-upload[target-input=roaster-image]'); if (el) el._showPreview(img) } } else if (evt.detail.type === 'error') { $_roasterExtracting = false; $_roasterExtractError = 'Extraction failed. Please try again.' }"
           class="hidden"
         ></form>
         <div data-show="!$_roasterExtracting" class="flex items-center gap-2">
@@ -188,6 +189,7 @@
               />
             </label>
           </div>
+          {{ img::deferred_upload("roaster-image", "Add image (optional)") }}
           <div class="flex items-center justify-end">
             <button
               type="submit"
@@ -240,7 +242,7 @@
           <form
             id="roast-extract-form"
             data-on:submit="$_roastExtracting = true; $_roastExtractError = ''; @post('/api/v1/extract-roast', {contentType: 'form'})"
-            data-on:datastar-fetch="if (!$_roastExtracting) return; if (evt.detail.type === 'finished') { $_roastExtracting = false; document.getElementById('roast-extract-form').reset() } else if (evt.detail.type === 'error') { $_roastExtracting = false; $_roastExtractError = 'Extraction failed. Please try again.' }"
+            data-on:datastar-fetch="if (!$_roastExtracting) return; if (evt.detail.type === 'finished') { $_roastExtracting = false; const img = document.getElementById('roast-extract-image').value; document.getElementById('roast-extract-form').reset(); if (img) { document.getElementById('roast-image').value = img; const el = document.querySelector('image-upload[target-input=roast-image]'); if (el) el._showPreview(img) } } else if (evt.detail.type === 'error') { $_roastExtracting = false; $_roastExtractError = 'Extraction failed. Please try again.' }"
             class="hidden"
           ></form>
           <div data-show="!$_roastExtracting" class="flex items-center gap-2">
@@ -400,6 +402,7 @@
                 ></textarea>
               </label>
             </div>
+            {{ img::deferred_upload("roast-image", "Add image (optional)") }}
             <div class="flex items-center justify-end">
               <button
                 type="submit"
@@ -943,6 +946,7 @@
               data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')"
             />
           </div>
+          {{ img::deferred_upload("brew-image", "Add image (optional)") }}
           <div class="sticky-submit flex items-center justify-end">
             <button
               type="submit"
@@ -1018,6 +1022,7 @@
             />
           </label>
         </div>
+        {{ img::deferred_upload("gear-image", "Add image (optional)") }}
         <div class="flex items-center justify-end">
           <button
             type="submit"
@@ -1182,6 +1187,7 @@
             />
           </label>
         </div>
+        {{ img::deferred_upload("cafe-image", "Add image (optional)") }}
         <div class="flex items-center justify-end">
           <button
             type="submit"

@@ -210,11 +210,32 @@
               />
             </label>
           </div>
+          <input type="hidden" name="cafe_image" id="checkin-cafe-image" />
+          <image-upload
+            mode="deferred"
+            target-input="checkin-cafe-image"
+            class="mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-text-muted/30 bg-surface p-4 text-center text-text-muted cursor-pointer hover:border-accent/40 hover:text-text-secondary transition"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+              />
+            </svg>
+            <span class="text-xs">Add cafe photo (optional)</span>
+          </image-upload>
           <div class="mt-4 flex items-center justify-end gap-2">
             <button
               type="button"
               class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
-              data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''"
+              data-on:click="$_reviewingCafe = false; $_cafeName = ''; $_cafeCity = ''; $_cafeCountry = ''; $_cafeLat = 0; $_cafeLng = 0; $_cafeWebsite = ''; document.getElementById('checkin-cafe-image').value = ''"
             >
               Back
             </button>
@@ -344,7 +365,7 @@
         </dl>
 
         <form
-          data-on:submit="$_submitting = true; $_error = ''; @post('/api/v1/check-in', {contentType: 'form'})"
+          data-on:submit="$_submitting = true; $_error = ''; document.getElementById('checkin-cafe-image-submit').value = document.getElementById('checkin-cafe-image').value || ''; @post('/api/v1/check-in', {contentType: 'form'})"
           data-on:datastar-fetch="if (!$_submitting) return; if (evt.detail.type === 'finished') { sessionStorage.setItem('toast', 'Checked in') } else if (evt.detail.type === 'error') { $_submitting = false; $_error = 'Check-in failed. Please try again.' }"
         >
           <input type="hidden" name="cafe_id" data-attr:value="$_cafeId" />
@@ -363,6 +384,32 @@
             data-attr:value="$_cafeWebsite"
           />
           <input type="hidden" name="roast_id" data-attr:value="$_roastId" />
+          <input
+            type="hidden"
+            name="cafe_image"
+            id="checkin-cafe-image-submit"
+          />
+          <input type="hidden" name="cup_image" id="checkin-cup-image" />
+          <image-upload
+            mode="deferred"
+            target-input="checkin-cup-image"
+            class="mb-4 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-text-muted/30 bg-surface p-4 text-center text-text-muted cursor-pointer hover:border-accent/40 hover:text-text-secondary transition"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+              />
+            </svg>
+            <span class="text-xs">Add cup photo (optional)</span>
+          </image-upload>
           <button
             type="submit"
             class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"

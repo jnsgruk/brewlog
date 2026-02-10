@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_get_handler, define_list_fragment_renderer,
 };
@@ -56,16 +57,47 @@ pub(crate) async fn list_cafes(State(state): State<AppState>) -> Result<Json<Vec
     Ok(Json(cafes))
 }
 
+#[derive(Debug, Deserialize)]
+pub(crate) struct NewCafeSubmission {
+    name: String,
+    city: String,
+    country: String,
+    latitude: f64,
+    longitude: f64,
+    #[serde(default)]
+    website: Option<String>,
+    #[serde(default)]
+    created_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl NewCafeSubmission {
+    fn into_parts(self) -> (NewCafe, Option<String>) {
+        let cafe = NewCafe {
+            name: self.name,
+            city: self.city,
+            country: self.country,
+            latitude: self.latitude,
+            longitude: self.longitude,
+            website: self.website,
+            created_at: self.created_at,
+        };
+        (cafe, self.image)
+    }
+}
+
 #[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_cafe(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
     headers: HeaderMap,
     Query(query): Query<ListQuery>,
-    payload: FlexiblePayload<NewCafe>,
+    payload: FlexiblePayload<NewCafeSubmission>,
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<CafeSortKey>();
-    let (new_cafe, source) = payload.into_parts();
+    let (submission, source) = payload.into_parts();
+    let (new_cafe, image_data_url) = submission.into_parts();
     let new_cafe = new_cafe.normalize();
     let cafe = state
         .cafe_service
@@ -75,6 +107,14 @@ pub(crate) async fn create_cafe(
 
     info!(cafe_id = %cafe.id, name = %cafe.name, "cafe created");
     state.stats_invalidator.invalidate();
+
+    save_deferred_image(
+        &state,
+        "cafe",
+        i64::from(cafe.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/cafes/{}", cafe.slug);
 
@@ -136,7 +176,8 @@ define_delete_handler!(
     cafe_repo,
     render_cafe_list_fragment,
     "type=cafes",
-    "/data?type=cafes"
+    "/data?type=cafes",
+    image_type: "cafe"
 );
 
 define_list_fragment_renderer!(

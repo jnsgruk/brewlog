@@ -97,7 +97,8 @@ define_delete_handler!(
     cup_repo,
     render_cup_list_fragment,
     "type=cups",
-    "/data?type=cups"
+    "/data?type=cups",
+    image_type: "cup"
 );
 
 define_list_fragment_renderer!(
