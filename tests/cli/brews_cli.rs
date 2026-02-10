@@ -1,6 +1,7 @@
 use crate::helpers::{
-    create_bag, create_gear, create_roast, create_roaster, create_token, run_brewlog,
+    create_bag, create_brew, create_gear, create_roast, create_roaster, create_token, run_brewlog,
 };
+use crate::test_macros::define_cli_auth_test;
 
 #[test]
 fn brew_add_creates_brew_via_api() {
@@ -234,4 +235,46 @@ fn brew_delete_removes_brew() {
         !get_output.status.success(),
         "brew get should fail after deletion"
     );
+}
+
+define_cli_auth_test!(
+    test_update_brew_requires_authentication,
+    &["brew", "update", "--id", "123", "--coffee-weight", "16.0"]
+);
+
+#[test]
+fn test_update_brew_with_authentication() {
+    let token = create_token("test-update-brew");
+    let roaster_id = create_roaster("Update Brew Roaster", &token);
+    let roast_id = create_roast(&roaster_id, "Update Brew Roast", &token);
+    let bag_id = create_bag(&roast_id, &token);
+    let grinder_id = create_gear("grinder", "Weber", "Key", &token);
+    let brewer_id = create_gear("brewer", "Origami", "Air", &token);
+    let brew_id = create_brew(&bag_id, &grinder_id, &brewer_id, &token);
+
+    let output = run_brewlog(
+        &[
+            "brew",
+            "update",
+            "--id",
+            &brew_id,
+            "--coffee-weight",
+            "16.0",
+            "--water-temp",
+            "94.0",
+        ],
+        &[("BREWLOG_TOKEN", &token)],
+    );
+
+    assert!(
+        output.status.success(),
+        "brew update should succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let brew: serde_json::Value = serde_json::from_str(&stdout).expect("Should output valid JSON");
+
+    assert_eq!(brew["coffee_weight"], 16.0);
+    assert_eq!(brew["water_temp"], 94.0);
 }

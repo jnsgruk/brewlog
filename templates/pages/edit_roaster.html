@@ -18,7 +18,7 @@
       data-signals:_country="'{{ country }}'"
       data-signals:_city="'{{ city }}'"
       data-signals:_homepage="'{{ homepage }}'"
-      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/roasters/{{ id }}')"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/roasters/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Roaster updated'); window.location.href = evt.detail.response.headers.get('location') || '/roasters/{{ id }}' }
         else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"

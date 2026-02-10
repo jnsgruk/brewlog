@@ -316,3 +316,28 @@ pub fn create_gear(category: &str, make: &str, model: &str, token: &str) -> Stri
         "gear",
     )
 }
+
+pub fn create_brew(bag_id: &str, grinder_id: &str, brewer_id: &str, token: &str) -> String {
+    create_entity_cli(
+        &[
+            "brew",
+            "add",
+            "--bag-id",
+            bag_id,
+            "--grinder-id",
+            grinder_id,
+            "--brewer-id",
+            brewer_id,
+        ],
+        token,
+        "brew",
+    )
+}
+
+pub fn create_cup(roast_id: &str, cafe_id: &str, token: &str) -> String {
+    create_entity_cli(
+        &["cup", "add", "--roast-id", roast_id, "--cafe-id", cafe_id],
+        token,
+        "cup",
+    )
+}

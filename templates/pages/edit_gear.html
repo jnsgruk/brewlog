@@ -16,7 +16,7 @@
       data-signals:_submit-error="''"
       data-signals:_make="'{{ make }}'"
       data-signals:_model="'{{ model }}'"
-      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/gear/{{ id }}')"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/gear/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Gear updated'); window.location.href = evt.detail.response.headers.get('location') || '/gear/{{ id }}' }
         else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"

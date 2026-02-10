@@ -19,8 +19,13 @@
       data-signals:_water-volume="{{ water_volume }}"
       data-signals:_water-temp="{{ water_temp }}"
       data-signals:_brew-time="{{ brew_time }}"
-      data-signals:_quick-notes="'{{ quick_notes }}'"
-      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/brews/{{ id }}')"
+      data-signals:_qn-good="{% if quick_notes.contains("good") %}true{% else %}false{% endif %}"
+      data-signals:_qn-too-fast="{% if quick_notes.contains("too-fast") %}true{% else %}false{% endif %}"
+      data-signals:_qn-too-slow="{% if quick_notes.contains("too-slow") %}true{% else %}false{% endif %}"
+      data-signals:_qn-too-hot="{% if quick_notes.contains("too-hot") %}true{% else %}false{% endif %}"
+      data-signals:_qn-under-extracted="{% if quick_notes.contains("under-extracted") %}true{% else %}false{% endif %}"
+      data-signals:_qn-over-extracted="{% if quick_notes.contains("over-extracted") %}true{% else %}false{% endif %}"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/brews/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Brew updated'); window.location.href = evt.detail.response.headers.get('location') || '/brews/{{ id }}' }
         else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
@@ -301,19 +306,55 @@
       <!-- Quick Notes -->
       <div>
         <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
-        <label class="flex flex-col gap-1 text-sm">
-          <span
-            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
-            >Notes (comma separated)</span
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            data-on:click="$_qnGood = !$_qnGood"
+            data-attr:class="$_qnGood ? 'pill pill-success cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
           >
-          <input
-            type="text"
-            name="quick_notes"
-            class="input-field"
-            placeholder="good, too-fast, under-extracted"
-            data-bind:_quick-notes
-          />
-        </label>
+            Good
+          </button>
+          <button
+            type="button"
+            data-on:click="$_qnTooFast = !$_qnTooFast"
+            data-attr:class="$_qnTooFast ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+          >
+            Too Fast
+          </button>
+          <button
+            type="button"
+            data-on:click="$_qnTooSlow = !$_qnTooSlow"
+            data-attr:class="$_qnTooSlow ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+          >
+            Too Slow
+          </button>
+          <button
+            type="button"
+            data-on:click="$_qnTooHot = !$_qnTooHot"
+            data-attr:class="$_qnTooHot ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+          >
+            Too Hot
+          </button>
+          <button
+            type="button"
+            data-on:click="$_qnUnderExtracted = !$_qnUnderExtracted"
+            data-attr:class="$_qnUnderExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+          >
+            Under Extracted
+          </button>
+          <button
+            type="button"
+            data-on:click="$_qnOverExtracted = !$_qnOverExtracted"
+            data-attr:class="$_qnOverExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+          >
+            Over Extracted
+          </button>
+        </div>
+        <input
+          type="hidden"
+          name="quick_notes"
+          data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')"
+        />
       </div>
 
       {{ img::deferred_upload("edit-brew-image", "Brew Image") }}

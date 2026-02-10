@@ -20,7 +20,7 @@
       data-signals:_producer="'{{ producer }}'"
       data-signals:_process="'{{ process }}'"
       data-signals:_tasting-notes="'{{ tasting_notes }}'"
-      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/roasts/{{ id }}')"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/roasts/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Roast updated'); window.location.href = evt.detail.response.headers.get('location') || '/roasts/{{ id }}' }
         else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
