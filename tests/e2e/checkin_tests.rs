@@ -1,12 +1,15 @@
 use thirtyfour::prelude::*;
+use wiremock::matchers::{method, path};
+use wiremock::{Mock, ResponseTemplate};
 
 use crate::helpers::auth::authenticate_browser;
 use crate::helpers::browser::BrowserSession;
 use crate::helpers::forms::select_searchable;
 use crate::helpers::server_helpers::{
-    create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_auth,
+    create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_all_mocks,
+    spawn_app_with_auth,
 };
-use crate::helpers::wait::{wait_for_url_contains, wait_for_visible};
+use crate::helpers::wait::{wait_for_text, wait_for_url_contains, wait_for_visible};
 
 #[tokio::test]
 async fn checkin_with_saved_cafe_and_existing_roast() {
@@ -82,6 +85,179 @@ async fn checkin_with_saved_cafe_and_existing_roast() {
     );
     assert!(
         detail_text.contains("Test Roast"),
+        "Cup detail should show the roast name"
+    );
+
+    session.quit().await;
+}
+
+fn mock_foursquare_response() -> ResponseTemplate {
+    let body = serde_json::json!({
+        "results": [{
+            "name": "Prufrock Coffee",
+            "latitude": 51.5246,
+            "longitude": -0.1098,
+            "location": {
+                "locality": "London",
+                "country": "GB"
+            },
+            "website": "https://www.prufrockcoffee.com",
+            "distance": 2800
+        }]
+    });
+    ResponseTemplate::new(200).set_body_json(body)
+}
+
+fn mock_openrouter_scan_response() -> ResponseTemplate {
+    let extracted = serde_json::json!({
+        "roaster": {
+            "name": "Prufrock Roasters",
+            "country": "GB",
+            "city": "London"
+        },
+        "roast": {
+            "name": "Kiandu AA",
+            "origin": "Kenya",
+            "region": "Nyeri",
+            "producer": "Kiandu Factory",
+            "process": "Washed",
+            "tasting_notes": ["Blackcurrant", "Grapefruit"]
+        }
+    });
+    let body = serde_json::json!({
+        "id": "gen-test",
+        "model": "test-model",
+        "choices": [{
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": extracted.to_string()
+            },
+            "finish_reason": "stop"
+        }],
+        "usage": {
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "total_tokens": 150,
+            "cost": 0.001
+        }
+    });
+    ResponseTemplate::new(200).set_body_json(body)
+}
+
+#[tokio::test]
+async fn checkin_with_new_cafe_and_scanned_roast() {
+    let app = spawn_app_with_all_mocks().await;
+    let mock_server = app.mock_server.as_ref().unwrap();
+
+    Mock::given(method("GET"))
+        .and(path("/places/search"))
+        .respond_with(mock_foursquare_response())
+        .mount(mock_server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path("/api/v1/chat/completions"))
+        .respond_with(mock_openrouter_scan_response())
+        .mount(mock_server)
+        .await;
+
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+
+    session.goto("/check-in").await.unwrap();
+    wait_for_visible(&session.driver, "#checkin-root")
+        .await
+        .unwrap();
+
+    // Step 1: Search for a new cafe via location search
+    // Type city name in the location input
+    let city_input = session
+        .driver
+        .find(By::Css("[data-bind\\:_city-name]"))
+        .await
+        .unwrap();
+    city_input.send_keys("London").await.unwrap();
+
+    // Type cafe name — triggers debounced Foursquare search when both >= 2 chars
+    let cafe_search = session
+        .driver
+        .find(By::Css("[data-bind\\:_cafe-search]"))
+        .await
+        .unwrap();
+    cafe_search.send_keys("Prufrock").await.unwrap();
+
+    // Wait for Foursquare results to appear
+    wait_for_visible(&session.driver, "#nearby-results button")
+        .await
+        .unwrap();
+
+    // Click the first result — shows the review form
+    let result_btn = session
+        .driver
+        .find(By::Css("#nearby-results button"))
+        .await
+        .unwrap();
+    result_btn.click().await.unwrap();
+
+    // Wait for the review form, then click "Next" to advance to step 2
+    wait_for_text(&session.driver, "body", "Confirm cafe details")
+        .await
+        .unwrap();
+    let buttons = session.driver.find_all(By::Css("button")).await.unwrap();
+    for button in buttons {
+        if button.is_displayed().await.unwrap_or(false) {
+            let text = button.text().await.unwrap_or_default();
+            if text.contains("Next") {
+                button.click().await.unwrap();
+                break;
+            }
+        }
+    }
+
+    // Step 2: Scan a coffee bag via text prompt
+    let prompt_input = wait_for_visible(&session.driver, "#checkin-scan-form input[name='prompt']")
+        .await
+        .unwrap();
+    prompt_input
+        .send_keys("Kiandu AA from Prufrock Roasters")
+        .await
+        .unwrap();
+    prompt_input.send_keys(Key::Enter).await.unwrap();
+
+    // Wait for scan to complete — step 3 becomes visible with the submit button
+    let submit_btn = wait_for_visible(&session.driver, "button[type='submit']")
+        .await
+        .unwrap();
+
+    // Verify the review section shows the new cafe and scanned coffee
+    let body = session.driver.find(By::Css("body")).await.unwrap();
+    let body_text = body.text().await.unwrap();
+    assert!(
+        body_text.contains("Prufrock Coffee"),
+        "Review should show the new cafe name"
+    );
+    assert!(
+        body_text.contains("Kiandu AA"),
+        "Review should show the scanned roast name"
+    );
+
+    // Submit the check-in
+    submit_btn.click().await.unwrap();
+
+    // Should redirect to the cup detail page
+    wait_for_url_contains(&session.driver, "/cups/")
+        .await
+        .unwrap();
+
+    let detail_body = session.driver.find(By::Css("body")).await.unwrap();
+    let detail_text = detail_body.text().await.unwrap();
+    assert!(
+        detail_text.contains("Prufrock Coffee"),
+        "Cup detail should show the cafe name"
+    );
+    assert!(
+        detail_text.contains("Kiandu AA"),
         "Cup detail should show the roast name"
     );
 

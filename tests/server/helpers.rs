@@ -484,3 +484,27 @@ pub async fn spawn_app_with_openrouter_mock() -> TestApp {
 
     add_auth_to_app(app).await
 }
+
+pub async fn spawn_app_with_all_mocks() -> TestApp {
+    let mock_server = wiremock::MockServer::start().await;
+    let foursquare_url = format!("{}/places/search", mock_server.uri());
+    let openrouter_url = format!("{}/api/v1/chat/completions", mock_server.uri());
+
+    let database = Database::connect("sqlite::memory:")
+        .await
+        .expect("Failed to connect to in-memory database");
+
+    let app = spawn_app_inner(
+        database,
+        AppStateConfig {
+            foursquare_url,
+            foursquare_api_key: "test-api-key".to_string(),
+            openrouter_url,
+            ..test_state_config()
+        },
+        Some(mock_server),
+    )
+    .await;
+
+    add_auth_to_app(app).await
+}
