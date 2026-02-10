@@ -65,6 +65,16 @@ pub struct NewCup {
     pub created_at: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct UpdateCup {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub roast_id: Option<RoastId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cafe_id: Option<CafeId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
+}
+
 /// Filter criteria for cup queries.
 #[derive(Debug, Default, Clone)]
 pub struct CupFilter {

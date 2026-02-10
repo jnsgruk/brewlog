@@ -86,6 +86,7 @@ impl<'a> BagsClient<'a> {
             closed,
             finished_at,
             created_at,
+            ..Default::default()
         };
 
         let response = self

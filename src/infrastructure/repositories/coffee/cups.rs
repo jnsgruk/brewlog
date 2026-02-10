@@ -1,13 +1,14 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{query, query_as};
+use sqlx::{QueryBuilder, query, query_as};
 
 use crate::domain::RepositoryError;
-use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup};
+use crate::domain::cups::{Cup, CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
 use crate::domain::ids::{CafeId, CupId, RoastId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::CupRepository;
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 const BASE_SELECT: &str = r"
     SELECT
@@ -191,6 +192,41 @@ impl CupRepository for SqlCupRepository {
             |record| Ok(Self::to_domain_with_details(record)),
         )
         .await
+    }
+
+    async fn update(&self, id: CupId, changes: UpdateCup) -> Result<Cup, RepositoryError> {
+        let mut builder = QueryBuilder::new("UPDATE cups SET updated_at = CURRENT_TIMESTAMP");
+        let mut sep = true;
+
+        push_update_field!(
+            builder,
+            sep,
+            "roast_id",
+            changes
+                .roast_id
+                .map(crate::domain::ids::RoastId::into_inner)
+        );
+        push_update_field!(
+            builder,
+            sep,
+            "cafe_id",
+            changes.cafe_id.map(crate::domain::ids::CafeId::into_inner)
+        );
+        push_update_field!(builder, sep, "created_at", changes.created_at);
+        let _ = sep;
+
+        builder.push(" WHERE id = ");
+        builder.push_bind(i64::from(id));
+        builder.push(" RETURNING id, roast_id, cafe_id, created_at, updated_at");
+
+        let record = builder
+            .build_query_as::<CupRecord>()
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+            .ok_or(RepositoryError::NotFound)?;
+
+        Ok(Self::to_domain(record))
     }
 
     async fn delete(&self, id: CupId) -> Result<(), RepositoryError> {

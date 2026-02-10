@@ -39,8 +39,14 @@ pub struct NewBag {
     pub created_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UpdateBag {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub roast_id: Option<RoastId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub roast_date: Option<NaiveDate>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amount: Option<f64>,
     pub remaining: Option<f64>,
     pub closed: Option<bool>,
     pub finished_at: Option<NaiveDate>,

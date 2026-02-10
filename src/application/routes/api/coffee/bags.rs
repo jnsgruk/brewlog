@@ -132,17 +132,12 @@ pub(crate) async fn update_bag(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<BagSortKey>();
 
-    let body_update = payload.map_or(
-        UpdateBag {
-            remaining: None,
-            closed: None,
-            finished_at: None,
-            created_at: None,
-        },
-        |Json(p)| p,
-    );
+    let body_update = payload.map_or(UpdateBag::default(), |Json(p)| p);
 
     let update = UpdateBag {
+        roast_id: body_update.roast_id.or(update_params.roast_id),
+        roast_date: body_update.roast_date.or(update_params.roast_date),
+        amount: body_update.amount.or(update_params.amount),
         remaining: body_update.remaining.or(update_params.remaining),
         closed: body_update.closed.or(update_params.closed),
         finished_at: body_update.finished_at.or(update_params.finished_at),

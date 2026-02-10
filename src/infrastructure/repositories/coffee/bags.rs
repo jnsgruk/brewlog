@@ -206,6 +206,16 @@ impl BagRepository for SqlBagRepository {
         let mut builder = QueryBuilder::new("UPDATE bags SET updated_at = CURRENT_TIMESTAMP");
         let mut sep = true; // Already have updated_at
 
+        push_update_field!(
+            builder,
+            sep,
+            "roast_id",
+            changes
+                .roast_id
+                .map(crate::domain::ids::RoastId::into_inner)
+        );
+        push_update_field!(builder, sep, "roast_date", changes.roast_date);
+        push_update_field!(builder, sep, "amount", changes.amount);
         push_update_field!(builder, sep, "remaining", changes.remaining);
         push_update_field!(builder, sep, "closed", changes.closed);
         push_update_field!(builder, sep, "finished_at", changes.finished_at);

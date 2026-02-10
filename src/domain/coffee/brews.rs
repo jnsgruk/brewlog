@@ -215,6 +215,32 @@ pub struct NewBrew {
     pub created_at: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct UpdateBrew {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bag_id: Option<BagId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coffee_weight: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grinder_id: Option<GearId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grind_setting: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brewer_id: Option<GearId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filter_paper_id: Option<GearId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub water_volume: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub water_temp: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub quick_notes: Option<Vec<QuickNote>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brew_time: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
+}
+
 /// Filter criteria for brew queries.
 #[derive(Debug, Default, Clone)]
 pub struct BrewFilter {

@@ -179,7 +179,7 @@ async fn updating_a_bag_returns_200_and_updates_data() {
         remaining: Some(100.0),
         closed: Some(true),
         finished_at: Some(NaiveDate::from_ymd_opt(2023, 2, 1).unwrap()),
-        created_at: None,
+        ..Default::default()
     };
 
     // Act

@@ -306,9 +306,7 @@ async fn bags_update_with_datastar_header_returns_fragment() {
 
     let update = UpdateBag {
         remaining: Some(100.0),
-        closed: None,
-        finished_at: None,
-        created_at: None,
+        ..Default::default()
     };
 
     let response = client
@@ -338,9 +336,7 @@ async fn bags_update_without_datastar_header_returns_json() {
 
     let update = UpdateBag {
         remaining: Some(100.0),
-        closed: None,
-        finished_at: None,
-        created_at: None,
+        ..Default::default()
     };
 
     let response = client

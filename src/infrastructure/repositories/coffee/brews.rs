@@ -1,13 +1,16 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::query_as;
+use sqlx::{QueryBuilder, query_as};
 
 use crate::domain::RepositoryError;
-use crate::domain::brews::{Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote};
+use crate::domain::brews::{
+    Brew, BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote, UpdateBrew,
+};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BrewRepository;
 use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::repositories::macros::push_update_field;
 
 const BASE_SELECT: &str = r"
     SELECT
@@ -271,6 +274,72 @@ impl BrewRepository for SqlBrewRepository {
             |record| Ok(Self::to_domain_with_details(record)),
         )
         .await
+    }
+
+    async fn update(&self, id: BrewId, changes: UpdateBrew) -> Result<Brew, RepositoryError> {
+        let mut builder = QueryBuilder::new("UPDATE brews SET updated_at = CURRENT_TIMESTAMP");
+        let mut sep = true;
+
+        push_update_field!(
+            builder,
+            sep,
+            "bag_id",
+            changes.bag_id.map(crate::domain::ids::BagId::into_inner)
+        );
+        push_update_field!(builder, sep, "coffee_weight", changes.coffee_weight);
+        push_update_field!(
+            builder,
+            sep,
+            "grinder_id",
+            changes
+                .grinder_id
+                .map(crate::domain::ids::GearId::into_inner)
+        );
+        push_update_field!(builder, sep, "grind_setting", changes.grind_setting);
+        push_update_field!(
+            builder,
+            sep,
+            "brewer_id",
+            changes
+                .brewer_id
+                .map(crate::domain::ids::GearId::into_inner)
+        );
+        push_update_field!(
+            builder,
+            sep,
+            "filter_paper_id",
+            changes
+                .filter_paper_id
+                .map(crate::domain::ids::GearId::into_inner)
+        );
+        push_update_field!(builder, sep, "water_volume", changes.water_volume);
+        push_update_field!(builder, sep, "water_temp", changes.water_temp);
+        if let Some(ref notes) = changes.quick_notes {
+            if sep {
+                builder.push(", ");
+            }
+            sep = true;
+            builder.push("quick_notes = ");
+            builder.push_bind(Self::encode_quick_notes(notes));
+        }
+        push_update_field!(builder, sep, "brew_time", changes.brew_time);
+        push_update_field!(builder, sep, "created_at", changes.created_at);
+        let _ = sep;
+
+        builder.push(" WHERE id = ");
+        builder.push_bind(id.into_inner());
+        builder.push(
+            " RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, brew_time, created_at, updated_at",
+        );
+
+        let record = builder
+            .build_query_as::<BrewRecord>()
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+            .ok_or(RepositoryError::NotFound)?;
+
+        Ok(Self::to_domain(record))
     }
 
     async fn delete(&self, id: BrewId) -> Result<(), RepositoryError> {
