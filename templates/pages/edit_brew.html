@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
+{% block title %}Brewlog · Edit Brew{% endblock %}
+
+{% block content %}
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Edit Brew</h1>
+    <p class="max-w-2xl text-sm text-text-secondary">Update brew details.</p>
+  </header>
+
+  <section class="rounded-lg border bg-surface p-5">
+    <form
+      class="flex flex-col gap-6"
+      data-signals:_submitting="false"
+      data-signals:_submit-error="''"
+      data-signals:_coffee-weight="{{ coffee_weight }}"
+      data-signals:_grind-setting="{{ grind_setting }}"
+      data-signals:_water-volume="{{ water_volume }}"
+      data-signals:_water-temp="{{ water_temp }}"
+      data-signals:_brew-time="{{ brew_time }}"
+      data-signals:_quick-notes="'{{ quick_notes }}'"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/brews/{{ id }}')"
+      data-on:datastar-fetch="if (!$_submitting) return;
+        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Brew updated'); window.location.href = evt.detail.response.headers.get('location') || '/brews/{{ id }}' }
+        else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
+    >
+      <!-- Coffee -->
+      <div>
+        <h4 class="text-sm font-semibold text-text mb-3">Coffee</h4>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Bag*</span
+            >
+            <searchable-select
+              name="bag_id"
+              placeholder="Type to search bags&hellip;"
+              initial-value="{{ bag_id }}"
+            >
+              {% for bag in bag_options %}
+                <button
+                  type="button"
+                  value="{{ bag.id }}"
+                  data-display="{{ bag.roast_name }}"
+                  class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+                >
+                  <span class="font-medium text-text"
+                    >{{ bag.roast_name }}</span
+                  >
+                  <span class="ml-2 text-xs text-text-muted"
+                    >{{ bag.roaster_name }} &middot; {{ bag.remaining }}</span
+                  >
+                </button>
+              {% endfor %}
+            </searchable-select>
+          </div>
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Weight (g)*</span
+            >
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_coffeeWeight = Math.max(1, Number($_coffeeWeight) - 0.5)"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                name="coffee_weight"
+                step="any"
+                min="1"
+                required
+                aria-required="true"
+                class="input-field flex-1 text-center"
+                data-bind:_coffee-weight
+              />
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_coffeeWeight = Number($_coffeeWeight) + 0.5"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grinder -->
+      <div>
+        <h4 class="text-sm font-semibold text-text mb-3">Grinder</h4>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Grinder*</span
+            >
+            <select
+              name="grinder_id"
+              required
+              aria-required="true"
+              class="input-field"
+            >
+              {% for grinder in grinder_options %}
+                <option
+                  value="{{ grinder.id }}"
+                  {% if grinder.id == grinder_id %}selected{% endif %}
+                >
+                  {{ grinder.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Grind Setting*</span
+            >
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_grindSetting = Math.max(0, Number($_grindSetting) - 0.5)"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                name="grind_setting"
+                step="any"
+                min="0"
+                required
+                aria-required="true"
+                class="input-field flex-1 text-center"
+                data-bind:_grind-setting
+              />
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_grindSetting = Number($_grindSetting) + 0.5"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brewer -->
+      <div>
+        <h4 class="text-sm font-semibold text-text mb-3">Brewer</h4>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Brewer*</span
+            >
+            <select
+              name="brewer_id"
+              required
+              aria-required="true"
+              class="input-field"
+            >
+              {% for brewer in brewer_options %}
+                <option
+                  value="{{ brewer.id }}"
+                  {% if brewer.id == brewer_id %}selected{% endif %}
+                >
+                  {{ brewer.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Filter Paper</span
+            >
+            <select name="filter_paper_id" class="input-field">
+              <option value="">None</option>
+              {% for fp in filter_paper_options %}
+                <option
+                  value="{{ fp.id }}"
+                  {% if fp.id == filter_paper_id %}selected{% endif %}
+                >
+                  {{ fp.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Recipe -->
+      <div>
+        <h4 class="text-sm font-semibold text-text mb-3">Recipe</h4>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Volume (ml)*</span
+            >
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_waterVolume = Math.max(10, Number($_waterVolume) - 10)"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                name="water_volume"
+                step="any"
+                min="10"
+                required
+                aria-required="true"
+                class="input-field flex-1 text-center"
+                data-bind:_water-volume
+              />
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_waterVolume = Number($_waterVolume) + 10"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Temp (&deg;C)*</span
+            >
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_waterTemp = Math.max(0, Number($_waterTemp) - 0.5)"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                name="water_temp"
+                step="any"
+                min="0"
+                max="100"
+                required
+                aria-required="true"
+                class="input-field flex-1 text-center"
+                data-bind:_water-temp
+              />
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_waterTemp = Math.min(100, Number($_waterTemp) + 0.5)"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1 text-sm">
+            <span
+              class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+              >Time (s)</span
+            >
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_brewTime = Math.max(5, Number($_brewTime) - 5)"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                name="brew_time"
+                step="1"
+                min="0"
+                class="input-field flex-1 text-center"
+                data-bind:_brew-time
+              />
+              <button
+                type="button"
+                class="btn-adjust"
+                data-on:click="$_brewTime = Number($_brewTime) + 5"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Notes -->
+      <div>
+        <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Notes (comma separated)</span
+          >
+          <input
+            type="text"
+            name="quick_notes"
+            class="input-field"
+            placeholder="good, too-fast, under-extracted"
+            data-bind:_quick-notes
+          />
+        </label>
+      </div>
+
+      {{ img::deferred_upload("edit-brew-image", "Brew Image") }}
+      <p
+        data-show="$_submitError"
+        data-text="$_submitError"
+        style="display:none"
+        class="text-sm text-error"
+        role="alert"
+      ></p>
+      <div class="flex items-center justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          data-attr:disabled="$_submitting"
+        >
+          <span data-show="$_submitting" style="display:none"
+            >{{ icons::spinner("h-4 w-4") }}</span
+          >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

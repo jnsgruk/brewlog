@@ -35,15 +35,22 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/timeline", get(timeline::timeline_page))
         .route("/stats", get(stats::stats_page))
         .route("/bags/{id}", get(bags::bag_detail_page))
+        .route("/bags/{id}/edit", get(bags::bag_edit_page))
         .route("/brews/{id}", get(brews::brew_detail_page))
+        .route("/brews/{id}/edit", get(brews::brew_edit_page))
         .route("/cafes/{slug}", get(cafes::cafe_detail_page))
+        .route("/cafes/{id}/edit", get(cafes::cafe_edit_page))
         .route("/cups/{id}", get(cups::cup_detail_page))
+        .route("/cups/{id}/edit", get(cups::cup_edit_page))
         .route("/gear/{id}", get(gear::gear_detail_page))
+        .route("/gear/{id}/edit", get(gear::gear_edit_page))
         .route("/roasters/{slug}", get(roasters::roaster_detail_page))
+        .route("/roasters/{id}/edit", get(roasters::roaster_edit_page))
         .route(
             "/roasters/{roaster_slug}/roasts/{roast_slug}",
             get(roasts::roast_detail_page),
         )
+        .route("/roasts/{id}/edit", get(roasts::roast_edit_page))
         .route("/static/css/styles.css", get(styles))
         .route("/static/js/webauthn.js", get(webauthn_js))
         .route(

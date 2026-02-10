@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
+{% block title %}Brewlog · Edit Gear{% endblock %}
+
+{% block content %}
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Edit Gear</h1>
+    <p class="max-w-2xl text-sm text-text-secondary">Update gear details.</p>
+  </header>
+
+  <section class="rounded-lg border bg-surface p-5">
+    <form
+      class="flex flex-col gap-4"
+      data-signals:_submitting="false"
+      data-signals:_submit-error="''"
+      data-signals:_make="'{{ make }}'"
+      data-signals:_model="'{{ model }}'"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/gear/{{ id }}')"
+      data-on:datastar-fetch="if (!$_submitting) return;
+        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Gear updated'); window.location.href = evt.detail.response.headers.get('location') || '/gear/{{ id }}' }
+        else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
+    >
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Category</span
+          >
+          <span
+            class="input-field bg-surface-alt text-text-secondary cursor-not-allowed"
+            >{{ category }}</span
+          >
+        </div>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Make*</span
+          >
+          <input
+            type="text"
+            name="make"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="Baratza"
+            data-bind:_make
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Model*</span
+          >
+          <input
+            type="text"
+            name="model"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="Encore"
+            data-bind:_model
+          />
+        </label>
+      </div>
+      {{ img::deferred_upload("edit-gear-image", "Gear Image") }}
+      <p
+        data-show="$_submitError"
+        data-text="$_submitError"
+        style="display:none"
+        class="text-sm text-error"
+        role="alert"
+      ></p>
+      <div class="flex items-center justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          data-attr:disabled="$_submitting"
+        >
+          <span data-show="$_submitting" style="display:none"
+            >{{ icons::spinner("h-4 w-4") }}</span
+          >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

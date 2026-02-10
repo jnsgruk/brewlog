@@ -303,6 +303,126 @@ pub struct GearDetailTemplate {
     pub edit_url: String,
 }
 
+// ── Edit page templates ──
+
+#[derive(Template)]
+#[template(path = "pages/edit_roaster.html")]
+pub struct RoasterEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub name: String,
+    pub country: String,
+    pub city: String,
+    pub homepage: String,
+    pub image_url: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "pages/edit_roast.html")]
+pub struct RoastEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub roaster_id: String,
+    pub roaster_name: String,
+    pub name: String,
+    pub origin: String,
+    pub region: String,
+    pub producer: String,
+    pub process: String,
+    pub tasting_notes: String,
+    pub roaster_options: Vec<RoasterOptionView>,
+    pub image_url: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "pages/edit_bag.html")]
+pub struct BagEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub roast_id: String,
+    pub roast_label: String,
+    pub roast_date: String,
+    pub amount: f64,
+    pub roast_options: Vec<RoastOptionView>,
+}
+
+#[derive(Template)]
+#[template(path = "pages/edit_brew.html")]
+pub struct BrewEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub bag_id: String,
+    pub bag_label: String,
+    pub coffee_weight: f64,
+    pub grinder_id: String,
+    pub grind_setting: f64,
+    pub brewer_id: String,
+    pub filter_paper_id: String,
+    pub water_volume: i32,
+    pub water_temp: f64,
+    pub brew_time: i32,
+    pub quick_notes: String,
+    pub bag_options: Vec<BagOptionView>,
+    pub grinder_options: Vec<GearOptionView>,
+    pub brewer_options: Vec<GearOptionView>,
+    pub filter_paper_options: Vec<GearOptionView>,
+    pub quick_note_options: Vec<QuickNoteView>,
+    pub image_url: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "pages/edit_cafe.html")]
+pub struct CafeEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub name: String,
+    pub city: String,
+    pub country: String,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub website: String,
+    pub image_url: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "pages/edit_cup.html")]
+pub struct CupEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub roast_id: String,
+    pub roast_label: String,
+    pub cafe_id: String,
+    pub cafe_label: String,
+    pub roast_options: Vec<RoastOptionView>,
+    pub cafe_options: Vec<CafeOptionView>,
+    pub image_url: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "pages/edit_gear.html")]
+pub struct GearEditTemplate {
+    pub nav_active: &'static str,
+    pub is_authenticated: bool,
+    pub version_info: &'static crate::VersionInfo,
+    pub id: String,
+    pub category: String,
+    pub make: String,
+    pub model: String,
+    pub image_url: Option<String>,
+}
+
 #[derive(Template)]
 #[template(path = "partials/image_upload.html")]
 pub struct ImageUploadTemplate<'a> {

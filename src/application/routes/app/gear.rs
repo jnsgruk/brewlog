@@ -3,12 +3,13 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use tower_cookies::Cookies;
 
+use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::map_app_error;
 use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::domain::ids::GearId;
-use crate::presentation::web::templates::GearDetailTemplate;
+use crate::presentation::web::templates::{GearDetailTemplate, GearEditTemplate};
 use crate::presentation::web::views::GearDetailView;
 
 #[tracing::instrument(skip(state, cookies))]
@@ -36,6 +37,34 @@ pub(crate) async fn gear_detail_page(
         base_url: crate::base_url(),
         edit_url: format!("/gear/{id}/edit"),
         gear: view,
+        image_url,
+    };
+
+    render_html(template).map(IntoResponse::into_response)
+}
+
+#[tracing::instrument(skip(state, _auth_user))]
+pub(crate) async fn gear_edit_page(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    Path(id): Path<GearId>,
+) -> Result<Response, StatusCode> {
+    let gear = state
+        .gear_repo
+        .get(id)
+        .await
+        .map_err(|e| map_app_error(e.into()))?;
+
+    let image_url = resolve_image_url(&state, "gear", i64::from(id)).await;
+
+    let template = GearEditTemplate {
+        nav_active: "",
+        is_authenticated: true,
+        version_info: &crate::VERSION_INFO,
+        id: gear.id.to_string(),
+        category: gear.category.display_label().to_string(),
+        make: gear.make,
+        model: gear.model,
         image_url,
     };
 

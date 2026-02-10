@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
+{% block title %}Brewlog · Edit Cafe{% endblock %}
+
+{% block content %}
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Edit Cafe</h1>
+    <p class="max-w-2xl text-sm text-text-secondary">Update cafe details.</p>
+  </header>
+
+  <section class="rounded-lg border bg-surface p-5">
+    <form
+      class="flex flex-col gap-4"
+      data-signals:_submitting="false"
+      data-signals:_submit-error="''"
+      data-signals:_name="'{{ name }}'"
+      data-signals:_city="'{{ city }}'"
+      data-signals:_country="'{{ country }}'"
+      data-signals:_latitude="{{ latitude }}"
+      data-signals:_longitude="{{ longitude }}"
+      data-signals:_website="'{{ website }}'"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/cafes/{{ id }}')"
+      data-on:datastar-fetch="if (!$_submitting) return;
+        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Cafe updated'); window.location.href = evt.detail.response.headers.get('location') || '/cafes/{{ id }}' }
+        else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Name*</span
+          >
+          <input
+            type="text"
+            name="name"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="Blue Bottle Coffee"
+            data-bind:_name
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >City*</span
+          >
+          <input
+            type="text"
+            name="city"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="San Francisco"
+            data-bind:_city
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Country*</span
+          >
+          <input
+            type="text"
+            name="country"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="United States"
+            data-bind:_country
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Website</span
+          >
+          <input
+            type="url"
+            name="website"
+            class="input-field"
+            placeholder="https://bluebottlecoffee.com"
+            data-bind:_website
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Latitude*</span
+          >
+          <input
+            type="number"
+            name="latitude"
+            step="any"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="37.7749"
+            data-bind:_latitude
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Longitude*</span
+          >
+          <input
+            type="number"
+            name="longitude"
+            step="any"
+            required
+            aria-required="true"
+            class="input-field"
+            placeholder="-122.4194"
+            data-bind:_longitude
+          />
+        </label>
+      </div>
+      {{ img::deferred_upload("edit-cafe-image", "Cafe Image") }}
+      <p
+        data-show="$_submitError"
+        data-text="$_submitError"
+        style="display:none"
+        class="text-sm text-error"
+        role="alert"
+      ></p>
+      <div class="flex items-center justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          data-attr:disabled="$_submitting"
+        >
+          <span data-show="$_submitting" style="display:none"
+            >{{ icons::spinner("h-4 w-4") }}</span
+          >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

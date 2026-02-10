@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
+{% block title %}Brewlog · Edit Cup{% endblock %}
+
+{% block content %}
+  <header class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">Edit Cup</h1>
+    <p class="max-w-2xl text-sm text-text-secondary">Update cup details.</p>
+  </header>
+
+  <section class="rounded-lg border bg-surface p-5">
+    <form
+      class="flex flex-col gap-4"
+      data-signals:_submitting="false"
+      data-signals:_submit-error="''"
+      data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/cups/{{ id }}')"
+      data-on:datastar-fetch="if (!$_submitting) return;
+        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Cup updated'); window.location.href = evt.detail.response.headers.get('location') || '/cups/{{ id }}' }
+        else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Coffee*</span
+          >
+          <searchable-select
+            name="roast_id"
+            placeholder="Type to search roasts&hellip;"
+            initial-value="{{ roast_id }}"
+          >
+            {% for roast in roast_options %}
+              <button
+                type="button"
+                value="{{ roast.id }}"
+                data-display="{{ roast.name }}"
+                class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+              >
+                <span class="font-medium text-text">{{ roast.name }}</span>
+                <span class="ml-2 text-xs text-text-muted"
+                  >{{ roast.roaster_name }}</span
+                >
+              </button>
+            {% endfor %}
+          </searchable-select>
+        </div>
+        <div class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Cafe*</span
+          >
+          <searchable-select
+            name="cafe_id"
+            placeholder="Type to search cafes&hellip;"
+            initial-value="{{ cafe_id }}"
+          >
+            {% for cafe in cafe_options %}
+              <button
+                type="button"
+                value="{{ cafe.id }}"
+                data-display="{{ cafe.name }}"
+                class="w-full px-3 py-2 text-left text-sm hover:bg-surface-alt transition"
+              >
+                <span class="font-medium text-text">{{ cafe.name }}</span>
+                <span class="ml-2 text-xs text-text-muted"
+                  >{{ cafe.city }}</span
+                >
+              </button>
+            {% endfor %}
+          </searchable-select>
+        </div>
+      </div>
+      {{ img::deferred_upload("edit-cup-image", "Cup Image") }}
+      <p
+        data-show="$_submitError"
+        data-text="$_submitError"
+        style="display:none"
+        class="text-sm text-error"
+        role="alert"
+      ></p>
+      <div class="flex items-center justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          data-attr:disabled="$_submitting"
+        >
+          <span data-show="$_submitting" style="display:none"
+            >{{ icons::spinner("h-4 w-4") }}</span
+          >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </section>
+{% endblock %}
