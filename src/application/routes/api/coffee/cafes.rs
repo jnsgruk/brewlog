@@ -10,8 +10,10 @@ use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_get_handler, define_list_fragment_renderer,
 };
+use crate::application::routes::support::impl_has_changes;
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
+    update_response, validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
@@ -175,6 +177,10 @@ impl UpdateCafeSubmission {
     }
 }
 
+impl_has_changes!(
+    UpdateCafe, name, city, country, latitude, longitude, website, created_at
+);
+
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_cafe(
     State(state): State<AppState>,
@@ -186,18 +192,7 @@ pub(crate) async fn update_cafe(
     let (submission, source) = payload.into_parts();
     let (update, image_data_url) = submission.into_parts();
 
-    let has_changes = update.name.is_some()
-        || update.city.is_some()
-        || update.country.is_some()
-        || update.latitude.is_some()
-        || update.longitude.is_some()
-        || update.website.is_some()
-        || update.created_at.is_some()
-        || image_data_url.is_some();
-
-    if !has_changes {
-        return Err(AppError::validation("no changes provided").into());
-    }
+    validate_update(&update, image_data_url.as_ref())?;
 
     let cafe = state
         .cafe_repo
@@ -216,14 +211,7 @@ pub(crate) async fn update_cafe(
     .await;
 
     let detail_url = format!("/cafes/{}", cafe.slug);
-
-    if is_datastar_request(&headers) {
-        render_redirect_script(&detail_url).map_err(ApiError::from)
-    } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to(&detail_url).into_response())
-    } else {
-        Ok(Json(cafe).into_response())
-    }
+    update_response(&headers, source, &detail_url, Json(cafe).into_response())
 }
 
 define_delete_handler!(

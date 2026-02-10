@@ -11,8 +11,10 @@ use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
 };
+use crate::application::routes::support::impl_has_changes;
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
+    validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
@@ -116,6 +118,8 @@ impl UpdateCupSubmission {
     }
 }
 
+impl_has_changes!(UpdateCup, roast_id, cafe_id, created_at);
+
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_cup(
     State(state): State<AppState>,
@@ -127,14 +131,7 @@ pub(crate) async fn update_cup(
     let (submission, source) = payload.into_parts();
     let (update, image_data_url) = submission.into_parts();
 
-    let has_changes = update.roast_id.is_some()
-        || update.cafe_id.is_some()
-        || update.created_at.is_some()
-        || image_data_url.is_some();
-
-    if !has_changes {
-        return Err(AppError::validation("no changes provided").into());
-    }
+    validate_update(&update, image_data_url.as_ref())?;
 
     let cup = state
         .cup_repo

@@ -1,7 +1,7 @@
 use askama::Template;
 use axum::extract::{Form, FromRequest, Json as JsonPayload, Request};
 use axum::http::{HeaderMap, HeaderValue, header::CONTENT_TYPE};
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{Html, IntoResponse, Redirect, Response};
 use serde::Deserialize;
 use tracing::warn;
 
@@ -29,6 +29,50 @@ pub struct FlexiblePayload<T> {
 impl<T> FlexiblePayload<T> {
     pub fn into_parts(self) -> (T, PayloadSource) {
         (self.inner, self.source)
+    }
+}
+
+/// Trait for update structs that can report whether any field was set.
+pub(crate) trait HasChanges {
+    fn has_changes(&self) -> bool;
+}
+
+/// Implement `HasChanges` for an update struct by checking `is_some()` on each field.
+macro_rules! impl_has_changes {
+    ($type:ty, $($field:ident),+) => {
+        impl $crate::application::routes::support::HasChanges for $type {
+            fn has_changes(&self) -> bool {
+                $(self.$field.is_some())||+
+            }
+        }
+    };
+}
+pub(crate) use impl_has_changes;
+
+/// Return `400 Bad Request` if neither the update struct nor the image has any changes.
+pub(crate) fn validate_update<T: HasChanges>(
+    update: &T,
+    image: Option<&String>,
+) -> Result<(), ApiError> {
+    if !update.has_changes() && image.is_none() {
+        return Err(AppError::validation("no changes provided").into());
+    }
+    Ok(())
+}
+
+/// Three-way response for update handlers: Datastar redirect, form redirect, or JSON.
+pub(crate) fn update_response(
+    headers: &HeaderMap,
+    source: PayloadSource,
+    detail_url: &str,
+    json_body: Response,
+) -> Result<Response, ApiError> {
+    if is_datastar_request(headers) {
+        render_redirect_script(detail_url).map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(detail_url).into_response())
+    } else {
+        Ok(json_body)
     }
 }
 

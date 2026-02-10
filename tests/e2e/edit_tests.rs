@@ -662,7 +662,7 @@ async fn edit_form_cancel_navigates_back() {
     // Click Cancel
     let cancel_btn = session
         .driver
-        .find(By::XPath("//button[contains(text(), 'Cancel')]"))
+        .find(By::Css("button[onclick='history.back()']"))
         .await
         .unwrap();
     cancel_btn.click().await.unwrap();

@@ -11,7 +11,8 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+    FlexiblePayload, ListQuery, PayloadSource, impl_has_changes, is_datastar_request,
+    validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
@@ -156,6 +157,17 @@ impl UpdateBagSubmission {
     }
 }
 
+impl_has_changes!(
+    UpdateBag,
+    roast_id,
+    roast_date,
+    amount,
+    remaining,
+    closed,
+    finished_at,
+    created_at
+);
+
 #[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
 pub(crate) async fn update_bag(
     State(state): State<AppState>,
@@ -179,6 +191,8 @@ pub(crate) async fn update_bag(
         finished_at: body_update.finished_at.or(update_params.finished_at),
         created_at: body_update.created_at,
     };
+
+    validate_update(&update, image_data_url.as_ref())?;
 
     // When the bag amount changes, recompute remaining based on how much has been consumed.
     if let Some(new_amount) = update.amount

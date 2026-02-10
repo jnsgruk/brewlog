@@ -14,8 +14,10 @@ use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_get_handler, define_list_fragment_renderer,
 };
+use crate::application::routes::support::impl_has_changes;
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
+    update_response, validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
@@ -148,6 +150,8 @@ impl UpdateGearSubmission {
     }
 }
 
+impl_has_changes!(UpdateGear, make, model, created_at);
+
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_gear(
     State(state): State<AppState>,
@@ -159,14 +163,7 @@ pub(crate) async fn update_gear(
     let (submission, source) = payload.into_parts();
     let (update, image_data_url) = submission.into_parts();
 
-    let has_changes = update.make.is_some()
-        || update.model.is_some()
-        || update.created_at.is_some()
-        || image_data_url.is_some();
-
-    if !has_changes {
-        return Err(AppError::validation("no changes provided").into());
-    }
+    validate_update(&update, image_data_url.as_ref())?;
 
     let gear = state
         .gear_repo
@@ -186,14 +183,7 @@ pub(crate) async fn update_gear(
     .await;
 
     let detail_url = format!("/gear/{}", gear.id);
-
-    if is_datastar_request(&headers) {
-        render_redirect_script(&detail_url).map_err(ApiError::from)
-    } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to(&detail_url).into_response())
-    } else {
-        Ok(Json(gear).into_response())
-    }
+    update_response(&headers, source, &detail_url, Json(gear).into_response())
 }
 
 define_delete_handler!(

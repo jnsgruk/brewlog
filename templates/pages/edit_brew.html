@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "partials/icons.html" as icons %}
 {% import "partials/image_section.html" as img %}
+{% import "partials/detail_cards.html" as detail_cards %}
 {% block title %}Brewlog · Edit Brew{% endblock %}
 
 {% block content %}
@@ -361,35 +362,7 @@
       </div>
 
       {{ img::deferred_upload_with_preview("edit-brew-image", "Brew Image", "brew", id, image_url) }}
-      <p
-        data-show="$_submitError"
-        data-text="$_submitError"
-        style="display:none"
-        class="text-sm text-error"
-        role="alert"
-      ></p>
-      <div
-        data-show="$_submitting"
-        style="display:none"
-        class="flex items-center justify-center gap-3 py-2 text-sm text-accent"
-      >
-        {{ icons::spinner("h-5 w-5") }} Saving&hellip;
-      </div>
-      <div class="flex flex-col gap-2" data-show="!$_submitting">
-        <button
-          type="submit"
-          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
-        >
-          {{ icons::check("h-4 w-4") }} Save Changes
-        </button>
-        <button
-          type="button"
-          onclick="history.back()"
-          class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-        >
-          {{ icons::x_mark("h-4 w-4") }} Cancel
-        </button>
-      </div>
+      {{ detail_cards::edit_form_actions() }}
     </form>
   </section>
 {% endblock %}

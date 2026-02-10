@@ -11,7 +11,8 @@ use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+    FlexiblePayload, ListQuery, PayloadSource, impl_has_changes, is_datastar_request,
+    validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::bags::BagFilter;
@@ -375,6 +376,21 @@ impl UpdateBrewSubmission {
     }
 }
 
+impl_has_changes!(
+    UpdateBrew,
+    bag_id,
+    coffee_weight,
+    grinder_id,
+    grind_setting,
+    brewer_id,
+    filter_paper_id,
+    water_volume,
+    water_temp,
+    quick_notes,
+    brew_time,
+    created_at
+);
+
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_brew(
     State(state): State<AppState>,
@@ -386,22 +402,7 @@ pub(crate) async fn update_brew(
     let (submission, source) = payload.into_parts();
     let (update, image_data_url) = submission.into_parts();
 
-    let has_changes = update.bag_id.is_some()
-        || update.coffee_weight.is_some()
-        || update.grinder_id.is_some()
-        || update.grind_setting.is_some()
-        || update.brewer_id.is_some()
-        || update.filter_paper_id.is_some()
-        || update.water_volume.is_some()
-        || update.water_temp.is_some()
-        || update.quick_notes.is_some()
-        || update.brew_time.is_some()
-        || update.created_at.is_some()
-        || image_data_url.is_some();
-
-    if !has_changes {
-        return Err(AppError::validation("no changes provided").into());
-    }
+    validate_update(&update, image_data_url.as_ref())?;
 
     state
         .brew_repo
@@ -414,12 +415,6 @@ pub(crate) async fn update_brew(
 
     save_deferred_image(&state, "brew", i64::from(id), image_data_url.as_deref()).await;
 
-    let enriched = state
-        .brew_repo
-        .get_with_details(id)
-        .await
-        .map_err(AppError::from)?;
-
     let detail_url = format!("/brews/{id}");
 
     if is_datastar_request(&headers) {
@@ -428,6 +423,11 @@ pub(crate) async fn update_brew(
     } else if matches!(source, PayloadSource::Form) {
         Ok(Redirect::to(&detail_url).into_response())
     } else {
+        let enriched = state
+            .brew_repo
+            .get_with_details(id)
+            .await
+            .map_err(AppError::from)?;
         Ok(Json(enriched).into_response())
     }
 }

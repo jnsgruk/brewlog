@@ -12,7 +12,8 @@ use crate::application::routes::api::macros::{
     define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
 };
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
+    FlexiblePayload, ListQuery, PayloadSource, impl_has_changes, is_datastar_request,
+    render_redirect_script, validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::ids::{RoastId, RoasterId};
@@ -214,6 +215,18 @@ impl UpdateRoastSubmission {
     }
 }
 
+impl_has_changes!(
+    UpdateRoast,
+    roaster_id,
+    name,
+    origin,
+    region,
+    producer,
+    tasting_notes,
+    process,
+    created_at
+);
+
 #[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_roast(
     State(state): State<AppState>,
@@ -225,19 +238,7 @@ pub(crate) async fn update_roast(
     let (submission, source) = payload.into_parts();
     let (update, image_data_url) = submission.into_parts();
 
-    let has_changes = update.roaster_id.is_some()
-        || update.name.is_some()
-        || update.origin.is_some()
-        || update.region.is_some()
-        || update.producer.is_some()
-        || update.tasting_notes.is_some()
-        || update.process.is_some()
-        || update.created_at.is_some()
-        || image_data_url.is_some();
-
-    if !has_changes {
-        return Err(AppError::validation("no changes provided").into());
-    }
+    validate_update(&update, image_data_url.as_ref())?;
 
     state
         .roast_repo
