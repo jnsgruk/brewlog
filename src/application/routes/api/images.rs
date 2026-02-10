@@ -105,6 +105,12 @@ pub(crate) async fn upload_image(
 
     let (upload, _source) = payload.into_parts();
 
+    let _permit = state
+        .image_semaphore
+        .acquire()
+        .await
+        .map_err(|_| AppError::unexpected("image processing unavailable"))?;
+
     let image_data = upload.image;
     let processed = tokio::task::spawn_blocking(move || process_data_url(&image_data))
         .await
@@ -235,6 +241,15 @@ pub(crate) async fn save_deferred_image(
     let Some(data_url) = data_url.filter(|s| !s.is_empty()) else {
         return;
     };
+    let Ok(_permit) = state.image_semaphore.acquire().await else {
+        tracing::warn!(
+            entity_type,
+            entity_id,
+            "image semaphore closed, skipping deferred image"
+        );
+        return;
+    };
+
     let data_url = data_url.to_string();
     let processed = match tokio::task::spawn_blocking(move || process_data_url(&data_url)).await {
         Ok(Ok(p)) => p,

@@ -82,6 +82,7 @@ pub struct AppState {
     pub cup_service: CupService,
     pub insecure_cookies: bool,
     pub stats_invalidator: StatsInvalidator,
+    pub image_semaphore: Arc<tokio::sync::Semaphore>,
 }
 
 impl AppState {
@@ -172,6 +173,7 @@ impl AppState {
             cup_service,
             insecure_cookies: config.insecure_cookies,
             stats_invalidator: config.stats_invalidator,
+            image_semaphore: Arc::new(tokio::sync::Semaphore::new(4)),
         }
     }
 }
