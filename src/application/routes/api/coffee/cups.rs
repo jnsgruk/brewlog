@@ -47,7 +47,7 @@ pub(crate) async fn load_cup_page(
     ))
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
+#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
 pub(crate) async fn create_cup(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -116,7 +116,7 @@ impl UpdateCupSubmission {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers))]
+#[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_cup(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

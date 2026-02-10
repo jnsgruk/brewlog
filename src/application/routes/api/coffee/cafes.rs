@@ -87,7 +87,7 @@ impl NewCafeSubmission {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
+#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
 pub(crate) async fn create_cafe(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -175,7 +175,7 @@ impl UpdateCafeSubmission {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers))]
+#[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_cafe(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

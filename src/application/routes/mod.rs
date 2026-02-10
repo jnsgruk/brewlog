@@ -56,7 +56,7 @@ pub fn app_router(state: AppState) -> axum::Router {
                          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; \
                          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
                          font-src 'self' https://fonts.gstatic.com; \
-                         img-src 'self' data:; \
+                         img-src 'self' data: blob:; \
                          frame-ancestors 'none'",
                     ),
                 ))

@@ -50,7 +50,28 @@ customElements.define(
         // Deferred mode: store data URL in a target hidden input
         const targetId = this.getAttribute("target-input");
         if (targetId) {
-          document.getElementById(targetId).value = dataUrl;
+          const hiddenInput = document.getElementById(targetId);
+          hiddenInput.value = dataUrl;
+
+          // Remove existing server image preview (edit forms)
+          const existing = document.getElementById(`${targetId}-existing`);
+          if (existing) {
+            existing.remove();
+            // Create standalone preview after the hidden input since
+            // the Replace button (this element) was inside the removed container
+            let preview = hiddenInput.nextElementSibling;
+            if (
+              !preview ||
+              !preview.classList.contains("image-upload-preview")
+            ) {
+              preview = document.createElement("div");
+              preview.className =
+                "image-upload-preview h-48 w-full bg-cover bg-center rounded-lg border";
+              hiddenInput.insertAdjacentElement("afterend", preview);
+            }
+            preview.style.backgroundImage = `url('${dataUrl}')`;
+            return;
+          }
         }
         this._showPreview(dataUrl);
       }

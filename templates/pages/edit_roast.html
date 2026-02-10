@@ -22,7 +22,7 @@
       data-signals:_tasting-notes="'{{ tasting_notes }}'"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/roasts/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
-        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Roast updated'); window.location.href = evt.detail.response.headers.get('location') || '/roasts/{{ id }}' }
+        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Roast updated') }
         else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
     >
       <div class="flex flex-col gap-1 text-sm">
@@ -139,7 +139,7 @@
           ></textarea>
         </label>
       </div>
-      {{ img::deferred_upload("edit-roast-image", "Roast Image") }}
+      {{ img::deferred_upload_with_preview("edit-roast-image", "Roast Image", "roast", id, image_url) }}
       <p
         data-show="$_submitError"
         data-text="$_submitError"
@@ -147,16 +147,24 @@
         class="text-sm text-error"
         role="alert"
       ></p>
-      <div class="flex items-center justify-end">
+      <div class="flex flex-col gap-2">
         <button
           type="submit"
-          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
           data-attr:disabled="$_submitting"
         >
           <span data-show="$_submitting" style="display:none"
             >{{ icons::spinner("h-4 w-4") }}</span
           >
+          <span data-show="!$_submitting">{{ icons::check("h-4 w-4") }}</span>
           Save Changes
+        </button>
+        <button
+          type="button"
+          onclick="history.back()"
+          class="inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+        >
+          Cancel
         </button>
       </div>
     </form>

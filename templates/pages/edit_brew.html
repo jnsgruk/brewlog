@@ -27,7 +27,7 @@
       data-signals:_qn-over-extracted="{% if quick_notes.contains("over-extracted") %}true{% else %}false{% endif %}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/brews/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
-        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Brew updated'); window.location.href = evt.detail.response.headers.get('location') || '/brews/{{ id }}' }
+        if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Brew updated') }
         else if (evt.detail.type === 'error') { $_submitting = false; $_submitError = 'Failed to save changes.' }"
     >
       <!-- Coffee -->
@@ -273,28 +273,31 @@
           <div class="flex flex-col gap-1 text-sm">
             <span
               class="text-xs font-semibold text-text-muted uppercase tracking-wide"
-              >Time (s)</span
+              >Time</span
             >
             <div class="flex items-center gap-2">
               <button
                 type="button"
                 class="btn-adjust"
-                data-on:click="$_brewTime = Math.max(5, Number($_brewTime) - 5)"
+                data-on:click="$_brewTime = Math.max(5, $_brewTime - 5)"
               >
                 -
               </button>
               <input
-                type="number"
+                type="hidden"
                 name="brew_time"
-                step="1"
-                min="0"
+                data-attr:value="$_brewTime"
+              />
+              <input
+                type="text"
+                readonly
                 class="input-field flex-1 text-center"
-                data-bind:_brew-time
+                data-attr:value="Math.floor($_brewTime / 60) + ':' + String($_brewTime % 60).padStart(2, '0')"
               />
               <button
                 type="button"
                 class="btn-adjust"
-                data-on:click="$_brewTime = Number($_brewTime) + 5"
+                data-on:click="$_brewTime = $_brewTime + 5"
               >
                 +
               </button>
@@ -357,7 +360,7 @@
         />
       </div>
 
-      {{ img::deferred_upload("edit-brew-image", "Brew Image") }}
+      {{ img::deferred_upload_with_preview("edit-brew-image", "Brew Image", "brew", id, image_url) }}
       <p
         data-show="$_submitError"
         data-text="$_submitError"
@@ -365,16 +368,24 @@
         class="text-sm text-error"
         role="alert"
       ></p>
-      <div class="flex items-center justify-end">
+      <div class="flex flex-col gap-2">
         <button
           type="submit"
-          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
           data-attr:disabled="$_submitting"
         >
           <span data-show="$_submitting" style="display:none"
             >{{ icons::spinner("h-4 w-4") }}</span
           >
+          <span data-show="!$_submitting">{{ icons::check("h-4 w-4") }}</span>
           Save Changes
+        </button>
+        <button
+          type="button"
+          onclick="history.back()"
+          class="inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+        >
+          Cancel
         </button>
       </div>
     </form>

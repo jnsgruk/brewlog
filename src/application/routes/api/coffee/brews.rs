@@ -238,7 +238,7 @@ impl NewBrewSubmission {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
+#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
 pub(crate) async fn create_brew(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -375,7 +375,7 @@ impl UpdateBrewSubmission {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers))]
+#[tracing::instrument(skip(state, _auth_user, headers, payload))]
 pub(crate) async fn update_brew(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

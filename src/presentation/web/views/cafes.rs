@@ -11,6 +11,7 @@ pub struct CafeDetailView {
     pub country: String,
     pub country_flag: String,
     pub website: Option<String>,
+    pub map_url: String,
     pub map_countries: String,
     pub map_max: u32,
     pub legend_entries: Vec<LegendEntry>,
@@ -24,6 +25,10 @@ impl CafeDetailView {
             .map(iso_to_flag_emoji)
             .unwrap_or_default();
         let (map_countries, map_max) = build_map_data(&[(&cafe.country, 1)]);
+        let map_url = format!(
+            "https://www.google.com/maps?q={},{}",
+            cafe.latitude, cafe.longitude
+        );
 
         Self {
             id: cafe.id.to_string(),
@@ -32,6 +37,7 @@ impl CafeDetailView {
             country_flag,
             country: cafe.country,
             website: cafe.website,
+            map_url,
             map_countries,
             map_max,
             legend_entries: vec![LegendEntry {

@@ -60,6 +60,7 @@ pub struct CupDetailView {
     pub cafe_country: String,
     pub cafe_country_flag: String,
     pub cafe_website: Option<String>,
+    pub cafe_map_url: String,
     // Map
     pub map_countries: String,
     pub map_max: u32,
@@ -111,6 +112,10 @@ impl CupDetailView {
             cafe_country: cafe.country.clone(),
             cafe_country_flag,
             cafe_website: cafe.website.clone(),
+            cafe_map_url: format!(
+                "https://www.google.com/maps?q={},{}",
+                cafe.latitude, cafe.longitude
+            ),
             roaster_slug: roaster.slug.clone(),
             roast_slug: roast.slug.clone(),
             cafe_slug: cafe.slug.clone(),

@@ -62,12 +62,26 @@
         <div>
           <dt class="text-text-muted">Country</dt>
           <dd class="font-medium text-text">
-            {% if !cup.cafe_country_flag.is_empty() %}{{ cup.cafe_country_flag }}{% endif %}{{ cup.cafe_country }}
+            {% if !cup.cafe_country_flag.is_empty() %}
+              <span class="mr-1">{{ cup.cafe_country_flag }}</span>
+            {% endif %}{{ cup.cafe_country }}
           </dd>
         </div>
         <div>
           <dt class="text-text-muted">City</dt>
           <dd class="font-medium text-text">{{ cup.cafe_city }}</dd>
+        </div>
+        <div>
+          <dt class="text-text-muted">Location</dt>
+          <dd class="font-medium">
+            <a
+              href="{{ cup.cafe_map_url }}"
+              target="_blank"
+              rel="noreferrer noopener"
+              class="text-accent hover:text-accent-hover transition"
+              >View on Map</a
+            >
+          </dd>
         </div>
         {% if let Some(url) = cup.cafe_website %}
           <div>

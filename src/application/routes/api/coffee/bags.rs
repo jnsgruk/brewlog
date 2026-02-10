@@ -52,7 +52,7 @@ pub(crate) async fn load_bag_page(
     Ok(BagPageData { bags, navigator })
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
+#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
 pub(crate) async fn create_bag(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -156,7 +156,7 @@ impl UpdateBagSubmission {
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query))]
+#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
 pub(crate) async fn update_bag(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
