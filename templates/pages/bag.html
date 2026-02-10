@@ -32,7 +32,7 @@
   {# ── Coffee + map ── #}
   <div class="grid gap-6 md:grid-cols-2">
     {{ detail::coffee_card(bag.roast_name, bag.roaster_name, bag.origin, bag.origin_flag, bag.region, bag.producer, bag.process, bag.tasting_notes, roaster_slug, roast_slug) }}
-    {{ detail::map_with_legend_2(bag.map_countries, bag.map_max, "Origin", "", "Roaster", "opacity-50") }}
+    {{ detail::map_with_legend(bag.map_countries, bag.map_max, bag.legend_entries) }}
   </div>
 
   {# ── Roaster & bag info ── #}

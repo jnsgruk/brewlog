@@ -63,18 +63,10 @@
       </dl>
     </div>
 
-    {{ detail::map_with_legend_1(roaster.map_countries, roaster.map_max, "Roaster", "") }}
+    {{ detail::map_with_legend(roaster.map_countries, roaster.map_max, roaster.legend_entries) }}
   </div>
 
   {% if is_authenticated %}
-    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
-        data-on:click="confirm('Delete this roaster? This cannot be undone.') && @delete('/api/v1/roasters/{{ roaster.id }}')"
-      >
-        {{ icons::delete("h-4 w-4") }} Delete
-      </button>
-    </div>
+    {{ detail::delete_button("roaster", "/api/v1/roasters", roaster.id) }}
   {% endif %}
 {% endblock %}

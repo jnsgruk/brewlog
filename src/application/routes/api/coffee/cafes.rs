@@ -10,7 +10,7 @@ use crate::application::routes::api::macros::{
     define_delete_handler, define_get_handler, define_list_fragment_renderer,
 };
 use crate::application::routes::support::{
-    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request,
+    FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
 };
 use crate::application::state::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
@@ -89,16 +89,7 @@ pub(crate) async fn create_cafe(
                 .await
                 .map_err(ApiError::from)
         } else {
-            use axum::http::header::HeaderValue;
-            let script = format!("<script>window.location.href='{detail_url}'</script>");
-            let mut response = axum::response::Html(script).into_response();
-            response
-                .headers_mut()
-                .insert("datastar-selector", HeaderValue::from_static("body"));
-            response
-                .headers_mut()
-                .insert("datastar-mode", HeaderValue::from_static("append"));
-            Ok(response)
+            render_redirect_script(&detail_url).map_err(ApiError::from)
         }
     } else if matches!(source, PayloadSource::Form) {
         Ok(Redirect::to(&detail_url).into_response())

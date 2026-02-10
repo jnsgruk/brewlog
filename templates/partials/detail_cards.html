@@ -99,7 +99,7 @@
   </div>
 {% endmacro %}
 
-{% macro map_with_legend_1(map_countries, map_max, label1, opacity1) %}
+{% macro map_with_legend(map_countries, map_max, legends) %}
   {% if !map_countries.is_empty() %}
     <div
       class="relative rounded-lg border bg-surface overflow-hidden flex items-center"
@@ -112,81 +112,29 @@
       <div
         class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted"
       >
-        <span class="inline-flex items-center gap-1">
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"
-          ></span>
-          {{ label1 }}
-        </span>
+        {% for entry in legends %}
+          <span class="inline-flex items-center gap-1">
+            <span
+              class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ entry.opacity }}"
+            ></span>
+            {{ entry.label }}
+          </span>
+        {% endfor %}
       </div>
     </div>
   {% endif %}
 {% endmacro %}
 
-{% macro map_with_legend_2(map_countries, map_max, label1, opacity1, label2, opacity2) %}
-  {% if !map_countries.is_empty() %}
-    <div
-      class="relative rounded-lg border bg-surface overflow-hidden flex items-center"
+{% macro delete_button(entity_label, api_path, id) %}
+  <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
+    <button
+      type="button"
+      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
+      data-on:click="confirm('Delete this {{ entity_label }}? This cannot be undone.') && @delete('{{ api_path }}/{{ id }}')"
     >
-      <world-map
-        class="block w-full"
-        data-countries="{{ map_countries }}"
-        data-max="{{ map_max }}"
-      ></world-map>
-      <div
-        class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted"
-      >
-        <span class="inline-flex items-center gap-1">
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"
-          ></span>
-          {{ label1 }}
-        </span>
-        <span class="inline-flex items-center gap-1">
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity2 }}"
-          ></span>
-          {{ label2 }}
-        </span>
-      </div>
-    </div>
-  {% endif %}
-{% endmacro %}
-
-{% macro map_with_legend_3(map_countries, map_max, label1, opacity1, label2, opacity2, label3, opacity3) %}
-  {% if !map_countries.is_empty() %}
-    <div
-      class="relative rounded-lg border bg-surface overflow-hidden flex items-center"
-    >
-      <world-map
-        class="block w-full"
-        data-countries="{{ map_countries }}"
-        data-max="{{ map_max }}"
-      ></world-map>
-      <div
-        class="absolute top-2 right-2 flex flex-col gap-1 text-2xs text-text-muted"
-      >
-        <span class="inline-flex items-center gap-1">
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity1 }}"
-          ></span>
-          {{ label1 }}
-        </span>
-        <span class="inline-flex items-center gap-1">
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity2 }}"
-          ></span>
-          {{ label2 }}
-        </span>
-        <span class="inline-flex items-center gap-1">
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-sm bg-accent {{ opacity3 }}"
-          ></span>
-          {{ label3 }}
-        </span>
-      </div>
-    </div>
-  {% endif %}
+      {{ icons::delete("h-4 w-4") }} Delete
+    </button>
+  </div>
 {% endmacro %}
 
 {% macro roaster_card(name, country, country_flag, city, homepage, roaster_slug) %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · {{ gear.make }} {{ gear.model }}{% endblock %}
 {% block og_title %}{{ gear.make }} {{ gear.model }} — Brewlog{% endblock %}
@@ -44,14 +45,6 @@
   </div>
 
   {% if is_authenticated %}
-    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
-        data-on:click="confirm('Delete this gear? This cannot be undone.') && @delete('/api/v1/gear/{{ gear.id }}')"
-      >
-        {{ icons::delete("h-4 w-4") }} Delete
-      </button>
-    </div>
+    {{ detail::delete_button("gear", "/api/v1/gear", gear.id) }}
   {% endif %}
 {% endblock %}

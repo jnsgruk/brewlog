@@ -27,7 +27,7 @@
 
   <div class="grid gap-6 md:grid-cols-2">
     {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes, roaster_slug, "") }}
-    {{ detail::map_with_legend_2(roast.map_countries, roast.map_max, "Origin", "", "Roaster", "opacity-50") }}
+    {{ detail::map_with_legend(roast.map_countries, roast.map_max, roast.legend_entries) }}
   </div>
 
   <div class="grid gap-6 md:grid-cols-2">
@@ -35,14 +35,6 @@
   </div>
 
   {% if is_authenticated %}
-    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
-        data-on:click="confirm('Delete this roast? This cannot be undone.') && @delete('/api/v1/roasts/{{ roast.id }}')"
-      >
-        {{ icons::delete("h-4 w-4") }} Delete
-      </button>
-    </div>
+    {{ detail::delete_button("roast", "/api/v1/roasts", roast.id) }}
   {% endif %}
 {% endblock %}

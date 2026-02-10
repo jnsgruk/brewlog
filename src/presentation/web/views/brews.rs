@@ -6,7 +6,7 @@ use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 
 use super::tasting_notes::TastingNoteView;
-use super::{build_coffee_info, build_map_data, build_roaster_info, relative_date};
+use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info, relative_date};
 
 #[derive(Clone)]
 pub struct QuickNoteView {
@@ -222,6 +222,7 @@ pub struct BrewDetailView {
     // Map
     pub map_countries: String,
     pub map_max: u32,
+    pub legend_entries: Vec<LegendEntry>,
     // Slugs (for breadcrumbs)
     pub roaster_slug: String,
     pub roast_slug: String,
@@ -279,6 +280,16 @@ impl BrewDetailView {
             filter_paper_name: brew.filter_paper_name,
             map_countries,
             map_max,
+            legend_entries: vec![
+                LegendEntry {
+                    label: "Origin",
+                    opacity: "",
+                },
+                LegendEntry {
+                    label: "Roaster",
+                    opacity: "opacity-50",
+                },
+            ],
             created_date: brew.brew.created_at.format("%Y-%m-%d").to_string(),
             created_time: brew.brew.created_at.format("%H:%M").to_string(),
         }

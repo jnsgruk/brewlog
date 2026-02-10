@@ -6,7 +6,9 @@ use serde::Deserialize;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
-use crate::application::routes::support::{FlexiblePayload, PayloadSource, is_datastar_request};
+use crate::application::routes::support::{
+    FlexiblePayload, PayloadSource, is_datastar_request, render_redirect_script,
+};
 use crate::application::state::AppState;
 use crate::domain::cafes::NewCafe;
 use crate::domain::cups::NewCup;
@@ -92,16 +94,7 @@ pub(crate) async fn submit_checkin(
     let detail_url = format!("/cups/{}", cup.id);
 
     if is_datastar_request(&headers) {
-        use axum::http::header::HeaderValue;
-        let script = format!("<script>window.location.href='{detail_url}'</script>");
-        let mut response = axum::response::Html(script).into_response();
-        response
-            .headers_mut()
-            .insert("datastar-selector", HeaderValue::from_static("body"));
-        response
-            .headers_mut()
-            .insert("datastar-mode", HeaderValue::from_static("append"));
-        Ok(response)
+        render_redirect_script(&detail_url).map_err(ApiError::from)
     } else if matches!(source, PayloadSource::Form) {
         Ok(Redirect::to(&detail_url).into_response())
     } else {

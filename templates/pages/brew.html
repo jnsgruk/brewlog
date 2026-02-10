@@ -34,7 +34,7 @@
   {# ── Coffee + map ── #}
   <div class="grid gap-6 md:grid-cols-2">
     {{ detail::coffee_card(brew.roast_name, brew.roaster_name, brew.origin, brew.origin_flag, brew.region, brew.producer, brew.process, brew.tasting_notes, roaster_slug, roast_slug) }}
-    {{ detail::map_with_legend_2(brew.map_countries, brew.map_max, "Origin", "", "Roaster", "opacity-50") }}
+    {{ detail::map_with_legend(brew.map_countries, brew.map_max, brew.legend_entries) }}
   </div>
 
   {# ── Roaster & gear ── #}
@@ -100,14 +100,6 @@
   </div>
 
   {% if is_authenticated %}
-    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
-        data-on:click="confirm('Delete this brew? This cannot be undone.') && @delete('/api/v1/brews/{{ brew.id }}')"
-      >
-        {{ icons::delete("h-4 w-4") }} Delete
-      </button>
-    </div>
+    {{ detail::delete_button("brew", "/api/v1/brews", brew.id) }}
   {% endif %}
 {% endblock %}

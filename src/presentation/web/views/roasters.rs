@@ -1,7 +1,7 @@
 use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::roasters::Roaster;
 
-use super::build_map_data;
+use super::{LegendEntry, build_map_data};
 
 pub struct RoasterDetailView {
     pub id: String,
@@ -12,6 +12,7 @@ pub struct RoasterDetailView {
     pub homepage: Option<String>,
     pub map_countries: String,
     pub map_max: u32,
+    pub legend_entries: Vec<LegendEntry>,
     pub created_date: String,
     pub created_time: String,
 }
@@ -32,6 +33,10 @@ impl RoasterDetailView {
             homepage: roaster.homepage,
             map_countries,
             map_max,
+            legend_entries: vec![LegendEntry {
+                label: "Roaster",
+                opacity: "",
+            }],
             created_date: roaster.created_at.format("%Y-%m-%d").to_string(),
             created_time: roaster.created_at.format("%H:%M").to_string(),
         }

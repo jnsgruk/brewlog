@@ -361,6 +361,12 @@ fn page_size_from_text(value: &str) -> PageSize {
     }
 }
 
+/// A label + opacity pair for map legend entries on detail pages.
+pub struct LegendEntry {
+    pub label: &'static str,
+    pub opacity: &'static str,
+}
+
 /// Shared coffee info fields extracted from a `Roast` for detail pages.
 pub(crate) struct CoffeeInfo {
     pub origin: String,

@@ -56,18 +56,10 @@
       </dl>
     </div>
 
-    {{ detail::map_with_legend_1(cafe.map_countries, cafe.map_max, "Cafe", "") }}
+    {{ detail::map_with_legend(cafe.map_countries, cafe.map_max, cafe.legend_entries) }}
   </div>
 
   {% if is_authenticated %}
-    <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
-        data-on:click="confirm('Delete this cafe? This cannot be undone.') && @delete('/api/v1/cafes/{{ cafe.id }}')"
-      >
-        {{ icons::delete("h-4 w-4") }} Delete
-      </button>
-    </div>
+    {{ detail::delete_button("cafe", "/api/v1/cafes", cafe.id) }}
   {% endif %}
 {% endblock %}

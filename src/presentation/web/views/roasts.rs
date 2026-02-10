@@ -3,7 +3,7 @@ use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
 
 use super::tasting_notes::{self, TastingNoteView};
-use super::{build_coffee_info, build_map_data, build_roaster_info};
+use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info};
 
 pub struct RoastView {
     pub id: String,
@@ -120,6 +120,7 @@ pub struct RoastDetailView {
     // Map
     pub map_countries: String,
     pub map_max: u32,
+    pub legend_entries: Vec<LegendEntry>,
     // Dates
     pub created_date: String,
     pub created_time: String,
@@ -156,6 +157,16 @@ impl RoastDetailView {
             roaster_homepage: roaster_info.homepage,
             map_countries,
             map_max,
+            legend_entries: vec![
+                LegendEntry {
+                    label: "Origin",
+                    opacity: "",
+                },
+                LegendEntry {
+                    label: "Roaster",
+                    opacity: "opacity-50",
+                },
+            ],
             created_date: roast.created_at.format("%Y-%m-%d").to_string(),
             created_time: roast.created_at.format("%H:%M").to_string(),
         }

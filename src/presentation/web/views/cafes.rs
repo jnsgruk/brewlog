@@ -2,7 +2,7 @@ use crate::domain::cafes::Cafe;
 use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::infrastructure::foursquare::NearbyCafe;
 
-use super::build_map_data;
+use super::{LegendEntry, build_map_data};
 
 pub struct CafeDetailView {
     pub id: String,
@@ -13,6 +13,7 @@ pub struct CafeDetailView {
     pub website: Option<String>,
     pub map_countries: String,
     pub map_max: u32,
+    pub legend_entries: Vec<LegendEntry>,
     pub created_date: String,
     pub created_time: String,
 }
@@ -33,6 +34,10 @@ impl CafeDetailView {
             website: cafe.website,
             map_countries,
             map_max,
+            legend_entries: vec![LegendEntry {
+                label: "Cafe",
+                opacity: "",
+            }],
             created_date: cafe.created_at.format("%Y-%m-%d").to_string(),
             created_time: cafe.created_at.format("%H:%M").to_string(),
         }
