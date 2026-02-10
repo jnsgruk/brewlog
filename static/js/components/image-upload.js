@@ -37,28 +37,23 @@ customElements.define(
       });
     }
 
-    _handleFile(file) {
+    async _handleFile(file) {
       const entityType = this.getAttribute("entity-type");
       const entityId = this.getAttribute("entity-id");
       const mode = this.getAttribute("mode");
-      const reader = new FileReader();
 
-      reader.onload = () => {
-        const dataUrl = reader.result;
+      const dataUrl = await imageToJpegDataUrl(file);
 
-        if (entityType && entityId && mode !== "deferred") {
-          this._upload(entityType, entityId, dataUrl);
-        } else {
-          // Deferred mode: store data URL in a target hidden input
-          const targetId = this.getAttribute("target-input");
-          if (targetId) {
-            document.getElementById(targetId).value = dataUrl;
-          }
-          this._showPreview(dataUrl);
+      if (entityType && entityId && mode !== "deferred") {
+        this._upload(entityType, entityId, dataUrl);
+      } else {
+        // Deferred mode: store data URL in a target hidden input
+        const targetId = this.getAttribute("target-input");
+        if (targetId) {
+          document.getElementById(targetId).value = dataUrl;
         }
-      };
-
-      reader.readAsDataURL(file);
+        this._showPreview(dataUrl);
+      }
     }
 
     _showPreview(dataUrl) {

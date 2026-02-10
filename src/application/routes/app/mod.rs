@@ -56,6 +56,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         )
         .route("/static/js/components/chip-scroll.js", get(chip_scroll_js))
         .route("/static/js/location.js", get(location_js))
+        .route("/static/js/image-utils.js", get(image_utils_js))
         .route("/static/js/components/world-map.js", get(world_map_js))
         .route("/static/js/components/donut-chart.js", get(donut_chart_js))
         .route(
@@ -99,6 +100,16 @@ async fn location_js() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/js/location.js"),
+    )
+}
+
+async fn image_utils_js() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_str!("../../../../static/js/image-utils.js"),
     )
 }
 
