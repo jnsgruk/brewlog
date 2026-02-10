@@ -7,6 +7,7 @@ pub mod checkin_api;
 pub mod cups_api;
 pub mod datastar;
 pub mod extraction_api;
+pub mod form_submissions;
 pub mod gear_api;
 pub mod helpers;
 pub mod nearby_api;

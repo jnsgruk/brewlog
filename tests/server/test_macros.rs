@@ -185,3 +185,71 @@ macro_rules! define_datastar_entity_tests {
 }
 
 pub(crate) use define_datastar_entity_tests;
+
+/// Generates form submission tests for a given entity.
+/// The `setup_and_form` function creates any prerequisite entities and returns
+/// the form fields as `Vec<(String, String)>`.
+///
+/// Generated tests:
+/// - `creating_{entity}_via_form_returns_redirect` — POST form → 303 redirect
+/// - `creating_{entity}_via_form_with_datastar_returns_fragment` — POST form + datastar → 200
+macro_rules! define_form_create_tests {
+    (
+        entity: $entity:ident,
+        api_path: $api_path:expr,
+        redirect_prefix: $redirect_prefix:expr,
+        setup_and_form: $setup_fn:expr
+    ) => {
+        paste::paste! {
+            #[tokio::test]
+            async fn [<creating_ $entity _via_form_returns_redirect>]() {
+                let app = crate::helpers::spawn_app_with_auth().await;
+                let form_fields = $setup_fn(&app).await;
+                let response = crate::helpers::post_form(&app, $api_path, &form_fields).await;
+
+                assert_eq!(
+                    response.status(),
+                    303,
+                    "expected 303 See Other, got {}",
+                    response.status()
+                );
+                let location = response
+                    .headers()
+                    .get("location")
+                    .and_then(|v| v.to_str().ok())
+                    .expect("missing Location header");
+                assert!(
+                    location.starts_with($redirect_prefix),
+                    "expected redirect to start with '{}', got '{}'",
+                    $redirect_prefix,
+                    location
+                );
+            }
+
+            #[tokio::test]
+            async fn [<creating_ $entity _via_form_with_datastar_returns_fragment>]() {
+                let app = crate::helpers::spawn_app_with_auth().await;
+                let form_fields = $setup_fn(&app).await;
+                let response =
+                    crate::helpers::post_form_datastar(&app, $api_path, &form_fields).await;
+
+                assert_eq!(
+                    response.status(),
+                    200,
+                    "expected 200 OK for datastar form, got {}",
+                    response.status()
+                );
+                assert!(
+                    response.headers().get("datastar-selector").is_some(),
+                    "expected datastar-selector header"
+                );
+                assert!(
+                    response.headers().get("datastar-mode").is_some(),
+                    "expected datastar-mode header"
+                );
+            }
+        }
+    };
+}
+
+pub(crate) use define_form_create_tests;

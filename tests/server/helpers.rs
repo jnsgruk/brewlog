@@ -420,6 +420,50 @@ pub async fn create_session(app: &TestApp) -> String {
     session_token
 }
 
+/// POST a form-encoded payload with session cookie auth.
+/// Uses `redirect::Policy::none()` so tests can assert the 303 redirect itself.
+pub async fn post_form(
+    app: &TestApp,
+    path: &str,
+    form_body: &[(impl AsRef<str> + Serialize, impl AsRef<str> + Serialize)],
+) -> reqwest::Response {
+    let session_token = create_session(app).await;
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
+    client
+        .post(app.api_url(path))
+        .header("Cookie", format!("brewlog_session={session_token}"))
+        .form(form_body)
+        .send()
+        .await
+        .expect("failed to POST form")
+}
+
+/// POST a form-encoded payload with session cookie auth and Datastar headers.
+pub async fn post_form_datastar(
+    app: &TestApp,
+    path: &str,
+    form_body: &[(impl AsRef<str> + Serialize, impl AsRef<str> + Serialize)],
+) -> reqwest::Response {
+    let session_token = create_session(app).await;
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
+    client
+        .post(app.api_url(path))
+        .header("Cookie", format!("brewlog_session={session_token}"))
+        .header("datastar-request", "true")
+        .form(form_body)
+        .send()
+        .await
+        .expect("failed to POST form with datastar")
+}
+
 pub async fn spawn_app_with_openrouter_mock() -> TestApp {
     let mock_server = wiremock::MockServer::start().await;
     let openrouter_url = format!("{}/api/v1/chat/completions", mock_server.uri());
