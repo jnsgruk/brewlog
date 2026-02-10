@@ -107,6 +107,6 @@
   </div>
 
   {% if is_authenticated %}
-    {{ detail::delete_button("brew", "/api/v1/brews", brew.id) }}
+    {{ detail::edit_delete_buttons(edit_url, "brew", "/api/v1/brews", brew.id) }}
   {% endif %}
 {% endblock %}

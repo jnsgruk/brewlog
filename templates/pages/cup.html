@@ -88,6 +88,6 @@
   </div>
 
   {% if is_authenticated %}
-    {{ detail::delete_button("cup", "/api/v1/cups", cup.id) }}
+    {{ detail::edit_delete_buttons(edit_url, "cup", "/api/v1/cups", cup.id) }}
   {% endif %}
 {% endblock %}

@@ -34,6 +34,7 @@ pub(crate) async fn gear_detail_page(
         is_authenticated,
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
+        edit_url: format!("/gear/{id}/edit"),
         gear: view,
         image_url,
     };

@@ -65,6 +65,6 @@
   </div>
 
   {% if is_authenticated %}
-    {{ detail::delete_button("cafe", "/api/v1/cafes", cafe.id) }}
+    {{ detail::edit_delete_buttons(edit_url, "cafe", "/api/v1/cafes", cafe.id) }}
   {% endif %}
 {% endblock %}

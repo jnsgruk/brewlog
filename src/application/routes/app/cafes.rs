@@ -25,6 +25,7 @@ pub(crate) async fn cafe_detail_page(
         .map_err(|e| map_app_error(e.into()))?;
 
     let image_url = resolve_image_url(&state, "cafe", i64::from(cafe.id)).await;
+    let edit_url = format!("/cafes/{}/edit", cafe.id);
 
     let view = CafeDetailView::from_domain(cafe);
 
@@ -33,6 +34,7 @@ pub(crate) async fn cafe_detail_page(
         is_authenticated,
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
+        edit_url,
         cafe: view,
         image_url,
     };

@@ -222,6 +222,7 @@ pub struct BagDetailTemplate {
     pub roaster_slug: String,
     pub roast_slug: String,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]
@@ -235,6 +236,7 @@ pub struct BrewDetailTemplate {
     pub roaster_slug: String,
     pub roast_slug: String,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]
@@ -249,6 +251,7 @@ pub struct CupDetailTemplate {
     pub roast_slug: String,
     pub cafe_slug: String,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]
@@ -261,6 +264,7 @@ pub struct RoastDetailTemplate {
     pub roast: RoastDetailView,
     pub roaster_slug: String,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]
@@ -272,6 +276,7 @@ pub struct RoasterDetailTemplate {
     pub base_url: &'static str,
     pub roaster: RoasterDetailView,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]
@@ -283,6 +288,7 @@ pub struct CafeDetailTemplate {
     pub base_url: &'static str,
     pub cafe: CafeDetailView,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]
@@ -294,6 +300,7 @@ pub struct GearDetailTemplate {
     pub base_url: &'static str,
     pub gear: GearDetailView,
     pub image_url: Option<String>,
+    pub edit_url: String,
 }
 
 #[derive(Template)]

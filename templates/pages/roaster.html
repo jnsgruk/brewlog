@@ -72,6 +72,6 @@
   </div>
 
   {% if is_authenticated %}
-    {{ detail::delete_button("roaster", "/api/v1/roasters", roaster.id) }}
+    {{ detail::edit_delete_buttons(edit_url, "roaster", "/api/v1/roasters", roaster.id) }}
   {% endif %}
 {% endblock %}

@@ -52,6 +52,6 @@
   </div>
 
   {% if is_authenticated %}
-    {{ detail::delete_button("gear", "/api/v1/gear", gear.id) }}
+    {{ detail::edit_delete_buttons(edit_url, "gear", "/api/v1/gear", gear.id) }}
   {% endif %}
 {% endblock %}

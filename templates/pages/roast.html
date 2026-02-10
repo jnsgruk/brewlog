@@ -40,6 +40,6 @@
   </div>
 
   {% if is_authenticated %}
-    {{ detail::delete_button("roast", "/api/v1/roasts", roast.id) }}
+    {{ detail::edit_delete_buttons(edit_url, "roast", "/api/v1/roasts", roast.id) }}
   {% endif %}
 {% endblock %}

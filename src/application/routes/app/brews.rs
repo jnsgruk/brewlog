@@ -54,6 +54,7 @@ pub(crate) async fn brew_detail_page(
         is_authenticated,
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
+        edit_url: format!("/brews/{id}/edit"),
         brew: view,
         roaster_slug: roaster.slug.clone(),
         roast_slug: roast.slug.clone(),

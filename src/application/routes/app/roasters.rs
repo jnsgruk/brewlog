@@ -25,6 +25,7 @@ pub(crate) async fn roaster_detail_page(
         .map_err(|e| map_app_error(e.into()))?;
 
     let image_url = resolve_image_url(&state, "roaster", i64::from(roaster.id)).await;
+    let edit_url = format!("/roasters/{}/edit", roaster.id);
 
     let view = RoasterDetailView::from_domain(roaster);
 
@@ -35,6 +36,7 @@ pub(crate) async fn roaster_detail_page(
         base_url: crate::base_url(),
         roaster: view,
         image_url,
+        edit_url,
     };
 
     render_html(template).map(IntoResponse::into_response)

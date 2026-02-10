@@ -31,6 +31,7 @@ pub(crate) async fn roast_detail_page(
         .map_err(|e| map_app_error(e.into()))?;
 
     let image_url = resolve_image_url(&state, "roast", i64::from(roast.id)).await;
+    let edit_url = format!("/roasts/{}/edit", roast.id);
 
     let view = RoastDetailView::from_parts(roast, &roaster);
 
@@ -42,6 +43,7 @@ pub(crate) async fn roast_detail_page(
         roast: view,
         roaster_slug,
         image_url,
+        edit_url,
     };
 
     render_html(template).map(IntoResponse::into_response)
