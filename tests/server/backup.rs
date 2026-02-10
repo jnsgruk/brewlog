@@ -14,7 +14,7 @@ use brewlog::domain::roasters::{NewRoaster, Roaster, RoasterSortKey};
 use brewlog::domain::roasts::{NewRoast, Roast, RoastSortKey};
 use brewlog::domain::timeline::TimelineEvent;
 use brewlog::infrastructure::backup::{BackupData, BackupService};
-use brewlog::infrastructure::database::Database;
+use brewlog::infrastructure::database::{Database, DatabasePool};
 use brewlog::infrastructure::repositories::bags::SqlBagRepository;
 use brewlog::infrastructure::repositories::brews::SqlBrewRepository;
 use brewlog::infrastructure::repositories::cafes::SqlCafeRepository;
@@ -26,6 +26,7 @@ use brewlog::infrastructure::repositories::timeline_events::SqlTimelineEventRepo
 use super::helpers::{create_default_roaster, spawn_app, spawn_app_with_auth};
 
 struct TestDb {
+    pool: DatabasePool,
     roaster_repo: Arc<dyn RoasterRepository>,
     roast_repo: Arc<dyn RoastRepository>,
     bag_repo: Arc<dyn BagRepository>,
@@ -68,6 +69,7 @@ async fn create_test_db() -> TestDb {
     let cafe_service = CafeService::new(Arc::clone(&cafe_repo), Arc::clone(&timeline_repo));
 
     TestDb {
+        pool: pool.clone(),
         roaster_repo,
         roast_repo,
         bag_repo,
@@ -141,6 +143,28 @@ async fn list_all_timeline_events(repo: &dyn TimelineEventRepository) -> Vec<Tim
     repo.list_all()
         .await
         .expect("failed to list timeline events")
+}
+
+async fn insert_test_image(pool: &DatabasePool, entity_type: &str, entity_id: i64) {
+    sqlx::query(
+        "INSERT INTO entity_images (entity_type, entity_id, content_type, image_data, thumbnail_data) VALUES (?, ?, ?, ?, ?)",
+    )
+    .bind(entity_type)
+    .bind(entity_id)
+    .bind("image/png")
+    .bind(b"fake-image-data".as_slice())
+    .bind(b"fake-thumb-data".as_slice())
+    .execute(pool)
+    .await
+    .expect("failed to insert test image");
+}
+
+async fn count_images(pool: &DatabasePool) -> i64 {
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM entity_images")
+        .fetch_one(pool)
+        .await
+        .expect("failed to count images");
+    row.0
 }
 
 /// Populate a database with representative test data and return the key entities.
@@ -289,6 +313,9 @@ async fn backup_and_restore_round_trip() {
     let (roaster, roast, bag, grinder, brewer, filter_paper, brew, cafe) =
         populate_test_data(&source).await;
 
+    // Insert a test image for the roaster
+    insert_test_image(&source.pool, "roaster", i64::from(roaster.id)).await;
+
     // Verify timeline events were created (roaster + roast inserts create them)
     let source_timeline = list_all_timeline_events(source.timeline_repo.as_ref()).await;
     assert!(
@@ -311,6 +338,9 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(backup_data.brews.len(), 1);
     assert_eq!(backup_data.cafes.len(), 1);
     assert_eq!(backup_data.timeline_events.len(), source_timeline.len());
+    assert_eq!(backup_data.images.len(), 1);
+    assert_eq!(backup_data.images[0].entity_type, "roaster");
+    assert_eq!(backup_data.images[0].content_type, "image/png");
 
     // 3. Serialize to JSON and deserialize back (verify serde round-trip)
     let json = serde_json::to_string_pretty(&backup_data).expect("failed to serialize backup");
@@ -324,6 +354,7 @@ async fn backup_and_restore_round_trip() {
     assert_eq!(restored_data.gear.len(), 3);
     assert_eq!(restored_data.brews.len(), 1);
     assert_eq!(restored_data.cafes.len(), 1);
+    assert_eq!(restored_data.images.len(), 1);
 
     // 4. Restore to a fresh database
     let target = create_test_db().await;
@@ -431,6 +462,18 @@ async fn backup_and_restore_round_trip() {
         assert_eq!(target_event.slug, source_event.slug);
         assert_eq!(target_event.roaster_slug, source_event.roaster_slug);
     }
+
+    // Images
+    assert_eq!(count_images(&target.pool).await, 1);
+    let target_backup = target
+        .backup_service
+        .export()
+        .await
+        .expect("failed to re-export");
+    assert_eq!(target_backup.images.len(), 1);
+    assert_eq!(target_backup.images[0].entity_type, "roaster");
+    assert_eq!(target_backup.images[0].image_data, b"fake-image-data");
+    assert_eq!(target_backup.images[0].thumbnail_data, b"fake-thumb-data");
 }
 
 #[tokio::test]
@@ -461,6 +504,7 @@ async fn restore_to_non_empty_database_fails() {
         cafes: vec![],
         cups: vec![],
         timeline_events: vec![],
+        images: vec![],
     };
 
     // Restore should fail because the database is not empty
@@ -491,6 +535,7 @@ async fn backup_empty_database() {
     assert!(backup_data.brews.is_empty());
     assert!(backup_data.cafes.is_empty());
     assert!(backup_data.timeline_events.is_empty());
+    assert!(backup_data.images.is_empty());
 
     // Should serialize to valid JSON
     let json = serde_json::to_string_pretty(&backup_data).expect("failed to serialize");
@@ -553,6 +598,7 @@ async fn backup_restore_requires_auth() {
         cafes: vec![],
         cups: vec![],
         timeline_events: vec![],
+        images: vec![],
     };
 
     let response = client
@@ -584,6 +630,7 @@ async fn backup_restore_non_empty_db_returns_conflict() {
         cafes: vec![],
         cups: vec![],
         timeline_events: vec![],
+        images: vec![],
     };
 
     let response = client
@@ -661,7 +708,10 @@ async fn reset_requires_auth() {
 #[tokio::test]
 async fn reset_clears_all_data() {
     let db = create_test_db().await;
-    populate_test_data(&db).await;
+    let (roaster, ..) = populate_test_data(&db).await;
+
+    // Insert an image
+    insert_test_image(&db.pool, "roaster", i64::from(roaster.id)).await;
 
     // Verify data exists before reset
     assert!(!list_all_roasters(db.roaster_repo.as_ref()).await.is_empty());
@@ -675,6 +725,7 @@ async fn reset_clears_all_data() {
             .await
             .is_empty()
     );
+    assert_eq!(count_images(&db.pool).await, 1);
 
     // Reset
     db.backup_service
@@ -694,6 +745,7 @@ async fn reset_clears_all_data() {
             .await
             .is_empty()
     );
+    assert_eq!(count_images(&db.pool).await, 0);
 }
 
 #[tokio::test]

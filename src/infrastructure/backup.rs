@@ -42,6 +42,31 @@ fn decode_json_opt<T: serde::de::DeserializeOwned>(
     }
 }
 
+mod base64_serde {
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S: Serializer>(data: &[u8], s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(&STANDARD.encode(data))
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<u8>, D::Error> {
+        let s = String::deserialize(d)?;
+        STANDARD.decode(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupImage {
+    pub entity_type: String,
+    pub entity_id: i64,
+    pub content_type: String,
+    #[serde(with = "base64_serde")]
+    pub image_data: Vec<u8>,
+    #[serde(with = "base64_serde")]
+    pub thumbnail_data: Vec<u8>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BackupData {
     pub version: u32,
@@ -56,6 +81,8 @@ pub struct BackupData {
     #[serde(default)]
     pub cups: Vec<Cup>,
     pub timeline_events: Vec<TimelineEvent>,
+    #[serde(default)]
+    pub images: Vec<BackupImage>,
 }
 
 pub struct BackupService {
@@ -76,6 +103,7 @@ impl BackupService {
         let cafes = self.export_cafes().await?;
         let cups = self.export_cups().await?;
         let timeline_events = self.export_timeline_events().await?;
+        let images = self.export_images().await?;
 
         Ok(BackupData {
             version: 2,
@@ -88,6 +116,7 @@ impl BackupService {
             cafes,
             cups,
             timeline_events,
+            images,
         })
     }
 
@@ -109,6 +138,7 @@ impl BackupService {
         self.restore_cups(&mut tx, &data.cups).await?;
         self.restore_timeline_events(&mut tx, &data.timeline_events)
             .await?;
+        self.restore_images(&mut tx, &data.images).await?;
 
         tx.commit().await.context("failed to commit transaction")?;
 
@@ -130,6 +160,7 @@ impl BackupService {
         // Delete in FK-safe order: children before parents.
         // brews has RESTRICT FK → gear; cups has RESTRICT FK → roasts, cafes.
         let tables = [
+            "entity_images",
             "brews",
             "cups",
             "bags",
@@ -256,6 +287,17 @@ impl BackupService {
             .collect::<anyhow::Result<Vec<_>>>()
     }
 
+    async fn export_images(&self) -> anyhow::Result<Vec<BackupImage>> {
+        let records = sqlx::query_as::<_, ImageRecord>(
+            "SELECT entity_type, entity_id, content_type, image_data, thumbnail_data FROM entity_images ORDER BY entity_type, entity_id",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("failed to export images")?;
+
+        Ok(records.into_iter().map(ImageRecord::into_backup).collect())
+    }
+
     // --- Restore methods ---
 
     async fn verify_empty_database(&self) -> anyhow::Result<()> {
@@ -268,6 +310,7 @@ impl BackupService {
             "cafes",
             "cups",
             "timeline_events",
+            "entity_images",
         ];
 
         for table in tables {
@@ -523,6 +566,28 @@ impl BackupService {
 
         Ok(())
     }
+
+    async fn restore_images(
+        &self,
+        tx: &mut DatabaseTransaction<'_>,
+        images: &[BackupImage],
+    ) -> anyhow::Result<()> {
+        for image in images {
+            sqlx::query(
+                "INSERT INTO entity_images (entity_type, entity_id, content_type, image_data, thumbnail_data) VALUES (?, ?, ?, ?, ?)",
+            )
+            .bind(&image.entity_type)
+            .bind(image.entity_id)
+            .bind(&image.content_type)
+            .bind(&image.image_data)
+            .bind(&image.thumbnail_data)
+            .execute(&mut **tx)
+            .await
+            .context("failed to restore image")?;
+        }
+
+        Ok(())
+    }
 }
 
 // --- Record types for export queries ---
@@ -771,5 +836,26 @@ impl TimelineEventRecord {
             roaster_slug: self.roaster_slug,
             brew_data,
         })
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct ImageRecord {
+    entity_type: String,
+    entity_id: i64,
+    content_type: String,
+    image_data: Vec<u8>,
+    thumbnail_data: Vec<u8>,
+}
+
+impl ImageRecord {
+    fn into_backup(self) -> BackupImage {
+        BackupImage {
+            entity_type: self.entity_type,
+            entity_id: self.entity_id,
+            content_type: self.content_type,
+            image_data: self.image_data,
+            thumbnail_data: self.thumbnail_data,
+        }
     }
 }
