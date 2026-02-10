@@ -2,7 +2,7 @@ use crate::helpers::{
     TestApp, create_default_bag, create_default_cafe, create_default_gear, create_default_roast,
     create_default_roaster, post_form, spawn_app_with_auth,
 };
-use crate::test_macros::define_form_create_tests;
+use crate::test_macros::{define_form_create_tests, define_form_update_tests};
 
 // ---------------------------------------------------------------------------
 // Setup functions: create prerequisites + return form fields
@@ -94,6 +94,117 @@ async fn checkin_form_fields(app: &TestApp) -> Vec<(String, String)> {
 }
 
 // ---------------------------------------------------------------------------
+// Update setup functions: create entity + return (id, update form fields)
+// ---------------------------------------------------------------------------
+
+async fn roaster_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let roaster = create_default_roaster(app).await;
+    (
+        roaster.id.into_inner().to_string(),
+        vec![("name".into(), "Updated Roasters".into())],
+    )
+}
+
+async fn roast_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let roaster = create_default_roaster(app).await;
+    let roast = create_default_roast(app, roaster.id).await;
+    (
+        roast.id.into_inner().to_string(),
+        vec![("name".into(), "Updated Roast Name".into())],
+    )
+}
+
+async fn bag_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let roaster = create_default_roaster(app).await;
+    let roast = create_default_roast(app, roaster.id).await;
+    let bag = create_default_bag(app, roast.id).await;
+    (
+        bag.id.into_inner().to_string(),
+        vec![("amount".into(), "300".into())],
+    )
+}
+
+async fn brew_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let roaster = create_default_roaster(app).await;
+    let roast = create_default_roast(app, roaster.id).await;
+    let bag = create_default_bag(app, roast.id).await;
+    let grinder = create_default_gear(app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(app, "brewer", "Hario", "V60").await;
+    let brew: brewlog::domain::brews::Brew = crate::helpers::create_entity(
+        app,
+        "/brews",
+        &brewlog::domain::brews::NewBrew {
+            bag_id: bag.id,
+            coffee_weight: 15.0,
+            grinder_id: grinder.id,
+            grind_setting: 24.0,
+            brewer_id: brewer.id,
+            filter_paper_id: None,
+            water_volume: 250,
+            water_temp: 92.0,
+            quick_notes: Vec::new(),
+            brew_time: None,
+            created_at: None,
+        },
+    )
+    .await;
+    (
+        brew.id.into_inner().to_string(),
+        vec![("water_temp".into(), "94.0".into())],
+    )
+}
+
+async fn cup_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let roaster = create_default_roaster(app).await;
+    let roast = create_default_roast(app, roaster.id).await;
+    let cafe = create_default_cafe(app).await;
+    let cup: brewlog::domain::cups::Cup = crate::helpers::create_entity(
+        app,
+        "/cups",
+        &brewlog::domain::cups::NewCup {
+            roast_id: roast.id,
+            cafe_id: cafe.id,
+            created_at: None,
+        },
+    )
+    .await;
+    // Update the cafe to a different one
+    let cafe2 = crate::helpers::create_cafe_with_payload(
+        app,
+        brewlog::domain::cafes::NewCafe {
+            name: "Form Update Cafe".to_string(),
+            city: "London".to_string(),
+            country: "UK".to_string(),
+            latitude: 51.5074,
+            longitude: -0.1278,
+            website: None,
+            created_at: None,
+        },
+    )
+    .await;
+    (
+        cup.id.into_inner().to_string(),
+        vec![("cafe_id".into(), cafe2.id.into_inner().to_string())],
+    )
+}
+
+async fn gear_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let gear = create_default_gear(app, "grinder", "Original", "Model").await;
+    (
+        gear.id.into_inner().to_string(),
+        vec![("make".into(), "Updated Make".into())],
+    )
+}
+
+async fn cafe_update_form(app: &TestApp) -> (String, Vec<(String, String)>) {
+    let cafe = create_default_cafe(app).await;
+    (
+        cafe.id.into_inner().to_string(),
+        vec![("name".into(), "Updated Cafe".into())],
+    )
+}
+
+// ---------------------------------------------------------------------------
 // Macro-generated tests: form create → 303 redirect + datastar variant
 // ---------------------------------------------------------------------------
 
@@ -151,6 +262,59 @@ define_form_create_tests!(
     api_path: "/check-in",
     redirect_prefix: "/cups/",
     setup_and_form: checkin_form_fields
+);
+
+// ---------------------------------------------------------------------------
+// Macro-generated tests: form update → 303 redirect + datastar variant
+// ---------------------------------------------------------------------------
+
+define_form_update_tests!(
+    entity: roaster,
+    api_path: "/roasters",
+    redirect_prefix: "/roasters/",
+    setup_and_form: roaster_update_form
+);
+
+define_form_update_tests!(
+    entity: roast,
+    api_path: "/roasts",
+    redirect_prefix: "/roasters/",
+    setup_and_form: roast_update_form
+);
+
+define_form_update_tests!(
+    entity: bag,
+    api_path: "/bags",
+    redirect_prefix: "/bags/",
+    setup_and_form: bag_update_form
+);
+
+define_form_update_tests!(
+    entity: brew,
+    api_path: "/brews",
+    redirect_prefix: "/brews/",
+    setup_and_form: brew_update_form
+);
+
+define_form_update_tests!(
+    entity: cup,
+    api_path: "/cups",
+    redirect_prefix: "/cups/",
+    setup_and_form: cup_update_form
+);
+
+define_form_update_tests!(
+    entity: gear,
+    api_path: "/gear",
+    redirect_prefix: "/gear/",
+    setup_and_form: gear_update_form
+);
+
+define_form_update_tests!(
+    entity: cafe,
+    api_path: "/cafes",
+    redirect_prefix: "/cafes/",
+    setup_and_form: cafe_update_form
 );
 
 // ---------------------------------------------------------------------------

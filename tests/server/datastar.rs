@@ -5,8 +5,9 @@
 
 use crate::helpers::{
     TestApp, assert_datastar_headers, assert_datastar_headers_with_mode, assert_full_page,
-    assert_html_fragment, create_default_bag, create_default_cafe, create_default_gear,
-    create_default_roast, create_default_roaster, spawn_app_with_auth,
+    assert_html_fragment, create_default_bag, create_default_brew, create_default_cafe,
+    create_default_cup, create_default_gear, create_default_roast, create_default_roaster,
+    spawn_app_with_auth,
 };
 use crate::test_macros::define_datastar_entity_tests;
 use brewlog::domain::bags::UpdateBag;
@@ -582,5 +583,212 @@ async fn cafes_create_with_datastar_header_returns_fragment() {
     assert!(
         body.contains("Datastar Test Cafe"),
         "Fragment should include created cafe"
+    );
+}
+
+// ============================================================================
+// Roasters (update with/without datastar)
+// ============================================================================
+
+#[tokio::test]
+async fn roasters_update_with_datastar_header_returns_redirect_script() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let client = Client::new();
+
+    let update = serde_json::json!({
+        "name": "Updated Roaster",
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/roasters/{}", roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update roaster");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers_with_mode(&response, "body", "append");
+
+    let body = response.text().await.expect("failed to read body");
+    assert!(
+        body.contains("window.location"),
+        "Expected redirect script in body"
+    );
+}
+
+#[tokio::test]
+async fn roasters_update_without_datastar_header_returns_json() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let client = Client::new();
+
+    let update = serde_json::json!({
+        "name": "JSON Updated Roaster",
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/roasters/{}", roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update roaster");
+
+    assert_eq!(response.status(), 200);
+    assert!(response.headers().get("datastar-selector").is_none());
+
+    let updated: brewlog::domain::roasters::Roaster =
+        response.json().await.expect("failed to parse JSON");
+    assert_eq!(updated.name, "JSON Updated Roaster");
+}
+
+// ============================================================================
+// Roasts (update with/without datastar)
+// ============================================================================
+
+#[tokio::test]
+async fn roasts_update_with_datastar_header_returns_redirect_script() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let client = Client::new();
+
+    let update = serde_json::json!({
+        "name": "Updated Roast",
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/roasts/{}", roast.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update roast");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers_with_mode(&response, "body", "append");
+
+    let body = response.text().await.expect("failed to read body");
+    assert!(
+        body.contains("window.location"),
+        "Expected redirect script in body"
+    );
+}
+
+// ============================================================================
+// Cafes (update with/without datastar)
+// ============================================================================
+
+#[tokio::test]
+async fn cafes_update_with_datastar_header_returns_redirect_script() {
+    let app = spawn_app_with_auth().await;
+    let cafe = create_default_cafe(&app).await;
+    let client = Client::new();
+
+    let update = serde_json::json!({
+        "name": "Updated Cafe",
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/cafes/{}", cafe.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update cafe");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers_with_mode(&response, "body", "append");
+
+    let body = response.text().await.expect("failed to read body");
+    assert!(
+        body.contains("window.location"),
+        "Expected redirect script in body"
+    );
+}
+
+// ============================================================================
+// Brews (update with/without datastar)
+// ============================================================================
+
+#[tokio::test]
+async fn brews_update_with_datastar_header_returns_redirect_script() {
+    let app = spawn_app_with_auth().await;
+    let brew = create_default_brew(&app).await;
+    let client = Client::new();
+
+    let update = serde_json::json!({
+        "water_temp": 94.0,
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/brews/{}", brew.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update brew");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers_with_mode(&response, "body", "append");
+
+    let body = response.text().await.expect("failed to read body");
+    assert!(
+        body.contains("window.location"),
+        "Expected redirect script in body"
+    );
+}
+
+// ============================================================================
+// Cups (update with/without datastar)
+// ============================================================================
+
+#[tokio::test]
+async fn cups_update_with_datastar_header_returns_redirect_script() {
+    let app = spawn_app_with_auth().await;
+    let cup = create_default_cup(&app).await;
+    let client = Client::new();
+
+    // Create a new cafe to update to
+    let cafe2 = crate::helpers::create_cafe_with_payload(
+        &app,
+        brewlog::domain::cafes::NewCafe {
+            name: "Updated Test Cafe".to_string(),
+            city: "Tokyo".to_string(),
+            country: "JP".to_string(),
+            latitude: 35.6762,
+            longitude: 139.6503,
+            website: None,
+            created_at: None,
+        },
+    )
+    .await;
+
+    let update = serde_json::json!({
+        "cafe_id": cafe2.id,
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/cups/{}", cup.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .header("datastar-request", "true")
+        .json(&update)
+        .send()
+        .await
+        .expect("failed to update cup");
+
+    assert_eq!(response.status(), 200);
+    assert_datastar_headers_with_mode(&response, "body", "append");
+
+    let body = response.text().await.expect("failed to read body");
+    assert!(
+        body.contains("window.location"),
+        "Expected redirect script in body"
     );
 }

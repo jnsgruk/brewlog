@@ -497,3 +497,149 @@ async fn deleting_a_brew_returns_204() {
 
     assert_eq!(get_response.status(), 404);
 }
+
+#[tokio::test]
+async fn updating_a_brew_returns_200_and_updates_data() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let client = reqwest::Client::new();
+
+    let new_brew = NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 15.0,
+        grinder_id: grinder.id,
+        grind_setting: 24.0,
+        brewer_id: brewer.id,
+        filter_paper_id: None,
+        water_volume: 250,
+        water_temp: 92.0,
+        quick_notes: Vec::new(),
+        brew_time: None,
+        created_at: None,
+    };
+
+    let create_response = client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("Failed to create brew");
+
+    let brew: Brew = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
+
+    let update = serde_json::json!({
+        "water_temp": 94.0,
+        "grind_setting": 22.0,
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/brews/{}", brew.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to update brew");
+
+    assert_eq!(response.status(), 200);
+    let updated: Brew = response.json().await.expect("Failed to parse response");
+    assert_eq!(updated.water_temp, 94.0);
+    assert_eq!(updated.grind_setting, 22.0);
+    assert_eq!(updated.coffee_weight, 15.0); // unchanged
+}
+
+#[tokio::test]
+async fn updating_a_brew_without_auth_returns_401() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let update = serde_json::json!({
+        "water_temp": 94.0,
+    });
+
+    let response = client
+        .put(app.api_url("/brews/1"))
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 401);
+}
+
+#[tokio::test]
+async fn updating_a_brew_with_no_changes_returns_400() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let client = reqwest::Client::new();
+
+    let new_brew = NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 15.0,
+        grinder_id: grinder.id,
+        grind_setting: 24.0,
+        brewer_id: brewer.id,
+        filter_paper_id: None,
+        water_volume: 250,
+        water_temp: 92.0,
+        quick_notes: Vec::new(),
+        brew_time: None,
+        created_at: None,
+    };
+
+    let create_response = client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("Failed to create brew");
+
+    let brew: Brew = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
+
+    let update = serde_json::json!({});
+
+    let response = client
+        .put(app.api_url(&format!("/brews/{}", brew.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to update brew");
+
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn updating_a_nonexistent_brew_returns_404() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    let update = serde_json::json!({
+        "water_temp": 94.0,
+    });
+
+    let response = client
+        .put(app.api_url("/brews/99999"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 404);
+}

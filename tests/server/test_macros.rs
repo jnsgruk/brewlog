@@ -253,3 +253,72 @@ macro_rules! define_form_create_tests {
 }
 
 pub(crate) use define_form_create_tests;
+
+/// Generates form submission tests for updating a given entity.
+/// The `setup_and_form` function creates the entity and returns
+/// `(entity_id_string, Vec<(String, String)>)`.
+///
+/// Generated tests:
+/// - `updating_{entity}_via_form_returns_redirect` — PUT form → 303 redirect
+/// - `updating_{entity}_via_form_with_datastar_returns_redirect_script` — PUT form + datastar → 200
+macro_rules! define_form_update_tests {
+    (
+        entity: $entity:ident,
+        api_path: $api_path:expr,
+        redirect_prefix: $redirect_prefix:expr,
+        setup_and_form: $setup_fn:expr
+    ) => {
+        paste::paste! {
+            #[tokio::test]
+            async fn [<updating_ $entity _via_form_returns_redirect>]() {
+                let app = crate::helpers::spawn_app_with_auth().await;
+                let (entity_id, form_fields) = $setup_fn(&app).await;
+                let path = format!("{}/{}", $api_path, entity_id);
+                let response = crate::helpers::put_form(&app, &path, &form_fields).await;
+
+                assert_eq!(
+                    response.status(),
+                    303,
+                    "expected 303 See Other, got {}",
+                    response.status()
+                );
+                let location = response
+                    .headers()
+                    .get("location")
+                    .and_then(|v| v.to_str().ok())
+                    .expect("missing Location header");
+                assert!(
+                    location.starts_with($redirect_prefix),
+                    "expected redirect to start with '{}', got '{}'",
+                    $redirect_prefix,
+                    location
+                );
+            }
+
+            #[tokio::test]
+            async fn [<updating_ $entity _via_form_with_datastar_returns_redirect_script>]() {
+                let app = crate::helpers::spawn_app_with_auth().await;
+                let (entity_id, form_fields) = $setup_fn(&app).await;
+                let path = format!("{}/{}", $api_path, entity_id);
+                let response =
+                    crate::helpers::put_form_datastar(&app, &path, &form_fields).await;
+
+                assert_eq!(
+                    response.status(),
+                    200,
+                    "expected 200 OK for datastar form update, got {}",
+                    response.status()
+                );
+                crate::helpers::assert_datastar_headers_with_mode(&response, "body", "append");
+
+                let body = response.text().await.expect("failed to read body");
+                assert!(
+                    body.contains("window.location"),
+                    "Expected redirect script in body"
+                );
+            }
+        }
+    };
+}
+
+pub(crate) use define_form_update_tests;

@@ -383,6 +383,48 @@ pub async fn create_cafe_with_payload(app: &TestApp, payload: NewCafe) -> Cafe {
     create_entity(app, "/cafes", &payload).await
 }
 
+pub async fn create_default_brew(app: &TestApp) -> brewlog::domain::brews::Brew {
+    let roaster = create_default_roaster(app).await;
+    let roast = create_default_roast(app, roaster.id).await;
+    let bag = create_default_bag(app, roast.id).await;
+    let grinder = create_default_gear(app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(app, "brewer", "Hario", "V60 02").await;
+    create_entity(
+        app,
+        "/brews",
+        &brewlog::domain::brews::NewBrew {
+            bag_id: bag.id,
+            coffee_weight: 15.0,
+            grinder_id: grinder.id,
+            grind_setting: 24.0,
+            brewer_id: brewer.id,
+            filter_paper_id: None,
+            water_volume: 250,
+            water_temp: 92.0,
+            quick_notes: Vec::new(),
+            brew_time: None,
+            created_at: None,
+        },
+    )
+    .await
+}
+
+pub async fn create_default_cup(app: &TestApp) -> brewlog::domain::cups::Cup {
+    let roaster = create_default_roaster(app).await;
+    let roast = create_default_roast(app, roaster.id).await;
+    let cafe = create_default_cafe(app).await;
+    create_entity(
+        app,
+        "/cups",
+        &brewlog::domain::cups::NewCup {
+            roast_id: roast.id,
+            cafe_id: cafe.id,
+            created_at: None,
+        },
+    )
+    .await
+}
+
 /// Creates a session for the authenticated user and returns the raw session token
 /// to use as a `brewlog_session` cookie value.
 pub async fn create_session(app: &TestApp) -> String {
@@ -462,6 +504,50 @@ pub async fn post_form_datastar(
         .send()
         .await
         .expect("failed to POST form with datastar")
+}
+
+/// PUT a form-encoded payload with session cookie auth.
+/// Uses `redirect::Policy::none()` so tests can assert the 303 redirect itself.
+pub async fn put_form(
+    app: &TestApp,
+    path: &str,
+    form_body: &[(impl AsRef<str> + Serialize, impl AsRef<str> + Serialize)],
+) -> reqwest::Response {
+    let session_token = create_session(app).await;
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
+    client
+        .put(app.api_url(path))
+        .header("Cookie", format!("brewlog_session={session_token}"))
+        .form(form_body)
+        .send()
+        .await
+        .expect("failed to PUT form")
+}
+
+/// PUT a form-encoded payload with session cookie auth and Datastar headers.
+pub async fn put_form_datastar(
+    app: &TestApp,
+    path: &str,
+    form_body: &[(impl AsRef<str> + Serialize, impl AsRef<str> + Serialize)],
+) -> reqwest::Response {
+    let session_token = create_session(app).await;
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
+    client
+        .put(app.api_url(path))
+        .header("Cookie", format!("brewlog_session={session_token}"))
+        .header("datastar-request", "true")
+        .form(form_body)
+        .send()
+        .await
+        .expect("failed to PUT form with datastar")
 }
 
 pub async fn spawn_app_with_openrouter_mock() -> TestApp {

@@ -1,5 +1,6 @@
 use crate::helpers::{
-    create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_auth,
+    create_cafe_with_payload, create_default_cafe, create_default_roast, create_default_roaster,
+    spawn_app_with_auth,
 };
 use crate::test_macros::define_crud_tests;
 use brewlog::domain::cups::{Cup, CupWithDetails, NewCup};
@@ -187,4 +188,145 @@ async fn deleting_a_cup_returns_a_204_for_valid_id() {
         .expect("Failed to execute request");
 
     assert_eq!(get_response.status(), 404);
+}
+
+#[tokio::test]
+async fn updating_a_cup_returns_a_200_for_valid_data() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let cafe1 = create_default_cafe(&app).await;
+
+    let new_cup = NewCup {
+        roast_id: roast.id,
+        cafe_id: cafe1.id,
+        created_at: None,
+    };
+
+    let create_response = client
+        .post(app.api_url("/cups"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_cup)
+        .send()
+        .await
+        .expect("Failed to create cup");
+
+    let cup: Cup = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
+
+    // Create a second cafe to update to
+    let cafe2 = create_cafe_with_payload(
+        &app,
+        brewlog::domain::cafes::NewCafe {
+            name: "Updated Cafe".to_string(),
+            city: "Tokyo".to_string(),
+            country: "JP".to_string(),
+            latitude: 35.6762,
+            longitude: 139.6503,
+            website: None,
+            created_at: None,
+        },
+    )
+    .await;
+
+    let update = serde_json::json!({
+        "cafe_id": cafe2.id,
+    });
+
+    let response = client
+        .put(app.api_url(&format!("/cups/{}", cup.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to update cup");
+
+    assert_eq!(response.status(), 200);
+    let updated: Cup = response.json().await.expect("Failed to parse response");
+    assert_eq!(updated.cafe_id, cafe2.id);
+    assert_eq!(updated.roast_id, roast.id); // unchanged
+}
+
+#[tokio::test]
+async fn updating_a_cup_without_auth_returns_401() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    let update = serde_json::json!({
+        "cafe_id": 2,
+    });
+
+    let response = client
+        .put(app.api_url("/cups/1"))
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 401);
+}
+
+#[tokio::test]
+async fn updating_a_cup_with_no_changes_returns_400() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let cafe = create_default_cafe(&app).await;
+
+    let new_cup = NewCup {
+        roast_id: roast.id,
+        cafe_id: cafe.id,
+        created_at: None,
+    };
+
+    let create_response = client
+        .post(app.api_url("/cups"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_cup)
+        .send()
+        .await
+        .expect("Failed to create cup");
+
+    let cup: Cup = create_response
+        .json()
+        .await
+        .expect("Failed to parse response");
+
+    let update = serde_json::json!({});
+
+    let response = client
+        .put(app.api_url(&format!("/cups/{}", cup.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn updating_a_nonexistent_cup_returns_404() {
+    let app = spawn_app_with_auth().await;
+    let client = reqwest::Client::new();
+
+    let update = serde_json::json!({
+        "cafe_id": 1,
+    });
+
+    let response = client
+        .put(app.api_url("/cups/99999"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 404);
 }
