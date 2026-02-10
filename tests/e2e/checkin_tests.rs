@@ -192,28 +192,36 @@ async fn checkin_with_new_cafe_and_scanned_roast() {
         .await
         .unwrap();
 
-    // Click the first result — shows the review form
-    let result_btn = session
+    // Click the first result — use JS to avoid StaleElementReference from Datastar updates
+    session
         .driver
-        .find(By::Css("#nearby-results button"))
+        .execute(
+            "document.querySelector('#nearby-results button').click()",
+            vec![],
+        )
         .await
         .unwrap();
-    result_btn.click().await.unwrap();
 
     // Wait for the review form, then click "Next" to advance to step 2
     wait_for_text(&session.driver, "body", "Confirm cafe details")
         .await
         .unwrap();
-    let buttons = session.driver.find_all(By::Css("button")).await.unwrap();
-    for button in buttons {
-        if button.is_displayed().await.unwrap_or(false) {
-            let text = button.text().await.unwrap_or_default();
-            if text.contains("Next") {
-                button.click().await.unwrap();
-                break;
+    // Use JS to find+click atomically — avoids StaleElementReference from DOM updates
+    session
+        .driver
+        .execute(
+            r#"
+            for (const btn of document.querySelectorAll('button')) {
+                if (btn.offsetParent !== null && btn.textContent.includes('Next')) {
+                    btn.click();
+                    return;
+                }
             }
-        }
-    }
+            "#,
+            vec![],
+        )
+        .await
+        .unwrap();
 
     // Step 2: Scan a coffee bag via text prompt
     let prompt_input = wait_for_visible(&session.driver, "#checkin-scan-form input[name='prompt']")
