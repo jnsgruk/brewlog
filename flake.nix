@@ -137,6 +137,8 @@
               ]
               ++ (with pkgs; [
                 cargo-watch
+                chromedriver
+                chromium
                 clang
                 flyctl
                 lld
