@@ -87,3 +87,18 @@ pub async fn wait_for_url_contains(driver: &WebDriver, substring: &str) -> WebDr
         "URL did not contain '{substring}' within {DEFAULT_TIMEOUT:?}",
     )))
 }
+
+/// Wait until the current URL no longer contains a specific substring.
+pub async fn wait_for_url_not_contains(driver: &WebDriver, substring: &str) -> WebDriverResult<()> {
+    let start = Instant::now();
+    while start.elapsed() < DEFAULT_TIMEOUT {
+        let url = driver.current_url().await?;
+        if !url.as_str().contains(substring) {
+            return Ok(());
+        }
+        tokio::time::sleep(POLL_INTERVAL).await;
+    }
+    Err(WebDriverError::Timeout(format!(
+        "URL still contains '{substring}' after {DEFAULT_TIMEOUT:?}",
+    )))
+}
