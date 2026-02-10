@@ -4,7 +4,7 @@ use clap::{Args, Subcommand};
 use super::macros::{define_delete_command, define_get_command};
 use super::parse_created_at;
 use super::print_json;
-use crate::domain::brews::QuickNote;
+use crate::domain::brews::{QuickNote, UpdateBrew};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::infrastructure::client::BrewlogClient;
 
@@ -16,6 +16,8 @@ pub enum BrewCommands {
     List(ListBrewsCommand),
     /// Get a brew by ID
     Get(GetBrewCommand),
+    /// Update a brew
+    Update(UpdateBrewCommand),
     /// Delete a brew
     Delete(DeleteBrewCommand),
 }
@@ -25,6 +27,7 @@ pub async fn run(client: &BrewlogClient, cmd: BrewCommands) -> Result<()> {
         BrewCommands::Add(c) => add_brew(client, c).await,
         BrewCommands::List(c) => list_brews(client, c).await,
         BrewCommands::Get(c) => get_brew(client, c).await,
+        BrewCommands::Update(c) => update_brew(client, c).await,
         BrewCommands::Delete(c) => delete_brew(client, c).await,
     }
 }
@@ -116,6 +119,88 @@ pub struct ListBrewsCommand {
 pub async fn list_brews(client: &BrewlogClient, command: ListBrewsCommand) -> Result<()> {
     let brews = client.brews().list(command.bag_id.map(BagId::new)).await?;
     print_json(&brews)
+}
+
+#[derive(Debug, Args)]
+pub struct UpdateBrewCommand {
+    #[arg(long)]
+    pub id: i64,
+
+    /// ID of the bag to brew from
+    #[arg(long)]
+    pub bag_id: Option<i64>,
+
+    /// Amount of coffee in grams
+    #[arg(long)]
+    pub coffee_weight: Option<f64>,
+
+    /// ID of the grinder to use
+    #[arg(long)]
+    pub grinder_id: Option<i64>,
+
+    /// Grind setting (e.g., 6.0 or 7.5)
+    #[arg(long)]
+    pub grind_setting: Option<f64>,
+
+    /// ID of the brewer to use
+    #[arg(long)]
+    pub brewer_id: Option<i64>,
+
+    /// ID of the filter paper to use
+    #[arg(long)]
+    pub filter_paper_id: Option<i64>,
+
+    /// Volume of water in ml
+    #[arg(long)]
+    pub water_volume: Option<i32>,
+
+    /// Water temperature in Celsius
+    #[arg(long)]
+    pub water_temp: Option<f64>,
+
+    /// Quick notes (comma-separated: good,too-fast,too-slow,too-hot,under-extracted,over-extracted)
+    #[arg(long, value_delimiter = ',')]
+    pub quick_notes: Option<Vec<String>>,
+
+    /// Brew time in seconds (e.g., 150 for 2:30)
+    #[arg(long)]
+    pub brew_time: Option<i32>,
+
+    /// Override creation timestamp (e.g. 2025-08-05T10:00:00Z or 2025-08-05)
+    #[arg(long)]
+    pub created_at: Option<String>,
+}
+
+pub async fn update_brew(client: &BrewlogClient, command: UpdateBrewCommand) -> Result<()> {
+    let created_at = command
+        .created_at
+        .map(|s| parse_created_at(&s))
+        .transpose()?;
+    let quick_notes = command.quick_notes.map(|notes| {
+        notes
+            .iter()
+            .filter_map(|s| QuickNote::from_str_value(s))
+            .collect()
+    });
+    let payload = UpdateBrew {
+        bag_id: command.bag_id.map(BagId::new),
+        coffee_weight: command.coffee_weight,
+        grinder_id: command.grinder_id.map(GearId::new),
+        grind_setting: command.grind_setting,
+        brewer_id: command.brewer_id.map(GearId::new),
+        filter_paper_id: command.filter_paper_id.map(GearId::new),
+        water_volume: command.water_volume,
+        water_temp: command.water_temp,
+        quick_notes,
+        brew_time: command.brew_time,
+        created_at,
+    };
+
+    let brew = client
+        .brews()
+        .update(BrewId::new(command.id), &payload)
+        .await?;
+    print_json(&brew)
 }
 
 define_get_command!(GetBrewCommand, get_brew, BrewId, brews);

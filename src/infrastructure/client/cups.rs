@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use reqwest::StatusCode;
 
-use crate::domain::cups::{Cup, CupWithDetails, NewCup};
+use crate::domain::cups::{Cup, CupWithDetails, NewCup, UpdateCup};
 use crate::domain::ids::CupId;
 
 use super::BrewlogClient;
@@ -48,6 +48,19 @@ impl<'a> CupsClient<'a> {
             .send()
             .await
             .context("failed to issue get cup request")?;
+
+        self.inner.handle_response(response).await
+    }
+
+    pub async fn update(&self, id: CupId, payload: &UpdateCup) -> Result<Cup> {
+        let url = self.inner.endpoint(&format!("api/v1/cups/{id}"))?;
+        let response = self
+            .inner
+            .request(reqwest::Method::PUT, url)
+            .json(payload)
+            .send()
+            .await
+            .context("failed to issue update cup request")?;
 
         self.inner.handle_response(response).await
     }

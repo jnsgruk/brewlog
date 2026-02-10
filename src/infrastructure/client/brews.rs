@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 
-use crate::domain::brews::{BrewWithDetails, QuickNote};
+use crate::domain::brews::{BrewWithDetails, QuickNote, UpdateBrew};
 use crate::domain::ids::{BagId, BrewId, GearId};
 
 use super::BrewlogClient;
@@ -90,6 +90,19 @@ impl<'a> BrewsClient<'a> {
             .send()
             .await
             .context("failed to issue get brew request")?;
+
+        self.inner.handle_response(response).await
+    }
+
+    pub async fn update(&self, id: BrewId, payload: &UpdateBrew) -> Result<BrewWithDetails> {
+        let url = self.inner.endpoint(&format!("api/v1/brews/{id}"))?;
+        let response = self
+            .inner
+            .request(reqwest::Method::PUT, url)
+            .json(payload)
+            .send()
+            .await
+            .context("failed to issue update brew request")?;
 
         self.inner.handle_response(response).await
     }
