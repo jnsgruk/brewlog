@@ -170,7 +170,7 @@ pub(crate) async fn update_bag(
     let (submission, source) = payload.into_parts();
     let (body_update, image_data_url) = submission.into_parts();
 
-    let update = UpdateBag {
+    let mut update = UpdateBag {
         roast_id: body_update.roast_id.or(update_params.roast_id),
         roast_date: body_update.roast_date.or(update_params.roast_date),
         amount: body_update.amount.or(update_params.amount),
@@ -179,6 +179,15 @@ pub(crate) async fn update_bag(
         finished_at: body_update.finished_at.or(update_params.finished_at),
         created_at: body_update.created_at,
     };
+
+    // When the bag amount changes, recompute remaining based on how much has been consumed.
+    if let Some(new_amount) = update.amount
+        && update.remaining.is_none()
+    {
+        let current = state.bag_repo.get(id).await.map_err(AppError::from)?;
+        let consumed = current.amount - current.remaining;
+        update.remaining = Some((new_amount - consumed).max(0.0));
+    }
 
     let bag = if let Some(true) = update.closed {
         state

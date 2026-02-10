@@ -1,5 +1,6 @@
 use crate::helpers::{
-    create_default_roast, create_default_roaster, spawn_app, spawn_app_with_auth,
+    create_default_bag, create_default_gear, create_default_roast, create_default_roaster,
+    spawn_app, spawn_app_with_auth,
 };
 use brewlog::domain::bags::{Bag, BagWithRoast, NewBag, UpdateBag};
 use chrono::NaiveDate;
@@ -301,4 +302,59 @@ async fn closing_a_bag_automatically_sets_finished_at() {
         updated_bag.finished_at.unwrap(),
         chrono::Utc::now().date_naive()
     );
+}
+
+#[tokio::test]
+async fn updating_bag_amount_recomputes_remaining() {
+    // Arrange: create a bag and brew from it to consume some coffee
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let client = reqwest::Client::new();
+
+    // Brew 15g from the 250g bag → remaining should be 235g
+    let new_brew = brewlog::domain::brews::NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 15.0,
+        grinder_id: grinder.id,
+        grind_setting: 24.0,
+        brewer_id: brewer.id,
+        filter_paper_id: None,
+        water_volume: 250,
+        water_temp: 92.0,
+        quick_notes: Vec::new(),
+        brew_time: None,
+        created_at: None,
+    };
+
+    client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("Failed to create brew");
+
+    // Act: update the bag amount from 250g to 500g
+    let update_payload = UpdateBag {
+        amount: Some(500.0),
+        ..Default::default()
+    };
+
+    let response = client
+        .put(app.api_url(&format!("/bags/{}", bag.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update_payload)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert: remaining should be 500 - 15 = 485 (recomputed from consumed)
+    assert_eq!(response.status(), 200);
+    let updated_bag: Bag = response.json().await.expect("Failed to parse response");
+    assert_eq!(updated_bag.amount, 500.0);
+    assert_eq!(updated_bag.remaining, 485.0);
 }
