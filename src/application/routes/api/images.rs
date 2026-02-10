@@ -105,7 +105,10 @@ pub(crate) async fn upload_image(
 
     let (upload, _source) = payload.into_parts();
 
-    let processed = process_data_url(&upload.image)
+    let image_data = upload.image;
+    let processed = tokio::task::spawn_blocking(move || process_data_url(&image_data))
+        .await
+        .map_err(|e| AppError::unexpected(format!("image processing task failed: {e}")))?
         .map_err(|e| AppError::validation(format!("invalid image: {e}")))?;
 
     let image = EntityImage {
@@ -232,22 +235,27 @@ pub(crate) async fn save_deferred_image(
     let Some(data_url) = data_url.filter(|s| !s.is_empty()) else {
         return;
     };
-    match process_data_url(data_url) {
-        Ok(processed) => {
-            let image = EntityImage {
-                entity_type: entity_type.to_string(),
-                entity_id,
-                content_type: processed.content_type,
-                image_data: processed.image_data,
-                thumbnail_data: processed.thumbnail_data,
-            };
-            if let Err(err) = state.image_repo.upsert(image).await {
-                tracing::warn!(entity_type, entity_id, error = %err, "failed to save deferred image");
-            }
+    let data_url = data_url.to_string();
+    let processed = match tokio::task::spawn_blocking(move || process_data_url(&data_url)).await {
+        Ok(Ok(p)) => p,
+        Ok(Err(err)) => {
+            tracing::warn!(entity_type, entity_id, error = %err, "failed to process deferred image");
+            return;
         }
         Err(err) => {
-            tracing::warn!(entity_type, entity_id, error = %err, "failed to process deferred image");
+            tracing::warn!(entity_type, entity_id, error = %err, "deferred image task panicked");
+            return;
         }
+    };
+    let image = EntityImage {
+        entity_type: entity_type.to_string(),
+        entity_id,
+        content_type: processed.content_type,
+        image_data: processed.image_data,
+        thumbnail_data: processed.thumbnail_data,
+    };
+    if let Err(err) = state.image_repo.upsert(image).await {
+        tracing::warn!(entity_type, entity_id, error = %err, "failed to save deferred image");
     }
 }
 
