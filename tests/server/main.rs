@@ -10,6 +10,7 @@ pub mod extraction_api;
 pub mod form_submissions;
 pub mod gear_api;
 pub mod helpers;
+pub mod images_api;
 pub mod nearby_api;
 pub mod pages;
 pub mod roasters_api;
