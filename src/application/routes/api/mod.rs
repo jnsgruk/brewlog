@@ -56,7 +56,9 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/brews", get(brews::list_brews).post(brews::create_brew))
         .route(
             "/brews/{id}",
-            get(brews::get_brew).delete(brews::delete_brew),
+            get(brews::get_brew)
+                .put(brews::update_brew)
+                .delete(brews::delete_brew),
         )
         .route("/cafes", get(cafes::list_cafes).post(cafes::create_cafe))
         .route(
@@ -78,7 +80,12 @@ pub(super) fn router() -> axum::Router<AppState> {
         )
         .route("/check-in", post(checkin::submit_checkin))
         .route("/cups", get(cups::list_cups).post(cups::create_cup))
-        .route("/cups/{id}", get(cups::get_cup).delete(cups::delete_cup))
+        .route(
+            "/cups/{id}",
+            get(cups::get_cup)
+                .put(cups::update_cup)
+                .delete(cups::delete_cup),
+        )
         .route(
             "/tokens",
             post(tokens::create_token).get(tokens::list_tokens),

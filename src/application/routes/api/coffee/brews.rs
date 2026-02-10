@@ -1,5 +1,5 @@
 use axum::Json;
-use axum::extract::{Query, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
 use chrono::{DateTime, Utc};
@@ -15,7 +15,9 @@ use crate::application::routes::support::{
 };
 use crate::application::state::AppState;
 use crate::domain::bags::BagFilter;
-use crate::domain::brews::{BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote};
+use crate::domain::brews::{
+    BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote, UpdateBrew,
+};
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, PageSize, SortDirection};
@@ -321,6 +323,114 @@ define_enriched_get_handler!(
     brew_repo,
     get_with_details
 );
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateBrewSubmission {
+    #[serde(default)]
+    bag_id: Option<BagId>,
+    #[serde(default)]
+    coffee_weight: Option<f64>,
+    #[serde(default, deserialize_with = "deserialize_optional_gear_id")]
+    grinder_id: Option<GearId>,
+    #[serde(default)]
+    grind_setting: Option<f64>,
+    #[serde(default, deserialize_with = "deserialize_optional_gear_id")]
+    brewer_id: Option<GearId>,
+    #[serde(default, deserialize_with = "deserialize_optional_gear_id")]
+    filter_paper_id: Option<GearId>,
+    #[serde(default)]
+    water_volume: Option<i32>,
+    #[serde(default)]
+    water_temp: Option<f64>,
+    #[serde(default, deserialize_with = "deserialize_quick_notes")]
+    quick_notes: Vec<QuickNote>,
+    #[serde(default)]
+    brew_time: Option<i32>,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateBrewSubmission {
+    fn into_parts(self) -> (UpdateBrew, Option<String>) {
+        let update = UpdateBrew {
+            bag_id: self.bag_id,
+            coffee_weight: self.coffee_weight,
+            grinder_id: self.grinder_id,
+            grind_setting: self.grind_setting,
+            brewer_id: self.brewer_id,
+            filter_paper_id: self.filter_paper_id,
+            water_volume: self.water_volume,
+            water_temp: self.water_temp,
+            quick_notes: if self.quick_notes.is_empty() {
+                None
+            } else {
+                Some(self.quick_notes)
+            },
+            brew_time: self.brew_time,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers))]
+pub(crate) async fn update_brew(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
+    Path(id): Path<BrewId>,
+    payload: FlexiblePayload<UpdateBrewSubmission>,
+) -> Result<Response, ApiError> {
+    let (submission, source) = payload.into_parts();
+    let (update, image_data_url) = submission.into_parts();
+
+    let has_changes = update.bag_id.is_some()
+        || update.coffee_weight.is_some()
+        || update.grinder_id.is_some()
+        || update.grind_setting.is_some()
+        || update.brewer_id.is_some()
+        || update.filter_paper_id.is_some()
+        || update.water_volume.is_some()
+        || update.water_temp.is_some()
+        || update.quick_notes.is_some()
+        || update.brew_time.is_some()
+        || update.created_at.is_some()
+        || image_data_url.is_some();
+
+    if !has_changes {
+        return Err(AppError::validation("no changes provided").into());
+    }
+
+    state
+        .brew_repo
+        .update(id, update)
+        .await
+        .map_err(AppError::from)?;
+
+    info!(%id, "brew updated");
+    state.stats_invalidator.invalidate();
+
+    save_deferred_image(&state, "brew", i64::from(id), image_data_url.as_deref()).await;
+
+    let enriched = state
+        .brew_repo
+        .get_with_details(id)
+        .await
+        .map_err(AppError::from)?;
+
+    let detail_url = format!("/brews/{id}");
+
+    if is_datastar_request(&headers) {
+        crate::application::routes::support::render_redirect_script(&detail_url)
+            .map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&detail_url).into_response())
+    } else {
+        Ok(Json(enriched).into_response())
+    }
+}
 
 define_delete_handler!(
     delete_brew,

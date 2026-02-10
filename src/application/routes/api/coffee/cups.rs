@@ -1,10 +1,13 @@
 use axum::Json;
-use axum::extract::{Query, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Redirect, Response};
+use chrono::{DateTime, Utc};
+use serde::Deserialize;
 
 use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
+use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{
     define_delete_handler, define_enriched_get_handler, define_list_fragment_renderer,
 };
@@ -12,8 +15,8 @@ use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
 };
 use crate::application::state::AppState;
-use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup};
-use crate::domain::ids::CupId;
+use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
+use crate::domain::ids::{CafeId, CupId, RoastId};
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::CupListTemplate;
 use crate::presentation::web::views::{CupView, ListNavigator, Paginated};
@@ -89,6 +92,76 @@ pub(crate) async fn list_cups(
 }
 
 define_enriched_get_handler!(get_cup, CupId, CupWithDetails, cup_repo, get_with_details);
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct UpdateCupSubmission {
+    #[serde(default)]
+    roast_id: Option<RoastId>,
+    #[serde(default)]
+    cafe_id: Option<CafeId>,
+    #[serde(default)]
+    created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    image: Option<String>,
+}
+
+impl UpdateCupSubmission {
+    fn into_parts(self) -> (UpdateCup, Option<String>) {
+        let update = UpdateCup {
+            roast_id: self.roast_id,
+            cafe_id: self.cafe_id,
+            created_at: self.created_at,
+        };
+        (update, self.image)
+    }
+}
+
+#[tracing::instrument(skip(state, _auth_user, headers))]
+pub(crate) async fn update_cup(
+    State(state): State<AppState>,
+    _auth_user: AuthenticatedUser,
+    headers: HeaderMap,
+    Path(id): Path<CupId>,
+    payload: FlexiblePayload<UpdateCupSubmission>,
+) -> Result<Response, ApiError> {
+    let (submission, source) = payload.into_parts();
+    let (update, image_data_url) = submission.into_parts();
+
+    let has_changes = update.roast_id.is_some()
+        || update.cafe_id.is_some()
+        || update.created_at.is_some()
+        || image_data_url.is_some();
+
+    if !has_changes {
+        return Err(AppError::validation("no changes provided").into());
+    }
+
+    let cup = state
+        .cup_repo
+        .update(id, update)
+        .await
+        .map_err(AppError::from)?;
+
+    info!(%id, "cup updated");
+    state.stats_invalidator.invalidate();
+
+    save_deferred_image(&state, "cup", i64::from(cup.id), image_data_url.as_deref()).await;
+
+    let detail_url = format!("/cups/{id}");
+
+    if is_datastar_request(&headers) {
+        render_redirect_script(&detail_url).map_err(ApiError::from)
+    } else if matches!(source, PayloadSource::Form) {
+        Ok(Redirect::to(&detail_url).into_response())
+    } else {
+        let enriched = state
+            .cup_repo
+            .get_with_details(id)
+            .await
+            .map_err(AppError::from)?;
+        Ok(Json(enriched).into_response())
+    }
+}
 
 define_delete_handler!(
     delete_cup,
