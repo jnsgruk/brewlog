@@ -9,6 +9,15 @@ const MAX_FULL_SIZE: u32 = 1200;
 /// Maximum dimension (width or height) for the thumbnail.
 const MAX_THUMBNAIL_SIZE: u32 = 200;
 
+/// Maximum allowed input dimension (width or height) to prevent decompression bombs.
+const MAX_INPUT_DIMENSION: u32 = 10_000;
+
+/// Maximum memory the decoder may allocate (256 MB).
+const MAX_DECODER_ALLOC: u64 = 256 * 1024 * 1024;
+
+/// Allowed MIME types in data URLs.
+const ALLOWED_MIMES: &[&str] = &["image/jpeg", "image/png", "image/webp"];
+
 /// JPEG quality for the full-size image (0-100).
 const JPEG_QUALITY_FULL: u8 = 85;
 
@@ -33,11 +42,17 @@ pub fn process_data_url(data_url: &str) -> anyhow::Result<ProcessedImage> {
 
 /// Process raw image bytes (JPEG/PNG/WebP) into resized full + thumbnail JPEGs.
 pub fn process_image_bytes(raw_bytes: &[u8]) -> anyhow::Result<ProcessedImage> {
-    let img = ImageReader::new(Cursor::new(raw_bytes))
+    let mut reader = ImageReader::new(Cursor::new(raw_bytes))
         .with_guessed_format()
-        .context("failed to guess image format")?
-        .decode()
-        .context("failed to decode image")?;
+        .context("failed to guess image format")?;
+
+    let mut limits = image::Limits::default();
+    limits.max_image_width = Some(MAX_INPUT_DIMENSION);
+    limits.max_image_height = Some(MAX_INPUT_DIMENSION);
+    limits.max_alloc = Some(MAX_DECODER_ALLOC);
+    reader.limits(limits);
+
+    let img = reader.decode().context("failed to decode image")?;
 
     let full = img.resize(
         MAX_FULL_SIZE,
@@ -67,9 +82,13 @@ fn decode_data_url(data_url: &str) -> anyhow::Result<Vec<u8>> {
         bail!("invalid data URL: missing data: prefix");
     };
 
-    let Some((_mime, encoded)) = rest.split_once(',') else {
+    let Some((mime, encoded)) = rest.split_once(',') else {
         bail!("invalid data URL: missing comma separator");
     };
+
+    if !ALLOWED_MIMES.iter().any(|m| mime.contains(m)) {
+        bail!("unsupported image type: {mime}");
+    }
 
     base64::engine::general_purpose::STANDARD
         .decode(encoded.trim())
@@ -108,5 +127,20 @@ mod tests {
     fn decode_data_url_missing_comma() {
         let result = decode_data_url("data:image/png;base64");
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn decode_data_url_rejects_non_image_mime() {
+        let data = base64::engine::general_purpose::STANDARD.encode(b"hello");
+        let url = format!("data:text/html;base64,{data}");
+        let result = decode_data_url(&url);
+        assert!(result.is_err());
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("unsupported image type"),
+            "should reject non-image MIME types"
+        );
     }
 }
