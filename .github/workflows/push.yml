@@ -53,3 +53,25 @@ jobs:
       - name: Run tests
         run: |
           nix develop --command cargo test -- --show-output
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix cache
+        uses: nix-community/cache-nix-action@main
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+
+      - name: Run E2E tests
+        run: |
+          nix develop -c cargo test --features e2e --test e2e -- --show-output
