@@ -154,7 +154,7 @@ impl TimelineEventView {
             id: id.to_string(),
             entity_type,
             kind_label,
-            date_label: occurred_at.format("%B %d, %Y").to_string(),
+            date_label: occurred_at.format("%b %d, %Y").to_string(),
             relative_date_label: relative_date(occurred_at),
             time_label: Some(occurred_at.format("%H:%M UTC").to_string()),
             iso_timestamp: occurred_at.to_rfc3339(),
