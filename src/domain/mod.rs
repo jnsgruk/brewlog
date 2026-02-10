@@ -5,6 +5,7 @@ pub mod countries;
 pub mod errors;
 pub mod formatting;
 pub mod ids;
+pub mod images;
 pub mod listing;
 pub mod repositories;
 

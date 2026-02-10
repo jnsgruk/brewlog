@@ -4,6 +4,7 @@ use axum::response::{IntoResponse, Response};
 use tower_cookies::Cookies;
 
 use crate::application::errors::map_app_error;
+use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::domain::ids::GearId;
@@ -24,6 +25,8 @@ pub(crate) async fn gear_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
+    let image_url = resolve_image_url(&state, "gear", i64::from(id)).await;
+
     let view = GearDetailView::from_domain(gear);
 
     let template = GearDetailTemplate {
@@ -32,6 +35,7 @@ pub(crate) async fn gear_detail_page(
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
         gear: view,
+        image_url,
     };
 
     render_html(template).map(IntoResponse::into_response)

@@ -87,6 +87,12 @@ macro_rules! define_enriched_get_handler {
 /// ```
 macro_rules! define_delete_handler {
     ($fn_name:ident, $id_type:ty, $sort_key:ty, $repo_field:ident, $render_fragment:path, $referer_match:literal, $redirect_url:literal) => {
+        define_delete_handler!(@inner $fn_name, $id_type, $sort_key, $repo_field, $render_fragment, $referer_match, $redirect_url, None);
+    };
+    ($fn_name:ident, $id_type:ty, $sort_key:ty, $repo_field:ident, $render_fragment:path, $referer_match:literal, $redirect_url:literal, image_type: $image_type:literal) => {
+        define_delete_handler!(@inner $fn_name, $id_type, $sort_key, $repo_field, $render_fragment, $referer_match, $redirect_url, Some($image_type));
+    };
+    (@inner $fn_name:ident, $id_type:ty, $sort_key:ty, $repo_field:ident, $render_fragment:path, $referer_match:literal, $redirect_url:literal, $image_type:expr) => {
         #[tracing::instrument(skip(state, _auth_user, headers, query))]
         pub(crate) async fn $fn_name(
             axum::extract::State(state): axum::extract::State<crate::application::state::AppState>,
@@ -103,6 +109,12 @@ macro_rules! define_delete_handler {
                 .delete(id)
                 .await
                 .map_err(crate::application::errors::AppError::from)?;
+
+            if let Some(img_type) = $image_type {
+                if let Err(err) = state.image_repo.delete(img_type, i64::from(id)).await {
+                    tracing::warn!(%id, error = %err, "failed to delete entity image");
+                }
+            }
 
             tracing::info!(%id, "entity deleted");
             state.stats_invalidator.invalidate();

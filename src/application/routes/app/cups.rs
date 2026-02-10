@@ -4,6 +4,7 @@ use axum::response::{IntoResponse, Response};
 use tower_cookies::Cookies;
 
 use crate::application::errors::map_app_error;
+use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::domain::ids::CupId;
@@ -47,6 +48,11 @@ pub(crate) async fn cup_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
+    let image_url = resolve_image_url(&state, "cup", i64::from(id))
+        .await
+        .or(resolve_image_url(&state, "cafe", i64::from(cafe.id)).await)
+        .or(resolve_image_url(&state, "roast", i64::from(roast.id)).await);
+
     let view = CupDetailView::from_parts(cup_details, &roast, &roaster, &cafe);
 
     let template = CupDetailTemplate {
@@ -58,6 +64,7 @@ pub(crate) async fn cup_detail_page(
         roaster_slug: roaster.slug.clone(),
         roast_slug: roast.slug.clone(),
         cafe_slug: cafe.slug.clone(),
+        image_url,
     };
 
     render_html(template).map(IntoResponse::into_response)

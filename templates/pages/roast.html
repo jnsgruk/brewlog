@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
 {% block title %}Brewlog · {{ roast.name }}{% endblock %}
 {% block og_title %}{{ roast.name }} — Brewlog{% endblock %}
 {% block og_description %}
@@ -12,18 +13,22 @@
 {% endblock %}
 {% block content %}
   <header class="flex items-start justify-between gap-4">
-    <div class="flex flex-col gap-2">
-      <h1 class="text-3xl font-semibold">{{ roast.name }}</h1>
-      <p class="text-sm text-text-secondary">
-        <a
-          href="/data?type=roasts"
-          class="text-accent hover:text-accent-hover transition"
-          >Roasts</a
-        >
-        · {{ roast.created_date }}
-      </p>
+    <div class="flex items-center gap-4 min-w-0">
+      {{ img::image_thumbnail("roast", roast.id, image_url, is_authenticated) }}
+      <div class="flex flex-col gap-1 min-w-0">
+        <h1 class="text-2xl font-semibold truncate">{{ roast.name }}</h1>
+        <p class="text-sm text-text-secondary">
+          <a
+            href="/data?type=roasts"
+            class="text-accent hover:text-accent-hover transition"
+            >Roasts</a
+          >
+          · {{ roast.created_date }}
+        </p>
+      </div>
     </div>
   </header>
+  {{ img::lightbox_script() }}
 
   <div class="grid gap-6 md:grid-cols-2">
     {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes, roaster_slug, "") }}

@@ -11,6 +11,7 @@ use crate::domain::ids::{
     BagId, BrewId, CafeId, CupId, GearId, PasskeyCredentialId, RegistrationTokenId, RoastId,
     RoasterId, SessionId, TokenId, UserId,
 };
+use crate::domain::images::EntityImage;
 use crate::domain::passkey_credentials::{NewPasskeyCredential, PasskeyCredential};
 use crate::domain::registration_tokens::{NewRegistrationToken, RegistrationToken};
 use crate::domain::roasters::RoasterSortKey;
@@ -267,6 +268,19 @@ pub trait RegistrationTokenRepository: Send + Sync {
 pub trait AiUsageRepository: Send + Sync {
     async fn insert(&self, usage: NewAiUsage) -> Result<AiUsage, RepositoryError>;
     async fn summary_for_user(&self, user_id: UserId) -> Result<AiUsageSummary, RepositoryError>;
+}
+
+#[async_trait]
+pub trait ImageRepository: Send + Sync {
+    async fn upsert(&self, image: EntityImage) -> Result<(), RepositoryError>;
+    async fn get(&self, entity_type: &str, entity_id: i64) -> Result<EntityImage, RepositoryError>;
+    async fn get_thumbnail(
+        &self,
+        entity_type: &str,
+        entity_id: i64,
+    ) -> Result<EntityImage, RepositoryError>;
+    async fn delete(&self, entity_type: &str, entity_id: i64) -> Result<(), RepositoryError>;
+    async fn has_image(&self, entity_type: &str, entity_id: i64) -> Result<bool, RepositoryError>;
 }
 
 #[async_trait]

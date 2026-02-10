@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
 {% block title %}Brewlog · {{ gear.make }} {{ gear.model }}{% endblock %}
 {% block og_title %}{{ gear.make }} {{ gear.model }} — Brewlog{% endblock %}
 {% block og_description %}
@@ -13,18 +14,24 @@
 {% endblock %}
 {% block content %}
   <header class="flex items-start justify-between gap-4">
-    <div class="flex flex-col gap-2">
-      <h1 class="text-3xl font-semibold">{{ gear.make }} {{ gear.model }}</h1>
-      <p class="text-sm text-text-secondary">
-        <a
-          href="/data?type=gear"
-          class="text-accent hover:text-accent-hover transition"
-          >Gear</a
-        >
-        · {{ gear.created_date }}
-      </p>
+    <div class="flex items-center gap-4 min-w-0">
+      {{ img::image_thumbnail("gear", gear.id, image_url, is_authenticated) }}
+      <div class="flex flex-col gap-1 min-w-0">
+        <h1 class="text-2xl font-semibold truncate">
+          {{ gear.make }} {{ gear.model }}
+        </h1>
+        <p class="text-sm text-text-secondary">
+          <a
+            href="/data?type=gear"
+            class="text-accent hover:text-accent-hover transition"
+            >Gear</a
+          >
+          · {{ gear.created_date }}
+        </p>
+      </div>
     </div>
   </header>
+  {{ img::lightbox_script() }}
 
   <div class="rounded-lg border bg-surface p-5">
     <h2 class="text-lg font-semibold text-text mb-4">Details</h2>

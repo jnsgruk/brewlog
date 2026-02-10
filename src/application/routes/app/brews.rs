@@ -4,6 +4,7 @@ use axum::response::{IntoResponse, Response};
 use tower_cookies::Cookies;
 
 use crate::application::errors::map_app_error;
+use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::domain::ids::BrewId;
@@ -42,6 +43,10 @@ pub(crate) async fn brew_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
+    let image_url = resolve_image_url(&state, "brew", i64::from(id))
+        .await
+        .or(resolve_image_url(&state, "roast", i64::from(roast.id)).await);
+
     let view = BrewDetailView::from_parts(brew_details, &roast, &roaster);
 
     let template = BrewDetailTemplate {
@@ -52,6 +57,7 @@ pub(crate) async fn brew_detail_page(
         brew: view,
         roaster_slug: roaster.slug.clone(),
         roast_slug: roast.slug.clone(),
+        image_url,
     };
 
     render_html(template).map(IntoResponse::into_response)

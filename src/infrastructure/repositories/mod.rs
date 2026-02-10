@@ -1,6 +1,7 @@
 pub mod analytics;
 pub mod auth;
 pub mod coffee;
+pub mod images;
 pub(crate) mod macros;
 pub mod pagination;
 

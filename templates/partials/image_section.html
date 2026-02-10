@@ -1,0 +1,127 @@
+{% macro readonly_image(url, alt_text) %}
+  <div
+    class="relative shrink-0 h-14 w-14 md:h-20 md:w-20 rounded-lg overflow-hidden cursor-pointer"
+    onclick="openImageModal('{{ url }}')"
+  >
+    <img
+      src="{{ url }}"
+      class="h-full w-full object-cover"
+      alt="{{ alt_text }}"
+    />
+    <div
+      class="absolute inset-0 pointer-events-none"
+      style="box-shadow: inset 0 0 20px rgba(0,0,0,0.4)"
+    ></div>
+  </div>
+{% endmacro %}
+
+{% macro image_thumbnail(entity_type, entity_id, image_url, is_authenticated) %}
+  {% if let Some(url) = image_url %}
+    <div
+      class="relative shrink-0 h-14 w-14 md:h-20 md:w-20 rounded-lg overflow-hidden cursor-pointer"
+      onclick="openImageModal('{{ url }}')"
+    >
+      <img
+        src="{{ url }}"
+        class="h-full w-full object-cover"
+        alt="{{ entity_type }} image"
+      />
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="box-shadow: inset 0 0 20px rgba(0,0,0,0.4)"
+      ></div>
+    </div>
+  {% else if is_authenticated %}
+    <image-upload
+      entity-type="{{ entity_type }}"
+      entity-id="{{ entity_id }}"
+      mode="upload"
+      class="flex shrink-0 items-center justify-center h-14 w-14 md:h-20 md:w-20 rounded-lg border-2 border-dashed border-text-muted/30 text-text-muted cursor-pointer hover:border-accent/40 hover:text-text-secondary transition"
+    >
+      <svg
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
+        />
+      </svg>
+    </image-upload>
+  {% else %}
+    <div
+      class="flex shrink-0 items-center justify-center h-14 w-14 md:h-20 md:w-20 rounded-lg border-2 border-dashed border-text-muted/30 text-text-muted"
+    >
+      <svg
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+        />
+      </svg>
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro deferred_upload(input_id, label) %}
+  <input type="hidden" name="image" id="{{ input_id }}" />
+  <image-upload
+    mode="deferred"
+    target-input="{{ input_id }}"
+    class="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-text-muted/30 bg-surface p-4 text-center text-text-muted cursor-pointer hover:border-accent/40 hover:text-text-secondary transition"
+  >
+    <svg
+      class="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="1.5"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+      />
+    </svg>
+    <span class="text-xs">{{ label }}</span>
+  </image-upload>
+{% endmacro %}
+
+{% macro lightbox_script() %}
+  <script>
+    const openImageModal = (src) => {
+      const overlay = document.createElement("div");
+      overlay.className =
+        "fixed inset-0 z-50 flex items-center justify-center bg-black/80 cursor-pointer";
+      overlay.onclick = () => overlay.remove();
+      const img = document.createElement("img");
+      img.src = src;
+      img.className = "max-h-[90vh] max-w-[90vw] rounded-lg object-contain";
+      img.onclick = (e) => e.stopPropagation();
+      overlay.appendChild(img);
+      document.body.appendChild(overlay);
+      const onKey = (e) => {
+        if (e.key === "Escape") {
+          overlay.remove();
+          document.removeEventListener("keydown", onKey);
+        }
+      };
+      document.addEventListener("keydown", onKey);
+    };
+  </script>
+{% endmacro %}

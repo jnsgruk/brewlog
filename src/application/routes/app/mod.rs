@@ -58,6 +58,10 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/static/js/location.js", get(location_js))
         .route("/static/js/components/world-map.js", get(world_map_js))
         .route("/static/js/components/donut-chart.js", get(donut_chart_js))
+        .route(
+            "/static/js/components/image-upload.js",
+            get(image_upload_js),
+        )
         .route("/static/favicon-light.svg", get(favicon_light))
         .route("/static/favicon-dark.svg", get(favicon_dark))
         .route("/static/og-image.png", get(og_image))
@@ -145,6 +149,16 @@ async fn donut_chart_js() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_str!("../../../../static/js/components/donut-chart.js"),
+    )
+}
+
+async fn image_upload_js() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "application/javascript; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_str!("../../../../static/js/components/image-upload.js"),
     )
 }
 

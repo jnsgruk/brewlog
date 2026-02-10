@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "partials/detail_cards.html" as detail %}
 {% import "partials/icons.html" as icons %}
+{% import "partials/image_section.html" as img %}
 {% block title %}Brewlog · {{ brew.roast_name }}{% endblock %}
 {% block description %}
   {{ brew.roast_name }}
@@ -18,18 +19,24 @@
 {% endblock %}
 {% block content %}
   <header class="flex items-start justify-between gap-4">
-    <div class="flex flex-col gap-2">
-      <h1 class="text-3xl font-semibold">{{ brew.roast_name }}</h1>
-      <p class="text-sm text-text-secondary">
-        <a
-          href="/data?type=brews"
-          class="text-accent hover:text-accent-hover transition"
-          >Brews</a
-        >
-        · {{ brew.created_date }}
-      </p>
+    <div class="flex items-center gap-4 min-w-0">
+      {{ img::image_thumbnail("brew", brew.id, image_url, is_authenticated) }}
+      <div class="flex flex-col gap-1 min-w-0">
+        <h1 class="text-2xl font-semibold truncate">{{ brew.roast_name }}</h1>
+        <p class="text-sm text-text-secondary">
+          <a
+            href="/data?type=brews"
+            class="text-accent hover:text-accent-hover transition"
+            >Brews</a
+          >
+          · {{ brew.created_date }}
+        </p>
+      </div>
     </div>
   </header>
+  {% if image_url.is_some() %}
+    {{ img::lightbox_script() }}
+  {% endif %}
 
   {# ── Coffee + map ── #}
   <div class="grid gap-6 md:grid-cols-2">

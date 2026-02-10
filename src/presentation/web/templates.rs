@@ -221,6 +221,7 @@ pub struct BagDetailTemplate {
     pub bag: BagDetailView,
     pub roaster_slug: String,
     pub roast_slug: String,
+    pub image_url: Option<String>,
 }
 
 #[derive(Template)]
@@ -233,6 +234,7 @@ pub struct BrewDetailTemplate {
     pub brew: BrewDetailView,
     pub roaster_slug: String,
     pub roast_slug: String,
+    pub image_url: Option<String>,
 }
 
 #[derive(Template)]
@@ -246,6 +248,7 @@ pub struct CupDetailTemplate {
     pub roaster_slug: String,
     pub roast_slug: String,
     pub cafe_slug: String,
+    pub image_url: Option<String>,
 }
 
 #[derive(Template)]
@@ -257,6 +260,7 @@ pub struct RoastDetailTemplate {
     pub base_url: &'static str,
     pub roast: RoastDetailView,
     pub roaster_slug: String,
+    pub image_url: Option<String>,
 }
 
 #[derive(Template)]
@@ -267,6 +271,7 @@ pub struct RoasterDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub roaster: RoasterDetailView,
+    pub image_url: Option<String>,
 }
 
 #[derive(Template)]
@@ -277,6 +282,7 @@ pub struct CafeDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub cafe: CafeDetailView,
+    pub image_url: Option<String>,
 }
 
 #[derive(Template)]
@@ -287,6 +293,16 @@ pub struct GearDetailTemplate {
     pub version_info: &'static crate::VersionInfo,
     pub base_url: &'static str,
     pub gear: GearDetailView,
+    pub image_url: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "partials/image_upload.html")]
+pub struct ImageUploadTemplate<'a> {
+    pub entity_type: &'a str,
+    pub entity_id: i64,
+    pub image_url: Option<&'a str>,
+    pub is_authenticated: bool,
 }
 
 pub fn render_template<T: Template>(template: T) -> Result<String, askama::Error> {

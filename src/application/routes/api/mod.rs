@@ -1,6 +1,7 @@
 pub(crate) mod analytics;
 pub(crate) mod auth;
 pub(crate) mod coffee;
+pub(crate) mod images;
 pub(crate) mod macros;
 pub(crate) mod system;
 
@@ -95,6 +96,14 @@ pub(super) fn router() -> axum::Router<AppState> {
         )
         .route("/backup/reset", post(backup::reset_database))
         .route("/stats/recompute", post(stats::recompute_stats))
+        .route(
+            "/{entity_type}/{id}/image",
+            get(images::get_image)
+                .put(images::upload_image)
+                .delete(images::delete_image)
+                .layer(DefaultBodyLimit::max(10 * 1024 * 1024)),
+        )
+        .route("/{entity_type}/{id}/thumbnail", get(images::get_thumbnail))
 }
 
 pub(super) fn webauthn_router() -> axum::Router<AppState> {

@@ -4,6 +4,7 @@ use axum::response::{IntoResponse, Response};
 use tower_cookies::Cookies;
 
 use crate::application::errors::map_app_error;
+use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::presentation::web::templates::RoasterDetailTemplate;
@@ -23,6 +24,8 @@ pub(crate) async fn roaster_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
+    let image_url = resolve_image_url(&state, "roaster", i64::from(roaster.id)).await;
+
     let view = RoasterDetailView::from_domain(roaster);
 
     let template = RoasterDetailTemplate {
@@ -31,6 +34,7 @@ pub(crate) async fn roaster_detail_page(
         version_info: &crate::VERSION_INFO,
         base_url: crate::base_url(),
         roaster: view,
+        image_url,
     };
 
     render_html(template).map(IntoResponse::into_response)

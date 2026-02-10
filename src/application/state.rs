@@ -8,9 +8,9 @@ use crate::application::services::{
 };
 use crate::domain::repositories::{
     AiUsageRepository, BagRepository, BrewRepository, CafeRepository, CupRepository,
-    GearRepository, PasskeyCredentialRepository, RegistrationTokenRepository, RoastRepository,
-    RoasterRepository, SessionRepository, StatsRepository, TimelineEventRepository,
-    TokenRepository, UserRepository,
+    GearRepository, ImageRepository, PasskeyCredentialRepository, RegistrationTokenRepository,
+    RoastRepository, RoasterRepository, SessionRepository, StatsRepository,
+    TimelineEventRepository, TokenRepository, UserRepository,
 };
 use crate::infrastructure::backup::BackupService;
 use crate::infrastructure::database::Database;
@@ -20,6 +20,7 @@ use crate::infrastructure::repositories::brews::SqlBrewRepository;
 use crate::infrastructure::repositories::cafes::SqlCafeRepository;
 use crate::infrastructure::repositories::cups::SqlCupRepository;
 use crate::infrastructure::repositories::gear::SqlGearRepository;
+use crate::infrastructure::repositories::images::SqlImageRepository;
 use crate::infrastructure::repositories::passkey_credentials::SqlPasskeyCredentialRepository;
 use crate::infrastructure::repositories::registration_tokens::SqlRegistrationTokenRepository;
 use crate::infrastructure::repositories::roasters::SqlRoasterRepository;
@@ -61,6 +62,7 @@ pub struct AppState {
     pub passkey_repo: Arc<dyn PasskeyCredentialRepository>,
     pub registration_token_repo: Arc<dyn RegistrationTokenRepository>,
     pub ai_usage_repo: Arc<dyn AiUsageRepository>,
+    pub image_repo: Arc<dyn ImageRepository>,
     pub stats_repo: Arc<dyn StatsRepository>,
     pub webauthn: Arc<Webauthn>,
     pub challenge_store: Arc<ChallengeStore>,
@@ -108,6 +110,7 @@ impl AppState {
             Arc::new(SqlRegistrationTokenRepository::new(pool.clone()));
         let ai_usage_repo: Arc<dyn AiUsageRepository> =
             Arc::new(SqlAiUsageRepository::new(pool.clone()));
+        let image_repo: Arc<dyn ImageRepository> = Arc::new(SqlImageRepository::new(pool.clone()));
         let stats_repo: Arc<dyn StatsRepository> = Arc::new(SqlStatsRepository::new(pool.clone()));
 
         let backup_service = Arc::new(BackupService::new(pool));
@@ -145,6 +148,7 @@ impl AppState {
             passkey_repo,
             registration_token_repo,
             ai_usage_repo,
+            image_repo,
             stats_repo,
             webauthn: config.webauthn,
             challenge_store: Arc::new(ChallengeStore::new()),
