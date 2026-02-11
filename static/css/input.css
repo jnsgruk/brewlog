@@ -179,6 +179,12 @@ input.input-field[type="number"] {
   box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.15);
 }
 
+@media (max-width: 767px) {
+  .input-field {
+    font-size: 1rem; /* 16px — prevents iOS Safari auto-zoom on focus */
+  }
+}
+
 .btn-adjust {
   display: flex;
   height: 2rem;
