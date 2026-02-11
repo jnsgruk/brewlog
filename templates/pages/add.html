@@ -190,12 +190,19 @@
             </label>
           </div>
           {{ img::deferred_upload("roaster-image", "Add image (optional)") }}
-          <div class="sticky-submit flex items-center justify-end">
+          <div class="sticky-submit flex flex-col gap-2">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
             >
               {{ icons::plus("h-4 w-4") }} Save Roaster
+            </button>
+            <button
+              type="button"
+              onclick="history.back()"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+            >
+              {{ icons::x_mark("h-4 w-4") }} Cancel
             </button>
           </div>
         </form>
@@ -403,12 +410,19 @@
               </label>
             </div>
             {{ img::deferred_upload("roast-image", "Add image (optional)") }}
-            <div class="sticky-submit flex items-center justify-end">
+            <div class="sticky-submit flex flex-col gap-2">
               <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
               >
                 {{ icons::plus("h-4 w-4") }} Save Roast
+              </button>
+              <button
+                type="button"
+                onclick="history.back()"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+              >
+                {{ icons::x_mark("h-4 w-4") }} Cancel
               </button>
             </div>
           </form>
@@ -498,12 +512,19 @@
               />
             </label>
           </div>
-          <div class="sticky-submit flex items-center justify-end">
+          <div class="sticky-submit flex flex-col gap-2">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
             >
               {{ icons::plus("h-4 w-4") }} Save Bag
+            </button>
+            <button
+              type="button"
+              onclick="history.back()"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+            >
+              {{ icons::x_mark("h-4 w-4") }} Cancel
             </button>
           </div>
         </form>
@@ -947,12 +968,19 @@
             />
           </div>
           {{ img::deferred_upload("brew-image", "Add image (optional)") }}
-          <div class="sticky-submit flex items-center justify-end">
+          <div class="sticky-submit flex flex-col gap-2">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
             >
               {{ icons::beaker("h-4 w-4") }} Save Brew
+            </button>
+            <button
+              type="button"
+              onclick="history.back()"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+            >
+              {{ icons::x_mark("h-4 w-4") }} Cancel
             </button>
           </div>
         </form>
@@ -1023,12 +1051,19 @@
           </label>
         </div>
         {{ img::deferred_upload("gear-image", "Add image (optional)") }}
-        <div class="sticky-submit flex items-center justify-end">
+        <div class="sticky-submit flex flex-col gap-2">
           <button
             type="submit"
             class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
           >
             {{ icons::plus("h-4 w-4") }} Save Gear
+          </button>
+          <button
+            type="button"
+            onclick="history.back()"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+          >
+            {{ icons::x_mark("h-4 w-4") }} Cancel
           </button>
         </div>
       </form>
@@ -1188,12 +1223,19 @@
           </label>
         </div>
         {{ img::deferred_upload("cafe-image", "Add image (optional)") }}
-        <div class="sticky-submit flex items-center justify-end">
+        <div class="sticky-submit flex flex-col gap-2">
           <button
             type="submit"
             class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
           >
             {{ icons::plus("h-4 w-4") }} Save Cafe
+          </button>
+          <button
+            type="button"
+            onclick="history.back()"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+          >
+            {{ icons::x_mark("h-4 w-4") }} Cancel
           </button>
         </div>
       </form>
@@ -1297,12 +1339,19 @@
               </searchable-select>
             </div>
           </div>
-          <div class="sticky-submit flex items-center justify-end">
+          <div class="sticky-submit flex flex-col gap-2">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
             >
               {{ icons::plus("h-4 w-4") }} Save Cup
+            </button>
+            <button
+              type="button"
+              onclick="history.back()"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+            >
+              {{ icons::x_mark("h-4 w-4") }} Cancel
             </button>
           </div>
         </form>
