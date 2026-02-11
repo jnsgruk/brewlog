@@ -190,6 +190,7 @@ input.input-field[type="number"] {
   background-color: var(--surface);
   color: var(--accent);
   font-weight: 700;
+  touch-action: manipulation;
   transition:
     background-color 150ms ease,
     color 150ms ease;
