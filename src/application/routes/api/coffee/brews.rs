@@ -21,6 +21,7 @@ use crate::domain::brews::{
 };
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, PageSize, SortDirection};
 use crate::presentation::web::templates::BrewListTemplate;
 use crate::presentation::web::views::{
@@ -198,11 +199,11 @@ pub(crate) struct NewBrewSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl NewBrewSubmission {
-    fn into_new_brew(self) -> Result<NewBrew, AppError> {
+    fn into_parts(self) -> Result<(NewBrew, Option<String>), AppError> {
         if self.coffee_weight <= 0.0 {
             return Err(AppError::validation("coffee weight must be positive"));
         }
@@ -223,23 +224,26 @@ impl NewBrewSubmission {
             return Err(AppError::validation("brew time must be positive"));
         }
 
-        Ok(NewBrew {
-            bag_id: self.bag_id,
-            coffee_weight: self.coffee_weight,
-            grinder_id: self.grinder_id,
-            grind_setting: self.grind_setting,
-            brewer_id: self.brewer_id,
-            filter_paper_id: self.filter_paper_id,
-            water_volume: self.water_volume,
-            water_temp: self.water_temp,
-            quick_notes: self.quick_notes,
-            brew_time: self.brew_time,
-            created_at: self.created_at,
-        })
+        Ok((
+            NewBrew {
+                bag_id: self.bag_id,
+                coffee_weight: self.coffee_weight,
+                grinder_id: self.grinder_id,
+                grind_setting: self.grind_setting,
+                brewer_id: self.brewer_id,
+                filter_paper_id: self.filter_paper_id,
+                water_volume: self.water_volume,
+                water_temp: self.water_temp,
+                quick_notes: self.quick_notes,
+                brew_time: self.brew_time,
+                created_at: self.created_at,
+            },
+            self.image.into_inner(),
+        ))
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_brew(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -249,8 +253,7 @@ pub(crate) async fn create_brew(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<BrewSortKey>();
     let (submission, source) = payload.into_parts();
-    let image_data_url = submission.image.clone();
-    let new_brew = submission.into_new_brew().map_err(ApiError::from)?;
+    let (new_brew, image_data_url) = submission.into_parts().map_err(ApiError::from)?;
 
     let enriched = state
         .brew_service
@@ -350,7 +353,7 @@ pub(crate) struct UpdateBrewSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateBrewSubmission {
@@ -372,7 +375,7 @@ impl UpdateBrewSubmission {
             brew_time: self.brew_time,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
@@ -391,7 +394,7 @@ impl_has_changes!(
     created_at
 );
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_brew(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

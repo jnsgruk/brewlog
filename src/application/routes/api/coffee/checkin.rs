@@ -14,6 +14,7 @@ use crate::application::state::AppState;
 use crate::domain::cafes::NewCafe;
 use crate::domain::cups::NewCup;
 use crate::domain::ids::{CafeId, RoastId};
+use crate::domain::images::ImageData;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct CheckInSubmission {
@@ -33,12 +34,12 @@ pub(crate) struct CheckInSubmission {
     cafe_website: Option<String>,
     roast_id: String,
     #[serde(default)]
-    cafe_image: Option<String>,
+    cafe_image: ImageData,
     #[serde(default)]
-    cup_image: Option<String>,
+    cup_image: ImageData,
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn submit_checkin(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

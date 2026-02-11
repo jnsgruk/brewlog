@@ -17,6 +17,7 @@ use crate::application::routes::support::{
 };
 use crate::application::state::AppState;
 use crate::domain::ids::{RoastId, RoasterId};
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasts::{NewRoast, RoastSortKey, RoastWithRoaster, UpdateRoast};
 use crate::infrastructure::ai::{self, ExtractionInput};
@@ -49,7 +50,7 @@ pub(crate) async fn load_roast_page(
     ))
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_roast(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -59,8 +60,7 @@ pub(crate) async fn create_roast(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<RoastSortKey>();
     let (submission, source) = payload.into_parts();
-    let image_data_url = submission.image.clone();
-    let new_roast = submission.into_new_roast().map_err(ApiError::from)?;
+    let (new_roast, image_data_url) = submission.into_parts().map_err(ApiError::from)?;
 
     state
         .roaster_repo
@@ -196,7 +196,7 @@ pub(crate) struct UpdateRoastSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateRoastSubmission {
@@ -211,7 +211,7 @@ impl UpdateRoastSubmission {
             process: self.process,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
@@ -227,7 +227,7 @@ impl_has_changes!(
     created_at
 );
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_roast(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -288,11 +288,11 @@ pub(crate) struct NewRoastSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl NewRoastSubmission {
-    fn into_new_roast(self) -> Result<NewRoast, AppError> {
+    fn into_parts(self) -> Result<(NewRoast, Option<String>), AppError> {
         fn require(field: &str, value: String) -> Result<String, AppError> {
             let trimmed = value.trim();
             if trimmed.is_empty() {
@@ -318,16 +318,19 @@ impl NewRoastSubmission {
             return Err(AppError::validation("tasting notes are required"));
         }
 
-        Ok(NewRoast {
-            roaster_id,
-            name,
-            origin,
-            region,
-            producer,
-            tasting_notes,
-            process,
-            created_at: self.created_at,
-        })
+        Ok((
+            NewRoast {
+                roaster_id,
+                name,
+                origin,
+                region,
+                producer,
+                tasting_notes,
+                process,
+                created_at: self.created_at,
+            },
+            self.image.into_inner(),
+        ))
     }
 }
 

@@ -17,6 +17,7 @@ use crate::application::routes::support::{
 use crate::application::state::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
 use crate::domain::ids::{BagId, RoastId};
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::BagListTemplate;
 use crate::presentation::web::views::{BagView, ListNavigator, Paginated};
@@ -53,7 +54,7 @@ pub(crate) async fn load_bag_page(
     Ok(BagPageData { bags, navigator })
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_bag(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -139,7 +140,7 @@ pub(crate) struct UpdateBagSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateBagSubmission {
@@ -153,7 +154,7 @@ impl UpdateBagSubmission {
             finished_at: self.finished_at,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
@@ -168,7 +169,7 @@ impl_has_changes!(
     created_at
 );
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn update_bag(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

@@ -18,6 +18,7 @@ use crate::application::routes::support::{
 use crate::application::state::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
 use crate::domain::ids::CafeId;
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::infrastructure::foursquare;
 use crate::presentation::web::templates::{CafeListTemplate, NearbyCafesFragment};
@@ -71,7 +72,7 @@ pub(crate) struct NewCafeSubmission {
     #[serde(default)]
     created_at: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl NewCafeSubmission {
@@ -85,11 +86,11 @@ impl NewCafeSubmission {
             website: self.website,
             created_at: self.created_at,
         };
-        (cafe, self.image)
+        (cafe, self.image.into_inner())
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_cafe(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -159,7 +160,7 @@ pub(crate) struct UpdateCafeSubmission {
     #[serde(default)]
     created_at: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateCafeSubmission {
@@ -173,7 +174,7 @@ impl UpdateCafeSubmission {
             website: self.website,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
@@ -181,7 +182,7 @@ impl_has_changes!(
     UpdateCafe, name, city, country, latitude, longitude, website, created_at
 );
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_cafe(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

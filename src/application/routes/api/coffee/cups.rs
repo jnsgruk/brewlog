@@ -19,6 +19,7 @@ use crate::application::routes::support::{
 use crate::application::state::AppState;
 use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
 use crate::domain::ids::{CafeId, CupId, RoastId};
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::CupListTemplate;
 use crate::presentation::web::views::{CupView, ListNavigator, Paginated};
@@ -49,7 +50,7 @@ pub(crate) async fn load_cup_page(
     ))
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_cup(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -104,7 +105,7 @@ pub(crate) struct UpdateCupSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateCupSubmission {
@@ -114,13 +115,13 @@ impl UpdateCupSubmission {
             cafe_id: self.cafe_id,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
 impl_has_changes!(UpdateCup, roast_id, cafe_id, created_at);
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_cup(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

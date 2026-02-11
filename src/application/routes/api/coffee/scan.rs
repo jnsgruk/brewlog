@@ -14,6 +14,7 @@ use crate::application::state::AppState;
 use crate::domain::bags::NewBag;
 use crate::domain::errors::RepositoryError;
 use crate::domain::ids::RoastId;
+use crate::domain::images::ImageData;
 use crate::domain::roasters::NewRoaster;
 use crate::domain::roasts::NewRoast;
 use crate::infrastructure::ai::{self, ExtractionInput, Usage};
@@ -158,7 +159,7 @@ fn default_tasting_notes() -> TastingNotesInput {
 #[derive(Debug, Deserialize)]
 pub(crate) struct BagScanSubmission {
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
     #[serde(default)]
     prompt: Option<String>,
     #[serde(default)]
@@ -186,7 +187,7 @@ pub(crate) struct BagScanSubmission {
     #[serde(default)]
     matched_roast_id: Option<String>,
     #[serde(default)]
-    scan_image: Option<String>,
+    scan_image: ImageData,
 }
 
 #[derive(Debug, Serialize)]
@@ -250,7 +251,7 @@ async fn extract_into_submission(
 }
 
 #[allow(clippy::too_many_lines)]
-#[tracing::instrument(skip(state, auth_user, headers, payload))]
+#[tracing::instrument(skip(state, auth_user, headers))]
 pub(crate) async fn submit_scan(
     State(state): State<AppState>,
     auth_user: AuthenticatedUser,
@@ -274,7 +275,7 @@ pub(crate) async fn submit_scan(
     let scan_image = submission
         .scan_image
         .take()
-        .or_else(|| submission.image.clone())
+        .or_else(|| submission.image.cloned())
         .filter(|s| !s.is_empty());
 
     if has_raw_input {

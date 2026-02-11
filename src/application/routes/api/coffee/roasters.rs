@@ -17,6 +17,7 @@ use crate::application::routes::support::{
 };
 use crate::application::state::AppState;
 use crate::domain::ids::RoasterId;
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::domain::roasters::{NewRoaster, Roaster, RoasterSortKey, UpdateRoaster};
 use crate::infrastructure::ai::{self, ExtractionInput};
@@ -72,7 +73,7 @@ pub(crate) struct NewRoasterSubmission {
     #[serde(default)]
     created_at: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl NewRoasterSubmission {
@@ -84,11 +85,11 @@ impl NewRoasterSubmission {
             homepage: self.homepage,
             created_at: self.created_at,
         };
-        (roaster, self.image)
+        (roaster, self.image.into_inner())
     }
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -154,7 +155,7 @@ pub(crate) struct UpdateRoasterSubmission {
     #[serde(default)]
     created_at: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateRoasterSubmission {
@@ -166,13 +167,13 @@ impl UpdateRoasterSubmission {
             homepage: self.homepage,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
 impl_has_changes!(UpdateRoaster, name, country, city, homepage, created_at);
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_roaster(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,

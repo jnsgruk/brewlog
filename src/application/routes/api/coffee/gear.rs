@@ -22,6 +22,7 @@ use crate::application::routes::support::{
 use crate::application::state::AppState;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::GearId;
+use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
 use crate::presentation::web::templates::GearListTemplate;
 use crate::presentation::web::views::{GearView, ListNavigator, Paginated};
@@ -51,7 +52,7 @@ pub(crate) async fn load_gear_page(
     ))
 }
 
-#[tracing::instrument(skip(state, _auth_user, headers, query, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers, query))]
 pub(crate) async fn create_gear(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -61,8 +62,7 @@ pub(crate) async fn create_gear(
 ) -> Result<Response, ApiError> {
     let (request, search) = query.into_request_and_search::<GearSortKey>();
     let (submission, source) = payload.into_parts();
-    let image_data_url = submission.image.clone();
-    let new_gear = submission.into_new_gear().map_err(ApiError::from)?;
+    let (new_gear, image_data_url) = submission.into_parts().map_err(ApiError::from)?;
 
     let gear = state
         .gear_service
@@ -136,7 +136,7 @@ pub(crate) struct UpdateGearSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl UpdateGearSubmission {
@@ -146,13 +146,13 @@ impl UpdateGearSubmission {
             model: self.model,
             created_at: self.created_at,
         };
-        (update, self.image)
+        (update, self.image.into_inner())
     }
 }
 
 impl_has_changes!(UpdateGear, make, model, created_at);
 
-#[tracing::instrument(skip(state, _auth_user, headers, payload))]
+#[tracing::instrument(skip(state, _auth_user, headers))]
 pub(crate) async fn update_gear(
     State(state): State<AppState>,
     _auth_user: AuthenticatedUser,
@@ -210,11 +210,11 @@ pub(crate) struct NewGearSubmission {
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
-    image: Option<String>,
+    image: ImageData,
 }
 
 impl NewGearSubmission {
-    fn into_new_gear(self) -> Result<NewGear, AppError> {
+    fn into_parts(self) -> Result<(NewGear, Option<String>), AppError> {
         let category = GearCategory::from_str(&self.category)
             .map_err(|()| AppError::validation("invalid category"))?;
 
@@ -226,12 +226,15 @@ impl NewGearSubmission {
             return Err(AppError::validation("model cannot be empty"));
         }
 
-        Ok(NewGear {
-            category,
-            make: self.make,
-            model: self.model,
-            created_at: self.created_at,
-        })
+        Ok((
+            NewGear {
+                category,
+                make: self.make,
+                model: self.model,
+                created_at: self.created_at,
+            },
+            self.image.into_inner(),
+        ))
     }
 }
 
