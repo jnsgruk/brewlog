@@ -48,10 +48,12 @@
             {% if passkeys.len() > 1 %}
               <button
                 type="button"
-                class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+                class="shrink-0 inline-flex items-center justify-center rounded-md border text-accent transition hover:text-text hover:bg-surface-alt h-8 w-8 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
                 onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
+                aria-label="Delete passkey"
               >
-                {{ icons::delete("h-4 w-4") }} Delete
+                {{ icons::delete("h-4 w-4") }}
+                <span class="hidden sm:inline">Delete</span>
               </button>
             {% endif %}
           </div>
@@ -76,8 +78,8 @@
           class="mb-3 hidden rounded-md bg-error-bg border border-error-border p-2 text-sm text-error-text"
           role="alert"
         ></div>
-        <div class="flex items-end gap-3">
-          <label class="flex-1 flex flex-col gap-1 text-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label class="flex flex-col gap-1 text-sm sm:flex-1">
             <span class="text-text">Passkey Name</span>
             <input
               type="text"
@@ -88,21 +90,23 @@
               placeholder="e.g. MacBook Touch ID, iPhone"
             />
           </label>
-          <button
-            id="add-passkey-btn"
-            type="button"
-            onclick="registerPasskey()"
-            class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ icons::key("h-4 w-4") }} Register
-          </button>
-          <button
-            type="button"
-            data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
-            class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
-          >
-            {{ icons::x_mark("h-4 w-4") }} Cancel
-          </button>
+          <div class="flex gap-3">
+            <button
+              id="add-passkey-btn"
+              type="button"
+              onclick="registerPasskey()"
+              class="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed sm:flex-initial"
+            >
+              {{ icons::key("h-4 w-4") }} Register
+            </button>
+            <button
+              type="button"
+              data-on:click="$_showPasskeyForm = false; document.getElementById('add-passkey-error').classList.add('hidden'); document.getElementById('passkey-name').value = ''"
+              class="flex-1 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt sm:flex-initial"
+            >
+              {{ icons::x_mark("h-4 w-4") }} Cancel
+            </button>
+          </div>
         </div>
         <div
           id="add-passkey-loading"
@@ -170,10 +174,12 @@
               </div>
               <button
                 type="button"
-                class="shrink-0 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:text-text hover:bg-surface-alt"
+                class="shrink-0 inline-flex items-center justify-center rounded-md border text-accent transition hover:text-text hover:bg-surface-alt h-8 w-8 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
                 onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
+                aria-label="Revoke token"
               >
-                {{ icons::delete("h-4 w-4") }} Revoke
+                {{ icons::delete("h-4 w-4") }}
+                <span class="hidden sm:inline">Revoke</span>
               </button>
             </div>
           {% endfor %}
@@ -199,8 +205,8 @@
           if (evt.detail.type === 'finished') { $_creatingToken = false; document.getElementById('token-name').value = '' }
           else if (evt.detail.type === 'error') { $_creatingToken = false; $_tokenError = 'Failed to create token.' }"
         >
-          <div class="flex items-end gap-3">
-            <label class="flex-1 flex flex-col gap-1 text-sm">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label class="flex flex-col gap-1 text-sm sm:flex-1">
               <span class="text-text">Token Name</span>
               <input
                 type="text"
@@ -212,20 +218,22 @@
                 placeholder="e.g. laptop-cli, ci-server"
               />
             </label>
-            <button
-              type="submit"
-              class="shrink-0 inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
-              data-attr:disabled="$_creatingToken"
-            >
-              {{ icons::plus("h-4 w-4") }} Create
-            </button>
-            <button
-              type="button"
-              data-on:click="$_showTokenForm = false; $_tokenError = ''"
-              class="shrink-0 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt"
-            >
-              {{ icons::x_mark("h-4 w-4") }} Cancel
-            </button>
+            <div class="flex gap-3">
+              <button
+                type="submit"
+                class="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed sm:flex-initial"
+                data-attr:disabled="$_creatingToken"
+              >
+                {{ icons::plus("h-4 w-4") }} Create
+              </button>
+              <button
+                type="button"
+                data-on:click="$_showTokenForm = false; $_tokenError = ''"
+                class="flex-1 inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface-alt sm:flex-initial"
+              >
+                {{ icons::x_mark("h-4 w-4") }} Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>
