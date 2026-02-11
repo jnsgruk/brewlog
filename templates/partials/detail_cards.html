@@ -179,16 +179,18 @@
 {% endmacro %}
 
 {% macro edit_delete_buttons(edit_url, entity_label, api_path, id) %}
-  <div class="rounded-lg border bg-surface p-5 flex items-center gap-2">
+  <div
+    class="rounded-lg border bg-surface p-5 flex flex-col gap-2 sm:flex-row sm:items-center"
+  >
     <a
       href="{{ edit_url }}"
-      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:bg-surface-alt"
+      class="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:bg-surface-alt sm:flex-1"
     >
       {{ icons::pencil("h-4 w-4") }} Edit
     </a>
     <button
       type="button"
-      class="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt"
+      class="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-error transition hover:bg-surface-alt sm:flex-1"
       data-on:click="confirm('Delete this {{ entity_label }}? This cannot be undone.') && @delete('{{ api_path }}/{{ id }}')"
     >
       {{ icons::delete("h-4 w-4") }} Delete
