@@ -208,13 +208,19 @@
     }
 
     // Sticky header detection - observe all current and future headings
+    // On mobile the nav is fixed, so shrink the observer root by its height
+    const navBar = document.querySelector(".nav-bar");
+    const navH =
+      navBar && matchMedia("(max-width: 767px)").matches
+        ? navBar.getBoundingClientRect().height
+        : 0;
     const stickyObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           entry.target.classList.toggle("is-stuck", !entry.isIntersecting);
         });
       },
-      { rootMargin: "-1px 0px 0px 0px", threshold: 1 },
+      { rootMargin: `-${navH + 1}px 0px 0px 0px`, threshold: 1 },
     );
 
     // Use MutationObserver to watch for new month headings being added

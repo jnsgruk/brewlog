@@ -213,6 +213,32 @@ input.input-field[type="number"] {
   background-color: var(--accent-subtle);
 }
 
+/* ── Mobile fixed nav ─────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  :root {
+    --fixed-nav-h: calc(
+      max(1rem, env(safe-area-inset-top, 0px) * 0.9) + 3.25rem
+    );
+  }
+
+  .nav-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background-color: var(--page);
+    padding-top: max(1rem, calc(env(safe-area-inset-top, 0px) * 0.9));
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  main {
+    padding-top: calc(var(--fixed-nav-h) + 2rem);
+  }
+}
+
 /* ── Sticky Submit ────────────────────────────────────────────── */
 
 .sticky-submit {
@@ -501,6 +527,12 @@ input.input-field[type="number"] {
   /* Tighter spacing for condensed cards on mobile */
   .timeline-item {
     margin-bottom: 1rem;
+  }
+
+  /* Stick below fixed nav; 0.5rem tucks behind nav, 1rem visible = matches bottom */
+  .timeline-heading {
+    top: calc(var(--fixed-nav-h) - 0.5rem);
+    padding-top: 1.5rem;
   }
 }
 
