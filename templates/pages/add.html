@@ -128,7 +128,7 @@
         <form
           method="post"
           action="/api/v1/roasters"
-          class="flex flex-col gap-4"
+          class="flex flex-col gap-4 pb-16 md:pb-0"
           onsubmit="sessionStorage.setItem('toast', 'Roaster added')"
         >
           <div class="grid gap-4 sm:grid-cols-2">
@@ -190,7 +190,7 @@
             </label>
           </div>
           {{ img::deferred_upload("roaster-image", "Add image (optional)") }}
-          <div class="flex items-center justify-end">
+          <div class="sticky-submit flex items-center justify-end">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
@@ -284,7 +284,7 @@
           <form
             method="post"
             action="/api/v1/roasts"
-            class="flex flex-col gap-4"
+            class="flex flex-col gap-4 pb-16 md:pb-0"
             onsubmit="sessionStorage.setItem('toast', 'Roast added')"
           >
             <div class="flex flex-col gap-1 text-sm">
@@ -403,7 +403,7 @@
               </label>
             </div>
             {{ img::deferred_upload("roast-image", "Add image (optional)") }}
-            <div class="flex items-center justify-end">
+            <div class="sticky-submit flex items-center justify-end">
               <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
@@ -447,7 +447,7 @@
         <form
           method="post"
           action="/api/v1/bags"
-          class="mt-4 flex flex-col gap-4"
+          class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
           onsubmit="sessionStorage.setItem('toast', 'Bag added')"
         >
           <div class="flex flex-col gap-1 text-sm">
@@ -498,7 +498,7 @@
               />
             </label>
           </div>
-          <div class="flex items-center justify-end">
+          <div class="sticky-submit flex items-center justify-end">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
@@ -972,7 +972,7 @@
       <form
         method="post"
         action="/api/v1/gear"
-        class="mt-4 flex flex-col gap-4"
+        class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
         onsubmit="sessionStorage.setItem('toast', 'Gear added')"
       >
         <div class="grid gap-4 sm:grid-cols-3">
@@ -1023,7 +1023,7 @@
           </label>
         </div>
         {{ img::deferred_upload("gear-image", "Add image (optional)") }}
-        <div class="flex items-center justify-end">
+        <div class="sticky-submit flex items-center justify-end">
           <button
             type="submit"
             class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
@@ -1092,7 +1092,7 @@
         id="cafe-form"
         method="post"
         action="/api/v1/cafes"
-        class="mt-4 flex flex-col gap-4"
+        class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
         onsubmit="sessionStorage.setItem('toast', 'Cafe added')"
       >
         <div class="grid gap-4 sm:grid-cols-2">
@@ -1188,7 +1188,7 @@
           </label>
         </div>
         {{ img::deferred_upload("cafe-image", "Add image (optional)") }}
-        <div class="flex items-center justify-end">
+        <div class="sticky-submit flex items-center justify-end">
           <button
             type="submit"
             class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
@@ -1244,7 +1244,7 @@
         <form
           method="post"
           action="/api/v1/cups"
-          class="mt-4 flex flex-col gap-4"
+          class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
           onsubmit="sessionStorage.setItem('toast', 'Cup added')"
         >
           <div class="grid gap-4 sm:grid-cols-2">
@@ -1297,7 +1297,7 @@
               </searchable-select>
             </div>
           </div>
-          <div class="flex items-center justify-end">
+          <div class="sticky-submit flex items-center justify-end">
             <button
               type="submit"
               class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
