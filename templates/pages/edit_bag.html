@@ -16,6 +16,7 @@
       data-signals:_submit-error="''"
       data-signals:_roast-date="'{{ roast_date }}'"
       data-signals:_amount="{{ amount }}"
+      data-signals:_remaining="{{ remaining }}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/bags/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Bag updated') }
@@ -46,7 +47,7 @@
           {% endfor %}
         </searchable-select>
       </div>
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-4 sm:grid-cols-3">
         <label class="flex flex-col gap-1 text-sm">
           <span
             class="text-xs font-semibold text-text-muted uppercase tracking-wide"
@@ -75,6 +76,36 @@
             data-bind:_amount
           />
         </label>
+        <div class="flex flex-col gap-1 text-sm">
+          <span
+            class="text-xs font-semibold text-text-muted uppercase tracking-wide"
+            >Remaining (g)</span
+          >
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="btn-adjust"
+              data-on:click="$_remaining = Math.max(0, Number($_remaining) - 0.5)"
+            >
+              -
+            </button>
+            <input
+              type="number"
+              name="remaining"
+              step="0.1"
+              min="0"
+              class="input-field flex-1 text-center"
+              data-bind:_remaining
+            />
+            <button
+              type="button"
+              class="btn-adjust"
+              data-on:click="$_remaining = Math.min(Number($_amount), Number($_remaining) + 0.5)"
+            >
+              +
+            </button>
+          </div>
+        </div>
       </div>
       {{ detail_cards::edit_form_actions() }}
     </form>

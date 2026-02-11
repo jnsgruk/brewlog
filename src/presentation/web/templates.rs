@@ -349,6 +349,7 @@ pub struct BagEditTemplate {
     pub roast_label: String,
     pub roast_date: String,
     pub amount: f64,
+    pub remaining: f64,
     pub roast_options: Vec<RoastOptionView>,
 }
 

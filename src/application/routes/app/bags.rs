@@ -85,6 +85,7 @@ pub(crate) async fn bag_edit_page(
             .map(|d| d.to_string())
             .unwrap_or_default(),
         amount: bag.bag.amount,
+        remaining: bag.bag.remaining,
         roast_options,
     };
 
