@@ -181,6 +181,11 @@
                   package = config.treefmt.build.wrapper;
                   pass_filenames = false;
                   stages = [ "pre-commit" ];
+                  fail_fast = true;
+                  before = [
+                    "clippy"
+                    "cargo-test"
+                  ];
                 };
                 clippy = {
                   enable = true;
@@ -190,6 +195,10 @@
                     clippy = rust;
                   };
                   settings.extraArgs = "--allow-dirty --fix";
+                  fail_fast = true;
+                  before = [
+                    "cargo-test"
+                  ];
                 };
                 cargo-test = {
                   enable = true;
