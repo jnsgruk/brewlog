@@ -1,18 +1,11 @@
-/** Convert any image file (HEIC, AVIF, WebP, PNG, etc.) to a JPEG data URL via Canvas. */
-const imageToJpegDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      canvas.getContext("2d").drawImage(img, 0, 0);
-      URL.revokeObjectURL(img.src);
-      resolve(canvas.toDataURL("image/jpeg", 0.92));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(img.src);
-      reject(new Error("Failed to load image"));
-    };
-    img.src = URL.createObjectURL(file);
-  });
+/** Convert any image file (HEIC, AVIF, WebP, PNG, etc.) to a JPEG data URL via Canvas.
+ *  Uses createImageBitmap which correctly applies EXIF orientation (e.g. iPhone photos). */
+const imageToJpegDataUrl = async (file) => {
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  canvas.getContext("2d").drawImage(bitmap, 0, 0);
+  bitmap.close();
+  return canvas.toDataURL("image/jpeg", 0.92);
+};

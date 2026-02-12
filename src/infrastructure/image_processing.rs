@@ -1,6 +1,6 @@
 use anyhow::{Context, bail};
 use base64::Engine;
-use image::ImageReader;
+use image::{DynamicImage, ImageReader};
 use std::io::Cursor;
 
 /// Maximum dimension (width or height) for the full-size image.
@@ -42,6 +42,8 @@ pub fn process_data_url(data_url: &str) -> anyhow::Result<ProcessedImage> {
 
 /// Process raw image bytes (JPEG/PNG/WebP) into resized full + thumbnail JPEGs.
 pub fn process_image_bytes(raw_bytes: &[u8]) -> anyhow::Result<ProcessedImage> {
+    let orientation = read_exif_orientation(raw_bytes);
+
     let mut reader = ImageReader::new(Cursor::new(raw_bytes))
         .with_guessed_format()
         .context("failed to guess image format")?;
@@ -53,6 +55,7 @@ pub fn process_image_bytes(raw_bytes: &[u8]) -> anyhow::Result<ProcessedImage> {
     reader.limits(limits);
 
     let img = reader.decode().context("failed to decode image")?;
+    let img = apply_exif_orientation(img, orientation);
 
     let full = img.resize(
         MAX_FULL_SIZE,
@@ -74,6 +77,38 @@ pub fn process_image_bytes(raw_bytes: &[u8]) -> anyhow::Result<ProcessedImage> {
         thumbnail_data,
         content_type: "image/jpeg".to_string(),
     })
+}
+
+/// Read the EXIF orientation tag from raw image bytes.
+///
+/// Returns the orientation value (1-8), or 1 (normal) if no EXIF data is found.
+fn read_exif_orientation(raw_bytes: &[u8]) -> u32 {
+    let reader = exif::Reader::new();
+    let Ok(exif_data) = reader.read_from_container(&mut Cursor::new(raw_bytes)) else {
+        return 1;
+    };
+    exif_data
+        .get_field(exif::Tag::Orientation, exif::In::PRIMARY)
+        .and_then(|f| f.value.get_uint(0))
+        .unwrap_or(1)
+}
+
+/// Apply EXIF orientation transforms so the image displays correctly.
+///
+/// iPhone cameras (and many others) store photos in a fixed sensor orientation
+/// and embed an EXIF `Orientation` tag. Without applying this, photos appear
+/// rotated or mirrored.
+fn apply_exif_orientation(img: DynamicImage, orientation: u32) -> DynamicImage {
+    match orientation {
+        2 => img.fliph(),
+        3 => img.rotate180(),
+        4 => img.flipv(),
+        5 => img.rotate90().fliph(),
+        6 => img.rotate90(),
+        7 => img.rotate90().flipv(),
+        8 => img.rotate270(),
+        _ => img, // 1 (normal) or unknown
+    }
 }
 
 /// Decode a `data:image/...;base64,...` URL into raw bytes.
@@ -142,5 +177,46 @@ mod tests {
                 .contains("unsupported image type"),
             "should reject non-image MIME types"
         );
+    }
+
+    #[test]
+    fn apply_exif_orientation_identity() {
+        let img = DynamicImage::new_rgb8(4, 2);
+        let result = apply_exif_orientation(img.clone(), 1);
+        assert_eq!((result.width(), result.height()), (4, 2));
+    }
+
+    #[test]
+    fn apply_exif_orientation_rotate90() {
+        // Orientation 6 = rotate 90° CW — swaps width and height
+        let img = DynamicImage::new_rgb8(4, 2);
+        let result = apply_exif_orientation(img, 6);
+        assert_eq!((result.width(), result.height()), (2, 4));
+    }
+
+    #[test]
+    fn apply_exif_orientation_rotate270() {
+        // Orientation 8 = rotate 270° CW — swaps width and height
+        let img = DynamicImage::new_rgb8(4, 2);
+        let result = apply_exif_orientation(img, 8);
+        assert_eq!((result.width(), result.height()), (2, 4));
+    }
+
+    #[test]
+    fn apply_exif_orientation_rotate180() {
+        // Orientation 3 = rotate 180° — preserves dimensions
+        let img = DynamicImage::new_rgb8(4, 2);
+        let result = apply_exif_orientation(img, 3);
+        assert_eq!((result.width(), result.height()), (4, 2));
+    }
+
+    #[test]
+    fn read_exif_orientation_returns_default_for_png() {
+        // PNG doesn't have EXIF, should return 1
+        let img = DynamicImage::new_rgb8(2, 2);
+        let mut buf = Vec::new();
+        img.write_to(&mut Cursor::new(&mut buf), image::ImageFormat::Png)
+            .expect("encode png");
+        assert_eq!(read_exif_orientation(&buf), 1);
     }
 }

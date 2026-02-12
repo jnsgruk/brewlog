@@ -40,6 +40,7 @@ url = "2"
 uuid = { version = "1", features = ["v4"] }
 webauthn-rs = { version = "0.5", features = ["danger-allow-state-serialisation"] }
 webauthn-rs-proto = "0.5"
+kamadak-exif = "0.6.1"
 
 [features]
 e2e = []
