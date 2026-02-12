@@ -11,6 +11,12 @@ B{rew}log ships as a single Rust binary that serves a web UI, a REST API, and a 
 application uses SQLite as a backend, and will automatically create and migrate the database on
 start-up.
 
+> [!NOTE]
+> This application was built almost entirely with Claude Code. I used this project as an
+> excuse to explore the current state of the art in agentic coding tools. I've reviewed
+> much of the code, and I'm largely responsible for the rules and the layout of the repository
+> but nonetheless the vast majority of the code was written by Claude and Opus 4.6.
+
 ## Quick Start (Demo)
 
 Before you start, you'll need to sign up for [Openrouter](https://openrouter.ai) and
