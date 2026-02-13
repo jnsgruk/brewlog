@@ -55,3 +55,48 @@ impl NewUser {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn valid_username_alphanumeric() {
+        assert!(is_valid_username("abc123"));
+    }
+
+    #[test]
+    fn valid_username_with_underscores() {
+        assert!(is_valid_username("my_user"));
+    }
+
+    #[test]
+    fn valid_username_with_hyphens() {
+        assert!(is_valid_username("my-user"));
+    }
+
+    #[test]
+    fn username_too_short() {
+        assert!(!is_valid_username("ab"));
+    }
+
+    #[test]
+    fn username_too_long() {
+        assert!(!is_valid_username(&"a".repeat(33)));
+    }
+
+    #[test]
+    fn username_with_spaces() {
+        assert!(!is_valid_username("my user"));
+    }
+
+    #[test]
+    fn username_min_length() {
+        assert!(is_valid_username("abc"));
+    }
+
+    #[test]
+    fn username_max_length() {
+        assert!(is_valid_username(&"a".repeat(32)));
+    }
+}

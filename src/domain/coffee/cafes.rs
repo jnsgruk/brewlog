@@ -102,3 +102,69 @@ define_sort_key!(pub CafeSortKey {
     City("city", Asc),
     Country("country", Asc),
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_trims_fields() {
+        let cafe = NewCafe {
+            name: "  Test Cafe  ".to_string(),
+            city: "  Portland  ".to_string(),
+            country: "  US  ".to_string(),
+            latitude: 45.5,
+            longitude: -122.6,
+            website: None,
+            created_at: None,
+        };
+        let normalized = cafe.normalize();
+        assert_eq!(normalized.name, "Test Cafe");
+        assert_eq!(normalized.city, "Portland");
+        assert_eq!(normalized.country, "US");
+    }
+
+    #[test]
+    fn normalize_filters_bad_website() {
+        let cafe = NewCafe {
+            name: "Test Cafe".to_string(),
+            city: "Portland".to_string(),
+            country: "US".to_string(),
+            latitude: 45.5,
+            longitude: -122.6,
+            website: Some("javascript:alert(1)".to_string()),
+            created_at: None,
+        };
+        let normalized = cafe.normalize();
+        assert_eq!(normalized.website, None);
+    }
+
+    #[test]
+    fn normalize_keeps_valid_website() {
+        let cafe = NewCafe {
+            name: "Test Cafe".to_string(),
+            city: "Portland".to_string(),
+            country: "US".to_string(),
+            latitude: 45.5,
+            longitude: -122.6,
+            website: Some("https://testcafe.com".to_string()),
+            created_at: None,
+        };
+        let normalized = cafe.normalize();
+        assert_eq!(normalized.website, Some("https://testcafe.com".to_string()));
+    }
+
+    #[test]
+    fn slug_generation() {
+        let cafe = NewCafe {
+            name: "Test Cafe".to_string(),
+            city: "Portland".to_string(),
+            country: "US".to_string(),
+            latitude: 45.5,
+            longitude: -122.6,
+            website: None,
+            created_at: None,
+        };
+        assert_eq!(cafe.slug(), "test-cafe-portland");
+    }
+}

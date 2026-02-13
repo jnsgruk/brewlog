@@ -129,3 +129,23 @@ define_sort_key!(pub GearSortKey {
     Model("model", Asc),
     Category("category", Asc),
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gear_category_from_str_valid() {
+        assert_eq!("grinder".parse::<GearCategory>(), Ok(GearCategory::Grinder));
+    }
+
+    #[test]
+    fn gear_category_case_insensitive() {
+        assert_eq!("BREWER".parse::<GearCategory>(), Ok(GearCategory::Brewer));
+    }
+
+    #[test]
+    fn gear_category_invalid() {
+        assert!("invalid".parse::<GearCategory>().is_err());
+    }
+}

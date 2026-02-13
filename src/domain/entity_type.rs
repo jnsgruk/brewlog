@@ -51,3 +51,44 @@ impl FromStr for EntityType {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const ALL_VARIANTS: [EntityType; 7] = [
+        EntityType::Roaster,
+        EntityType::Roast,
+        EntityType::Bag,
+        EntityType::Brew,
+        EntityType::Cup,
+        EntityType::Cafe,
+        EntityType::Gear,
+    ];
+
+    #[test]
+    fn as_str_roundtrip() {
+        for variant in ALL_VARIANTS {
+            assert_eq!(variant.as_str().parse::<EntityType>(), Ok(variant));
+        }
+    }
+
+    #[test]
+    fn display_matches_as_str() {
+        assert_eq!(format!("{}", EntityType::Brew), "brew");
+    }
+
+    #[test]
+    fn from_str_unknown_is_err() {
+        assert!("unknown".parse::<EntityType>().is_err());
+    }
+
+    #[test]
+    fn serde_roundtrip() {
+        for variant in ALL_VARIANTS {
+            let json = serde_json::to_string(&variant).unwrap();
+            let deserialized: EntityType = serde_json::from_str(&json).unwrap();
+            assert_eq!(deserialized, variant);
+        }
+    }
+}

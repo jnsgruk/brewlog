@@ -71,3 +71,40 @@ impl NewToken {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn token_active_when_not_revoked() {
+        let now = Utc::now();
+        let token = Token::new(
+            TokenId::new(1),
+            UserId::new(1),
+            "hash".to_string(),
+            "my-token".to_string(),
+            now,
+            None,
+            None,
+        );
+        assert!(token.is_active());
+        assert!(!token.is_revoked());
+    }
+
+    #[test]
+    fn token_revoked() {
+        let now = Utc::now();
+        let token = Token::new(
+            TokenId::new(1),
+            UserId::new(1),
+            "hash".to_string(),
+            "my-token".to_string(),
+            now,
+            None,
+            Some(now),
+        );
+        assert!(token.is_revoked());
+        assert!(!token.is_active());
+    }
+}

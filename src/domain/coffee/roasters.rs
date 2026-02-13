@@ -106,3 +106,111 @@ define_sort_key!(pub RoasterSortKey {
     Country("country", Asc),
     City("city", Asc),
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn valid_http_scheme() {
+        assert!(is_valid_url_scheme("http://example.com"));
+    }
+
+    #[test]
+    fn valid_https_scheme() {
+        assert!(is_valid_url_scheme("https://example.com"));
+    }
+
+    #[test]
+    fn rejects_javascript_scheme() {
+        assert!(!is_valid_url_scheme("javascript:alert(1)"));
+    }
+
+    #[test]
+    fn rejects_data_scheme() {
+        assert!(!is_valid_url_scheme("data:text/html,<h1>hi</h1>"));
+    }
+
+    #[test]
+    fn case_insensitive_http() {
+        assert!(is_valid_url_scheme("HTTP://EXAMPLE.COM"));
+    }
+
+    #[test]
+    fn rejects_ftp_scheme() {
+        assert!(!is_valid_url_scheme("ftp://example.com"));
+    }
+
+    #[test]
+    fn rejects_empty_string() {
+        assert!(!is_valid_url_scheme(""));
+    }
+
+    #[test]
+    fn trims_whitespace() {
+        assert!(is_valid_url_scheme("  https://example.com  "));
+    }
+
+    #[test]
+    fn normalize_trims_name() {
+        let roaster = NewRoaster {
+            name: "  Test  ".to_string(),
+            country: "US".to_string(),
+            city: Some("Portland".to_string()),
+            homepage: Some("https://test.com".to_string()),
+            created_at: None,
+        };
+        let normalized = roaster.normalize();
+        assert_eq!(normalized.name, "Test");
+    }
+
+    #[test]
+    fn normalize_filters_bad_scheme() {
+        let roaster = NewRoaster {
+            name: "Test".to_string(),
+            country: "US".to_string(),
+            city: Some("Portland".to_string()),
+            homepage: Some("javascript:alert(1)".to_string()),
+            created_at: None,
+        };
+        let normalized = roaster.normalize();
+        assert_eq!(normalized.homepage, None);
+    }
+
+    #[test]
+    fn normalize_keeps_valid_homepage() {
+        let roaster = NewRoaster {
+            name: "Test".to_string(),
+            country: "US".to_string(),
+            city: Some("Portland".to_string()),
+            homepage: Some("https://test.com".to_string()),
+            created_at: None,
+        };
+        let normalized = roaster.normalize();
+        assert_eq!(normalized.homepage, Some("https://test.com".to_string()));
+    }
+
+    #[test]
+    fn slug_with_city() {
+        let roaster = NewRoaster {
+            name: "Test".to_string(),
+            country: "US".to_string(),
+            city: Some("Portland".to_string()),
+            homepage: Some("https://test.com".to_string()),
+            created_at: None,
+        };
+        assert_eq!(roaster.slug(), "test-portland");
+    }
+
+    #[test]
+    fn slug_without_city() {
+        let roaster = NewRoaster {
+            name: "Test".to_string(),
+            country: "US".to_string(),
+            city: None,
+            homepage: Some("https://test.com".to_string()),
+            created_at: None,
+        };
+        assert_eq!(roaster.slug(), "test");
+    }
+}

@@ -278,3 +278,50 @@ define_sort_key!(pub BrewSortKey {
     CoffeeWeight("coffee-weight", Desc),
     WaterVolume("water-volume", Desc),
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn quick_note_roundtrip_form_value() {
+        for &variant in QuickNote::all() {
+            assert_eq!(
+                QuickNote::from_str_value(variant.form_value()),
+                Some(variant)
+            );
+        }
+    }
+
+    #[test]
+    fn quick_note_roundtrip_label() {
+        for &variant in QuickNote::all() {
+            assert_eq!(QuickNote::from_str_value(variant.label()), Some(variant));
+        }
+    }
+
+    #[test]
+    fn quick_note_unknown_returns_none() {
+        assert_eq!(QuickNote::from_str_value("invalid"), None);
+    }
+
+    #[test]
+    fn quick_note_from_str_trait() {
+        assert_eq!("good".parse::<QuickNote>(), Ok(QuickNote::Good));
+    }
+
+    #[test]
+    fn format_brew_time_minutes_seconds() {
+        assert_eq!(format_brew_time(150), "2:30");
+    }
+
+    #[test]
+    fn format_brew_time_zero() {
+        assert_eq!(format_brew_time(0), "0:00");
+    }
+
+    #[test]
+    fn format_brew_time_under_minute() {
+        assert_eq!(format_brew_time(45), "0:45");
+    }
+}

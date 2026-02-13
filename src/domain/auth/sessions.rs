@@ -75,3 +75,43 @@ impl NewSession {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn session_not_expired() {
+        let now = Utc::now();
+        let session = Session::new(
+            SessionId::new(1),
+            UserId::new(1),
+            "hash".to_string(),
+            now,
+            now + Duration::hours(1),
+        );
+        assert!(!session.is_expired());
+    }
+
+    #[test]
+    fn session_expired() {
+        let now = Utc::now();
+        let session = Session::new(
+            SessionId::new(1),
+            UserId::new(1),
+            "hash".to_string(),
+            now - Duration::hours(2),
+            now - Duration::hours(1),
+        );
+        assert!(session.is_expired());
+    }
+
+    #[test]
+    fn new_session_clamps_excessive_duration() {
+        let now = Utc::now();
+        let excessive_expires = now + Duration::days(60);
+        let session = NewSession::new(UserId::new(1), "hash".to_string(), now, excessive_expires);
+        let expected_max = now + MAX_SESSION_DURATION;
+        assert_eq!(session.expires_at, expected_max);
+    }
+}

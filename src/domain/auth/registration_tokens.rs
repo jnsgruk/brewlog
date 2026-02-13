@@ -49,3 +49,75 @@ impl NewRegistrationToken {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn token_valid() {
+        let now = Utc::now();
+        let token = RegistrationToken {
+            id: RegistrationTokenId::new(1),
+            token_hash: "hash".to_string(),
+            created_at: now,
+            expires_at: now + Duration::hours(1),
+            used_at: None,
+            used_by_user_id: None,
+        };
+        assert!(token.is_valid());
+    }
+
+    #[test]
+    fn token_expired() {
+        let now = Utc::now();
+        let token = RegistrationToken {
+            id: RegistrationTokenId::new(1),
+            token_hash: "hash".to_string(),
+            created_at: now - Duration::hours(2),
+            expires_at: now - Duration::hours(1),
+            used_at: None,
+            used_by_user_id: None,
+        };
+        assert!(!token.is_valid());
+        assert!(token.is_expired());
+    }
+
+    #[test]
+    fn token_used() {
+        let now = Utc::now();
+        let token = RegistrationToken {
+            id: RegistrationTokenId::new(1),
+            token_hash: "hash".to_string(),
+            created_at: now,
+            expires_at: now + Duration::hours(1),
+            used_at: Some(now),
+            used_by_user_id: Some(UserId::new(1)),
+        };
+        assert!(!token.is_valid());
+        assert!(token.is_used());
+    }
+
+    #[test]
+    fn token_expired_and_used() {
+        let now = Utc::now();
+        let token = RegistrationToken {
+            id: RegistrationTokenId::new(1),
+            token_hash: "hash".to_string(),
+            created_at: now - Duration::hours(2),
+            expires_at: now - Duration::hours(1),
+            used_at: Some(now - Duration::minutes(30)),
+            used_by_user_id: Some(UserId::new(1)),
+        };
+        assert!(!token.is_valid());
+    }
+
+    #[test]
+    fn new_token_clamps_excessive_duration() {
+        let now = Utc::now();
+        let excessive_expires = now + Duration::days(30);
+        let token = NewRegistrationToken::new("hash".to_string(), now, excessive_expires);
+        let expected_max = now + MAX_TOKEN_DURATION;
+        assert_eq!(token.expires_at, expected_max);
+    }
+}

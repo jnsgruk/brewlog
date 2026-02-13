@@ -288,3 +288,209 @@ impl<T> Page<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    crate::define_sort_key!(TestSortKey {
+        #[default]
+        CreatedAt("created-at", Desc),
+        Name("name", Asc),
+    });
+
+    // --- PageSize tests ---
+
+    #[test]
+    fn zero_becomes_all() {
+        assert_eq!(PageSize::limited(0), PageSize::All);
+    }
+
+    #[test]
+    fn limited_returns_value() {
+        assert_eq!(PageSize::limited(10).as_option(), Some(10));
+    }
+
+    #[test]
+    fn all_has_no_option() {
+        assert_eq!(PageSize::All.as_option(), None);
+    }
+
+    #[test]
+    fn all_is_all() {
+        assert!(PageSize::All.is_all());
+    }
+
+    // --- ListRequest::new tests ---
+
+    #[test]
+    fn page_min_is_1() {
+        let req = ListRequest::new(
+            0,
+            PageSize::Limited(10),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        assert_eq!(req.page, 1);
+    }
+
+    #[test]
+    fn size_clamped_to_max() {
+        let req = ListRequest::new(
+            1,
+            PageSize::Limited(51),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        assert_eq!(req.page_size, PageSize::Limited(MAX_PAGE_SIZE));
+    }
+
+    #[test]
+    fn zero_size_becomes_all() {
+        let req = ListRequest::new(
+            1,
+            PageSize::Limited(0),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        assert_eq!(req.page_size, PageSize::All);
+    }
+
+    // --- ListRequest::default_query tests ---
+
+    #[test]
+    fn default_query_has_page_1() {
+        let req = ListRequest::<TestSortKey>::default_query();
+        assert_eq!(req.page, 1);
+    }
+
+    #[test]
+    fn default_query_has_default_page_size() {
+        let req = ListRequest::<TestSortKey>::default_query();
+        assert_eq!(req.page_size, PageSize::Limited(DEFAULT_PAGE_SIZE));
+    }
+
+    #[test]
+    fn default_query_has_default_sort_key() {
+        let req = ListRequest::<TestSortKey>::default_query();
+        assert_eq!(req.sort_key, TestSortKey::CreatedAt);
+    }
+
+    #[test]
+    fn default_query_has_default_sort_direction() {
+        let req = ListRequest::<TestSortKey>::default_query();
+        assert_eq!(req.sort_direction, SortDirection::Desc);
+    }
+
+    // --- with_sort tests ---
+
+    #[test]
+    fn with_sort_same_key_toggles_direction() {
+        let req = ListRequest::new(
+            1,
+            PageSize::Limited(10),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        let toggled = req.with_sort(TestSortKey::CreatedAt);
+        assert_eq!(toggled.sort_direction, SortDirection::Asc);
+    }
+
+    #[test]
+    fn with_sort_new_key_uses_default_direction() {
+        let req = ListRequest::new(
+            1,
+            PageSize::Limited(10),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        let switched = req.with_sort(TestSortKey::Name);
+        assert_eq!(switched.sort_direction, SortDirection::Asc);
+    }
+
+    // --- ensure_page_within tests ---
+
+    #[test]
+    fn clamps_page_beyond_total() {
+        let req = ListRequest::new(
+            10,
+            PageSize::Limited(10),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        let clamped = req.ensure_page_within(25);
+        assert_eq!(clamped.page, 3);
+    }
+
+    #[test]
+    fn zero_total_returns_page_1() {
+        let req = ListRequest::new(
+            5,
+            PageSize::Limited(10),
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        let clamped = req.ensure_page_within(0);
+        assert_eq!(clamped.page, 1);
+    }
+
+    #[test]
+    fn all_mode_returns_page_1() {
+        let req = ListRequest::new(
+            3,
+            PageSize::All,
+            TestSortKey::CreatedAt,
+            SortDirection::Desc,
+        );
+        let clamped = req.ensure_page_within(100);
+        assert_eq!(clamped.page, 1);
+    }
+
+    // --- Page tests ---
+
+    #[test]
+    fn total_pages_calculation() {
+        let page: Page<()> = Page::new(vec![], 1, 10, 25, false);
+        assert_eq!(page.total_pages(), 3);
+    }
+
+    #[test]
+    fn total_pages_zero_is_1() {
+        let page: Page<()> = Page::new(vec![], 1, 10, 0, false);
+        assert_eq!(page.total_pages(), 1);
+    }
+
+    #[test]
+    fn has_previous_false_on_page_1() {
+        let page: Page<()> = Page::new(vec![], 1, 10, 30, false);
+        assert!(!page.has_previous());
+    }
+
+    #[test]
+    fn has_next_false_on_last_page() {
+        let page: Page<()> = Page::new(vec![], 3, 10, 30, false);
+        assert!(!page.has_next());
+    }
+
+    #[test]
+    fn start_end_index() {
+        let page: Page<i32> = Page::new(vec![1, 2, 3], 2, 10, 30, false);
+        assert_eq!(page.start_index(), 11);
+        assert_eq!(page.end_index(), 13);
+    }
+
+    #[test]
+    fn start_end_index_zero_total() {
+        let page: Page<()> = Page::new(vec![], 1, 10, 0, false);
+        assert_eq!(page.start_index(), 0);
+        assert_eq!(page.end_index(), 0);
+    }
+
+    #[test]
+    fn showing_all_single_page() {
+        let page: Page<i32> = Page::new(vec![1, 2, 3], 1, 3, 3, true);
+        assert_eq!(page.total_pages(), 1);
+        assert!(!page.has_previous());
+        assert!(!page.has_next());
+    }
+}

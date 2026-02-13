@@ -50,3 +50,36 @@ impl GeoStats {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_counts_empty() {
+        let stats = GeoStats::from_counts(vec![]);
+        assert!(stats.entries.is_empty());
+        assert_eq!(stats.total_countries, 0);
+        assert_eq!(stats.max_count, 0);
+    }
+
+    #[test]
+    fn from_counts_known_country() {
+        let stats = GeoStats::from_counts(vec![("United States".to_string(), 5)]);
+        assert_eq!(stats.entries.len(), 1);
+        assert_eq!(stats.entries[0].iso_code, "US");
+        assert!(!stats.entries[0].flag_emoji.is_empty());
+        assert_eq!(stats.entries[0].count, 5);
+        assert_eq!(stats.total_countries, 1);
+        assert_eq!(stats.max_count, 5);
+    }
+
+    #[test]
+    fn from_counts_unknown_country() {
+        let stats = GeoStats::from_counts(vec![("Atlantis".to_string(), 3)]);
+        assert_eq!(stats.entries.len(), 1);
+        assert_eq!(stats.entries[0].iso_code, "");
+        assert_eq!(stats.entries[0].country_name, "Atlantis");
+        assert_eq!(stats.entries[0].count, 3);
+    }
+}

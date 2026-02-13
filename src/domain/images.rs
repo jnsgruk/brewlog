@@ -45,3 +45,20 @@ impl fmt::Debug for ImageData {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn image_data_debug_redacts_some() {
+        let data: ImageData = serde_json::from_str(r#""data:image/png;base64,abc""#).unwrap();
+        assert_eq!(format!("{data:?}"), "Some(<image>)");
+    }
+
+    #[test]
+    fn image_data_debug_shows_none() {
+        let data = ImageData::default();
+        assert_eq!(format!("{data:?}"), "None");
+    }
+}
