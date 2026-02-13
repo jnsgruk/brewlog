@@ -40,6 +40,10 @@ impl TestApp {
         format!("{}/api/v1{}", self.address, path)
     }
 
+    pub fn webauthn_url(&self, path: &str) -> String {
+        format!("{}/api/v1/webauthn{}", self.address, path)
+    }
+
     pub fn page_url(&self, path: &str) -> String {
         format!("{}{}", self.address, path)
     }

@@ -1,7 +1,7 @@
 use reqwest::{Client, StatusCode};
 use serde_json::json;
 
-use crate::helpers::spawn_app_with_auth;
+use crate::helpers::{spawn_app, spawn_app_with_auth};
 
 #[tokio::test]
 async fn test_create_token_requires_authentication() {
@@ -272,4 +272,67 @@ async fn test_read_endpoints_dont_require_authentication() {
         .expect("Failed to send request");
 
     assert_eq!(response.status(), StatusCode::OK);
+}
+
+// --- Admin passkey endpoint tests ---
+
+#[tokio::test]
+async fn list_passkeys_requires_auth() {
+    let app = spawn_app().await;
+    let client = Client::new();
+
+    let response = client
+        .get(&app.api_url("/passkeys"))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn list_passkeys_returns_empty_for_user_without_passkeys() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let response = client
+        .get(&app.api_url("/passkeys"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let passkeys: Vec<serde_json::Value> = response.json().await.expect("Failed to parse response");
+    assert!(passkeys.is_empty(), "expected empty passkeys list");
+}
+
+#[tokio::test]
+async fn delete_passkey_nonexistent_returns_404() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let response = client
+        .delete(&app.api_url("/passkeys/99999"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn delete_passkey_requires_auth() {
+    let app = spawn_app().await;
+    let client = Client::new();
+
+    let response = client
+        .delete(&app.api_url("/passkeys/1"))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }

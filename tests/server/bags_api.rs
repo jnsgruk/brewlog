@@ -2,8 +2,15 @@ use crate::helpers::{
     create_default_bag, create_default_gear, create_default_roast, create_default_roaster,
     spawn_app, spawn_app_with_auth,
 };
+use crate::test_macros::define_crud_tests;
 use brewlog::domain::bags::{Bag, BagWithRoast, NewBag, UpdateBag};
 use chrono::NaiveDate;
+
+define_crud_tests!(
+    entity: bag,
+    path: "/bags",
+    list_type: BagWithRoast
+);
 
 #[tokio::test]
 async fn creating_a_bag_returns_a_201_for_valid_data() {
@@ -298,9 +305,13 @@ async fn closing_a_bag_automatically_sets_finished_at() {
     let updated_bag: Bag = response.json().await.expect("Failed to parse response");
     assert!(updated_bag.closed);
     assert!(updated_bag.finished_at.is_some());
-    assert_eq!(
-        updated_bag.finished_at.unwrap(),
-        chrono::Utc::now().date_naive()
+    // Accept today or yesterday to avoid midnight-boundary flakiness
+    let today = chrono::Utc::now().date_naive();
+    let yesterday = today - chrono::Duration::days(1);
+    let finished = updated_bag.finished_at.unwrap();
+    assert!(
+        finished == today || finished == yesterday,
+        "expected finished_at to be today or yesterday, got {finished}"
     );
 }
 
@@ -357,4 +368,68 @@ async fn updating_bag_amount_recomputes_remaining() {
     let updated_bag: Bag = response.json().await.expect("Failed to parse response");
     assert_eq!(updated_bag.amount, 500.0);
     assert_eq!(updated_bag.remaining, 485.0);
+}
+
+#[tokio::test]
+async fn creating_bag_with_zero_amount_returns_400() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .post(app.api_url("/bags"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({
+            "roast_id": roast.id,
+            "amount": 0.0
+        }))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn creating_bag_with_negative_amount_returns_400() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .post(app.api_url("/bags"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({
+            "roast_id": roast.id,
+            "amount": -100.0
+        }))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn creating_bag_with_invalid_date_returns_400() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .post(app.api_url("/bags"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({
+            "roast_id": roast.id,
+            "roast_date": "not-a-date",
+            "amount": 250.0
+        }))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 400);
 }

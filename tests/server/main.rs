@@ -19,3 +19,4 @@ pub mod scan_api;
 pub mod stats_api;
 pub mod test_macros;
 pub mod timeline;
+pub mod webauthn_api;
