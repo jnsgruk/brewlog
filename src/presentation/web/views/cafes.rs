@@ -151,11 +151,9 @@ impl From<NearbyCafeResult> for NearbyCafeView {
         } else {
             format!("{:.1} km", f64::from(cafe.distance_meters) / 1000.0)
         };
-        let location = [&cafe.city, &cafe.country]
-            .iter()
+        let location = [cafe.city.as_str(), cafe.country.as_str()]
+            .into_iter()
             .filter(|s| !s.is_empty())
-            .copied()
-            .cloned()
             .collect::<Vec<_>>()
             .join(", ");
         Self {

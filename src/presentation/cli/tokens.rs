@@ -1,5 +1,3 @@
-use std::net::SocketAddr;
-
 use anyhow::{Context, Result, anyhow};
 use clap::{Args, Subcommand};
 use tokio::net::TcpListener;
@@ -78,12 +76,7 @@ pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Re
     let (tx, rx) = oneshot::channel::<String>();
     let expected_state = state.clone();
 
-    let server = tokio::spawn(run_callback_server(
-        listener,
-        local_addr,
-        expected_state,
-        tx,
-    ));
+    let server = tokio::spawn(run_callback_server(listener, expected_state, tx));
 
     // Wait for the token with a timeout
     let token = tokio::select! {
@@ -110,7 +103,6 @@ pub async fn create_token(client: &BrewlogClient, cmd: CreateTokenCommand) -> Re
 
 async fn run_callback_server(
     listener: TcpListener,
-    _addr: SocketAddr,
     expected_state: String,
     tx: oneshot::Sender<String>,
 ) {
