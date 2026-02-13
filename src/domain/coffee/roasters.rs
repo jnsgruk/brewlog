@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use super::normalize_optional_field;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
@@ -43,17 +44,6 @@ impl NewRoaster {
         };
         slug::slugify(base)
     }
-}
-
-fn normalize_optional_field(value: Option<String>) -> Option<String> {
-    value.and_then(|raw| {
-        let trimmed = raw.trim();
-        if trimmed.is_empty() {
-            None
-        } else {
-            Some(trimmed.to_string())
-        }
-    })
 }
 
 /// Returns `true` if the URL starts with `http://` or `https://`.
@@ -102,17 +92,8 @@ pub struct UpdateRoaster {
 
 impl UpdateRoaster {
     pub fn normalize(mut self) -> Self {
-        self.homepage = self
-            .homepage
-            .and_then(|h| {
-                let trimmed = h.trim().to_string();
-                if trimmed.is_empty() {
-                    None
-                } else {
-                    Some(trimmed)
-                }
-            })
-            .filter(|url| is_valid_url_scheme(url));
+        self.homepage =
+            normalize_optional_field(self.homepage).filter(|url| is_valid_url_scheme(url));
         self
     }
 }

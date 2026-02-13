@@ -15,11 +15,21 @@ pub struct Token {
     pub revoked_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct NewToken {
     pub user_id: UserId,
     pub token_hash: String,
     pub name: String,
+}
+
+impl std::fmt::Debug for NewToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NewToken")
+            .field("user_id", &self.user_id)
+            .field("token_hash", &"<redacted>")
+            .field("name", &self.name)
+            .finish()
+    }
 }
 
 impl Token {

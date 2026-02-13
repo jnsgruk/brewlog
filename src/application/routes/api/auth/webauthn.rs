@@ -87,6 +87,10 @@ pub(crate) async fn register_start(
     // Create the user
     let user_uuid = Uuid::new_v4().to_string();
     let new_user = NewUser::new(payload.display_name, user_uuid.clone());
+    if let Err(msg) = new_user.validate() {
+        warn!(error = msg, "invalid username during registration");
+        return Err(StatusCode::BAD_REQUEST);
+    }
     let user = state.user_repo.insert(new_user).await.map_err(|err| {
         error!(error = %err, "failed to create user during registration");
         StatusCode::INTERNAL_SERVER_ERROR

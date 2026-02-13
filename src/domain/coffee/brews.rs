@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -39,15 +41,7 @@ impl QuickNote {
     }
 
     pub fn from_str_value(s: &str) -> Option<Self> {
-        match s {
-            "good" | "Good" => Some(Self::Good),
-            "too-fast" | "Too Fast" => Some(Self::TooFast),
-            "too-slow" | "Too Slow" => Some(Self::TooSlow),
-            "too-hot" | "Too Hot" => Some(Self::TooHot),
-            "under-extracted" | "Under Extracted" => Some(Self::UnderExtracted),
-            "over-extracted" | "Over Extracted" => Some(Self::OverExtracted),
-            _ => None,
-        }
+        s.parse().ok()
     }
 
     pub fn is_positive(self) -> bool {
@@ -63,6 +57,22 @@ impl QuickNote {
             Self::UnderExtracted,
             Self::OverExtracted,
         ]
+    }
+}
+
+impl FromStr for QuickNote {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "good" | "Good" => Ok(Self::Good),
+            "too-fast" | "Too Fast" => Ok(Self::TooFast),
+            "too-slow" | "Too Slow" => Ok(Self::TooSlow),
+            "too-hot" | "Too Hot" => Ok(Self::TooHot),
+            "under-extracted" | "Under Extracted" => Ok(Self::UnderExtracted),
+            "over-extracted" | "Over Extracted" => Ok(Self::OverExtracted),
+            _ => Err(()),
+        }
     }
 }
 

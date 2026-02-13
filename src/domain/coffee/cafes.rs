@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use super::normalize_optional_field;
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::is_valid_url_scheme;
@@ -73,17 +74,6 @@ impl NewCafe {
     }
 }
 
-fn normalize_optional_field(value: Option<String>) -> Option<String> {
-    value.and_then(|raw| {
-        let trimmed = raw.trim();
-        if trimmed.is_empty() {
-            None
-        } else {
-            Some(trimmed.to_string())
-        }
-    })
-}
-
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UpdateCafe {
     pub name: Option<String>,
@@ -98,17 +88,8 @@ pub struct UpdateCafe {
 
 impl UpdateCafe {
     pub fn normalize(mut self) -> Self {
-        self.website = self
-            .website
-            .and_then(|w| {
-                let trimmed = w.trim().to_string();
-                if trimmed.is_empty() {
-                    None
-                } else {
-                    Some(trimmed)
-                }
-            })
-            .filter(|url| is_valid_url_scheme(url));
+        self.website =
+            normalize_optional_field(self.website).filter(|url| is_valid_url_scheme(url));
         self
     }
 }

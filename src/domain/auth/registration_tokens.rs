@@ -1,11 +1,16 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::ids::{RegistrationTokenId, UserId};
 
+/// Maximum registration token lifetime (7 days). Tokens with `expires_at`
+/// beyond this are clamped to `created_at + MAX_TOKEN_DURATION`.
+pub const MAX_TOKEN_DURATION: Duration = Duration::days(7);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistrationToken {
     pub id: RegistrationTokenId,
+    #[serde(skip_serializing)]
     pub token_hash: String,
     pub created_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
@@ -36,10 +41,11 @@ pub struct NewRegistrationToken {
 
 impl NewRegistrationToken {
     pub fn new(token_hash: String, created_at: DateTime<Utc>, expires_at: DateTime<Utc>) -> Self {
+        let max_expires = created_at + MAX_TOKEN_DURATION;
         Self {
             token_hash,
             created_at,
-            expires_at,
+            expires_at: expires_at.min(max_expires),
         }
     }
 }
