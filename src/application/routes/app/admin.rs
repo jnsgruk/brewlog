@@ -7,8 +7,10 @@ use serde::Serialize;
 use tower_cookies::Cookies;
 use tracing::{error, warn};
 
+use crate::application::auth::SESSION_COOKIE_NAME;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
+use crate::infrastructure::auth::hash_token;
 
 // --- View types ---
 
@@ -77,18 +79,29 @@ struct AdminTemplate {
 
 // --- Page handler ---
 
+#[tracing::instrument(skip(state, cookies))]
 pub(crate) async fn admin_page(
     State(state): State<AppState>,
     cookies: Cookies,
 ) -> Result<Response, StatusCode> {
-    if !crate::application::routes::is_authenticated(&state, &cookies).await {
+    // Web page: redirect to login instead of returning 401
+    let Some(cookie) = cookies.get(SESSION_COOKIE_NAME) else {
+        return Ok(Redirect::to("/login").into_response());
+    };
+    let session_hash = hash_token(cookie.value());
+    let session = state
+        .session_repo
+        .get_by_token_hash(&session_hash)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if session.is_expired() {
         return Ok(Redirect::to("/login").into_response());
     }
-
-    // We need the authenticated user for repo queries — re-extract from session
-    let auth_user = extract_user_from_session(&state, &cookies)
+    let auth_user = state
+        .user_repo
+        .get(session.user_id)
         .await
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let passkeys = state
         .passkey_repo
@@ -148,39 +161,4 @@ pub(crate) async fn admin_page(
     };
 
     render_html(template).map(IntoResponse::into_response)
-}
-
-// --- Helpers ---
-
-async fn extract_user_from_session(
-    state: &AppState,
-    cookies: &Cookies,
-) -> Option<crate::domain::users::User> {
-    let cookie = cookies.get("brewlog_session")?;
-    let session_token = cookie.value();
-    let session_token_hash = crate::infrastructure::auth::hash_token(session_token);
-
-    let session = match state
-        .session_repo
-        .get_by_token_hash(&session_token_hash)
-        .await
-    {
-        Ok(s) => s,
-        Err(err) => {
-            warn!(error = %err, "session lookup failed on admin page");
-            return None;
-        }
-    };
-
-    if session.is_expired() {
-        return None;
-    }
-
-    match state.user_repo.get(session.user_id).await {
-        Ok(user) => Some(user),
-        Err(err) => {
-            warn!(error = %err, user_id = %session.user_id, "user lookup failed for valid session");
-            None
-        }
-    }
 }
