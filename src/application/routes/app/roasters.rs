@@ -30,7 +30,7 @@ pub(crate) async fn roaster_detail_page(
     let image_url = resolve_image_url(&state, EntityType::Roaster, i64::from(roaster.id)).await;
     let edit_url = format!("/roasters/{}/edit", roaster.id);
 
-    let view = RoasterDetailView::from_domain(roaster);
+    let view = RoasterDetailView::from(roaster);
 
     let template = RoasterDetailTemplate {
         nav_active: "",

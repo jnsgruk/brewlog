@@ -21,8 +21,8 @@ pub struct CupView {
     pub created_time: String,
 }
 
-impl CupView {
-    pub fn from_domain(cup: CupWithDetails) -> Self {
+impl From<CupWithDetails> for CupView {
+    fn from(cup: CupWithDetails) -> Self {
         let (created_date, created_time) = format_datetime(cup.cup.created_at);
         Self {
             id: cup.cup.id.to_string(),

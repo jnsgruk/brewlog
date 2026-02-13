@@ -67,8 +67,8 @@ pub struct BrewView {
     pub brew_time_raw: Option<i32>,
 }
 
-impl BrewView {
-    pub fn from_domain(brew: BrewWithDetails) -> Self {
+impl From<BrewWithDetails> for BrewView {
+    fn from(brew: BrewWithDetails) -> Self {
         let ratio = if brew.brew.coffee_weight > 0.0 {
             format!(
                 "1:{:.1}",
@@ -133,7 +133,9 @@ impl BrewView {
             brew_time_raw: brew.brew.brew_time,
         }
     }
+}
 
+impl BrewView {
     /// Build a URL to the add-brew form pre-filled with this brew's parameters.
     pub fn brew_again_url(&self) -> String {
         let mut url = format!(

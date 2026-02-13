@@ -11,8 +11,8 @@ pub struct GearDetailView {
     pub created_time: String,
 }
 
-impl GearDetailView {
-    pub fn from_domain(gear: Gear) -> Self {
+impl From<Gear> for GearDetailView {
+    fn from(gear: Gear) -> Self {
         let (created_date, created_time) = format_datetime(gear.created_at);
         Self {
             id: gear.id.to_string(),
@@ -37,8 +37,8 @@ pub struct GearView {
     pub created_time: String,
 }
 
-impl GearView {
-    pub fn from_domain(gear: Gear) -> Self {
+impl From<Gear> for GearView {
+    fn from(gear: Gear) -> Self {
         let (created_date, created_time) = format_datetime(gear.created_at);
         Self {
             id: gear.id.to_string(),

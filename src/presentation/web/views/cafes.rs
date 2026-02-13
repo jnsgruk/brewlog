@@ -19,8 +19,8 @@ pub struct CafeDetailView {
     pub created_time: String,
 }
 
-impl CafeDetailView {
-    pub fn from_domain(cafe: Cafe) -> Self {
+impl From<Cafe> for CafeDetailView {
+    fn from(cafe: Cafe) -> Self {
         let (created_date, created_time) = format_datetime(cafe.created_at);
         let country_flag = country_to_iso(&cafe.country)
             .map(iso_to_flag_emoji)

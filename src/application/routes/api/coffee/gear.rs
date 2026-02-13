@@ -46,7 +46,7 @@ pub(crate) async fn load_gear_page(
     Ok(crate::application::routes::support::build_page_view(
         page,
         request,
-        GearView::from_domain,
+        GearView::from,
         GEAR_PAGE_PATH,
         GEAR_FRAGMENT_PATH,
         search.map(String::from),

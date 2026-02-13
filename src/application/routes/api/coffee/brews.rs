@@ -133,7 +133,7 @@ pub(crate) async fn load_brew_page(
     let (brews, navigator) = crate::application::routes::support::build_page_view(
         page,
         request,
-        BrewView::from_domain,
+        BrewView::from,
         BREW_PAGE_PATH,
         BREW_FRAGMENT_PATH,
         search.map(String::from),

@@ -34,8 +34,8 @@ pub struct BagView {
     pub used_percent: u8,
 }
 
-impl BagView {
-    pub fn from_domain(bag: BagWithRoast) -> Self {
+impl From<BagWithRoast> for BagView {
+    fn from(bag: BagWithRoast) -> Self {
         let used_percent = used_percent(bag.bag.amount, bag.bag.remaining);
         let (created_date, created_time) = format_datetime(bag.bag.created_at);
         Self {

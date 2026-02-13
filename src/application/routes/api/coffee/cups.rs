@@ -44,7 +44,7 @@ pub(crate) async fn load_cup_page(
     Ok(crate::application::routes::support::build_page_view(
         page,
         request,
-        CupView::from_domain,
+        CupView::from,
         CUP_PAGE_PATH,
         CUP_FRAGMENT_PATH,
         search.map(String::from),

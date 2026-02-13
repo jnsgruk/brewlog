@@ -117,19 +117,19 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
     let recent_brews: Vec<BrewView> = recent_brews_page
         .items
         .into_iter()
-        .map(BrewView::from_domain)
+        .map(BrewView::from)
         .collect();
 
     let open_bags = open_bags_page
         .items
         .into_iter()
-        .map(BagView::from_domain)
+        .map(BagView::from)
         .collect();
 
     let recent_events = recent_events_page
         .items
         .into_iter()
-        .map(TimelineEventView::from_domain)
+        .map(TimelineEventView::from)
         .collect();
 
     Ok(HomeContent {

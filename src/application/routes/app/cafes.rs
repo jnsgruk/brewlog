@@ -30,7 +30,7 @@ pub(crate) async fn cafe_detail_page(
     let image_url = resolve_image_url(&state, EntityType::Cafe, i64::from(cafe.id)).await;
     let edit_url = format!("/cafes/{}/edit", cafe.id);
 
-    let view = CafeDetailView::from_domain(cafe);
+    let view = CafeDetailView::from(cafe);
 
     let template = CafeDetailTemplate {
         nav_active: "",

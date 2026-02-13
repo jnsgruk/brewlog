@@ -29,7 +29,7 @@ pub(crate) async fn gear_detail_page(
 
     let image_url = resolve_image_url(&state, EntityType::Gear, i64::from(id)).await;
 
-    let view = GearDetailView::from_domain(gear);
+    let view = GearDetailView::from(gear);
 
     let template = GearDetailTemplate {
         nav_active: "",

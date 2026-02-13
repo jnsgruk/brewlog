@@ -128,7 +128,7 @@ async fn load_timeline_page(
 fn prepare_event(event: TimelineEvent) -> TimelinePreparedEvent {
     let anchor = event.occurred_at.format("%Y-%m").to_string();
     let heading = event.occurred_at.format("%B %Y").to_string();
-    let view = TimelineEventView::from_domain(event);
+    let view = TimelineEventView::from(event);
 
     TimelinePreparedEvent {
         anchor,

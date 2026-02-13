@@ -69,8 +69,8 @@ pub struct TimelineMonthView {
     pub events: Vec<TimelineEventView>,
 }
 
-impl TimelineEventView {
-    pub fn from_domain(event: TimelineEvent) -> Self {
+impl From<TimelineEvent> for TimelineEventView {
+    fn from(event: TimelineEvent) -> Self {
         let TimelineEvent {
             id,
             entity_type,
@@ -161,7 +161,9 @@ impl TimelineEventView {
             brew_data: brew_data_view,
         }
     }
+}
 
+impl TimelineEventView {
     fn build_subtitle(entity_type: &str, details: &[TimelineEventDetailView]) -> Option<String> {
         let find_value = |label: &str| {
             details

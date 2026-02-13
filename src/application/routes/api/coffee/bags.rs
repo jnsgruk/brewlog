@@ -46,7 +46,7 @@ pub(crate) async fn load_bag_page(
     let (bags, navigator) = crate::application::routes::support::build_page_view(
         page,
         request,
-        BagView::from_domain,
+        BagView::from,
         BAG_PAGE_PATH,
         BAG_FRAGMENT_PATH,
         search.map(String::from),

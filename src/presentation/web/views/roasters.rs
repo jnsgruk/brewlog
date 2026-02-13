@@ -17,8 +17,8 @@ pub struct RoasterDetailView {
     pub created_time: String,
 }
 
-impl RoasterDetailView {
-    pub fn from_domain(roaster: Roaster) -> Self {
+impl From<Roaster> for RoasterDetailView {
+    fn from(roaster: Roaster) -> Self {
         let country_flag = country_to_iso(&roaster.country)
             .map(iso_to_flag_emoji)
             .unwrap_or_default();
