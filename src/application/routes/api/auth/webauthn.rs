@@ -8,7 +8,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 use webauthn_rs::prelude::*;
 
-use crate::application::auth::AuthenticatedUser;
+use crate::application::auth::{AuthenticatedUser, SESSION_COOKIE_NAME};
 use crate::application::state::AppState;
 use crate::domain::passkey_credentials::NewPasskeyCredential;
 use crate::domain::sessions::NewSession;
@@ -16,8 +16,6 @@ use crate::domain::tokens::NewToken;
 use crate::domain::users::NewUser;
 use crate::infrastructure::auth::{generate_session_token, generate_token, hash_token};
 use crate::infrastructure::webauthn::CliCallbackInfo;
-
-const SESSION_COOKIE_NAME: &str = "brewlog_session";
 
 // --- Request/Response types ---
 
@@ -432,9 +430,10 @@ pub(crate) async fn passkey_add_start(
     }))
 }
 
-#[tracing::instrument(skip(state, payload))]
+#[tracing::instrument(skip(state, auth_user, payload))]
 pub(crate) async fn passkey_add_finish(
     State(state): State<AppState>,
+    auth_user: AuthenticatedUser,
     Json(payload): Json<PasskeyAddFinishRequest>,
 ) -> Result<StatusCode, StatusCode> {
     let (user_id, reg_state) = state
@@ -442,6 +441,16 @@ pub(crate) async fn passkey_add_finish(
         .take_registration(&payload.challenge_id)
         .await
         .ok_or(StatusCode::BAD_REQUEST)?;
+
+    // Verify the authenticated user matches the challenge owner
+    if auth_user.0.id != user_id {
+        warn!(
+            auth_user_id = %auth_user.0.id,
+            challenge_user_id = %user_id,
+            "passkey add finish: user mismatch"
+        );
+        return Err(StatusCode::FORBIDDEN);
+    }
 
     let passkey = state
         .webauthn
