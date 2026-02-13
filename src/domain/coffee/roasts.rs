@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{RoastId, RoasterId};
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
@@ -61,48 +61,14 @@ pub struct UpdateRoast {
     pub created_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum RoastSortKey {
-    CreatedAt,
-    Name,
-    Roaster,
-    Origin,
-    Producer,
-}
-
-impl SortKey for RoastSortKey {
-    fn default() -> Self {
-        RoastSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "created-at" => Some(RoastSortKey::CreatedAt),
-            "name" => Some(RoastSortKey::Name),
-            "roaster" => Some(RoastSortKey::Roaster),
-            "origin" => Some(RoastSortKey::Origin),
-            "producer" => Some(RoastSortKey::Producer),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            RoastSortKey::CreatedAt => "created-at",
-            RoastSortKey::Name => "name",
-            RoastSortKey::Roaster => "roaster",
-            RoastSortKey::Origin => "origin",
-            RoastSortKey::Producer => "producer",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            RoastSortKey::CreatedAt => SortDirection::Desc,
-            _ => SortDirection::Asc,
-        }
-    }
-}
+define_sort_key!(pub RoastSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    Name("name", Asc),
+    Roaster("roaster", Asc),
+    Origin("origin", Asc),
+    Producer("producer", Asc),
+});
 
 pub fn roast_timeline_event(roast: &Roast, roaster: &Roaster) -> NewTimelineEvent {
     let mut details = vec![TimelineEventDetail {

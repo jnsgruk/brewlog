@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{CafeId, CupId, RoastId};
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -106,45 +106,11 @@ impl CupFilter {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum CupSortKey {
-    CreatedAt,
-    CafeName,
-    CafeCity,
-    RoastName,
-    RoasterName,
-}
-
-impl SortKey for CupSortKey {
-    fn default() -> Self {
-        CupSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "created-at" => Some(CupSortKey::CreatedAt),
-            "cafe" => Some(CupSortKey::CafeName),
-            "city" => Some(CupSortKey::CafeCity),
-            "roast" => Some(CupSortKey::RoastName),
-            "roaster" => Some(CupSortKey::RoasterName),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            CupSortKey::CreatedAt => "created-at",
-            CupSortKey::CafeName => "cafe",
-            CupSortKey::CafeCity => "city",
-            CupSortKey::RoastName => "roast",
-            CupSortKey::RoasterName => "roaster",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            CupSortKey::CreatedAt => SortDirection::Desc,
-            _ => SortDirection::Asc,
-        }
-    }
-}
+define_sort_key!(pub CupSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    CafeName("cafe", Asc),
+    CafeCity("city", Asc),
+    RoastName("roast", Asc),
+    RoasterName("roaster", Asc),
+});

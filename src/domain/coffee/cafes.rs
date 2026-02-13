@@ -2,9 +2,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::normalize_optional_field;
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::CafeId;
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::is_valid_url_scheme;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
@@ -95,42 +95,10 @@ impl UpdateCafe {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum CafeSortKey {
-    CreatedAt,
-    Name,
-    City,
-    Country,
-}
-
-impl SortKey for CafeSortKey {
-    fn default() -> Self {
-        CafeSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "created-at" => Some(CafeSortKey::CreatedAt),
-            "name" => Some(CafeSortKey::Name),
-            "city" => Some(CafeSortKey::City),
-            "country" => Some(CafeSortKey::Country),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            CafeSortKey::CreatedAt => "created-at",
-            CafeSortKey::Name => "name",
-            CafeSortKey::City => "city",
-            CafeSortKey::Country => "country",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            CafeSortKey::CreatedAt => SortDirection::Desc,
-            _ => SortDirection::Asc,
-        }
-    }
-}
+define_sort_key!(pub CafeSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    Name("name", Asc),
+    City("city", Asc),
+    Country("country", Asc),
+});

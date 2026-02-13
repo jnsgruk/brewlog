@@ -2,9 +2,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::normalize_optional_field;
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::RoasterId;
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -99,42 +99,10 @@ impl UpdateRoaster {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum RoasterSortKey {
-    CreatedAt,
-    Name,
-    Country,
-    City,
-}
-
-impl SortKey for RoasterSortKey {
-    fn default() -> Self {
-        RoasterSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "created-at" => Some(RoasterSortKey::CreatedAt),
-            "name" => Some(RoasterSortKey::Name),
-            "country" => Some(RoasterSortKey::Country),
-            "city" => Some(RoasterSortKey::City),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            RoasterSortKey::CreatedAt => "created-at",
-            RoasterSortKey::Name => "name",
-            RoasterSortKey::Country => "country",
-            RoasterSortKey::City => "city",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            RoasterSortKey::CreatedAt => SortDirection::Desc,
-            _ => SortDirection::Asc,
-        }
-    }
-}
+define_sort_key!(pub RoasterSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    Name("name", Asc),
+    Country("country", Asc),
+    City("city", Asc),
+});

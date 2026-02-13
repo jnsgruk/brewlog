@@ -29,6 +29,66 @@ pub trait SortKey: Copy + Eq {
     fn default_direction(self) -> SortDirection;
 }
 
+/// Generates a sort key enum and its `SortKey` trait implementation.
+///
+/// # Example
+///
+/// ```ignore
+/// define_sort_key!(RoasterSortKey {
+///     #[default]
+///     CreatedAt("created-at", Desc),
+///     Name("name", Asc),
+///     Country("country", Asc),
+///     City("city", Asc),
+/// });
+/// ```
+#[macro_export]
+macro_rules! define_sort_key {
+    (
+        $vis:vis $name:ident {
+            $(#[default] $default_variant:ident($default_query:literal, $default_dir:ident),)?
+            $($variant:ident($query:literal, $dir:ident)),*
+            $(,)?
+        }
+    ) => {
+        #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+        $vis enum $name {
+            $($default_variant,)?
+            $($variant),*
+        }
+
+        impl $crate::domain::listing::SortKey for $name {
+            fn default() -> Self {
+                // The first arm expands for the #[default] variant
+                $( return $name::$default_variant; )?
+                // If no #[default], this won't compile — every invocation needs one
+            }
+
+            fn from_query(value: &str) -> Option<Self> {
+                match value {
+                    $($default_query => Some($name::$default_variant),)?
+                    $($query => Some($name::$variant),)*
+                    _ => None,
+                }
+            }
+
+            fn query_value(self) -> &'static str {
+                match self {
+                    $($name::$default_variant => $default_query,)?
+                    $($name::$variant => $query,)*
+                }
+            }
+
+            fn default_direction(self) -> $crate::domain::listing::SortDirection {
+                match self {
+                    $($name::$default_variant => $crate::domain::listing::SortDirection::$default_dir,)?
+                    $($name::$variant => $crate::domain::listing::SortDirection::$dir,)*
+                }
+            }
+        }
+    };
+}
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum PageSize {
     Limited(u32),

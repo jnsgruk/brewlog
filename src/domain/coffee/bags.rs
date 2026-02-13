@@ -1,9 +1,9 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{BagId, RoastId};
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
@@ -93,54 +93,16 @@ impl BagFilter {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum BagSortKey {
-    RoastDate,
-    CreatedAt,
-    UpdatedAt,
-    Roaster,
-    Roast,
-    Status,
-    FinishedAt,
-}
-
-impl SortKey for BagSortKey {
-    fn default() -> Self {
-        BagSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "roast-date" => Some(BagSortKey::RoastDate),
-            "created-at" => Some(BagSortKey::CreatedAt),
-            "updated-at" => Some(BagSortKey::UpdatedAt),
-            "roaster" => Some(BagSortKey::Roaster),
-            "roast" => Some(BagSortKey::Roast),
-            "status" => Some(BagSortKey::Status),
-            "finished-at" => Some(BagSortKey::FinishedAt),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            BagSortKey::RoastDate => "roast-date",
-            BagSortKey::CreatedAt => "created-at",
-            BagSortKey::UpdatedAt => "updated-at",
-            BagSortKey::Roaster => "roaster",
-            BagSortKey::Roast => "roast",
-            BagSortKey::Status => "status",
-            BagSortKey::FinishedAt => "finished-at",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            BagSortKey::Roaster | BagSortKey::Roast | BagSortKey::Status => SortDirection::Asc,
-            _ => SortDirection::Desc,
-        }
-    }
-}
+define_sort_key!(pub BagSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    RoastDate("roast-date", Desc),
+    UpdatedAt("updated-at", Desc),
+    Roaster("roaster", Asc),
+    Roast("roast", Asc),
+    Status("status", Asc),
+    FinishedAt("finished-at", Desc),
+});
 
 pub fn bag_timeline_event(
     bag: &Bag,

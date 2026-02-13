@@ -3,9 +3,9 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{BagId, BrewId, GearId};
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -272,36 +272,9 @@ impl BrewFilter {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum BrewSortKey {
-    CreatedAt,
-    CoffeeWeight,
-    WaterVolume,
-}
-
-impl SortKey for BrewSortKey {
-    fn default() -> Self {
-        BrewSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "created-at" => Some(BrewSortKey::CreatedAt),
-            "coffee-weight" => Some(BrewSortKey::CoffeeWeight),
-            "water-volume" => Some(BrewSortKey::WaterVolume),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            BrewSortKey::CreatedAt => "created-at",
-            BrewSortKey::CoffeeWeight => "coffee-weight",
-            BrewSortKey::WaterVolume => "water-volume",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        SortDirection::Desc
-    }
-}
+define_sort_key!(pub BrewSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    CoffeeWeight("coffee-weight", Desc),
+    WaterVolume("water-volume", Desc),
+});

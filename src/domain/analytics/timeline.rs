@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{BagId, GearId, TimelineEventId};
-use crate::domain::listing::{SortDirection, SortKey};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimelineEventDetail {
@@ -54,32 +54,7 @@ pub struct NewTimelineEvent {
     pub brew_data: Option<TimelineBrewData>,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum TimelineSortKey {
-    OccurredAt,
-}
-
-impl SortKey for TimelineSortKey {
-    fn default() -> Self {
-        TimelineSortKey::OccurredAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "occurred-at" => Some(TimelineSortKey::OccurredAt),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            TimelineSortKey::OccurredAt => "occurred-at",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            TimelineSortKey::OccurredAt => SortDirection::Desc,
-        }
-    }
-}
+define_sort_key!(pub TimelineSortKey {
+    #[default]
+    OccurredAt("occurred-at", Desc),
+});

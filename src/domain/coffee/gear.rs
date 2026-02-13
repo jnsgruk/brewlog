@@ -3,9 +3,9 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::define_sort_key;
 use crate::domain::entity_type::EntityType;
 use crate::domain::ids::GearId;
-use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
@@ -122,42 +122,10 @@ impl GearFilter {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum GearSortKey {
-    Make,
-    Model,
-    Category,
-    CreatedAt,
-}
-
-impl SortKey for GearSortKey {
-    fn default() -> Self {
-        GearSortKey::CreatedAt
-    }
-
-    fn from_query(value: &str) -> Option<Self> {
-        match value {
-            "make" => Some(GearSortKey::Make),
-            "model" => Some(GearSortKey::Model),
-            "category" => Some(GearSortKey::Category),
-            "created-at" => Some(GearSortKey::CreatedAt),
-            _ => None,
-        }
-    }
-
-    fn query_value(self) -> &'static str {
-        match self {
-            GearSortKey::Make => "make",
-            GearSortKey::Model => "model",
-            GearSortKey::Category => "category",
-            GearSortKey::CreatedAt => "created-at",
-        }
-    }
-
-    fn default_direction(self) -> SortDirection {
-        match self {
-            GearSortKey::Make | GearSortKey::Model | GearSortKey::Category => SortDirection::Asc,
-            GearSortKey::CreatedAt => SortDirection::Desc,
-        }
-    }
-}
+define_sort_key!(pub GearSortKey {
+    #[default]
+    CreatedAt("created-at", Desc),
+    Make("make", Asc),
+    Model("model", Asc),
+    Category("category", Asc),
+});
