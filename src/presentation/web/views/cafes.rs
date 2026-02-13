@@ -1,6 +1,6 @@
 use crate::domain::cafes::Cafe;
 use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
-use crate::infrastructure::foursquare::NearbyCafe;
+use crate::domain::nearby_cafes::NearbyCafeResult;
 
 use super::{LegendEntry, build_map_data};
 
@@ -144,8 +144,8 @@ pub struct NearbyCafeView {
     pub location: String,
 }
 
-impl From<NearbyCafe> for NearbyCafeView {
-    fn from(cafe: NearbyCafe) -> Self {
+impl From<NearbyCafeResult> for NearbyCafeView {
+    fn from(cafe: NearbyCafeResult) -> Self {
         let distance = if cafe.distance_meters < 1000 {
             format!("{} m", cafe.distance_meters)
         } else {

@@ -1,4 +1,4 @@
-use brewlog::infrastructure::foursquare::NearbyCafe;
+use brewlog::domain::nearby_cafes::NearbyCafeResult;
 use wiremock::matchers::{header, method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -58,7 +58,7 @@ async fn nearby_search_returns_results() {
 
     assert_eq!(response.status(), 200);
 
-    let cafes: Vec<NearbyCafe> = response.json().await.expect("Failed to parse response");
+    let cafes: Vec<NearbyCafeResult> = response.json().await.expect("Failed to parse response");
     assert_eq!(cafes.len(), 2);
 
     assert_eq!(cafes[0].name, "Prufrock Coffee");
@@ -98,7 +98,7 @@ async fn nearby_search_returns_empty_for_no_matches() {
 
     assert_eq!(response.status(), 200);
 
-    let cafes: Vec<NearbyCafe> = response.json().await.expect("Failed to parse response");
+    let cafes: Vec<NearbyCafeResult> = response.json().await.expect("Failed to parse response");
     assert!(cafes.is_empty());
 }
 
@@ -199,7 +199,7 @@ async fn nearby_search_with_near_param() {
 
     assert_eq!(response.status(), 200);
 
-    let cafes: Vec<NearbyCafe> = response.json().await.expect("Failed to parse response");
+    let cafes: Vec<NearbyCafeResult> = response.json().await.expect("Failed to parse response");
     assert_eq!(cafes.len(), 2);
     assert_eq!(cafes[0].name, "Prufrock Coffee");
     assert_eq!(cafes[0].city, "London");

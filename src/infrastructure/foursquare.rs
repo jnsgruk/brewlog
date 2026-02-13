@@ -1,9 +1,10 @@
 use std::time::Duration;
 
 use isocountry::CountryCode;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::application::errors::AppError;
+use crate::domain::nearby_cafes::NearbyCafeResult;
 
 pub const FOURSQUARE_SEARCH_URL: &str = "https://places-api.foursquare.com/places/search";
 const USER_AGENT: &str = "Brewlog/1.0";
@@ -12,17 +13,6 @@ const RADIUS: &str = "5000";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 const FIELDS: &str = "name,latitude,longitude,location,website,distance";
 const API_VERSION: &str = "2025-06-17";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NearbyCafe {
-    pub name: String,
-    pub latitude: f64,
-    pub longitude: f64,
-    pub city: String,
-    pub country: String,
-    pub website: Option<String>,
-    pub distance_meters: u32,
-}
 
 /// Location mode for Foursquare search.
 pub enum SearchLocation {
@@ -39,7 +29,7 @@ pub async fn search_nearby(
     api_key: &str,
     location: &SearchLocation,
     query: &str,
-) -> Result<Vec<NearbyCafe>, AppError> {
+) -> Result<Vec<NearbyCafeResult>, AppError> {
     let mut request = client
         .get(base_url)
         .header("User-Agent", USER_AGENT)
@@ -90,7 +80,7 @@ pub async fn search_nearby(
     Ok(cafes)
 }
 
-fn parse_cafe(place: FoursquarePlace, location: &SearchLocation) -> Option<NearbyCafe> {
+fn parse_cafe(place: FoursquarePlace, location: &SearchLocation) -> Option<NearbyCafeResult> {
     if place.name.is_empty() {
         return None;
     }
@@ -111,7 +101,7 @@ fn parse_cafe(place: FoursquarePlace, location: &SearchLocation) -> Option<Nearb
 
     let website = place.website.filter(|w| !w.trim().is_empty());
 
-    Some(NearbyCafe {
+    Some(NearbyCafeResult {
         name: place.name,
         latitude: lat,
         longitude: lng,

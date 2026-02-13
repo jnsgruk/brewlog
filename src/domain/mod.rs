@@ -13,5 +13,5 @@ pub mod repositories;
 // Re-exports for backward compatibility
 pub use analytics::{ai_usage, country_stats, stats, timeline};
 pub use auth::{passkey_credentials, registration_tokens, sessions, tokens, users};
-pub use coffee::{bags, brews, cafes, cups, gear, roasters, roasts};
+pub use coffee::{bags, brews, cafes, cups, gear, nearby_cafes, roasters, roasts};
 pub use errors::RepositoryError;
