@@ -3,7 +3,9 @@ use crate::domain::roasters::Roaster;
 use crate::domain::roasts::{Roast, RoastWithRoaster};
 
 use super::tasting_notes::{self, TastingNoteView};
-use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info};
+use super::{
+    LegendEntry, build_coffee_info, build_origin_roaster_map, build_roaster_info, format_datetime,
+};
 
 pub struct RoastView {
     pub id: String,
@@ -67,18 +69,8 @@ impl RoastView {
         let producer = producer.unwrap_or_else(|| "—".to_string());
         let process = process.unwrap_or_else(|| "—".to_string());
         let created_at_sort_key = created_at.timestamp();
-        let tasting_notes = tasting_notes
-            .into_iter()
-            .flat_map(|note| {
-                note.split([',', '\n'])
-                    .map(|segment| segment.trim().to_string())
-                    .filter(|segment| !segment.is_empty())
-                    .collect::<Vec<_>>()
-            })
-            .map(|note| tasting_notes::categorize(&note))
-            .collect();
-        let created_date = created_at.format("%Y-%m-%d").to_string();
-        let created_time = created_at.format("%H:%M").to_string();
+        let tasting_notes = tasting_notes::parse_and_categorize(&tasting_notes);
+        let (created_date, created_time) = format_datetime(created_at);
         let detail_path = format!("/roasters/{roaster_slug}/roasts/{slug}");
 
         Self {
@@ -131,14 +123,9 @@ impl RoastDetailView {
         let coffee = build_coffee_info(&roast);
         let roaster_info = build_roaster_info(roaster);
 
-        let mut map_entries: Vec<(&str, u32)> = Vec::new();
-        if let Some(ref o) = roast.origin
-            && !o.is_empty()
-        {
-            map_entries.push((o.as_str(), 2));
-        }
-        map_entries.push((roaster.country.as_str(), 1));
-        let (map_countries, map_max) = build_map_data(&map_entries);
+        let (map_countries, map_max, legend_entries) =
+            build_origin_roaster_map(roast.origin.as_deref(), &roaster.country);
+        let (created_date, created_time) = format_datetime(roast.created_at);
 
         Self {
             id: roast.id.to_string(),
@@ -157,18 +144,9 @@ impl RoastDetailView {
             roaster_homepage: roaster_info.homepage,
             map_countries,
             map_max,
-            legend_entries: vec![
-                LegendEntry {
-                    label: "Origin",
-                    opacity: "",
-                },
-                LegendEntry {
-                    label: "Roaster",
-                    opacity: "opacity-50",
-                },
-            ],
-            created_date: roast.created_at.format("%Y-%m-%d").to_string(),
-            created_time: roast.created_at.format("%H:%M").to_string(),
+            legend_entries,
+            created_date,
+            created_time,
         }
     }
 }

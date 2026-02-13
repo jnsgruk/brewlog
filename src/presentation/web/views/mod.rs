@@ -55,6 +55,13 @@ fn relative_date(dt: DateTime<Utc>) -> String {
     crate::domain::formatting::format_relative_time(dt, Utc::now())
 }
 
+pub(crate) fn format_datetime(dt: DateTime<Utc>) -> (String, String) {
+    (
+        dt.format("%Y-%m-%d").to_string(),
+        dt.format("%H:%M").to_string(),
+    )
+}
+
 pub struct Paginated<T> {
     pub items: Vec<T>,
     pub page: u32,
@@ -388,17 +395,7 @@ pub(crate) fn build_coffee_info(roast: &crate::domain::roasts::Roast) -> CoffeeI
         .map(iso_to_flag_emoji)
         .unwrap_or_default();
 
-    let notes = roast
-        .tasting_notes
-        .iter()
-        .flat_map(|note| {
-            note.split([',', '\n'])
-                .map(|s| s.trim().to_string())
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<_>>()
-        })
-        .map(|n| tasting_notes::categorize(&n))
-        .collect();
+    let notes = tasting_notes::parse_and_categorize(&roast.tasting_notes);
 
     CoffeeInfo {
         origin: if origin.is_empty() {
@@ -448,6 +445,36 @@ pub(crate) fn build_roaster_info(roaster: &crate::domain::roasters::Roaster) -> 
         city: roaster.city.clone(),
         homepage: roaster.homepage.clone(),
     }
+}
+
+/// Build origin + roaster country map data with standard legend entries.
+///
+/// Origin gets weight 2, roaster country gets weight 1. Returns the
+/// `(data-countries, data-max, legend_entries)` tuple used by detail pages.
+pub(crate) fn build_origin_roaster_map(
+    origin: Option<&str>,
+    roaster_country: &str,
+) -> (String, u32, Vec<LegendEntry>) {
+    let mut entries: Vec<(&str, u32)> = Vec::new();
+    if let Some(o) = origin.filter(|o| !o.is_empty()) {
+        entries.push((o, 2));
+    }
+    entries.push((roaster_country, 1));
+    let (map_countries, map_max) = build_map_data(&entries);
+    (
+        map_countries,
+        map_max,
+        vec![
+            LegendEntry {
+                label: "Origin",
+                opacity: "",
+            },
+            LegendEntry {
+                label: "Roaster",
+                opacity: "opacity-50",
+            },
+        ],
+    )
 }
 
 /// Build `data-countries` and `data-max` values for the world-map component.

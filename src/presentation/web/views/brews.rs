@@ -6,7 +6,10 @@ use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 
 use super::tasting_notes::TastingNoteView;
-use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info, relative_date};
+use super::{
+    LegendEntry, build_coffee_info, build_origin_roaster_map, build_roaster_info, format_datetime,
+    relative_date,
+};
 
 #[derive(Clone)]
 pub struct QuickNoteView {
@@ -92,6 +95,7 @@ impl BrewView {
             .map(|n| n.form_value.as_str())
             .collect::<Vec<_>>()
             .join(",");
+        let (created_date, created_time) = format_datetime(brew.brew.created_at);
 
         Self {
             id: brew.brew.id.to_string(),
@@ -119,8 +123,8 @@ impl BrewView {
             quick_notes,
             quick_notes_label,
             quick_notes_raw,
-            created_date: brew.brew.created_at.format("%Y-%m-%d").to_string(),
-            created_time: brew.brew.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
             relative_date_label: relative_date(brew.brew.created_at),
             coffee_weight_raw: brew.brew.coffee_weight,
             grind_setting_raw: brew.brew.grind_setting,
@@ -236,14 +240,9 @@ impl BrewDetailView {
         let coffee = build_coffee_info(roast);
         let roaster_info = build_roaster_info(roaster);
 
-        let mut map_entries: Vec<(&str, u32)> = Vec::new();
-        if let Some(ref o) = roast.origin
-            && !o.is_empty()
-        {
-            map_entries.push((o.as_str(), 2));
-        }
-        map_entries.push((roaster.country.as_str(), 1));
-        let (map_countries, map_max) = build_map_data(&map_entries);
+        let (map_countries, map_max, legend_entries) =
+            build_origin_roaster_map(roast.origin.as_deref(), &roaster.country);
+        let (created_date, created_time) = format_datetime(brew.brew.created_at);
 
         let quick_notes_label = brew
             .brew
@@ -280,18 +279,9 @@ impl BrewDetailView {
             filter_paper_name: brew.filter_paper_name,
             map_countries,
             map_max,
-            legend_entries: vec![
-                LegendEntry {
-                    label: "Origin",
-                    opacity: "",
-                },
-                LegendEntry {
-                    label: "Roaster",
-                    opacity: "opacity-50",
-                },
-            ],
-            created_date: brew.brew.created_at.format("%Y-%m-%d").to_string(),
-            created_time: brew.brew.created_at.format("%H:%M").to_string(),
+            legend_entries,
+            created_date,
+            created_time,
         }
     }
 }

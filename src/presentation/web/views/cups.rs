@@ -5,7 +5,7 @@ use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 
 use super::tasting_notes::TastingNoteView;
-use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info};
+use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info, format_datetime};
 
 #[derive(Clone)]
 pub struct CupView {
@@ -23,6 +23,7 @@ pub struct CupView {
 
 impl CupView {
     pub fn from_domain(cup: CupWithDetails) -> Self {
+        let (created_date, created_time) = format_datetime(cup.cup.created_at);
         Self {
             id: cup.cup.id.to_string(),
             roast_name: cup.roast_name,
@@ -32,8 +33,8 @@ impl CupView {
             cafe_name: cup.cafe_name,
             cafe_slug: cup.cafe_slug,
             cafe_city: cup.cafe_city,
-            created_date: cup.cup.created_at.format("%Y-%m-%d").to_string(),
-            created_time: cup.cup.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
         }
     }
 }
@@ -92,6 +93,7 @@ impl CupDetailView {
         }
         map_entries.push((roaster.country.as_str(), 1));
         let (map_countries, map_max) = build_map_data(&map_entries);
+        let (created_date, created_time) = format_datetime(cup.cup.created_at);
 
         Self {
             id: cup.cup.id.to_string(),
@@ -135,8 +137,8 @@ impl CupDetailView {
                     opacity: "opacity-35",
                 },
             ],
-            created_date: cup.cup.created_at.format("%Y-%m-%d").to_string(),
-            created_time: cup.cup.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
         }
     }
 }

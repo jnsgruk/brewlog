@@ -4,7 +4,17 @@ use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
 
 use super::tasting_notes::TastingNoteView;
-use super::{LegendEntry, build_coffee_info, build_map_data, build_roaster_info};
+use super::{
+    LegendEntry, build_coffee_info, build_origin_roaster_map, build_roaster_info, format_datetime,
+};
+
+fn used_percent(amount: f64, remaining: f64) -> u8 {
+    if amount > 0.0 {
+        (((amount - remaining) / amount) * 100.0).clamp(0.0, 100.0) as u8
+    } else {
+        0
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct BagView {
@@ -26,12 +36,8 @@ pub struct BagView {
 
 impl BagView {
     pub fn from_domain(bag: BagWithRoast) -> Self {
-        let used_percent = if bag.bag.amount > 0.0 {
-            (((bag.bag.amount - bag.bag.remaining) / bag.bag.amount) * 100.0).clamp(0.0, 100.0)
-                as u8
-        } else {
-            0
-        };
+        let used_percent = used_percent(bag.bag.amount, bag.bag.remaining);
+        let (created_date, created_time) = format_datetime(bag.bag.created_at);
         Self {
             id: bag.bag.id.to_string(),
             roast_id: bag.bag.roast_id.to_string(),
@@ -43,8 +49,8 @@ impl BagView {
                 .bag
                 .finished_at
                 .map_or_else(|| "—".to_string(), |d| d.format("%Y-%m-%d").to_string()),
-            created_date: bag.bag.created_at.format("%Y-%m-%d").to_string(),
-            created_time: bag.bag.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
             roast_name: bag.roast_name,
             roaster_name: bag.roaster_name,
             roast_slug: bag.roast_slug,
@@ -103,14 +109,9 @@ impl BagDetailView {
         let coffee = build_coffee_info(roast);
         let roaster_info = build_roaster_info(roaster);
 
-        let mut map_entries: Vec<(&str, u32)> = Vec::new();
-        if let Some(ref o) = roast.origin
-            && !o.is_empty()
-        {
-            map_entries.push((o.as_str(), 2));
-        }
-        map_entries.push((roaster.country.as_str(), 1));
-        let (map_countries, map_max) = build_map_data(&map_entries);
+        let (map_countries, map_max, legend_entries) =
+            build_origin_roaster_map(roast.origin.as_deref(), &roaster.country);
+        let (created_date, created_time) = format_datetime(bag.bag.created_at);
 
         Self {
             id: bag.bag.id.to_string(),
@@ -130,12 +131,7 @@ impl BagDetailView {
             roaster_homepage: roaster_info.homepage,
             amount: format_weight(bag.bag.amount),
             remaining: format_weight(bag.bag.remaining),
-            used_percent: if bag.bag.amount > 0.0 {
-                (((bag.bag.amount - bag.bag.remaining) / bag.bag.amount) * 100.0).clamp(0.0, 100.0)
-                    as u8
-            } else {
-                0
-            },
+            used_percent: used_percent(bag.bag.amount, bag.bag.remaining),
             closed: bag.bag.closed,
             roast_date: bag.bag.roast_date.map(|d| d.to_string()),
             finished_date: bag
@@ -144,18 +140,9 @@ impl BagDetailView {
                 .map(|d| d.format("%Y-%m-%d").to_string()),
             map_countries,
             map_max,
-            legend_entries: vec![
-                LegendEntry {
-                    label: "Origin",
-                    opacity: "",
-                },
-                LegendEntry {
-                    label: "Roaster",
-                    opacity: "opacity-50",
-                },
-            ],
-            created_date: bag.bag.created_at.format("%Y-%m-%d").to_string(),
-            created_time: bag.bag.created_at.format("%H:%M").to_string(),
+            legend_entries,
+            created_date,
+            created_time,
         }
     }
 }

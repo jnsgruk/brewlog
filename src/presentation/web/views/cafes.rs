@@ -2,7 +2,7 @@ use crate::domain::cafes::Cafe;
 use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
 use crate::domain::nearby_cafes::NearbyCafeResult;
 
-use super::{LegendEntry, build_map_data};
+use super::{LegendEntry, build_map_data, format_datetime};
 
 pub struct CafeDetailView {
     pub id: String,
@@ -21,6 +21,7 @@ pub struct CafeDetailView {
 
 impl CafeDetailView {
     pub fn from_domain(cafe: Cafe) -> Self {
+        let (created_date, created_time) = format_datetime(cafe.created_at);
         let country_flag = country_to_iso(&cafe.country)
             .map(iso_to_flag_emoji)
             .unwrap_or_default();
@@ -44,8 +45,8 @@ impl CafeDetailView {
                 label: "Cafe",
                 opacity: "",
             }],
-            created_date: cafe.created_at.format("%Y-%m-%d").to_string(),
-            created_time: cafe.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
         }
     }
 }
@@ -92,8 +93,7 @@ impl From<Cafe> for CafeView {
             .unwrap_or_default();
 
         let created_at_sort_key = created_at.timestamp();
-        let created_date = created_at.format("%Y-%m-%d").to_string();
-        let created_time = created_at.format("%H:%M").to_string();
+        let (created_date, created_time) = format_datetime(created_at);
 
         Self {
             detail_path,

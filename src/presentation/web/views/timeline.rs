@@ -125,17 +125,7 @@ impl TimelineEventView {
         Self::add_country_flags(&mut mapped_details);
 
         let tasting_notes = if entity_type == EntityType::Roast {
-            let notes = tasting_notes
-                .into_iter()
-                .flat_map(|note| {
-                    note.split([',', '\n'])
-                        .map(|segment| segment.trim().to_string())
-                        .filter(|segment| !segment.is_empty())
-                        .collect::<Vec<_>>()
-                })
-                .map(|note| tasting_notes::categorize(&note))
-                .collect::<Vec<_>>();
-            Some(notes)
+            Some(tasting_notes::parse_and_categorize(&tasting_notes))
         } else {
             None
         };

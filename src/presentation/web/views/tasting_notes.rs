@@ -54,6 +54,21 @@ pub fn categorize(note: &str) -> TastingNoteView {
     }
 }
 
+/// Split raw tasting note strings on commas and newlines, trim whitespace,
+/// drop empties, and categorise each resulting segment.
+pub fn parse_and_categorize(notes: &[String]) -> Vec<TastingNoteView> {
+    notes
+        .iter()
+        .flat_map(|note| {
+            note.split([',', '\n'])
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<_>>()
+        })
+        .map(|n| categorize(&n))
+        .collect()
+}
+
 // ── Exact matches ────────────────────────────────────────────────────
 
 fn exact_match(lower: &str) -> Option<NoteCategory> {

@@ -1,5 +1,7 @@
 use crate::domain::gear::Gear;
 
+use super::format_datetime;
+
 pub struct GearDetailView {
     pub id: String,
     pub category_label: String,
@@ -11,13 +13,14 @@ pub struct GearDetailView {
 
 impl GearDetailView {
     pub fn from_domain(gear: Gear) -> Self {
+        let (created_date, created_time) = format_datetime(gear.created_at);
         Self {
             id: gear.id.to_string(),
             category_label: gear.category.display_label().to_string(),
             make: gear.make,
             model: gear.model,
-            created_date: gear.created_at.format("%Y-%m-%d").to_string(),
-            created_time: gear.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
         }
     }
 }
@@ -36,6 +39,7 @@ pub struct GearView {
 
 impl GearView {
     pub fn from_domain(gear: Gear) -> Self {
+        let (created_date, created_time) = format_datetime(gear.created_at);
         Self {
             id: gear.id.to_string(),
             category: gear.category.as_str().to_string(),
@@ -43,8 +47,8 @@ impl GearView {
             make: gear.make.clone(),
             model: gear.model.clone(),
             full_name: format!("{} {}", gear.make, gear.model),
-            created_date: gear.created_at.format("%Y-%m-%d").to_string(),
-            created_time: gear.created_at.format("%H:%M").to_string(),
+            created_date,
+            created_time,
         }
     }
 }
