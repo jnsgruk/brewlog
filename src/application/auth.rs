@@ -9,7 +9,7 @@ use crate::application::state::AppState;
 use crate::domain::users::User;
 use crate::infrastructure::auth::hash_token;
 
-const SESSION_COOKIE_NAME: &str = "brewlog_session";
+pub(crate) const SESSION_COOKIE_NAME: &str = "brewlog_session";
 
 /// Extension type to carry authenticated user through request handlers
 #[derive(Debug, Clone)]

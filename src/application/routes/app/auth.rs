@@ -6,11 +6,10 @@ use serde::Deserialize;
 use tower_cookies::{Cookie, Cookies};
 use tracing::{info, warn};
 
+use crate::application::auth::SESSION_COOKIE_NAME;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::infrastructure::auth::hash_token;
-
-const SESSION_COOKIE_NAME: &str = "brewlog_session";
 
 #[derive(Debug, Deserialize)]
 pub struct LoginQuery {
