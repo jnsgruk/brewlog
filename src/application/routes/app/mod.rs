@@ -83,165 +83,49 @@ async fn scan_redirect() -> Redirect {
     Redirect::permanent("/")
 }
 
-async fn styles() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "text/css; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/css/styles.css"),
-    )
+/// Generate a static-asset handler that returns embedded file content with a
+/// one-week cache header.
+macro_rules! static_asset {
+    ($name:ident, $content_type:expr, str $path:expr) => {
+        async fn $name() -> impl IntoResponse {
+            (
+                [
+                    ("content-type", $content_type),
+                    ("cache-control", "public, max-age=604800"),
+                ],
+                include_str!($path),
+            )
+        }
+    };
+    ($name:ident, $content_type:expr, bytes $path:expr) => {
+        async fn $name() -> impl IntoResponse {
+            (
+                [
+                    ("content-type", $content_type),
+                    ("cache-control", "public, max-age=604800"),
+                ],
+                include_bytes!($path).as_slice(),
+            )
+        }
+    };
 }
 
-async fn webauthn_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/webauthn.js"),
-    )
-}
-
-async fn location_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/location.js"),
-    )
-}
-
-async fn image_utils_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/image-utils.js"),
-    )
-}
-
-async fn photo_capture_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/components/photo-capture.js"),
-    )
-}
-
-async fn searchable_select_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/components/searchable-select.js"),
-    )
-}
-
-async fn chip_scroll_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/components/chip-scroll.js"),
-    )
-}
-
-async fn world_map_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/components/world-map.js"),
-    )
-}
-
-async fn donut_chart_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/components/donut-chart.js"),
-    )
-}
-
-async fn image_upload_js() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/javascript; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/js/components/image-upload.js"),
-    )
-}
-
-async fn favicon_light() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "image/svg+xml"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/favicon-light.svg"),
-    )
-}
-
-async fn favicon_dark() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "image/svg+xml"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/favicon-dark.svg"),
-    )
-}
-
-async fn og_image() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "image/png"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_bytes!("../../../../static/og-image.png").as_slice(),
-    )
-}
-
-async fn app_icon_192() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "image/png"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_bytes!("../../../../static/app-icon-192.png").as_slice(),
-    )
-}
-
-async fn app_icon_512() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "image/png"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_bytes!("../../../../static/app-icon-512.png").as_slice(),
-    )
-}
-
-async fn site_webmanifest() -> impl IntoResponse {
-    (
-        [
-            ("content-type", "application/manifest+json; charset=utf-8"),
-            ("cache-control", "public, max-age=604800"),
-        ],
-        include_str!("../../../../static/site.webmanifest"),
-    )
-}
+static_asset!(styles, "text/css; charset=utf-8", str "../../../../static/css/styles.css");
+static_asset!(webauthn_js, "application/javascript; charset=utf-8", str "../../../../static/js/webauthn.js");
+static_asset!(location_js, "application/javascript; charset=utf-8", str "../../../../static/js/location.js");
+static_asset!(image_utils_js, "application/javascript; charset=utf-8", str "../../../../static/js/image-utils.js");
+static_asset!(photo_capture_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/photo-capture.js");
+static_asset!(searchable_select_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/searchable-select.js");
+static_asset!(chip_scroll_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/chip-scroll.js");
+static_asset!(world_map_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/world-map.js");
+static_asset!(donut_chart_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/donut-chart.js");
+static_asset!(image_upload_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/image-upload.js");
+static_asset!(favicon_light, "image/svg+xml", str "../../../../static/favicon-light.svg");
+static_asset!(favicon_dark, "image/svg+xml", str "../../../../static/favicon-dark.svg");
+static_asset!(og_image, "image/png", bytes "../../../../static/og-image.png");
+static_asset!(app_icon_192, "image/png", bytes "../../../../static/app-icon-192.png");
+static_asset!(app_icon_512, "image/png", bytes "../../../../static/app-icon-512.png");
+static_asset!(site_webmanifest, "application/manifest+json; charset=utf-8", str "../../../../static/site.webmanifest");
 
 async fn health() -> impl IntoResponse {
     ([("content-type", "application/json")], r#"{"status":"ok"}"#)
