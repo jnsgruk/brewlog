@@ -27,19 +27,26 @@ pub(crate) async fn bag_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let roast = state
-        .roast_repo
-        .get(bag.bag.roast_id)
-        .await
-        .map_err(|e| map_app_error(e.into()))?;
+    let (roast, image_url) = tokio::try_join!(
+        async {
+            state
+                .roast_repo
+                .get(bag.bag.roast_id)
+                .await
+                .map_err(|e| map_app_error(e.into()))
+        },
+        async {
+            Ok::<_, StatusCode>(
+                resolve_image_url(&state, "roast", i64::from(bag.bag.roast_id)).await,
+            )
+        },
+    )?;
 
     let roaster = state
         .roaster_repo
         .get(roast.roaster_id)
         .await
         .map_err(|e| map_app_error(e.into()))?;
-
-    let image_url = resolve_image_url(&state, "roast", i64::from(roast.id)).await;
 
     let view = BagDetailView::from_parts(bag, &roast, &roaster);
 

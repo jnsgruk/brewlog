@@ -27,17 +27,29 @@ pub(crate) async fn brew_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let bag = state
-        .bag_repo
-        .get(brew_details.brew.bag_id)
-        .await
-        .map_err(|e| map_app_error(e.into()))?;
+    let (bag, brew_image_url) = tokio::try_join!(
+        async {
+            state
+                .bag_repo
+                .get(brew_details.brew.bag_id)
+                .await
+                .map_err(|e| map_app_error(e.into()))
+        },
+        async { Ok::<_, StatusCode>(resolve_image_url(&state, "brew", i64::from(id)).await) },
+    )?;
 
-    let roast = state
-        .roast_repo
-        .get(bag.roast_id)
-        .await
-        .map_err(|e| map_app_error(e.into()))?;
+    let (roast, roast_image_url) = tokio::try_join!(
+        async {
+            state
+                .roast_repo
+                .get(bag.roast_id)
+                .await
+                .map_err(|e| map_app_error(e.into()))
+        },
+        async {
+            Ok::<_, StatusCode>(resolve_image_url(&state, "roast", i64::from(bag.roast_id)).await)
+        },
+    )?;
 
     let roaster = state
         .roaster_repo
@@ -45,9 +57,7 @@ pub(crate) async fn brew_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "brew", i64::from(id))
-        .await
-        .or(resolve_image_url(&state, "roast", i64::from(roast.id)).await);
+    let image_url = brew_image_url.or(roast_image_url);
 
     let view = BrewDetailView::from_parts(brew_details, &roast, &roaster);
 

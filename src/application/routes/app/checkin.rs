@@ -18,8 +18,10 @@ pub(crate) async fn checkin_page(
         return Ok(Redirect::to("/login").into_response());
     }
 
-    let roast_options = load_roast_options(&state).await.map_err(map_app_error)?;
-    let cafe_options = load_cafe_options(&state).await.map_err(map_app_error)?;
+    let (roast_options, cafe_options) = tokio::try_join!(
+        async { load_roast_options(&state).await.map_err(map_app_error) },
+        async { load_cafe_options(&state).await.map_err(map_app_error) },
+    )?;
 
     let template = CheckInTemplate {
         nav_active: "checkin",
