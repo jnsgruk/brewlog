@@ -317,6 +317,7 @@ pub struct RoasterEditTemplate {
     pub city: String,
     pub homepage: String,
     pub image_url: Option<String>,
+    pub signals_json: String,
 }
 
 #[derive(Template)]
@@ -336,6 +337,7 @@ pub struct RoastEditTemplate {
     pub tasting_notes: String,
     pub roaster_options: Vec<RoasterOptionView>,
     pub image_url: Option<String>,
+    pub signals_json: String,
 }
 
 #[derive(Template)]
@@ -351,6 +353,7 @@ pub struct BagEditTemplate {
     pub amount: f64,
     pub remaining: f64,
     pub roast_options: Vec<RoastOptionView>,
+    pub signals_json: String,
 }
 
 #[derive(Template)]
@@ -393,6 +396,7 @@ pub struct CafeEditTemplate {
     pub longitude: f64,
     pub website: String,
     pub image_url: Option<String>,
+    pub signals_json: String,
 }
 
 #[derive(Template)]
@@ -422,6 +426,7 @@ pub struct GearEditTemplate {
     pub make: String,
     pub model: String,
     pub image_url: Option<String>,
+    pub signals_json: String,
 }
 
 #[derive(Template)]

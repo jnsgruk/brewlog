@@ -146,6 +146,26 @@
   </div>
 {% endmacro %}
 
+{# Submit/cancel buttons for add-entity forms. #}
+{% macro add_form_submit(icon_name, label) %}
+  <div class="sticky-submit flex flex-col gap-2">
+    <button
+      type="submit"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
+    >
+      {% if icon_name == "beaker" %}{{ icons::beaker("h-4 w-4") }}{% else %}{{ icons::plus("h-4 w-4") }}{% endif %}
+      {{ label }}
+    </button>
+    <button
+      type="button"
+      onclick="history.back()"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
+    >
+      {{ icons::x_mark("h-4 w-4") }} Cancel
+    </button>
+  </div>
+{% endmacro %}
+
 {% macro edit_form_actions() %}
   <p
     data-show="$_submitError"

@@ -28,7 +28,9 @@
       </div>
     </div>
   </header>
-  {{ img::lightbox_script() }}
+  {% if image_url.is_some() %}
+    {{ img::lightbox_script() }}
+  {% endif %}
 
   <div class="grid gap-6 md:grid-cols-2">
     {{ detail::coffee_card(roast.name, roast.roaster_name, roast.origin, roast.origin_flag, roast.region, roast.producer, roast.process, roast.tasting_notes, roaster_slug, "") }}

@@ -13,14 +13,7 @@
   <section class="rounded-lg border bg-surface p-5">
     <form
       class="flex flex-col gap-4 pb-16 md:pb-0"
-      data-signals:_submitting="false"
-      data-signals:_submit-error="''"
-      data-signals:_name="'{{ name }}'"
-      data-signals:_city="'{{ city }}'"
-      data-signals:_country="'{{ country }}'"
-      data-signals:_latitude="{{ latitude }}"
-      data-signals:_longitude="{{ longitude }}"
-      data-signals:_website="'{{ website }}'"
+      data-signals="{{ signals_json }}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/cafes/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Cafe updated') }

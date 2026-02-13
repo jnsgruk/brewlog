@@ -179,10 +179,13 @@
 
         setupInfiniteScroll();
 
-        const bodyObserver = new MutationObserver(() => {
-          setupInfiniteScroll();
-        });
-        bodyObserver.observe(document.body, { childList: true, subtree: true });
+        const mainEl = document.querySelector("main");
+        if (mainEl) {
+          const mainObserver = new MutationObserver(() => {
+            setupInfiniteScroll();
+          });
+          mainObserver.observe(mainEl, { childList: true, subtree: true });
+        }
       });
     </script>
   </head>

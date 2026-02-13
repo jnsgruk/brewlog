@@ -29,7 +29,9 @@
       </div>
     </div>
   </header>
-  {{ img::lightbox_script() }}
+  {% if image_url.is_some() %}
+    {{ img::lightbox_script() }}
+  {% endif %}
 
   <div class="grid gap-6 md:grid-cols-2">
     <div class="rounded-lg border bg-surface p-5">

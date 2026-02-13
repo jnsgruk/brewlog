@@ -80,6 +80,22 @@ pub(crate) async fn bag_edit_page(
 
     let roast_options = load_roast_options(&state).await.map_err(map_app_error)?;
 
+    let roast_date = bag
+        .bag
+        .roast_date
+        .map(|d| d.to_string())
+        .unwrap_or_default();
+
+    use crate::presentation::web::views::build_signals_json;
+    use serde_json::Value;
+    let signals_json = build_signals_json(&[
+        ("_submitting", Value::Bool(false)),
+        ("_submit-error", Value::String(String::new())),
+        ("_roast-date", Value::String(roast_date.clone())),
+        ("_amount", serde_json::json!(bag.bag.amount)),
+        ("_remaining", serde_json::json!(bag.bag.remaining)),
+    ]);
+
     let template = BagEditTemplate {
         nav_active: "",
         is_authenticated: true,
@@ -87,14 +103,11 @@ pub(crate) async fn bag_edit_page(
         id: bag.bag.id.to_string(),
         roast_id: bag.bag.roast_id.to_string(),
         roast_label: format!("{} ({})", bag.roast_name, bag.roaster_name),
-        roast_date: bag
-            .bag
-            .roast_date
-            .map(|d| d.to_string())
-            .unwrap_or_default(),
+        roast_date,
         amount: bag.bag.amount,
         remaining: bag.bag.remaining,
         roast_options,
+        signals_json,
     };
 
     render_html(template).map(IntoResponse::into_response)

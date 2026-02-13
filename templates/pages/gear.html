@@ -31,7 +31,9 @@
       </div>
     </div>
   </header>
-  {{ img::lightbox_script() }}
+  {% if image_url.is_some() %}
+    {{ img::lightbox_script() }}
+  {% endif %}
 
   <div class="rounded-lg border bg-surface p-5">
     <h2 class="text-lg font-semibold text-text mb-4">Details</h2>

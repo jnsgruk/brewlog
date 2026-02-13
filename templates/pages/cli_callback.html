@@ -5,14 +5,14 @@
     <div class="rounded-lg border bg-surface p-6">
       {% if token.is_some() %}
         <div class="flex flex-col items-center text-center gap-3">
-          {{ icons::check_circle("h-10 w-10 text-emerald-600 dark:text-emerald-400") }}
+          {{ icons::check_circle("h-10 w-10 text-success") }}
           <h1 class="text-2xl font-semibold text-accent">CLI Authenticated</h1>
           <p class="text-sm text-text-secondary">
             Your CLI has been authenticated successfully. You can close this
             window and return to the terminal.
           </p>
         </div>
-      {% else if error.is_some() %}
+      {% elif error.is_some() %}
         <div class="flex flex-col items-center text-center gap-3">
           {{ icons::x_circle("h-10 w-10 text-error") }}
           <h1 class="text-2xl font-semibold text-accent">

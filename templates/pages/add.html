@@ -1,6 +1,8 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% import "partials/image_section.html" as img %}
 {% import "partials/location_search.html" as location %}
+{% import "partials/detail_cards.html" as detail_cards %}
+{% import "partials/forms/quick_notes.html" as quick_notes %}
 {% block title %}Brewlog · Add{% endblock %}
 
 {% block content %}
@@ -190,21 +192,7 @@
             </label>
           </div>
           {{ img::deferred_upload("roaster-image", "Add image (optional)") }}
-          <div class="sticky-submit flex flex-col gap-2">
-            <button
-              type="submit"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-            >
-              {{ icons::plus("h-4 w-4") }} Save Roaster
-            </button>
-            <button
-              type="button"
-              onclick="history.back()"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-            >
-              {{ icons::x_mark("h-4 w-4") }} Cancel
-            </button>
-          </div>
+          {{ detail_cards::add_form_submit("plus", "Save Roaster") }}
         </form>
       </div>
     </div>
@@ -410,21 +398,7 @@
               </label>
             </div>
             {{ img::deferred_upload("roast-image", "Add image (optional)") }}
-            <div class="sticky-submit flex flex-col gap-2">
-              <button
-                type="submit"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-              >
-                {{ icons::plus("h-4 w-4") }} Save Roast
-              </button>
-              <button
-                type="button"
-                onclick="history.back()"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-              >
-                {{ icons::x_mark("h-4 w-4") }} Cancel
-              </button>
-            </div>
+            {{ detail_cards::add_form_submit("plus", "Save Roast") }}
           </form>
         </div>
       {% endif %}
@@ -512,21 +486,7 @@
               />
             </label>
           </div>
-          <div class="sticky-submit flex flex-col gap-2">
-            <button
-              type="submit"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-            >
-              {{ icons::plus("h-4 w-4") }} Save Bag
-            </button>
-            <button
-              type="button"
-              onclick="history.back()"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-            >
-              {{ icons::x_mark("h-4 w-4") }} Cancel
-            </button>
-          </div>
+          {{ detail_cards::add_form_submit("plus", "Save Bag") }}
         </form>
       {% endif %}
     </div>
@@ -552,7 +512,7 @@
             to enable this form.
           </p>
         </div>
-      {% else if grinder_options.is_empty() || brewer_options.is_empty() %}
+      {% elif grinder_options.is_empty() || brewer_options.is_empty() %}
         <div class="text-sm text-text-secondary">
           <h3 class="text-lg font-semibold text-text">Add gear first</h3>
           <p class="mt-2">
@@ -915,74 +875,9 @@
             </div>
           </div>
           <!-- Quick Notes -->
-          <div>
-            <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
-            <div class="flex flex-wrap gap-2">
-              <button
-                type="button"
-                data-on:click="$_qnGood = !$_qnGood"
-                data-attr:class="$_qnGood ? 'pill pill-success cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
-              >
-                Good
-              </button>
-              <button
-                type="button"
-                data-on:click="$_qnTooFast = !$_qnTooFast"
-                data-attr:class="$_qnTooFast ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
-              >
-                Too Fast
-              </button>
-              <button
-                type="button"
-                data-on:click="$_qnTooSlow = !$_qnTooSlow"
-                data-attr:class="$_qnTooSlow ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
-              >
-                Too Slow
-              </button>
-              <button
-                type="button"
-                data-on:click="$_qnTooHot = !$_qnTooHot"
-                data-attr:class="$_qnTooHot ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
-              >
-                Too Hot
-              </button>
-              <button
-                type="button"
-                data-on:click="$_qnUnderExtracted = !$_qnUnderExtracted"
-                data-attr:class="$_qnUnderExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
-              >
-                Under Extracted
-              </button>
-              <button
-                type="button"
-                data-on:click="$_qnOverExtracted = !$_qnOverExtracted"
-                data-attr:class="$_qnOverExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
-              >
-                Over Extracted
-              </button>
-            </div>
-            <input
-              type="hidden"
-              name="quick_notes"
-              data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')"
-            />
-          </div>
+          {{ quick_notes::quick_notes_toggles() }}
           {{ img::deferred_upload("brew-image", "Add image (optional)") }}
-          <div class="sticky-submit flex flex-col gap-2">
-            <button
-              type="submit"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-            >
-              {{ icons::beaker("h-4 w-4") }} Save Brew
-            </button>
-            <button
-              type="button"
-              onclick="history.back()"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-            >
-              {{ icons::x_mark("h-4 w-4") }} Cancel
-            </button>
-          </div>
+          {{ detail_cards::add_form_submit("beaker", "Save Brew") }}
         </form>
       {% endif %}
     </div>
@@ -1051,21 +946,7 @@
           </label>
         </div>
         {{ img::deferred_upload("gear-image", "Add image (optional)") }}
-        <div class="sticky-submit flex flex-col gap-2">
-          <button
-            type="submit"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-          >
-            {{ icons::plus("h-4 w-4") }} Save Gear
-          </button>
-          <button
-            type="button"
-            onclick="history.back()"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-          >
-            {{ icons::x_mark("h-4 w-4") }} Cancel
-          </button>
-        </div>
+        {{ detail_cards::add_form_submit("plus", "Save Gear") }}
       </form>
     </div>
 
@@ -1223,21 +1104,7 @@
           </label>
         </div>
         {{ img::deferred_upload("cafe-image", "Add image (optional)") }}
-        <div class="sticky-submit flex flex-col gap-2">
-          <button
-            type="submit"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-          >
-            {{ icons::plus("h-4 w-4") }} Save Cafe
-          </button>
-          <button
-            type="button"
-            onclick="history.back()"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-          >
-            {{ icons::x_mark("h-4 w-4") }} Cancel
-          </button>
-        </div>
+        {{ detail_cards::add_form_submit("plus", "Save Cafe") }}
       </form>
     </div>
 
@@ -1339,21 +1206,7 @@
               </searchable-select>
             </div>
           </div>
-          <div class="sticky-submit flex flex-col gap-2">
-            <button
-              type="submit"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-text transition hover:bg-accent-hover"
-            >
-              {{ icons::plus("h-4 w-4") }} Save Cup
-            </button>
-            <button
-              type="button"
-              onclick="history.back()"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-alt"
-            >
-              {{ icons::x_mark("h-4 w-4") }} Cancel
-            </button>
-          </div>
+          {{ detail_cards::add_form_submit("plus", "Save Cup") }}
         </form>
       {% endif %}
     </div>

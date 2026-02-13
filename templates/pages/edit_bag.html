@@ -12,11 +12,7 @@
   <section class="rounded-lg border bg-surface p-5">
     <form
       class="flex flex-col gap-4 pb-16 md:pb-0"
-      data-signals:_submitting="false"
-      data-signals:_submit-error="''"
-      data-signals:_roast-date="'{{ roast_date }}'"
-      data-signals:_amount="{{ amount }}"
-      data-signals:_remaining="{{ remaining }}"
+      data-signals="{{ signals_json }}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/bags/{{ id }}', {contentType: 'form'})"
       data-on:datastar-fetch="if (!$_submitting) return;
         if (evt.detail.type === 'finished') { $_submitting = false; sessionStorage.setItem('toast', 'Bag updated') }

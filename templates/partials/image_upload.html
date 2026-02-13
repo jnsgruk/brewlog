@@ -19,14 +19,14 @@
           </image-upload>
           <button
             onclick="if(confirm('Remove this image?')){fetch('/api/v1/{{ entity_type }}/{{ entity_id }}/image',{method:'DELETE',headers:{'datastar-request':'true'}}).then(r=>r.text()).then(h=>{document.getElementById('entity-image').outerHTML=h})}"
-            class="inline-flex items-center gap-1 rounded border bg-surface/90 px-2 py-1 text-xs font-medium text-red-500 hover:bg-surface cursor-pointer backdrop-blur-sm"
+            class="inline-flex items-center gap-1 rounded border bg-surface/90 px-2 py-1 text-xs font-medium text-error hover:bg-surface cursor-pointer backdrop-blur-sm"
           >
             Remove
           </button>
         </div>
       {% endif %}
     </div>
-  {% else if is_authenticated %}
+  {% elif is_authenticated %}
     <image-upload
       entity-type="{{ entity_type }}"
       entity-id="{{ entity_id }}"

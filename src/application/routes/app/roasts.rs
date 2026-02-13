@@ -75,6 +75,26 @@ pub(crate) async fn roast_edit_page(
 
     let image_url = resolve_image_url(&state, EntityType::Roast, i64::from(id)).await;
 
+    let name = roast.name;
+    let origin = roast.origin.unwrap_or_default();
+    let region = roast.region.unwrap_or_default();
+    let producer = roast.producer.unwrap_or_default();
+    let process = roast.process.unwrap_or_default();
+    let tasting_notes = roast.tasting_notes.join(", ");
+
+    use crate::presentation::web::views::build_signals_json;
+    use serde_json::Value;
+    let signals_json = build_signals_json(&[
+        ("_submitting", Value::Bool(false)),
+        ("_submit-error", Value::String(String::new())),
+        ("_name", Value::String(name.clone())),
+        ("_origin", Value::String(origin.clone())),
+        ("_region", Value::String(region.clone())),
+        ("_producer", Value::String(producer.clone())),
+        ("_process", Value::String(process.clone())),
+        ("_tasting-notes", Value::String(tasting_notes.clone())),
+    ]);
+
     let template = RoastEditTemplate {
         nav_active: "",
         is_authenticated: true,
@@ -82,14 +102,15 @@ pub(crate) async fn roast_edit_page(
         id: roast.id.to_string(),
         roaster_id: roast.roaster_id.to_string(),
         roaster_name: roaster.name,
-        name: roast.name,
-        origin: roast.origin.unwrap_or_default(),
-        region: roast.region.unwrap_or_default(),
-        producer: roast.producer.unwrap_or_default(),
-        process: roast.process.unwrap_or_default(),
-        tasting_notes: roast.tasting_notes.join(", "),
+        name,
+        origin,
+        region,
+        producer,
+        process,
+        tasting_notes,
         roaster_options,
         image_url,
+        signals_json,
     };
 
     render_html(template).map(IntoResponse::into_response)

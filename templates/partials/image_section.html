@@ -49,7 +49,7 @@
         style="box-shadow: inset 0 0 20px rgba(0,0,0,0.4)"
       ></div>
     </div>
-  {% else if is_authenticated %}
+  {% elif is_authenticated %}
     <image-upload
       entity-type="{{ entity_type }}"
       entity-id="{{ entity_id }}"
@@ -144,7 +144,7 @@
         <button
           type="button"
           onclick="if(confirm('Remove this image?')){fetch('/api/v1/{{ entity_type }}/{{ entity_id }}/image',{method:'DELETE'}).then(()=>{this.closest('[id$=-existing]').remove()})}"
-          class="inline-flex items-center gap-1 rounded border bg-surface/90 px-2 py-1 text-xs font-medium text-red-500 hover:bg-surface cursor-pointer backdrop-blur-sm"
+          class="inline-flex items-center gap-1 rounded border bg-surface/90 px-2 py-1 text-xs font-medium text-error hover:bg-surface cursor-pointer backdrop-blur-sm"
         >
           Remove
         </button>

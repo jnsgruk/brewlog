@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Admin{% endblock %}
 {% block head %}
-  <script src="/static/js/webauthn.js"></script>
+  <script defer src="/static/js/webauthn.js"></script>
 {% endblock %}
 {% block content %}
   <header class="flex flex-col gap-2">
@@ -49,7 +49,9 @@
               <button
                 type="button"
                 class="shrink-0 inline-flex items-center justify-center rounded-md border text-accent transition hover:text-text hover:bg-surface-alt h-8 w-8 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
-                onclick="deletePasskey({{ passkey.id }}, '{{ passkey.name }}')"
+                data-id="{{ passkey.id }}"
+                data-name="{{ passkey.name }}"
+                onclick="deletePasskey(this.dataset.id, this.dataset.name)"
                 aria-label="Delete passkey"
               >
                 {{ icons::delete("h-4 w-4") }}
@@ -175,7 +177,9 @@
               <button
                 type="button"
                 class="shrink-0 inline-flex items-center justify-center rounded-md border text-accent transition hover:text-text hover:bg-surface-alt h-8 w-8 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2 sm:text-sm sm:font-medium"
-                onclick="revokeToken({{ token.id }}, '{{ token.name }}')"
+                data-id="{{ token.id }}"
+                data-name="{{ token.name }}"
+                onclick="revokeToken(this.dataset.id, this.dataset.name)"
                 aria-label="Revoke token"
               >
                 {{ icons::delete("h-4 w-4") }}

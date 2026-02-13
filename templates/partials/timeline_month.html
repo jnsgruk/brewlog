@@ -1,4 +1,5 @@
 {% import "partials/icons.html" as icons %}
+{% import "partials/entity_icon.html" as ei %}
 <h2
   id="{{ month.anchor }}"
   class="timeline-heading scroll-mt-24 mb-6 text-2xl font-semibold text-text"
@@ -42,7 +43,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2">
         {# Category — always visible #}
         <span class="inline-flex items-center gap-1 text-xs text-text-muted">
-          {% if event.entity_type == "brew" %}{{ icons::beaker("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-3 w-3 shrink-0") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-3 w-3 shrink-0") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-3 w-3 shrink-0") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-3 w-3 shrink-0") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-3 w-3 shrink-0") }}{% endif %}
+          {{ ei::entity_icon(event.entity_type, "h-3 w-3 shrink-0") }}
           <span class="uppercase tracking-wide">{{ event.kind_label }}</span>
           {# Relative date — shown when collapsed #}
           <span
@@ -131,7 +132,7 @@
                     {{ icons::map("h-4 w-4") }}
                   </a>
                 </dd>
-              {% else if let Some(url) = detail.link %}
+              {% elif let Some(url) = detail.link %}
                 <dd class="text-right">
                   <a
                     href="{{ url }}"

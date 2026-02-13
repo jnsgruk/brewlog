@@ -59,16 +59,33 @@ pub(crate) async fn roaster_edit_page(
 
     let image_url = resolve_image_url(&state, EntityType::Roaster, i64::from(id)).await;
 
+    let name = roaster.name;
+    let country = roaster.country;
+    let city = roaster.city.unwrap_or_default();
+    let homepage = roaster.homepage.unwrap_or_default();
+
+    use crate::presentation::web::views::build_signals_json;
+    use serde_json::Value;
+    let signals_json = build_signals_json(&[
+        ("_submitting", Value::Bool(false)),
+        ("_submit-error", Value::String(String::new())),
+        ("_name", Value::String(name.clone())),
+        ("_country", Value::String(country.clone())),
+        ("_city", Value::String(city.clone())),
+        ("_homepage", Value::String(homepage.clone())),
+    ]);
+
     let template = RoasterEditTemplate {
         nav_active: "",
         is_authenticated: true,
         version_info: &crate::VERSION_INFO,
         id: roaster.id.to_string(),
-        name: roaster.name,
-        country: roaster.country,
-        city: roaster.city.unwrap_or_default(),
-        homepage: roaster.homepage.unwrap_or_default(),
+        name,
+        country,
+        city,
+        homepage,
         image_url,
+        signals_json,
     };
 
     render_html(template).map(IntoResponse::into_response)

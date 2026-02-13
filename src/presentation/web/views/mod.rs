@@ -511,6 +511,36 @@ pub(crate) fn build_map_data(entries: &[(&str, u32)]) -> (String, u32) {
     (parts.join(","), max)
 }
 
+/// Build a JSON string for Datastar `data-signals` attribute initialization.
+///
+/// Signal names may use kebab-case (`_roaster-name`); they are automatically
+/// converted to camelCase (`_roasterName`) to match Datastar's internal store.
+/// The returned string is a JSON object suitable for use in `data-signals="{{ signals_json }}"`.
+/// Askama HTML-escapes `"` to `&quot;`, which the browser decodes before Datastar parses it.
+pub fn build_signals_json(signals: &[(&str, serde_json::Value)]) -> String {
+    let mut map = serde_json::Map::new();
+    for (name, value) in signals {
+        map.insert(signals_kebab_to_camel(name), value.clone());
+    }
+    serde_json::Value::Object(map).to_string()
+}
+
+fn signals_kebab_to_camel(s: &str) -> String {
+    let mut result = String::with_capacity(s.len());
+    let mut cap_next = false;
+    for c in s.chars() {
+        if c == '-' {
+            cap_next = true;
+        } else if cap_next {
+            result.push(c.to_ascii_uppercase());
+            cap_next = false;
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

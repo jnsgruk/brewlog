@@ -4,6 +4,7 @@
   "partials/brew_card.html" as brew_card
 %}
 {% import "partials/icons.html" as icons %}
+{% import "partials/entity_icon.html" as ei %}
 {% block title %}Brewlog{% endblock %}
 {% block head %}
   <meta property="og:image" content="{{ base_url }}/static/og-image.png" />
@@ -265,7 +266,7 @@
           >
             <div class="flex items-center gap-3 min-w-0">
               <span class="text-text-muted shrink-0">
-                {% if event.entity_type == "brew" %}{{ icons::beaker("h-5 w-5") }}{% elif event.entity_type == "roast" %}{{ icons::coffee_bean("h-5 w-5") }}{% elif event.entity_type == "roaster" %}{{ icons::fire("h-5 w-5") }}{% elif event.entity_type == "bag" %}{{ icons::bag("h-5 w-5") }}{% elif event.entity_type == "cup" %}{{ icons::cup("h-5 w-5") }}{% elif event.entity_type == "cafe" %}{{ icons::location("h-5 w-5") }}{% elif event.entity_type == "gear" %}{{ icons::grinder("h-5 w-5") }}{% else %}{{ icons::beaker("h-5 w-5") }}{% endif %}
+                {{ ei::entity_icon(event.entity_type, "h-5 w-5") }}
               </span>
               <p class="min-w-0 truncate text-sm">
                 <span class="font-medium text-text">{{ event.title }}</span
@@ -337,7 +338,7 @@
               href="/stats"
               class="group flex flex-col items-center gap-1 rounded-lg border bg-surface p-4 transition hover:border-accent/40"
             >
-              {% if card.icon == "coffee_bean" %}{{ icons::coffee_bean("h-6 w-6 text-accent") }}{% else if card.icon == "beaker" %}{{ icons::beaker("h-6 w-6 text-accent") }}{% else if card.icon == "map" %}{{ icons::map("h-6 w-6 text-accent") }}{% else if card.icon == "location" %}{{ icons::location("h-6 w-6 text-accent") }}{% else if card.icon == "fire" %}{{ icons::fire("h-6 w-6 text-accent") }}{% endif %}
+              {{ ei::entity_icon(card.icon, "h-6 w-6 text-accent") }}
               <span class="text-lg font-bold text-text whitespace-nowrap"
                 >{{ card.value }}</span
               >

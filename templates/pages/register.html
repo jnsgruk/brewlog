@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Register{% endblock %}
 {% block head %}
-  <script src="/static/js/webauthn.js"></script>
+  <script defer src="/static/js/webauthn.js"></script>
 {% endblock %}
 {% block content %}
   <div class="mx-auto max-w-md">
@@ -20,13 +20,17 @@
 
       <div
         id="register-unsupported"
-        class="mt-4 hidden rounded-md bg-yellow-100 border border-yellow-300 p-3 text-sm text-yellow-800"
+        class="mt-4 hidden rounded-md bg-warning-bg border border-warning-border p-3 text-sm text-warning-text"
       >
         This browser does not support passkeys. Please use a modern browser
         (Chrome, Firefox, Safari, or Edge).
       </div>
 
-      <div id="register-form" class="mt-6 flex flex-col gap-4">
+      <div
+        id="register-form"
+        class="mt-6 flex flex-col gap-4"
+        data-token="{{ token }}"
+      >
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-text">Display Name</span>
           <input
@@ -55,6 +59,7 @@
         <button
           id="register-button"
           type="button"
+          onclick="handleRegister()"
           class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ icons::key("h-4 w-4") }} Register Passkey
@@ -71,51 +76,46 @@
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const token = "{{ token }}";
+    const handleRegister = async () => {
+      const token = document.getElementById("register-form").dataset.token;
       const button = document.getElementById("register-button");
-      const displayNameInput = document.getElementById("display-name");
-      const passkeyNameInput = document.getElementById("passkey-name");
       const errorDiv = document.getElementById("register-error");
       const loadingDiv = document.getElementById("register-loading");
-      const unsupportedDiv = document.getElementById("register-unsupported");
 
-      // Check WebAuthn support
-      if (!window.PublicKeyCredential) {
-        button.disabled = true;
-        unsupportedDiv.classList.remove("hidden");
+      const displayName = document.getElementById("display-name").value.trim();
+      if (!displayName) {
+        errorDiv.textContent = "Please enter a display name.";
+        errorDiv.classList.remove("hidden");
         return;
       }
 
-      button.addEventListener("click", async function () {
-        const displayName = displayNameInput.value.trim();
-        if (!displayName) {
-          errorDiv.textContent = "Please enter a display name.";
-          errorDiv.classList.remove("hidden");
-          return;
-        }
+      const passkeyName = document.getElementById("passkey-name").value.trim();
+      if (!passkeyName) {
+        errorDiv.textContent = "Please enter a name for this passkey.";
+        errorDiv.classList.remove("hidden");
+        return;
+      }
 
-        const passkeyName = passkeyNameInput.value.trim();
-        if (!passkeyName) {
-          errorDiv.textContent = "Please enter a name for this passkey.";
-          errorDiv.classList.remove("hidden");
-          return;
-        }
+      errorDiv.classList.add("hidden");
+      loadingDiv.classList.remove("hidden");
+      button.disabled = true;
 
-        errorDiv.classList.add("hidden");
-        loadingDiv.classList.remove("hidden");
-        button.disabled = true;
+      try {
+        await startPasskeyRegistration(token, displayName, passkeyName);
+        window.location.href = "/";
+      } catch (err) {
+        errorDiv.textContent = err.message;
+        errorDiv.classList.remove("hidden");
+        loadingDiv.classList.add("hidden");
+        button.disabled = false;
+      }
+    };
 
-        try {
-          await startPasskeyRegistration(token, displayName, passkeyName);
-          window.location.href = "/";
-        } catch (err) {
-          errorDiv.textContent = err.message;
-          errorDiv.classList.remove("hidden");
-          loadingDiv.classList.add("hidden");
-          button.disabled = false;
-        }
-      });
-    });
+    if (!window.PublicKeyCredential) {
+      document.getElementById("register-button").disabled = true;
+      document
+        .getElementById("register-unsupported")
+        .classList.remove("hidden");
+    }
   </script>
 {% endblock %}

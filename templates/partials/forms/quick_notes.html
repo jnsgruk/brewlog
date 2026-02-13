@@ -1,0 +1,57 @@
+{# Quick note pill toggles with hidden form field.
+   Requires signals: _qn-good, _qn-too-fast, _qn-too-slow,
+   _qn-too-hot, _qn-under-extracted, _qn-over-extracted. #}
+{% macro quick_notes_toggles() %}
+  <div>
+    <h4 class="text-sm font-semibold text-text mb-3">Quick Notes</h4>
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        data-on:click="$_qnGood = !$_qnGood"
+        data-attr:class="$_qnGood ? 'pill pill-success cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+      >
+        Good
+      </button>
+      <button
+        type="button"
+        data-on:click="$_qnTooFast = !$_qnTooFast"
+        data-attr:class="$_qnTooFast ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+      >
+        Too Fast
+      </button>
+      <button
+        type="button"
+        data-on:click="$_qnTooSlow = !$_qnTooSlow"
+        data-attr:class="$_qnTooSlow ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+      >
+        Too Slow
+      </button>
+      <button
+        type="button"
+        data-on:click="$_qnTooHot = !$_qnTooHot"
+        data-attr:class="$_qnTooHot ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+      >
+        Too Hot
+      </button>
+      <button
+        type="button"
+        data-on:click="$_qnUnderExtracted = !$_qnUnderExtracted"
+        data-attr:class="$_qnUnderExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+      >
+        Under Extracted
+      </button>
+      <button
+        type="button"
+        data-on:click="$_qnOverExtracted = !$_qnOverExtracted"
+        data-attr:class="$_qnOverExtracted ? 'pill pill-warning cursor-pointer select-none transition' : 'pill pill-muted cursor-pointer select-none transition'"
+      >
+        Over Extracted
+      </button>
+    </div>
+    <input
+      type="hidden"
+      name="quick_notes"
+      data-attr:value="[$_qnGood && 'good', $_qnTooFast && 'too-fast', $_qnTooSlow && 'too-slow', $_qnTooHot && 'too-hot', $_qnUnderExtracted && 'under-extracted', $_qnOverExtracted && 'over-extracted'].filter(Boolean).join(',')"
+    />
+  </div>
+{% endmacro %}

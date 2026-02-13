@@ -58,15 +58,28 @@ pub(crate) async fn gear_edit_page(
 
     let image_url = resolve_image_url(&state, EntityType::Gear, i64::from(id)).await;
 
+    let make = gear.make;
+    let model = gear.model;
+
+    use crate::presentation::web::views::build_signals_json;
+    use serde_json::Value;
+    let signals_json = build_signals_json(&[
+        ("_submitting", Value::Bool(false)),
+        ("_submit-error", Value::String(String::new())),
+        ("_make", Value::String(make.clone())),
+        ("_model", Value::String(model.clone())),
+    ]);
+
     let template = GearEditTemplate {
         nav_active: "",
         is_authenticated: true,
         version_info: &crate::VERSION_INFO,
         id: gear.id.to_string(),
         category: gear.category.display_label().to_string(),
-        make: gear.make,
-        model: gear.model,
+        make,
+        model,
         image_url,
+        signals_json,
     };
 
     render_html(template).map(IntoResponse::into_response)

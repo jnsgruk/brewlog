@@ -1,4 +1,5 @@
 {% import "partials/icons.html" as icons %}
+{% import "partials/entity_icon.html" as ei %}
 
 <div
   data-signals:{{ tab_signal }}="'{{ active_type }}'"
@@ -18,7 +19,7 @@
           '{{ tab_fetch_target }}', mode: '{{ tab_fetch_mode }}'}})
         {% endif %}"
       >
-        {% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %}
+        {{ ei::entity_icon(tab.key, "h-4 w-4 shrink-0") }}
         {{ tab.label }}
       </button>
     {% endfor %}
@@ -35,7 +36,7 @@
           <span
             data-show="{{ tab_signal_js }} === '{{ tab.key }}'"
             class="inline-flex items-center gap-1.5"
-            >{% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %}
+            >{{ ei::entity_icon(tab.key, "h-4 w-4 shrink-0") }}
             {{ tab.label }}</span
           >
         {% endfor %}
@@ -61,7 +62,7 @@
             {selector: '{{ tab_fetch_target }}', mode: '{{ tab_fetch_mode }}'}})
           {% endif %}"
         >
-          {% if tab.key == "brew" || tab.key == "brews" %}{{ icons::beaker("h-4 w-4 shrink-0") }}{% elif tab.key == "roast" || tab.key == "roasts" %}{{ icons::coffee_bean("h-4 w-4 shrink-0") }}{% elif tab.key == "roaster" || tab.key == "roasters" %}{{ icons::fire("h-4 w-4 shrink-0") }}{% elif tab.key == "bag" || tab.key == "bags" %}{{ icons::bag("h-4 w-4 shrink-0") }}{% elif tab.key == "cup" || tab.key == "cups" %}{{ icons::cup("h-4 w-4 shrink-0") }}{% elif tab.key == "cafe" || tab.key == "cafes" %}{{ icons::location("h-4 w-4 shrink-0") }}{% elif tab.key == "gear" %}{{ icons::grinder("h-4 w-4 shrink-0") }}{% endif %}
+          {{ ei::entity_icon(tab.key, "h-4 w-4 shrink-0") }}
           {{ tab.label }}
         </button>
       {% endfor %}

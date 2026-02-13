@@ -43,6 +43,10 @@
   --success-bg: #ecfdf5; /* green-50 */
   --success-border: rgba(5, 150, 105, 0.3);
   --success-text: #065f46; /* green-800 */
+  --warning: #d97706; /* amber-600 */
+  --warning-bg: #fffbeb; /* amber-50 */
+  --warning-border: rgba(217, 119, 6, 0.3);
+  --warning-text: #92400e; /* amber-800 */
 }
 
 [data-theme="dark"] {
@@ -74,6 +78,10 @@
   --success-bg: rgba(5, 150, 105, 0.1);
   --success-border: rgba(5, 150, 105, 0.4);
   --success-text: #6ee7b7;
+  --warning: #fbbf24; /* amber-400 */
+  --warning-bg: rgba(217, 119, 6, 0.1);
+  --warning-border: rgba(217, 119, 6, 0.4);
+  --warning-text: #fcd34d; /* amber-300 */
 }
 
 /* ── Theme: map raw vars to Tailwind utilities ─────────────────── */
@@ -99,6 +107,10 @@
   --color-success-bg: var(--success-bg);
   --color-success-border: var(--success-border);
   --color-success-text: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-warning-text: var(--warning-text);
 }
 
 /* ── Base: default border color ────────────────────────────────── */

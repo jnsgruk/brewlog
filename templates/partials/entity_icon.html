@@ -1,0 +1,4 @@
+{% import "partials/icons.html" as icons %}
+
+{# Render the canonical icon for an entity type or icon key. #}
+{% macro entity_icon(key, class) %}{% if key == "brew" || key == "brews" || key == "beaker" %}{{ icons::beaker(class) }}{% elif key == "roast" || key == "roasts" || key == "coffee_bean" %}{{ icons::coffee_bean(class) }}{% elif key == "roaster" || key == "roasters" || key == "fire" %}{{ icons::fire(class) }}{% elif key == "bag" || key == "bags" %}{{ icons::bag(class) }}{% elif key == "cup" || key == "cups" %}{{ icons::cup(class) }}{% elif key == "cafe" || key == "cafes" || key == "location" %}{{ icons::location(class) }}{% elif key == "gear" || key == "grinder" %}{{ icons::grinder(class) }}{% elif key == "map" %}{{ icons::map(class) }}{% endif %}{% endmacro %}
