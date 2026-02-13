@@ -16,24 +16,6 @@ impl SqlSessionRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
     }
-
-    fn to_domain(record: SessionRecord) -> Session {
-        let SessionRecord {
-            id,
-            user_id,
-            session_token_hash,
-            created_at,
-            expires_at,
-        } = record;
-
-        Session::new(
-            SessionId::from(id),
-            UserId::from(user_id),
-            session_token_hash,
-            created_at,
-            expires_at,
-        )
-    }
 }
 
 #[async_trait]
@@ -59,7 +41,7 @@ impl SessionRepository for SqlSessionRepository {
                 RepositoryError::unexpected(format!("failed to insert session: {err}"))
             })?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: SessionId) -> Result<Session, RepositoryError> {
@@ -72,7 +54,7 @@ impl SessionRepository for SqlSessionRepository {
             .map_err(|err| RepositoryError::unexpected(format!("failed to get session: {err}")))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_by_token_hash(&self, token_hash: &str) -> Result<Session, RepositoryError> {
@@ -87,7 +69,7 @@ impl SessionRepository for SqlSessionRepository {
             })?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn delete(&self, id: SessionId) -> Result<(), RepositoryError> {
@@ -123,4 +105,16 @@ struct SessionRecord {
     session_token_hash: String,
     created_at: chrono::DateTime<Utc>,
     expires_at: chrono::DateTime<Utc>,
+}
+
+impl From<SessionRecord> for Session {
+    fn from(record: SessionRecord) -> Self {
+        Session::new(
+            SessionId::from(record.id),
+            UserId::from(record.user_id),
+            record.session_token_hash,
+            record.created_at,
+            record.expires_at,
+        )
+    }
 }

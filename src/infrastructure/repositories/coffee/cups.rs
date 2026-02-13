@@ -57,35 +57,6 @@ impl SqlCupRepository {
         }
     }
 
-    fn to_domain(record: CupRecord) -> Cup {
-        Cup {
-            id: CupId::new(record.id),
-            roast_id: RoastId::new(record.roast_id),
-            cafe_id: CafeId::new(record.cafe_id),
-            created_at: record.created_at,
-            updated_at: record.updated_at,
-        }
-    }
-
-    fn to_domain_with_details(record: CupWithDetailsRecord) -> CupWithDetails {
-        CupWithDetails {
-            cup: Cup {
-                id: CupId::new(record.id),
-                roast_id: RoastId::new(record.roast_id),
-                cafe_id: CafeId::new(record.cafe_id),
-                created_at: record.created_at,
-                updated_at: record.updated_at,
-            },
-            roast_name: record.roast_name,
-            roaster_name: record.roaster_name,
-            roast_slug: record.roast_slug,
-            roaster_slug: record.roaster_slug,
-            cafe_name: record.cafe_name,
-            cafe_slug: record.cafe_slug,
-            cafe_city: record.cafe_city,
-        }
-    }
-
     fn build_where_clause(filter: &CupFilter) -> Option<String> {
         let mut conditions = Vec::new();
 
@@ -121,7 +92,7 @@ impl CupRepository for SqlCupRepository {
         .await
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: CupId) -> Result<Cup, RepositoryError> {
@@ -134,7 +105,7 @@ impl CupRepository for SqlCupRepository {
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Ok(Self::to_domain(record)),
+            Some(record) => Ok(record.into()),
             None => Err(RepositoryError::NotFound),
         }
     }
@@ -149,7 +120,7 @@ impl CupRepository for SqlCupRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain_with_details(record))
+        Ok(record.into())
     }
 
     async fn list(
@@ -189,7 +160,7 @@ impl CupRepository for SqlCupRepository {
             &count_query,
             &order_clause,
             sf.as_ref(),
-            |record| Ok(Self::to_domain_with_details(record)),
+            |record: CupWithDetailsRecord| Ok(record.into()),
         )
         .await
     }
@@ -226,7 +197,7 @@ impl CupRepository for SqlCupRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn delete(&self, id: CupId) -> Result<(), RepositoryError> {
@@ -253,6 +224,18 @@ struct CupRecord {
     updated_at: DateTime<Utc>,
 }
 
+impl From<CupRecord> for Cup {
+    fn from(record: CupRecord) -> Self {
+        Cup {
+            id: CupId::new(record.id),
+            roast_id: RoastId::new(record.roast_id),
+            cafe_id: CafeId::new(record.cafe_id),
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
 #[derive(sqlx::FromRow)]
 struct CupWithDetailsRecord {
     id: i64,
@@ -267,4 +250,25 @@ struct CupWithDetailsRecord {
     cafe_name: String,
     cafe_slug: String,
     cafe_city: String,
+}
+
+impl From<CupWithDetailsRecord> for CupWithDetails {
+    fn from(record: CupWithDetailsRecord) -> Self {
+        CupWithDetails {
+            cup: Cup {
+                id: CupId::new(record.id),
+                roast_id: RoastId::new(record.roast_id),
+                cafe_id: CafeId::new(record.cafe_id),
+                created_at: record.created_at,
+                updated_at: record.updated_at,
+            },
+            roast_name: record.roast_name,
+            roaster_name: record.roaster_name,
+            roast_slug: record.roast_slug,
+            roaster_slug: record.roaster_slug,
+            cafe_name: record.cafe_name,
+            cafe_slug: record.cafe_slug,
+            cafe_city: record.cafe_city,
+        }
+    }
 }

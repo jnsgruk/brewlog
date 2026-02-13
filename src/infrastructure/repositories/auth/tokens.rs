@@ -17,28 +17,6 @@ impl SqlTokenRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
     }
-
-    fn to_domain(record: TokenRecord) -> Token {
-        let TokenRecord {
-            id,
-            user_id,
-            token_hash,
-            name,
-            created_at,
-            last_used_at,
-            revoked_at,
-        } = record;
-
-        Token::new(
-            TokenId::from(id),
-            UserId::from(user_id),
-            token_hash,
-            name,
-            created_at,
-            last_used_at,
-            revoked_at,
-        )
-    }
 }
 
 #[async_trait]
@@ -67,7 +45,7 @@ impl TokenRepository for SqlTokenRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: TokenId) -> Result<Token, RepositoryError> {
@@ -80,7 +58,7 @@ impl TokenRepository for SqlTokenRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_by_token_hash(&self, token_hash: &str) -> Result<Token, RepositoryError> {
@@ -93,7 +71,7 @@ impl TokenRepository for SqlTokenRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn list_by_user(&self, user_id: UserId) -> Result<Vec<Token>, RepositoryError> {
@@ -105,7 +83,7 @@ impl TokenRepository for SqlTokenRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        Ok(records.into_iter().map(Self::to_domain).collect())
+        Ok(records.into_iter().map(Into::into).collect())
     }
 
     async fn revoke(&self, id: TokenId) -> Result<Token, RepositoryError> {
@@ -120,7 +98,7 @@ impl TokenRepository for SqlTokenRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Ok(Self::to_domain(record)),
+            Some(record) => Ok(record.into()),
             None => Err(RepositoryError::NotFound),
         }
     }
@@ -148,4 +126,18 @@ struct TokenRecord {
     created_at: DateTime<Utc>,
     last_used_at: Option<DateTime<Utc>>,
     revoked_at: Option<DateTime<Utc>>,
+}
+
+impl From<TokenRecord> for Token {
+    fn from(record: TokenRecord) -> Self {
+        Token::new(
+            TokenId::from(record.id),
+            UserId::from(record.user_id),
+            record.token_hash,
+            record.name,
+            record.created_at,
+            record.last_used_at,
+            record.revoked_at,
+        )
+    }
 }

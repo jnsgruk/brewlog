@@ -17,17 +17,6 @@ impl SqlUserRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
     }
-
-    fn to_domain(record: UserRecord) -> User {
-        let UserRecord {
-            id,
-            username,
-            uuid,
-            created_at,
-        } = record;
-
-        User::new(UserId::from(id), username, uuid, created_at)
-    }
 }
 
 #[async_trait]
@@ -49,7 +38,7 @@ impl UserRepository for SqlUserRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: UserId) -> Result<User, RepositoryError> {
@@ -62,7 +51,7 @@ impl UserRepository for SqlUserRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_by_username(&self, username: &str) -> Result<User, RepositoryError> {
@@ -75,7 +64,7 @@ impl UserRepository for SqlUserRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_by_uuid(&self, uuid: &str) -> Result<User, RepositoryError> {
@@ -88,7 +77,7 @@ impl UserRepository for SqlUserRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn exists(&self) -> Result<bool, RepositoryError> {
@@ -110,7 +99,7 @@ impl UserRepository for SqlUserRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        Ok(records.into_iter().map(Self::to_domain).collect())
+        Ok(records.into_iter().map(Into::into).collect())
     }
 }
 
@@ -120,4 +109,15 @@ struct UserRecord {
     username: String,
     uuid: String,
     created_at: DateTime<Utc>,
+}
+
+impl From<UserRecord> for User {
+    fn from(record: UserRecord) -> Self {
+        User::new(
+            UserId::from(record.id),
+            record.username,
+            record.uuid,
+            record.created_at,
+        )
+    }
 }

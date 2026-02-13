@@ -17,26 +17,6 @@ impl SqlRegistrationTokenRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
     }
-
-    fn to_domain(record: RegistrationTokenRecord) -> RegistrationToken {
-        let RegistrationTokenRecord {
-            id,
-            token_hash,
-            created_at,
-            expires_at,
-            used_at,
-            used_by_user_id,
-        } = record;
-
-        RegistrationToken {
-            id: RegistrationTokenId::from(id),
-            token_hash,
-            created_at,
-            expires_at,
-            used_at,
-            used_by_user_id: used_by_user_id.map(UserId::from),
-        }
-    }
 }
 
 #[async_trait]
@@ -61,7 +41,7 @@ impl RegistrationTokenRepository for SqlRegistrationTokenRepository {
                 RepositoryError::unexpected(format!("failed to insert registration token: {err}"))
             })?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_by_token_hash(
@@ -83,7 +63,7 @@ impl RegistrationTokenRepository for SqlRegistrationTokenRepository {
             })?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn mark_used(
@@ -118,4 +98,17 @@ struct RegistrationTokenRecord {
     expires_at: DateTime<Utc>,
     used_at: Option<DateTime<Utc>>,
     used_by_user_id: Option<i64>,
+}
+
+impl From<RegistrationTokenRecord> for RegistrationToken {
+    fn from(record: RegistrationTokenRecord) -> Self {
+        RegistrationToken {
+            id: RegistrationTokenId::from(record.id),
+            token_hash: record.token_hash,
+            created_at: record.created_at,
+            expires_at: record.expires_at,
+            used_at: record.used_at,
+            used_by_user_id: record.used_by_user_id.map(UserId::from),
+        }
+    }
 }

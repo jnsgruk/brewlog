@@ -17,26 +17,6 @@ impl SqlPasskeyCredentialRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
     }
-
-    fn to_domain(record: PasskeyCredentialRecord) -> PasskeyCredential {
-        let PasskeyCredentialRecord {
-            id,
-            user_id,
-            credential_json,
-            name,
-            created_at,
-            last_used_at,
-        } = record;
-
-        PasskeyCredential {
-            id: PasskeyCredentialId::from(id),
-            user_id: UserId::from(user_id),
-            credential_json,
-            name,
-            created_at,
-            last_used_at,
-        }
-    }
 }
 
 #[async_trait]
@@ -61,7 +41,7 @@ impl PasskeyCredentialRepository for SqlPasskeyCredentialRepository {
                 RepositoryError::unexpected(format!("failed to insert passkey credential: {err}"))
             })?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: PasskeyCredentialId) -> Result<PasskeyCredential, RepositoryError> {
@@ -82,7 +62,7 @@ impl PasskeyCredentialRepository for SqlPasskeyCredentialRepository {
                 }
             })?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn list_by_user(
@@ -104,7 +84,7 @@ impl PasskeyCredentialRepository for SqlPasskeyCredentialRepository {
                 RepositoryError::unexpected(format!("failed to list passkey credentials: {err}"))
             })?;
 
-        Ok(records.into_iter().map(Self::to_domain).collect())
+        Ok(records.into_iter().map(Into::into).collect())
     }
 
     async fn list_all(&self) -> Result<Vec<PasskeyCredential>, RepositoryError> {
@@ -123,7 +103,7 @@ impl PasskeyCredentialRepository for SqlPasskeyCredentialRepository {
                 ))
             })?;
 
-        Ok(records.into_iter().map(Self::to_domain).collect())
+        Ok(records.into_iter().map(Into::into).collect())
     }
 
     async fn update_credential_json(
@@ -182,4 +162,17 @@ struct PasskeyCredentialRecord {
     name: String,
     created_at: DateTime<Utc>,
     last_used_at: Option<DateTime<Utc>>,
+}
+
+impl From<PasskeyCredentialRecord> for PasskeyCredential {
+    fn from(record: PasskeyCredentialRecord) -> Self {
+        PasskeyCredential {
+            id: PasskeyCredentialId::from(record.id),
+            user_id: UserId::from(record.user_id),
+            credential_json: record.credential_json,
+            name: record.name,
+            created_at: record.created_at,
+            last_used_at: record.last_used_at,
+        }
+    }
 }

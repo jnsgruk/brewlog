@@ -33,28 +33,6 @@ impl SqlRoasterRepository {
             RoasterSortKey::City => format!("LOWER(COALESCE(city, '')) {dir_sql}, LOWER(name) ASC"),
         }
     }
-
-    fn into_domain(record: RoasterRecord) -> Roaster {
-        let RoasterRecord {
-            id,
-            name,
-            slug,
-            country,
-            city,
-            homepage,
-            created_at,
-        } = record;
-
-        Roaster {
-            id: RoasterId::from(id),
-            name,
-            slug,
-            country,
-            city,
-            homepage,
-            created_at,
-        }
-    }
 }
 
 #[async_trait]
@@ -87,7 +65,7 @@ impl RoasterRepository for SqlRoasterRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Ok(Self::into_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: RoasterId) -> Result<Roaster, RepositoryError> {
@@ -100,7 +78,7 @@ impl RoasterRepository for SqlRoasterRepository {
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Ok(Self::into_domain(record)),
+            Some(record) => Ok(record.into()),
             None => Err(RepositoryError::NotFound),
         }
     }
@@ -115,7 +93,7 @@ impl RoasterRepository for SqlRoasterRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Ok(Self::into_domain(record)),
+            Some(record) => Ok(record.into()),
             None => Err(RepositoryError::NotFound),
         }
     }
@@ -140,7 +118,7 @@ impl RoasterRepository for SqlRoasterRepository {
             count_query,
             &order_clause,
             sf.as_ref(),
-            |record| Ok(Self::into_domain(record)),
+            |record: RoasterRecord| Ok(record.into()),
         )
         .await
     }
@@ -205,4 +183,18 @@ struct RoasterRecord {
     city: Option<String>,
     homepage: Option<String>,
     created_at: DateTime<Utc>,
+}
+
+impl From<RoasterRecord> for Roaster {
+    fn from(record: RoasterRecord) -> Self {
+        Roaster {
+            id: RoasterId::from(record.id),
+            name: record.name,
+            slug: record.slug,
+            country: record.country,
+            city: record.city,
+            homepage: record.homepage,
+            created_at: record.created_at,
+        }
+    }
 }

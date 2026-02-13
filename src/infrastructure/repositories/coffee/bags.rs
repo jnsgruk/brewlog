@@ -11,7 +11,7 @@ use crate::infrastructure::database::DatabasePool;
 use crate::infrastructure::repositories::macros::push_update_field;
 
 const BASE_SELECT: &str = r"
-    SELECT 
+    SELECT
         b.id, b.roast_id, b.roast_date, b.amount, b.remaining, b.closed, b.finished_at, b.created_at, b.updated_at,
         r.name as roast_name, r.slug as roast_slug,
         rr.name as roaster_name, rr.slug as roaster_slug
@@ -46,40 +46,6 @@ impl SqlBagRepository {
                 "CASE WHEN b.closed THEN 10000 ELSE b.remaining END {dir_sql}, b.created_at DESC"
             ),
             BagSortKey::FinishedAt => format!("b.finished_at {dir_sql}, b.created_at DESC"),
-        }
-    }
-
-    fn to_domain(record: BagRecord) -> Bag {
-        Bag {
-            id: BagId::new(record.id),
-            roast_id: RoastId::new(record.roast_id),
-            roast_date: record.roast_date,
-            amount: record.amount,
-            remaining: record.remaining,
-            closed: record.closed,
-            finished_at: record.finished_at,
-            created_at: record.created_at,
-            updated_at: record.updated_at,
-        }
-    }
-
-    fn to_domain_with_roast(record: BagWithRoastRecord) -> BagWithRoast {
-        BagWithRoast {
-            bag: Bag {
-                id: BagId::new(record.id),
-                roast_id: RoastId::new(record.roast_id),
-                roast_date: record.roast_date,
-                amount: record.amount,
-                remaining: record.remaining,
-                closed: record.closed,
-                finished_at: record.finished_at,
-                created_at: record.created_at,
-                updated_at: record.updated_at,
-            },
-            roast_name: record.roast_name,
-            roaster_name: record.roaster_name,
-            roast_slug: record.roast_slug,
-            roaster_slug: record.roaster_slug,
         }
     }
 
@@ -130,7 +96,7 @@ impl BagRepository for SqlBagRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: BagId) -> Result<Bag, RepositoryError> {
@@ -147,7 +113,7 @@ impl BagRepository for SqlBagRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_with_roast(&self, id: BagId) -> Result<BagWithRoast, RepositoryError> {
@@ -160,7 +126,7 @@ impl BagRepository for SqlBagRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain_with_roast(record))
+        Ok(record.into())
     }
 
     async fn list(
@@ -197,7 +163,7 @@ impl BagRepository for SqlBagRepository {
             &count_query,
             &order_clause,
             sf.as_ref(),
-            |record| Ok(Self::to_domain_with_roast(record)),
+            |record: BagWithRoastRecord| Ok(record.into()),
         )
         .await
     }
@@ -233,7 +199,7 @@ impl BagRepository for SqlBagRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn delete(&self, id: BagId) -> Result<(), RepositoryError> {
@@ -266,6 +232,22 @@ struct BagRecord {
     updated_at: DateTime<Utc>,
 }
 
+impl From<BagRecord> for Bag {
+    fn from(record: BagRecord) -> Self {
+        Bag {
+            id: BagId::new(record.id),
+            roast_id: RoastId::new(record.roast_id),
+            roast_date: record.roast_date,
+            amount: record.amount,
+            remaining: record.remaining,
+            closed: record.closed,
+            finished_at: record.finished_at,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
 #[derive(sqlx::FromRow)]
 struct BagWithRoastRecord {
     id: i64,
@@ -281,4 +263,26 @@ struct BagWithRoastRecord {
     roast_slug: String,
     roaster_name: String,
     roaster_slug: String,
+}
+
+impl From<BagWithRoastRecord> for BagWithRoast {
+    fn from(record: BagWithRoastRecord) -> Self {
+        BagWithRoast {
+            bag: Bag {
+                id: BagId::new(record.id),
+                roast_id: RoastId::new(record.roast_id),
+                roast_date: record.roast_date,
+                amount: record.amount,
+                remaining: record.remaining,
+                closed: record.closed,
+                finished_at: record.finished_at,
+                created_at: record.created_at,
+                updated_at: record.updated_at,
+            },
+            roast_name: record.roast_name,
+            roaster_name: record.roaster_name,
+            roast_slug: record.roast_slug,
+            roaster_slug: record.roaster_slug,
+        }
+    }
 }

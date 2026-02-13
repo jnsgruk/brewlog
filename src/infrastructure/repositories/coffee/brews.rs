@@ -33,6 +33,17 @@ const BASE_SELECT: &str = r"
     LEFT JOIN gear g_fp ON br.filter_paper_id = g_fp.id
 ";
 
+fn decode_quick_notes(raw: Option<String>) -> Vec<QuickNote> {
+    match raw {
+        Some(s) if !s.is_empty() => serde_json::from_str::<Vec<String>>(&s)
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|v| QuickNote::from_str_value(v))
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
 #[derive(Clone)]
 pub struct SqlBrewRepository {
     pool: DatabasePool,
@@ -56,17 +67,6 @@ impl SqlBrewRepository {
         }
     }
 
-    fn decode_quick_notes(raw: Option<String>) -> Vec<QuickNote> {
-        match raw {
-            Some(s) if !s.is_empty() => serde_json::from_str::<Vec<String>>(&s)
-                .unwrap_or_default()
-                .iter()
-                .filter_map(|v| QuickNote::from_str_value(v))
-                .collect(),
-            _ => Vec::new(),
-        }
-    }
-
     fn encode_quick_notes(notes: &[QuickNote]) -> Option<String> {
         if notes.is_empty() {
             None
@@ -79,52 +79,6 @@ impl SqlBrewRepository {
                     None
                 }
             }
-        }
-    }
-
-    fn to_domain(record: BrewRecord) -> Brew {
-        Brew {
-            id: BrewId::new(record.id),
-            bag_id: BagId::new(record.bag_id),
-            coffee_weight: record.coffee_weight,
-            grinder_id: GearId::new(record.grinder_id),
-            grind_setting: record.grind_setting,
-            brewer_id: GearId::new(record.brewer_id),
-            filter_paper_id: record.filter_paper_id.map(GearId::new),
-            water_volume: record.water_volume,
-            water_temp: record.water_temp,
-            quick_notes: Self::decode_quick_notes(record.quick_notes),
-            brew_time: record.brew_time,
-            created_at: record.created_at,
-            updated_at: record.updated_at,
-        }
-    }
-
-    fn to_domain_with_details(record: BrewWithDetailsRecord) -> BrewWithDetails {
-        BrewWithDetails {
-            brew: Brew {
-                id: BrewId::new(record.id),
-                bag_id: BagId::new(record.bag_id),
-                coffee_weight: record.coffee_weight,
-                grinder_id: GearId::new(record.grinder_id),
-                grind_setting: record.grind_setting,
-                brewer_id: GearId::new(record.brewer_id),
-                filter_paper_id: record.filter_paper_id.map(GearId::new),
-                water_volume: record.water_volume,
-                water_temp: record.water_temp,
-                quick_notes: Self::decode_quick_notes(record.quick_notes),
-                brew_time: record.brew_time,
-                created_at: record.created_at,
-                updated_at: record.updated_at,
-            },
-            roast_name: record.roast_name,
-            roaster_name: record.roaster_name,
-            roast_slug: record.roast_slug,
-            roaster_slug: record.roaster_slug,
-            grinder_name: record.grinder_name,
-            grinder_model: record.grinder_model,
-            brewer_name: record.brewer_name,
-            filter_paper_name: record.filter_paper_name,
         }
     }
 
@@ -201,7 +155,7 @@ impl BrewRepository for SqlBrewRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: BrewId) -> Result<Brew, RepositoryError> {
@@ -218,7 +172,7 @@ impl BrewRepository for SqlBrewRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn get_with_details(&self, id: BrewId) -> Result<BrewWithDetails, RepositoryError> {
@@ -231,7 +185,7 @@ impl BrewRepository for SqlBrewRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain_with_details(record))
+        Ok(record.into())
     }
 
     async fn list(
@@ -271,7 +225,7 @@ impl BrewRepository for SqlBrewRepository {
             &count_query,
             &order_clause,
             sf.as_ref(),
-            |record| Ok(Self::to_domain_with_details(record)),
+            |record: BrewWithDetailsRecord| Ok(record.into()),
         )
         .await
     }
@@ -339,7 +293,7 @@ impl BrewRepository for SqlBrewRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Ok(Self::to_domain(record))
+        Ok(record.into())
     }
 
     async fn delete(&self, id: BrewId) -> Result<(), RepositoryError> {
@@ -376,6 +330,26 @@ struct BrewRecord {
     updated_at: DateTime<Utc>,
 }
 
+impl From<BrewRecord> for Brew {
+    fn from(record: BrewRecord) -> Self {
+        Brew {
+            id: BrewId::new(record.id),
+            bag_id: BagId::new(record.bag_id),
+            coffee_weight: record.coffee_weight,
+            grinder_id: GearId::new(record.grinder_id),
+            grind_setting: record.grind_setting,
+            brewer_id: GearId::new(record.brewer_id),
+            filter_paper_id: record.filter_paper_id.map(GearId::new),
+            water_volume: record.water_volume,
+            water_temp: record.water_temp,
+            quick_notes: decode_quick_notes(record.quick_notes),
+            brew_time: record.brew_time,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
 #[derive(sqlx::FromRow)]
 struct BrewWithDetailsRecord {
     id: i64,
@@ -399,4 +373,34 @@ struct BrewWithDetailsRecord {
     grinder_model: String,
     brewer_name: String,
     filter_paper_name: Option<String>,
+}
+
+impl From<BrewWithDetailsRecord> for BrewWithDetails {
+    fn from(record: BrewWithDetailsRecord) -> Self {
+        BrewWithDetails {
+            brew: Brew {
+                id: BrewId::new(record.id),
+                bag_id: BagId::new(record.bag_id),
+                coffee_weight: record.coffee_weight,
+                grinder_id: GearId::new(record.grinder_id),
+                grind_setting: record.grind_setting,
+                brewer_id: GearId::new(record.brewer_id),
+                filter_paper_id: record.filter_paper_id.map(GearId::new),
+                water_volume: record.water_volume,
+                water_temp: record.water_temp,
+                quick_notes: decode_quick_notes(record.quick_notes),
+                brew_time: record.brew_time,
+                created_at: record.created_at,
+                updated_at: record.updated_at,
+            },
+            roast_name: record.roast_name,
+            roaster_name: record.roaster_name,
+            roast_slug: record.roast_slug,
+            roaster_slug: record.roaster_slug,
+            grinder_name: record.grinder_name,
+            grinder_model: record.grinder_model,
+            brewer_name: record.brewer_name,
+            filter_paper_name: record.filter_paper_name,
+        }
+    }
 }

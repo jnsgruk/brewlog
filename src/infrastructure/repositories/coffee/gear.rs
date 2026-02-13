@@ -36,21 +36,6 @@ impl SqlGearRepository {
         }
     }
 
-    fn to_domain(record: GearRecord) -> Result<Gear, RepositoryError> {
-        let category = GearCategory::from_str(&record.category).map_err(|()| {
-            RepositoryError::unexpected(format!("invalid category: {}", record.category))
-        })?;
-
-        Ok(Gear {
-            id: GearId::new(record.id),
-            category,
-            make: record.make,
-            model: record.model,
-            created_at: record.created_at,
-            updated_at: record.updated_at,
-        })
-    }
-
     fn build_where_clause(filter: &GearFilter) -> Option<&'static str> {
         filter.category.as_ref().map(|category| match category {
             GearCategory::Grinder => "category = 'grinder'",
@@ -80,7 +65,7 @@ impl GearRepository for SqlGearRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        Self::to_domain(record)
+        record.try_into()
     }
 
     async fn get(&self, id: GearId) -> Result<Gear, RepositoryError> {
@@ -97,7 +82,7 @@ impl GearRepository for SqlGearRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Self::to_domain(record)
+        record.try_into()
     }
 
     async fn list(
@@ -134,7 +119,7 @@ impl GearRepository for SqlGearRepository {
             &count_query,
             &order_clause,
             sf.as_ref(),
-            Self::to_domain,
+            |record: GearRecord| record.try_into(),
         )
         .await
     }
@@ -159,7 +144,7 @@ impl GearRepository for SqlGearRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
-        Self::to_domain(record)
+        record.try_into()
     }
 
     async fn delete(&self, id: GearId) -> Result<(), RepositoryError> {
@@ -187,4 +172,23 @@ struct GearRecord {
     model: String,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
+}
+
+impl TryFrom<GearRecord> for Gear {
+    type Error = RepositoryError;
+
+    fn try_from(record: GearRecord) -> Result<Self, Self::Error> {
+        let category = GearCategory::from_str(&record.category).map_err(|()| {
+            RepositoryError::unexpected(format!("invalid category: {}", record.category))
+        })?;
+
+        Ok(Gear {
+            id: GearId::new(record.id),
+            category,
+            make: record.make,
+            model: record.model,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        })
+    }
 }

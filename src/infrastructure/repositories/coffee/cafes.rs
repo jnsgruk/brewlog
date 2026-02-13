@@ -33,34 +33,6 @@ impl SqlCafeRepository {
             CafeSortKey::Country => format!("LOWER(country) {dir_sql}, LOWER(name) ASC"),
         }
     }
-
-    fn into_domain(record: CafeRecord) -> Cafe {
-        let CafeRecord {
-            id,
-            name,
-            slug,
-            city,
-            country,
-            latitude,
-            longitude,
-            website,
-            created_at,
-            updated_at,
-        } = record;
-
-        Cafe {
-            id: CafeId::from(id),
-            name,
-            slug,
-            city,
-            country,
-            latitude,
-            longitude,
-            website,
-            created_at,
-            updated_at,
-        }
-    }
 }
 
 #[async_trait]
@@ -96,7 +68,7 @@ impl CafeRepository for SqlCafeRepository {
                 RepositoryError::unexpected(err.to_string())
             })?;
 
-        Ok(Self::into_domain(record))
+        Ok(record.into())
     }
 
     async fn get(&self, id: CafeId) -> Result<Cafe, RepositoryError> {
@@ -109,7 +81,7 @@ impl CafeRepository for SqlCafeRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Ok(Self::into_domain(record)),
+            Some(record) => Ok(record.into()),
             None => Err(RepositoryError::NotFound),
         }
     }
@@ -124,7 +96,7 @@ impl CafeRepository for SqlCafeRepository {
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         match record {
-            Some(record) => Ok(Self::into_domain(record)),
+            Some(record) => Ok(record.into()),
             None => Err(RepositoryError::NotFound),
         }
     }
@@ -148,7 +120,7 @@ impl CafeRepository for SqlCafeRepository {
             count_query,
             &order_clause,
             sf.as_ref(),
-            |record| Ok(Self::into_domain(record)),
+            |record: CafeRecord| Ok(record.into()),
         )
         .await
     }
@@ -209,4 +181,21 @@ struct CafeRecord {
     website: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
+}
+
+impl From<CafeRecord> for Cafe {
+    fn from(record: CafeRecord) -> Self {
+        Cafe {
+            id: CafeId::from(record.id),
+            name: record.name,
+            slug: record.slug,
+            city: record.city,
+            country: record.country,
+            latitude: record.latitude,
+            longitude: record.longitude,
+            website: record.website,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
 }
