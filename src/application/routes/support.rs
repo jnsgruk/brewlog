@@ -178,8 +178,11 @@ where
 /// Return a Datastar response that redirects the browser to `url`.
 ///
 /// Works by appending a `<script>` tag to `<body>` that sets `window.location.href`.
+/// The URL is JSON-encoded to prevent XSS via crafted URLs.
 pub fn render_redirect_script(url: &str) -> Result<Response, AppError> {
-    let script = format!("<script>window.location.href='{url}'</script>");
+    let encoded_url = serde_json::to_string(url)
+        .map_err(|err| AppError::unexpected(format!("failed to encode redirect URL: {err}")))?;
+    let script = format!("<script>window.location.href={encoded_url}</script>");
     let mut response = Html(script).into_response();
     response
         .headers_mut()
