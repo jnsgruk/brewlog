@@ -1,8 +1,9 @@
 use reqwest::Client;
 
 use crate::helpers::{
-    assert_datastar_headers_with_mode, assert_full_page, assert_html_fragment, create_default_cafe,
-    create_default_roast, create_default_roaster, spawn_app, spawn_app_with_auth,
+    assert_datastar_headers_with_mode, assert_full_page, assert_html_fragment, create_default_brew,
+    create_default_cafe, create_default_roast, create_default_roaster, spawn_app,
+    spawn_app_with_auth,
 };
 
 #[tokio::test]
@@ -164,6 +165,69 @@ async fn recompute_stats_reflects_created_data() {
             .iter()
             .any(|e| e["country_name"] == "US"),
         "geo_cafes should contain US: {geo_cafes}"
+    );
+}
+
+#[tokio::test]
+async fn stats_page_contains_world_map_with_geo_data() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let roaster = create_default_roaster(&app).await;
+    let _roast = create_default_roast(&app, roaster.id).await;
+
+    // Populate the cache so the stats page has data
+    let recompute = client
+        .post(app.api_url("/stats/recompute"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("Failed to recompute");
+    assert_eq!(recompute.status(), 200);
+
+    // Fetch the roasts tab fragment which contains the world-map
+    let response = client
+        .get(app.page_url("/stats?type=roasts"))
+        .header("datastar-request", "true")
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.expect("Failed to read body");
+    assert!(
+        body.contains("<world-map"),
+        "Roasts tab should contain world-map component"
+    );
+}
+
+#[tokio::test]
+async fn stats_page_contains_donut_chart_with_brew_data() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let _brew = create_default_brew(&app).await;
+
+    // Populate the cache
+    let recompute = client
+        .post(app.api_url("/stats/recompute"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("Failed to recompute");
+    assert_eq!(recompute.status(), 200);
+
+    let response = client
+        .get(app.page_url("/stats"))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.expect("Failed to read body");
+    assert!(
+        body.contains("<donut-chart"),
+        "Stats page should contain donut-chart component when brew data exists"
     );
 }
 

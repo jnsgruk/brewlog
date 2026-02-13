@@ -82,6 +82,7 @@ const startPasskeyRegistration = async (token, displayName, passkeyName) => {
   // 1. Get challenge from server
   const startResponse = await fetch("/api/v1/webauthn/register/start", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       token,
@@ -107,6 +108,7 @@ const startPasskeyRegistration = async (token, displayName, passkeyName) => {
   // 3. Send credential to server
   const finishResponse = await fetch("/api/v1/webauthn/register/finish", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       challenge_id,
@@ -128,7 +130,7 @@ const startPasskeyRegistration = async (token, displayName, passkeyName) => {
 const startPasskeyAuthentication = async (queryParams) => {
   // 1. Get challenge from server
   const url = `/api/v1/webauthn/auth/start${queryParams || ""}`;
-  const startResponse = await fetch(url);
+  const startResponse = await fetch(url, { credentials: "same-origin" });
 
   if (!startResponse.ok) {
     const status = startResponse.status;
@@ -146,6 +148,7 @@ const startPasskeyAuthentication = async (queryParams) => {
   // 3. Send assertion to server
   const finishResponse = await fetch("/api/v1/webauthn/auth/finish", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       challenge_id,
@@ -165,6 +168,7 @@ const addPasskey = async (name) => {
   // 1. Get challenge from server
   const startResponse = await fetch("/api/v1/webauthn/passkey/start", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
@@ -184,6 +188,7 @@ const addPasskey = async (name) => {
   // 3. Send credential to server
   const finishResponse = await fetch("/api/v1/webauthn/passkey/finish", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       challenge_id,

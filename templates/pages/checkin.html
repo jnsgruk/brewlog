@@ -7,6 +7,12 @@
 {% block title %}
   Brewlog · Check In
 {% endblock %}
+{% block head %}
+  <script
+    defer
+    src="/static/js/location.js?v={{ version_info.commit }}"
+  ></script>
+{% endblock %}
 {% block content %}
   <section
     id="checkin-root"

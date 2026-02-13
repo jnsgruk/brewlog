@@ -5,9 +5,16 @@ customElements.define(
       requestAnimationFrame(() => this._setup());
     }
 
+    disconnectedCallback() {
+      this._ac?.abort();
+      this._initialized = false;
+    }
+
     _setup() {
       if (this._initialized) return;
       this._initialized = true;
+      this._ac = new AbortController();
+      const { signal } = this._ac;
 
       const name = this.getAttribute("name");
       const placeholder =
@@ -66,7 +73,7 @@ customElements.define(
         (e) => {
           if (!(e instanceof CustomEvent)) e.stopImmediatePropagation();
         },
-        true,
+        { capture: true, signal },
       );
 
       this.textContent = "";
@@ -93,70 +100,83 @@ customElements.define(
         );
       };
 
-      search.addEventListener("input", () => {
-        const q = search.value.toLowerCase();
-        options.classList.toggle("hidden", !q);
-        options.querySelector(".ss-active")?.classList.remove("ss-active");
-        buttons.forEach((btn) => {
-          btn.style.display = btn.textContent.toLowerCase().includes(q)
-            ? ""
-            : "none";
-        });
-        updateExpanded();
-      });
-
-      search.addEventListener("keydown", (e) => {
-        const visible = buttons.filter(
-          (b) =>
-            b.style.display !== "none" && !options.classList.contains("hidden"),
-        );
-        if (!visible.length) return;
-
-        const active = options.querySelector(".ss-active");
-        let idx = active ? visible.indexOf(active) : -1;
-
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          if (active) active.classList.remove("ss-active");
-          idx = (idx + 1) % visible.length;
-          visible[idx].classList.add("ss-active");
-          visible[idx].scrollIntoView({ block: "nearest" });
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          if (active) active.classList.remove("ss-active");
-          idx = idx <= 0 ? visible.length - 1 : idx - 1;
-          visible[idx].classList.add("ss-active");
-          visible[idx].scrollIntoView({ block: "nearest" });
-        } else if (e.key === "Enter" && active) {
-          e.preventDefault();
-          active.click();
-        } else if (e.key === "Escape") {
-          options.classList.add("hidden");
+      search.addEventListener(
+        "input",
+        () => {
+          const q = search.value.toLowerCase();
+          options.classList.toggle("hidden", !q);
+          options.querySelector(".ss-active")?.classList.remove("ss-active");
+          buttons.forEach((btn) => {
+            btn.style.display = btn.textContent.toLowerCase().includes(q)
+              ? ""
+              : "none";
+          });
           updateExpanded();
-        }
-      });
+        },
+        { signal },
+      );
 
-      options.addEventListener("click", (e) => {
-        const btn = e.target.closest("button");
-        if (!btn || !options.contains(btn)) return;
+      search.addEventListener(
+        "keydown",
+        (e) => {
+          const visible = buttons.filter(
+            (b) =>
+              b.style.display !== "none" &&
+              !options.classList.contains("hidden"),
+          );
+          if (!visible.length) return;
 
-        hidden.value = btn.value;
-        display.textContent = btn.dataset.display;
-        searchWrap.classList.add("hidden");
-        selectedWrap.classList.remove("hidden");
-        updateExpanded();
+          const active = options.querySelector(".ss-active");
+          let idx = active ? visible.indexOf(active) : -1;
 
-        this.dispatchEvent(
-          new CustomEvent("change", {
-            detail: {
-              value: btn.value,
-              display: btn.dataset.display,
-              data: { ...btn.dataset },
-            },
-            bubbles: true,
-          }),
-        );
-      });
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if (active) active.classList.remove("ss-active");
+            idx = (idx + 1) % visible.length;
+            visible[idx].classList.add("ss-active");
+            visible[idx].scrollIntoView({ block: "nearest" });
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            if (active) active.classList.remove("ss-active");
+            idx = idx <= 0 ? visible.length - 1 : idx - 1;
+            visible[idx].classList.add("ss-active");
+            visible[idx].scrollIntoView({ block: "nearest" });
+          } else if (e.key === "Enter" && active) {
+            e.preventDefault();
+            active.click();
+          } else if (e.key === "Escape") {
+            options.classList.add("hidden");
+            updateExpanded();
+          }
+        },
+        { signal },
+      );
+
+      options.addEventListener(
+        "click",
+        (e) => {
+          const btn = e.target.closest("button");
+          if (!btn || !options.contains(btn)) return;
+
+          hidden.value = btn.value;
+          display.textContent = btn.dataset.display;
+          searchWrap.classList.add("hidden");
+          selectedWrap.classList.remove("hidden");
+          updateExpanded();
+
+          this.dispatchEvent(
+            new CustomEvent("change", {
+              detail: {
+                value: btn.value,
+                display: btn.dataset.display,
+                data: { ...btn.dataset },
+              },
+              bubbles: true,
+            }),
+          );
+        },
+        { signal },
+      );
 
       const doClear = () => {
         hidden.value = "";
@@ -171,7 +191,7 @@ customElements.define(
         this.dispatchEvent(new CustomEvent("clear", { bubbles: true }));
       };
 
-      selectedWrap.addEventListener("click", doClear);
+      selectedWrap.addEventListener("click", doClear, { signal });
     }
   },
 );

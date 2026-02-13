@@ -7,6 +7,10 @@
 {% endblock %}
 {% block head %}
   <meta property="og:image" content="{{ base_url }}/static/og-image.png" />
+  <script
+    defer
+    src="/static/js/components/donut-chart.js?v={{ version_info.commit }}"
+  ></script>
 {% endblock %}
 {% block content %}
   <header class="flex flex-col gap-2">

@@ -1,8 +1,8 @@
 use reqwest::redirect::Policy;
 
 use crate::helpers::{
-    assert_full_page, create_default_bag, create_default_roast, create_default_roaster,
-    create_session, spawn_app, spawn_app_with_auth,
+    assert_full_page, create_default_bag, create_default_brew, create_default_roast,
+    create_default_roaster, create_session, spawn_app, spawn_app_with_auth,
 };
 
 #[tokio::test]
@@ -283,4 +283,26 @@ async fn scan_redirect_returns_permanent_redirect() {
         .get("location")
         .and_then(|v| v.to_str().ok());
     assert_eq!(location, Some("/"));
+}
+
+#[tokio::test]
+async fn homepage_contains_chip_scroll_with_data() {
+    let app = spawn_app_with_auth().await;
+
+    let _brew = create_default_brew(&app).await;
+
+    let client = reqwest::Client::new();
+    let response = client
+        .get(app.page_url("/"))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(response.status(), 200);
+
+    let body = response.text().await.expect("Failed to read body");
+    assert!(
+        body.contains("<chip-scroll"),
+        "Homepage should contain chip-scroll component when data exists"
+    );
 }

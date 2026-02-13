@@ -49,6 +49,7 @@ pub fn app_router(state: AppState) -> axum::Router {
                     axum::http::header::REFERRER_POLICY,
                     HeaderValue::from_static("strict-origin-when-cross-origin"),
                 ))
+                // Datastar v1 evaluates expressions via Function(), requiring 'unsafe-eval'.
                 .layer(SetResponseHeaderLayer::overriding(
                     axum::http::header::CONTENT_SECURITY_POLICY,
                     HeaderValue::from_static(

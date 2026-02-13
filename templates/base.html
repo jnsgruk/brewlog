@@ -28,14 +28,20 @@
     />
     <meta name="twitter:card" content="summary_large_image" />
     <title>{% block title %}Brewlog{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="/static/css/styles.css?v={{ version_info.commit }}"
+    />
     <link
       rel="icon"
       id="favicon"
       type="image/svg+xml"
-      href="/static/favicon-light.svg"
+      href="/static/favicon-light.svg?v={{ version_info.commit }}"
     />
-    <link rel="apple-touch-icon" href="/static/app-icon-192.png" />
+    <link
+      rel="apple-touch-icon"
+      href="/static/app-icon-192.png?v={{ version_info.commit }}"
+    />
     <link rel="manifest" href="/static/site.webmanifest" />
     <meta name="apple-mobile-web-app-title" content="Brewlog" />
     <meta name="theme-color" content="#c2410c" />
@@ -47,7 +53,8 @@
           (!stored && matchMedia("(prefers-color-scheme: dark)").matches);
         if (isDark) {
           document.documentElement.setAttribute("data-theme", "dark");
-          document.getElementById("favicon").href = "/static/favicon-dark.svg";
+          document.getElementById("favicon").href =
+            "/static/favicon-dark.svg?v={{ version_info.commit }}";
         }
       })();
     </script>
@@ -55,14 +62,30 @@
       type="module"
       src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"
     ></script>
-    <script defer src="/static/js/location.js"></script>
-    <script defer src="/static/js/image-utils.js"></script>
-    <script defer src="/static/js/components/photo-capture.js"></script>
-    <script defer src="/static/js/components/searchable-select.js"></script>
-    <script defer src="/static/js/components/chip-scroll.js"></script>
-    <script defer src="/static/js/components/world-map.js"></script>
-    <script defer src="/static/js/components/donut-chart.js"></script>
-    <script defer src="/static/js/components/image-upload.js"></script>
+    <script
+      defer
+      src="/static/js/image-utils.js?v={{ version_info.commit }}"
+    ></script>
+    <script
+      defer
+      src="/static/js/components/photo-capture.js?v={{ version_info.commit }}"
+    ></script>
+    <script
+      defer
+      src="/static/js/components/searchable-select.js?v={{ version_info.commit }}"
+    ></script>
+    <script
+      defer
+      src="/static/js/components/chip-scroll.js?v={{ version_info.commit }}"
+    ></script>
+    <script
+      defer
+      src="/static/js/components/world-map.js?v={{ version_info.commit }}"
+    ></script>
+    <script
+      defer
+      src="/static/js/components/image-upload.js?v={{ version_info.commit }}"
+    ></script>
     {% block head %}{% endblock %}
     <script>
       const showToast = (msg, ms = 3000) => {

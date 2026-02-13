@@ -65,7 +65,7 @@ class DonutChart extends HTMLElement {
     const rgb =
       getComputedStyle(document.documentElement)
         .getPropertyValue("--highlight-rgb")
-        .trim() || "185, 28, 28";
+        .trim() || "194, 65, 12";
     const colorFor = (count) => {
       const alpha = (0.25 + 0.75 * (count / maxCount)).toFixed(2);
       return `rgba(${rgb}, ${alpha})`;

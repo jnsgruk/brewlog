@@ -1,7 +1,10 @@
 {% extends "base.html" %} {% import "partials/icons.html" as icons %}
 {% block title %}Brewlog · Admin{% endblock %}
 {% block head %}
-  <script defer src="/static/js/webauthn.js"></script>
+  <script
+    defer
+    src="/static/js/webauthn.js?v={{ version_info.commit }}"
+  ></script>
 {% endblock %}
 {% block content %}
   <header class="flex flex-col gap-2">

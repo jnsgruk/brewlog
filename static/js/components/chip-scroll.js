@@ -5,13 +5,21 @@ customElements.define(
       this._setup();
     }
 
+    disconnectedCallback() {
+      this._observer?.disconnect();
+      this._resizeObserver?.disconnect();
+      this._scroller?.removeEventListener("scroll", this._scrollHandler);
+    }
+
     _setup() {
-      if (this._observer) this._observer.disconnect();
+      this.disconnectedCallback();
 
       const scroller = this.querySelector("[data-chip-scroll]");
       const btnL = this.querySelector("[data-scroll-left]");
       const btnR = this.querySelector("[data-scroll-right]");
       if (!scroller || !btnL || !btnR) return;
+
+      this._scroller = scroller;
 
       const update = () => {
         if (window.matchMedia("(max-width: 767px)").matches) {
@@ -26,8 +34,10 @@ customElements.define(
             : "none";
       };
 
+      this._scrollHandler = update;
       scroller.addEventListener("scroll", update, { passive: true });
-      new ResizeObserver(update).observe(scroller);
+      this._resizeObserver = new ResizeObserver(update);
+      this._resizeObserver.observe(scroller);
 
       this._observer = new MutationObserver(update);
       this._observer.observe(scroller, { childList: true });

@@ -84,15 +84,24 @@ customElements.define(
         const entries = raw.split(",").map((e) => e.split(":"));
         const sr = document.createElement("div");
         sr.className = "sr-only";
-        sr.innerHTML =
-          "<table><caption>Coffee origins by country</caption><thead><tr><th>Country</th><th>Count</th></tr></thead><tbody>" +
-          entries
-            .map(
-              ([code, count]) =>
-                `<tr><td>${code.toUpperCase()}</td><td>${count}</td></tr>`,
-            )
-            .join("") +
-          "</tbody></table>";
+        const table = document.createElement("table");
+        const caption = table.createCaption();
+        caption.textContent = "Coffee origins by country";
+        const thead = table.createTHead();
+        const headRow = thead.insertRow();
+        const th1 = document.createElement("th");
+        th1.textContent = "Country";
+        const th2 = document.createElement("th");
+        th2.textContent = "Count";
+        headRow.appendChild(th1);
+        headRow.appendChild(th2);
+        const tbody = table.createTBody();
+        for (const [code, count] of entries) {
+          const row = tbody.insertRow();
+          row.insertCell().textContent = code.toUpperCase();
+          row.insertCell().textContent = count;
+        }
+        sr.appendChild(table);
         this.appendChild(sr);
       }
 
@@ -110,9 +119,9 @@ customElements.define(
 
       const styles = getComputedStyle(document.documentElement);
       const rgb =
-        styles.getPropertyValue("--highlight-rgb").trim() || "185, 28, 28";
+        styles.getPropertyValue("--highlight-rgb").trim() || "194, 65, 12";
       const borderColor =
-        styles.getPropertyValue("--text-muted").trim() || "#9ca3af";
+        styles.getPropertyValue("--text-muted").trim() || "#78716c";
       const surfaceAlt =
         styles.getPropertyValue("--surface-alt").trim() || "#f5f5f4";
       const borderMuted =

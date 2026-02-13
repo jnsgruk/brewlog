@@ -2,39 +2,66 @@ customElements.define(
   "image-upload",
   class extends HTMLElement {
     connectedCallback() {
+      this._ac = new AbortController();
+      const { signal } = this._ac;
+
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
       input.hidden = true;
       this.appendChild(input);
 
-      this.addEventListener("click", (e) => {
-        if (e.target !== input) input.click();
-      });
+      this.addEventListener(
+        "click",
+        (e) => {
+          if (e.target !== input) input.click();
+        },
+        { signal },
+      );
 
-      this.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        this.classList.add("border-accent");
-      });
+      this.addEventListener(
+        "dragover",
+        (e) => {
+          e.preventDefault();
+          this.classList.add("border-accent");
+        },
+        { signal },
+      );
 
-      this.addEventListener("dragleave", () => {
-        this.classList.remove("border-accent");
-      });
+      this.addEventListener(
+        "dragleave",
+        () => {
+          this.classList.remove("border-accent");
+        },
+        { signal },
+      );
 
-      this.addEventListener("drop", (e) => {
-        e.preventDefault();
-        this.classList.remove("border-accent");
-        const file = e.dataTransfer?.files[0];
-        if (file && file.type.startsWith("image/")) {
-          this._handleFile(file);
-        }
-      });
+      this.addEventListener(
+        "drop",
+        (e) => {
+          e.preventDefault();
+          this.classList.remove("border-accent");
+          const file = e.dataTransfer?.files[0];
+          if (file && file.type.startsWith("image/")) {
+            this._handleFile(file);
+          }
+        },
+        { signal },
+      );
 
-      input.addEventListener("change", () => {
-        const file = input.files[0];
-        if (file) this._handleFile(file);
-        input.value = "";
-      });
+      input.addEventListener(
+        "change",
+        () => {
+          const file = input.files[0];
+          if (file) this._handleFile(file);
+          input.value = "";
+        },
+        { signal },
+      );
+    }
+
+    disconnectedCallback() {
+      this._ac?.abort();
     }
 
     async _handleFile(file) {
@@ -113,7 +140,7 @@ customElements.define(
       } catch {
         this.innerHTML = originalContent;
         const errEl = document.createElement("p");
-        errEl.className = "text-xs text-red-500 mt-1";
+        errEl.className = "text-xs text-error mt-1";
         errEl.textContent = "Upload failed. Try again.";
         this.parentElement.appendChild(errEl);
         setTimeout(() => errEl.remove(), 3000);

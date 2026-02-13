@@ -4,6 +4,12 @@
 {% import "partials/detail_cards.html" as detail_cards %}
 {% import "partials/forms/quick_notes.html" as quick_notes %}
 {% block title %}Brewlog · Add{% endblock %}
+{% block head %}
+  <script
+    defer
+    src="/static/js/location.js?v={{ version_info.commit }}"
+  ></script>
+{% endblock %}
 
 {% block content %}
   <section
