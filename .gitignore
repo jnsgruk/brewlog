@@ -1,5 +1,6 @@
 # Build artifacts
 target/
+reviews/
 result*
 
 # SQLite database files
