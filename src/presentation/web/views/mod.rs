@@ -20,6 +20,7 @@ pub use timeline::{
     TimelineBrewDataView, TimelineEventDetailView, TimelineEventView, TimelineMonthView,
 };
 
+#[derive(Default)]
 pub struct StatsView {
     pub brews: u64,
     pub roasts: u64,

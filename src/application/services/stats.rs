@@ -68,6 +68,7 @@ pub async fn compute_all_stats(
         roast_counts,
         cup_counts,
         cafe_counts,
+        entity_counts,
     ) = tokio::join!(
         repo.roast_summary(),
         repo.consumption_summary(),
@@ -76,6 +77,7 @@ pub async fn compute_all_stats(
         repo.roast_origin_counts(),
         repo.cup_country_counts(),
         repo.cafe_country_counts(),
+        repo.entity_counts(),
     );
 
     let cached = CachedStats {
@@ -87,6 +89,7 @@ pub async fn compute_all_stats(
         geo_cups: GeoStats::from_counts(cup_counts?),
         geo_cafes: GeoStats::from_counts(cafe_counts?),
         computed_at: chrono::Utc::now().to_rfc3339(),
+        entity_counts: entity_counts?,
     };
 
     info!(duration_ms = start.elapsed().as_millis(), "stats computed");

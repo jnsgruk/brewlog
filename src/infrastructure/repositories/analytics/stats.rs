@@ -4,7 +4,9 @@ use tracing::info;
 
 use crate::domain::RepositoryError;
 use crate::domain::repositories::StatsRepository;
-use crate::domain::stats::{BrewingSummaryStats, CachedStats, ConsumptionStats, RoastSummaryStats};
+use crate::domain::stats::{
+    BrewingSummaryStats, CachedStats, ConsumptionStats, EntityCounts, RoastSummaryStats,
+};
 use crate::infrastructure::database::DatabasePool;
 
 #[derive(Clone)]
@@ -293,6 +295,56 @@ impl StatsRepository for SqlStatsRepository {
             max_grinder_weight,
             brew_time_distribution,
             max_brew_time_count,
+        })
+    }
+
+    async fn entity_counts(&self) -> Result<EntityCounts, RepositoryError> {
+        let (roasters, roasts, bags, brews, cafes, cups) = tokio::try_join!(
+            async {
+                query_scalar::<_, i64>(r"SELECT COUNT(*) FROM roasters")
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            },
+            async {
+                query_scalar::<_, i64>(r"SELECT COUNT(*) FROM roasts")
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            },
+            async {
+                query_scalar::<_, i64>(r"SELECT COUNT(*) FROM bags")
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            },
+            async {
+                query_scalar::<_, i64>(r"SELECT COUNT(*) FROM brews")
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            },
+            async {
+                query_scalar::<_, i64>(r"SELECT COUNT(*) FROM cafes")
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            },
+            async {
+                query_scalar::<_, i64>(r"SELECT COUNT(*) FROM cups")
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(|err| RepositoryError::unexpected(err.to_string()))
+            },
+        )?;
+
+        Ok(EntityCounts {
+            roasters: roasters as u64,
+            roasts: roasts as u64,
+            bags: bags as u64,
+            brews: brews as u64,
+            cafes: cafes as u64,
+            cups: cups as u64,
         })
     }
 

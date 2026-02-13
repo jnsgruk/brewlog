@@ -7,11 +7,7 @@ use crate::application::routes::render_html;
 use crate::application::state::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey};
 use crate::domain::brews::{BrewFilter, BrewSortKey};
-use crate::domain::cafes::CafeSortKey;
-use crate::domain::cups::CupFilter;
 use crate::domain::listing::{ListRequest, PageSize, SortDirection, SortKey};
-use crate::domain::roasters::RoasterSortKey;
-use crate::domain::roasts::RoastSortKey;
 use crate::domain::timeline::TimelineSortKey;
 use rand::seq::SliceRandom;
 
@@ -27,17 +23,35 @@ pub(crate) async fn home_page(
 ) -> Result<Response, StatusCode> {
     let is_authenticated = crate::application::routes::is_authenticated(&state, &cookies).await;
 
-    let (content, stats) =
-        tokio::try_join!(load_home_content(&state), load_stats(&state),).map_err(map_app_error)?;
+    let content = load_home_content(&state).await.map_err(map_app_error)?;
 
-    let stat_cards = state
-        .stats_repo
-        .get_cached()
-        .await
-        .ok()
-        .flatten()
-        .map(build_stat_cards)
-        .unwrap_or_default();
+    let cached = state.stats_repo.get_cached().await.ok().flatten();
+
+    let stats = if let Some(ref cs) = cached {
+        StatsView {
+            brews: cs.entity_counts.brews,
+            roasts: cs.entity_counts.roasts,
+            roasters: cs.entity_counts.roasters,
+            cups: cs.entity_counts.cups,
+            cafes: cs.entity_counts.cafes,
+            bags: cs.entity_counts.bags,
+        }
+    } else {
+        // Fallback: compute counts directly when cache is empty (e.g. first page load)
+        match state.stats_repo.entity_counts().await {
+            Ok(ec) => StatsView {
+                brews: ec.brews,
+                roasts: ec.roasts,
+                roasters: ec.roasters,
+                cups: ec.cups,
+                cafes: ec.cafes,
+                bags: ec.bags,
+            },
+            Err(_) => StatsView::default(),
+        }
+    };
+
+    let stat_cards = cached.map(build_stat_cards).unwrap_or_default();
 
     let template = HomeTemplate {
         nav_active: "home",
@@ -58,13 +72,6 @@ struct HomeContent {
     recent_brews: Vec<BrewView>,
     open_bags: Vec<BagView>,
     recent_events: Vec<TimelineEventView>,
-}
-
-/// Build a `ListRequest` that fetches page 1 with 1 item, using a sort key's
-/// defaults. Used to obtain `Page.total` for entity counts.
-fn count_request<K: SortKey>() -> ListRequest<K> {
-    let key = K::default();
-    ListRequest::new(1, PageSize::limited(1), key, key.default_direction())
 }
 
 async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
@@ -129,69 +136,6 @@ async fn load_home_content(state: &AppState) -> Result<HomeContent, AppError> {
         recent_brews,
         open_bags,
         recent_events,
-    })
-}
-
-async fn load_stats(state: &AppState) -> Result<StatsView, AppError> {
-    let req_roasters: ListRequest<RoasterSortKey> = count_request();
-    let req_roasts: ListRequest<RoastSortKey> = count_request();
-    let req_bags: ListRequest<BagSortKey> = count_request();
-    let req_brews: ListRequest<BrewSortKey> = count_request();
-    let req_cafes: ListRequest<CafeSortKey> = count_request();
-    let req_cups: ListRequest<crate::domain::cups::CupSortKey> = count_request();
-
-    let (roasters, roasts, bags, brews, cafes, cups) = tokio::try_join!(
-        async {
-            state
-                .roaster_repo
-                .list(&req_roasters, None)
-                .await
-                .map_err(AppError::from)
-        },
-        async {
-            state
-                .roast_repo
-                .list(&req_roasts, None)
-                .await
-                .map_err(AppError::from)
-        },
-        async {
-            state
-                .bag_repo
-                .list(BagFilter::all(), &req_bags, None)
-                .await
-                .map_err(AppError::from)
-        },
-        async {
-            state
-                .brew_repo
-                .list(BrewFilter::all(), &req_brews, None)
-                .await
-                .map_err(AppError::from)
-        },
-        async {
-            state
-                .cafe_repo
-                .list(&req_cafes, None)
-                .await
-                .map_err(AppError::from)
-        },
-        async {
-            state
-                .cup_repo
-                .list(CupFilter::all(), &req_cups, None)
-                .await
-                .map_err(AppError::from)
-        },
-    )?;
-
-    Ok(StatsView {
-        brews: brews.total,
-        roasts: roasts.total,
-        roasters: roasters.total,
-        cups: cups.total,
-        cafes: cafes.total,
-        bags: bags.total,
     })
 }
 

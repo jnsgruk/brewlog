@@ -300,6 +300,7 @@ pub trait StatsRepository: Send + Sync {
     async fn brewing_summary(
         &self,
     ) -> Result<crate::domain::stats::BrewingSummaryStats, RepositoryError>;
+    async fn entity_counts(&self) -> Result<crate::domain::stats::EntityCounts, RepositoryError>;
     async fn get_cached(
         &self,
     ) -> Result<Option<crate::domain::stats::CachedStats>, RepositoryError>;

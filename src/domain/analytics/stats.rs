@@ -36,6 +36,17 @@ pub struct BrewingSummaryStats {
     pub max_brew_time_count: u64,
 }
 
+/// Entity counts for the home page.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct EntityCounts {
+    pub roasters: u64,
+    pub roasts: u64,
+    pub bags: u64,
+    pub brews: u64,
+    pub cafes: u64,
+    pub cups: u64,
+}
+
 /// Pre-computed snapshot of all statistics, stored as JSON in the cache table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedStats {
@@ -47,4 +58,6 @@ pub struct CachedStats {
     pub geo_cups: GeoStats,
     pub geo_cafes: GeoStats,
     pub computed_at: String,
+    #[serde(default)]
+    pub entity_counts: EntityCounts,
 }
