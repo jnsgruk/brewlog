@@ -510,3 +510,300 @@ pub(crate) fn build_map_data(entries: &[(&str, u32)]) -> (String, u32) {
 
     (parts.join(","), max)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use chrono::TimeZone;
+
+    use crate::domain::ids::{RoastId, RoasterId};
+    use crate::domain::listing::{DEFAULT_PAGE_SIZE, PageSize};
+    use crate::domain::roasts::Roast;
+
+    // ── StatsView::is_empty ─────────────────────────────────────────
+
+    #[test]
+    fn stats_view_default_is_empty() {
+        assert!(StatsView::default().is_empty());
+    }
+
+    #[test]
+    fn stats_view_any_nonzero_field_is_not_empty() {
+        let with_brews = StatsView {
+            brews: 1,
+            ..Default::default()
+        };
+        assert!(!with_brews.is_empty());
+
+        let with_roasts = StatsView {
+            roasts: 1,
+            ..Default::default()
+        };
+        assert!(!with_roasts.is_empty());
+
+        let with_roasters = StatsView {
+            roasters: 1,
+            ..Default::default()
+        };
+        assert!(!with_roasters.is_empty());
+
+        let with_cups = StatsView {
+            cups: 1,
+            ..Default::default()
+        };
+        assert!(!with_cups.is_empty());
+
+        let with_cafes = StatsView {
+            cafes: 1,
+            ..Default::default()
+        };
+        assert!(!with_cafes.is_empty());
+
+        let with_bags = StatsView {
+            bags: 1,
+            ..Default::default()
+        };
+        assert!(!with_bags.is_empty());
+    }
+
+    // ── format_datetime ─────────────────────────────────────────────
+
+    #[test]
+    fn format_datetime_known_value() {
+        let dt = Utc.with_ymd_and_hms(2024, 3, 15, 14, 30, 0).unwrap();
+        let (date, time) = format_datetime(dt);
+        assert_eq!(date, "2024-03-15");
+        assert_eq!(time, "14:30");
+    }
+
+    // ── Paginated ───────────────────────────────────────────────────
+
+    #[test]
+    fn total_pages_rounds_up() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 25, false);
+        assert_eq!(p.total_pages(), 3);
+    }
+
+    #[test]
+    fn total_pages_zero_total_is_1() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 0, false);
+        assert_eq!(p.total_pages(), 1);
+    }
+
+    #[test]
+    fn total_pages_showing_all_is_1() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 100, true);
+        assert_eq!(p.total_pages(), 1);
+    }
+
+    #[test]
+    fn has_previous_false_on_page_1() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 30, false);
+        assert!(!p.has_previous());
+    }
+
+    #[test]
+    fn has_previous_true_on_page_2() {
+        let p: Paginated<()> = Paginated::new(vec![], 2, 10, 30, false);
+        assert!(p.has_previous());
+    }
+
+    #[test]
+    fn has_next_true_when_not_last_page() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 30, false);
+        assert!(p.has_next());
+    }
+
+    #[test]
+    fn has_next_false_on_last_page() {
+        let p: Paginated<()> = Paginated::new(vec![], 3, 10, 30, false);
+        assert!(!p.has_next());
+    }
+
+    #[test]
+    fn start_end_index_page_1() {
+        let items: Vec<i32> = (1..=10).collect();
+        let p = Paginated::new(items, 1, 10, 25, false);
+        assert_eq!(p.start_index(), 1);
+        assert_eq!(p.end_index(), 10);
+    }
+
+    #[test]
+    fn start_end_index_page_2() {
+        let items: Vec<i32> = (1..=10).collect();
+        let p = Paginated::new(items, 2, 10, 25, false);
+        assert_eq!(p.start_index(), 11);
+        assert_eq!(p.end_index(), 20);
+    }
+
+    #[test]
+    fn start_end_index_empty() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 0, false);
+        assert_eq!(p.start_index(), 0);
+        assert_eq!(p.end_index(), 0);
+    }
+
+    #[test]
+    fn page_size_query_value_showing_all() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 10, 50, true);
+        assert_eq!(p.page_size_query_value(), "all");
+    }
+
+    #[test]
+    fn page_size_query_value_limited() {
+        let p: Paginated<()> = Paginated::new(vec![], 1, 25, 50, false);
+        assert_eq!(p.page_size_query_value(), "25");
+    }
+
+    // ── encode_uri_component ────────────────────────────────────────
+
+    #[test]
+    fn encode_ascii_alphanumeric_passes_through() {
+        assert_eq!(encode_uri_component("abc123XYZ"), "abc123XYZ");
+    }
+
+    #[test]
+    fn encode_spaces_to_percent_20() {
+        assert_eq!(encode_uri_component("hello world"), "hello%20world");
+    }
+
+    #[test]
+    fn encode_special_chars() {
+        assert_eq!(encode_uri_component("&"), "%26");
+        assert_eq!(encode_uri_component("="), "%3D");
+        assert_eq!(encode_uri_component("?"), "%3F");
+        assert_eq!(encode_uri_component("a&b=c?d"), "a%26b%3Dc%3Fd");
+    }
+
+    #[test]
+    fn encode_preserves_unreserved_chars() {
+        assert_eq!(encode_uri_component("-_.~"), "-_.~");
+    }
+
+    // ── page_size_from_text ─────────────────────────────────────────
+
+    #[test]
+    fn page_size_from_text_all() {
+        assert_eq!(page_size_from_text("all"), PageSize::All);
+        assert_eq!(page_size_from_text("ALL"), PageSize::All);
+    }
+
+    #[test]
+    fn page_size_from_text_number() {
+        assert_eq!(page_size_from_text("25"), PageSize::limited(25));
+    }
+
+    #[test]
+    fn page_size_from_text_garbage_returns_default() {
+        assert_eq!(
+            page_size_from_text("garbage"),
+            PageSize::limited(DEFAULT_PAGE_SIZE)
+        );
+    }
+
+    // ── build_map_data ──────────────────────────────────────────────
+
+    #[test]
+    fn build_map_data_single_valid_country() {
+        let entries = vec![("Ethiopia", 1u32)];
+        let (data, max) = build_map_data(&entries);
+        assert_eq!(data, "ET:1");
+        assert_eq!(max, 1);
+    }
+
+    #[test]
+    fn build_map_data_duplicate_keeps_highest_weight() {
+        let entries = vec![("Ethiopia", 1), ("Ethiopia", 3)];
+        let (data, max) = build_map_data(&entries);
+        assert_eq!(data, "ET:3");
+        assert_eq!(max, 3);
+    }
+
+    #[test]
+    fn build_map_data_empty_country_skipped() {
+        let entries = vec![("", 1)];
+        let (data, max) = build_map_data(&entries);
+        assert_eq!(data, "");
+        assert_eq!(max, 0);
+    }
+
+    #[test]
+    fn build_map_data_unknown_country_skipped() {
+        let entries = vec![("Narnia", 1)];
+        let (data, max) = build_map_data(&entries);
+        assert_eq!(data, "");
+        assert_eq!(max, 0);
+    }
+
+    // ── build_coffee_info ───────────────────────────────────────────
+
+    fn make_roast(
+        origin: Option<&str>,
+        region: Option<&str>,
+        producer: Option<&str>,
+        process: Option<&str>,
+        tasting_notes: Vec<&str>,
+    ) -> Roast {
+        Roast {
+            id: RoastId::new(1),
+            roaster_id: RoasterId::new(1),
+            name: "Test Roast".to_string(),
+            slug: "test-roast".to_string(),
+            origin: origin.map(String::from),
+            region: region.map(String::from),
+            producer: producer.map(String::from),
+            tasting_notes: tasting_notes.into_iter().map(String::from).collect(),
+            process: process.map(String::from),
+            created_at: Utc::now(),
+        }
+    }
+
+    #[test]
+    fn build_coffee_info_all_none_shows_em_dashes() {
+        let roast = make_roast(None, None, None, None, vec![]);
+        let info = build_coffee_info(&roast);
+
+        let em_dash = "\u{2014}";
+        assert_eq!(info.origin, em_dash);
+        assert_eq!(info.region, em_dash);
+        assert_eq!(info.producer, em_dash);
+        assert_eq!(info.process, em_dash);
+        assert!(info.tasting_notes.is_empty());
+    }
+
+    #[test]
+    fn build_coffee_info_all_populated_no_em_dashes() {
+        let roast = make_roast(
+            Some("Ethiopia"),
+            Some("Yirgacheffe"),
+            Some("Konga"),
+            Some("Washed"),
+            vec!["Blueberry", "Jasmine"],
+        );
+        let info = build_coffee_info(&roast);
+
+        let em_dash = "\u{2014}";
+        assert_ne!(info.origin, em_dash);
+        assert_ne!(info.region, em_dash);
+        assert_ne!(info.producer, em_dash);
+        assert_ne!(info.process, em_dash);
+        assert_eq!(info.origin, "Ethiopia");
+        assert_eq!(info.region, "Yirgacheffe");
+        assert_eq!(info.producer, "Konga");
+        assert_eq!(info.process, "Washed");
+        assert!(!info.origin_flag.is_empty());
+        assert_eq!(info.tasting_notes.len(), 2);
+    }
+
+    #[test]
+    fn build_coffee_info_comma_separated_tasting_notes_split() {
+        let roast = make_roast(None, None, None, None, vec!["Blueberry, Jasmine, Caramel"]);
+        let info = build_coffee_info(&roast);
+
+        assert_eq!(info.tasting_notes.len(), 3);
+        assert_eq!(info.tasting_notes[0].label, "Blueberry");
+        assert_eq!(info.tasting_notes[1].label, "Jasmine");
+        assert_eq!(info.tasting_notes[2].label, "Caramel");
+    }
+}

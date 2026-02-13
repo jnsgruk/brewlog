@@ -546,4 +546,40 @@ mod tests {
         assert_eq!(levenshtein("same", "same"), 0);
         assert_eq!(levenshtein("smokey", "smoky"), 1);
     }
+
+    // ── parse_and_categorize ───────────────────────────────────────────
+
+    #[test]
+    fn parse_and_categorize_splits_commas() {
+        let notes = vec!["chocolate, caramel".to_string()];
+        let result = parse_and_categorize(&notes);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].label, "chocolate");
+        assert_eq!(result[1].label, "caramel");
+    }
+
+    #[test]
+    fn parse_and_categorize_splits_newlines() {
+        let notes = vec!["chocolate\ncaramel".to_string()];
+        let result = parse_and_categorize(&notes);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].label, "chocolate");
+        assert_eq!(result[1].label, "caramel");
+    }
+
+    #[test]
+    fn parse_and_categorize_filters_empty() {
+        let notes = vec!["chocolate, , caramel".to_string()];
+        let result = parse_and_categorize(&notes);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].label, "chocolate");
+        assert_eq!(result[1].label, "caramel");
+    }
+
+    #[test]
+    fn parse_and_categorize_empty_input() {
+        let notes: Vec<String> = vec![];
+        let result = parse_and_categorize(&notes);
+        assert!(result.is_empty());
+    }
 }

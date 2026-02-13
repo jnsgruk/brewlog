@@ -311,3 +311,77 @@ impl From<BrewWithDetails> for BrewDefaultsView {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn dummy_brew_view(
+        filter_paper_id: Option<i64>,
+        brew_time_raw: Option<i32>,
+        quick_notes_raw: &str,
+    ) -> BrewView {
+        BrewView {
+            id: "1".to_string(),
+            bag_id: 10,
+            roast_name: "Test Roast".to_string(),
+            roaster_name: "Test Roaster".to_string(),
+            roast_slug: "test-roast".to_string(),
+            roaster_slug: "test-roaster".to_string(),
+            coffee_weight: "15.0g".to_string(),
+            grinder_id: 2,
+            grinder_name: "Grinder".to_string(),
+            grinder_model: "Model".to_string(),
+            grind_setting: "6.0".to_string(),
+            brewer_id: 3,
+            brewer_name: "Brewer".to_string(),
+            filter_paper_id,
+            filter_paper_name: filter_paper_id.map(|_| "Filter".to_string()),
+            water_volume: "250ml".to_string(),
+            water_temp: "91.0\u{00B0}C".to_string(),
+            ratio: "1:16.7".to_string(),
+            brew_time: brew_time_raw.map(|_| "2:00".to_string()),
+            quick_notes: vec![],
+            quick_notes_label: String::new(),
+            quick_notes_raw: quick_notes_raw.to_string(),
+            created_date: "2025-01-01".to_string(),
+            created_time: "12:00".to_string(),
+            relative_date_label: "today".to_string(),
+            coffee_weight_raw: 15.0,
+            grind_setting_raw: 6.0,
+            water_volume_raw: 250,
+            water_temp_raw: 91.0,
+            brew_time_raw,
+        }
+    }
+
+    #[test]
+    fn brew_again_url_all_params() {
+        let view = dummy_brew_view(Some(5), Some(120), "good,too-fast");
+        let url = view.brew_again_url();
+
+        assert!(url.starts_with("/add?type=brew&"));
+        assert!(url.contains("bag_id=10"));
+        assert!(url.contains("coffee_weight=15"));
+        assert!(url.contains("grinder_id=2"));
+        assert!(url.contains("grind_setting=6"));
+        assert!(url.contains("brewer_id=3"));
+        assert!(url.contains("water_volume=250"));
+        assert!(url.contains("water_temp=91"));
+        assert!(url.contains("filter_paper_id=5"));
+        assert!(url.contains("brew_time=120"));
+        assert!(url.contains("quick_notes=good,too-fast"));
+    }
+
+    #[test]
+    fn brew_again_url_optional_omitted() {
+        let view = dummy_brew_view(None, None, "");
+        let url = view.brew_again_url();
+
+        assert!(url.starts_with("/add?type=brew&"));
+        assert!(url.contains("bag_id=10"));
+        assert!(!url.contains("filter_paper_id"));
+        assert!(!url.contains("brew_time"));
+        assert!(!url.contains("quick_notes"));
+    }
+}

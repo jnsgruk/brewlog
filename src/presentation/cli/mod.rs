@@ -158,3 +158,45 @@ where
     println!("{rendered}");
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_created_at_rfc3339() {
+        let result = parse_created_at("2025-08-05T10:30:00Z").unwrap();
+        assert_eq!(
+            result,
+            DateTime::parse_from_rfc3339("2025-08-05T10:30:00Z").unwrap()
+        );
+    }
+
+    #[test]
+    fn parse_created_at_yyyy_mm_dd() {
+        let result = parse_created_at("2025-08-05").unwrap();
+        let expected = NaiveDate::from_ymd_opt(2025, 8, 5)
+            .unwrap()
+            .and_time(chrono::NaiveTime::MIN)
+            .and_utc();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_created_at_invalid() {
+        let result = parse_created_at("not-a-date");
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(msg.contains("invalid date format"));
+    }
+
+    #[test]
+    fn parse_created_at_leap_day() {
+        let result = parse_created_at("2024-02-29").unwrap();
+        let expected = NaiveDate::from_ymd_opt(2024, 2, 29)
+            .unwrap()
+            .and_time(chrono::NaiveTime::MIN)
+            .and_utc();
+        assert_eq!(result, expected);
+    }
+}

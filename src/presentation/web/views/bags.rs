@@ -162,3 +162,28 @@ impl From<BagWithRoast> for BagOptionView {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn used_percent_normal() {
+        assert_eq!(used_percent(100.0, 25.0), 75);
+    }
+
+    #[test]
+    fn used_percent_zero_amount() {
+        assert_eq!(used_percent(0.0, 0.0), 0);
+    }
+
+    #[test]
+    fn used_percent_fully_used() {
+        assert_eq!(used_percent(100.0, 0.0), 100);
+    }
+
+    #[test]
+    fn used_percent_over_amount() {
+        assert_eq!(used_percent(100.0, 150.0), 0);
+    }
+}
