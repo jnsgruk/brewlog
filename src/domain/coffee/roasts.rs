@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::Roaster;
@@ -121,7 +122,7 @@ pub fn roast_timeline_event(roast: &Roast, roaster: &Roaster) -> NewTimelineEven
         });
     }
     NewTimelineEvent {
-        entity_type: "roast".to_string(),
+        entity_type: EntityType::Roast,
         entity_id: roast.id.into_inner(),
         action: "added".to_string(),
         occurred_at: roast.created_at,

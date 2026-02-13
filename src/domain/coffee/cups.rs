@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{CafeId, CupId, RoastId};
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
@@ -30,7 +31,7 @@ pub struct CupWithDetails {
 impl CupWithDetails {
     pub fn to_timeline_event(&self) -> NewTimelineEvent {
         NewTimelineEvent {
-            entity_type: "cup".to_string(),
+            entity_type: EntityType::Cup,
             entity_id: self.cup.id.into_inner(),
             action: "added".to_string(),
             occurred_at: self.cup.created_at,

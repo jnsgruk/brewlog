@@ -3,6 +3,7 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineBrewData, TimelineEventDetail};
@@ -184,7 +185,7 @@ impl BrewWithDetails {
         }
 
         NewTimelineEvent {
-            entity_type: "brew".to_string(),
+            entity_type: EntityType::Brew,
             entity_id: self.brew.id.into_inner(),
             action: "brewed".to_string(),
             occurred_at: self.brew.created_at,
@@ -194,10 +195,10 @@ impl BrewWithDetails {
             slug: Some(self.roast_slug.clone()),
             roaster_slug: Some(self.roaster_slug.clone()),
             brew_data: Some(TimelineBrewData {
-                bag_id: self.brew.bag_id.into_inner(),
-                grinder_id: self.brew.grinder_id.into_inner(),
-                brewer_id: self.brew.brewer_id.into_inner(),
-                filter_paper_id: self.brew.filter_paper_id.map(GearId::into_inner),
+                bag_id: self.brew.bag_id,
+                grinder_id: self.brew.grinder_id,
+                brewer_id: self.brew.brewer_id,
+                filter_paper_id: self.brew.filter_paper_id,
                 coffee_weight: self.brew.coffee_weight,
                 grind_setting: self.brew.grind_setting,
                 water_volume: self.brew.water_volume,

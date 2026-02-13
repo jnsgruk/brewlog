@@ -9,6 +9,7 @@ use crate::application::routes::api::brews::load_brew_form_data;
 use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::BrewId;
 use crate::presentation::web::templates::{BrewDetailTemplate, BrewEditTemplate};
 use crate::presentation::web::views::BrewDetailView;
@@ -35,7 +36,9 @@ pub(crate) async fn brew_detail_page(
                 .await
                 .map_err(|e| map_app_error(e.into()))
         },
-        async { Ok::<_, StatusCode>(resolve_image_url(&state, "brew", i64::from(id)).await) },
+        async {
+            Ok::<_, StatusCode>(resolve_image_url(&state, EntityType::Brew, i64::from(id)).await)
+        },
     )?;
 
     let (roast, roast_image_url) = tokio::try_join!(
@@ -47,7 +50,9 @@ pub(crate) async fn brew_detail_page(
                 .map_err(|e| map_app_error(e.into()))
         },
         async {
-            Ok::<_, StatusCode>(resolve_image_url(&state, "roast", i64::from(bag.roast_id)).await)
+            Ok::<_, StatusCode>(
+                resolve_image_url(&state, EntityType::Roast, i64::from(bag.roast_id)).await,
+            )
         },
     )?;
 
@@ -90,7 +95,7 @@ pub(crate) async fn brew_edit_page(
 
     let form_data = load_brew_form_data(&state).await.map_err(map_app_error)?;
 
-    let image_url = resolve_image_url(&state, "brew", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Brew, i64::from(id)).await;
 
     let template = BrewEditTemplate {
         nav_active: "",

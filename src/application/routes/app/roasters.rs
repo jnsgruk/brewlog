@@ -8,6 +8,7 @@ use crate::application::errors::map_app_error;
 use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::RoasterId;
 use crate::presentation::web::templates::{RoasterDetailTemplate, RoasterEditTemplate};
 use crate::presentation::web::views::RoasterDetailView;
@@ -26,7 +27,7 @@ pub(crate) async fn roaster_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "roaster", i64::from(roaster.id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Roaster, i64::from(roaster.id)).await;
     let edit_url = format!("/roasters/{}/edit", roaster.id);
 
     let view = RoasterDetailView::from_domain(roaster);
@@ -56,7 +57,7 @@ pub(crate) async fn roaster_edit_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "roaster", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Roaster, i64::from(id)).await;
 
     let template = RoasterEditTemplate {
         nav_active: "",

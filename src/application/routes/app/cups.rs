@@ -9,6 +9,7 @@ use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::routes::support::{load_cafe_options, load_roast_options};
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::CupId;
 use crate::presentation::web::templates::{CupDetailTemplate, CupEditTemplate};
 use crate::presentation::web::views::CupDetailView;
@@ -50,10 +51,10 @@ pub(crate) async fn cup_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "cup", i64::from(id))
+    let image_url = resolve_image_url(&state, EntityType::Cup, i64::from(id))
         .await
-        .or(resolve_image_url(&state, "cafe", i64::from(cafe.id)).await)
-        .or(resolve_image_url(&state, "roast", i64::from(roast.id)).await);
+        .or(resolve_image_url(&state, EntityType::Cafe, i64::from(cafe.id)).await)
+        .or(resolve_image_url(&state, EntityType::Roast, i64::from(roast.id)).await);
 
     let view = CupDetailView::from_parts(cup_details, &roast, &roaster, &cafe);
 
@@ -91,7 +92,7 @@ pub(crate) async fn cup_edit_page(
         },)
         .map_err(map_app_error)?;
 
-    let image_url = resolve_image_url(&state, "cup", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Cup, i64::from(id)).await;
 
     let template = CupEditTemplate {
         nav_active: "",

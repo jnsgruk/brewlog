@@ -12,6 +12,7 @@ use crate::application::routes::api::roasts::TastingNotesInput;
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request};
 use crate::application::state::AppState;
 use crate::domain::bags::NewBag;
+use crate::domain::entity_type::EntityType;
 use crate::domain::errors::RepositoryError;
 use crate::domain::ids::RoastId;
 use crate::domain::images::ImageData;
@@ -366,7 +367,7 @@ pub(crate) async fn submit_scan(
 
     save_deferred_image(
         &state,
-        "roast",
+        EntityType::Roast,
         roast.id.into_inner(),
         scan_image.as_deref(),
     )
@@ -434,11 +435,17 @@ async fn submit_existing_roast(
     let roaster_slug = &roast_with_roaster.roaster_slug;
 
     // Save scan image if roast doesn't have one yet
-    if resolve_image_url(state, "roast", roast.id.into_inner())
+    if resolve_image_url(state, EntityType::Roast, roast.id.into_inner())
         .await
         .is_none()
     {
-        save_deferred_image(state, "roast", roast.id.into_inner(), scan_image.as_deref()).await;
+        save_deferred_image(
+            state,
+            EntityType::Roast,
+            roast.id.into_inner(),
+            scan_image.as_deref(),
+        )
+        .await;
     }
 
     let wants_bag = submission

@@ -1,4 +1,5 @@
 use crate::domain::RepositoryError;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::TimelineEventId;
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::TimelineEventRepository;
@@ -50,7 +51,7 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
             })?;
 
         let record = sqlx::query_as::<_, TimelineEventRecord>(query)
-            .bind(event.entity_type)
+            .bind(event.entity_type.as_str())
             .bind(event.entity_id)
             .bind(event.action)
             .bind(event.occurred_at)
@@ -145,9 +146,13 @@ impl TimelineEventRecord {
             _ => None,
         };
 
+        let entity_type: EntityType = self.entity_type.parse().map_err(|()| {
+            RepositoryError::unexpected(format!("unknown entity type: {}", self.entity_type))
+        })?;
+
         Ok(TimelineEvent {
             id: TimelineEventId::from(self.id),
-            entity_type: self.entity_type,
+            entity_type,
             entity_id: self.entity_id,
             action: self.action,
             occurred_at: self.occurred_at,

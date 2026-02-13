@@ -17,6 +17,7 @@ use crate::application::routes::support::{
 };
 use crate::application::state::AppState;
 use crate::domain::cafes::{Cafe, CafeSortKey, NewCafe, UpdateCafe};
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::CafeId;
 use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
@@ -113,7 +114,7 @@ pub(crate) async fn create_cafe(
 
     save_deferred_image(
         &state,
-        "cafe",
+        EntityType::Cafe,
         i64::from(cafe.id),
         image_data_url.as_deref(),
     )
@@ -206,7 +207,7 @@ pub(crate) async fn update_cafe(
 
     save_deferred_image(
         &state,
-        "cafe",
+        EntityType::Cafe,
         i64::from(cafe.id),
         image_data_url.as_deref(),
     )
@@ -224,7 +225,7 @@ define_delete_handler!(
     render_cafe_list_fragment,
     "type=cafes",
     "/data?type=cafes",
-    image_type: "cafe"
+    image_type: crate::domain::entity_type::EntityType::Cafe
 );
 
 define_list_fragment_renderer!(

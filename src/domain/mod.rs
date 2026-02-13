@@ -2,6 +2,7 @@ pub mod analytics;
 pub mod auth;
 pub mod coffee;
 pub mod countries;
+pub mod entity_type;
 pub mod errors;
 pub mod formatting;
 pub mod ids;

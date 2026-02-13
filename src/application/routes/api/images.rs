@@ -9,11 +9,10 @@ use crate::application::auth::AuthenticatedUser;
 use crate::application::errors::{ApiError, AppError};
 use crate::application::routes::support::{FlexiblePayload, is_datastar_request, render_fragment};
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::images::EntityImage;
 use crate::infrastructure::image_processing::process_data_url;
 use crate::presentation::web::templates::ImageUploadTemplate;
-
-const VALID_ENTITY_TYPES: &[&str] = &["roaster", "roast", "gear", "cafe", "brew", "cup"];
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ImageUpload {
@@ -26,66 +25,68 @@ pub(crate) struct ImagePath {
     pub id: i64,
 }
 
-fn validate_entity_type(entity_type: &str) -> Result<(), ApiError> {
-    if VALID_ENTITY_TYPES.contains(&entity_type) {
-        Ok(())
-    } else {
-        Err(AppError::validation(format!("invalid entity type: {entity_type}")).into())
-    }
+fn parse_entity_type(entity_type: &str) -> Result<EntityType, ApiError> {
+    entity_type
+        .parse::<EntityType>()
+        .map_err(|()| AppError::validation(format!("invalid entity type: {entity_type}")).into())
 }
 
 async fn validate_entity_exists(
     state: &AppState,
-    entity_type: &str,
+    entity_type: EntityType,
     id: i64,
 ) -> Result<(), ApiError> {
-    use crate::domain::ids::{BrewId, CafeId, CupId, GearId, RoastId, RoasterId};
+    use crate::domain::ids::{BagId, BrewId, CafeId, CupId, GearId, RoastId, RoasterId};
 
     match entity_type {
-        "roaster" => {
+        EntityType::Roaster => {
             state
                 .roaster_repo
                 .get(RoasterId::from(id))
                 .await
                 .map_err(AppError::from)?;
         }
-        "roast" => {
+        EntityType::Roast => {
             state
                 .roast_repo
                 .get(RoastId::from(id))
                 .await
                 .map_err(AppError::from)?;
         }
-        "gear" => {
+        EntityType::Gear => {
             state
                 .gear_repo
                 .get(GearId::from(id))
                 .await
                 .map_err(AppError::from)?;
         }
-        "cafe" => {
+        EntityType::Cafe => {
             state
                 .cafe_repo
                 .get(CafeId::from(id))
                 .await
                 .map_err(AppError::from)?;
         }
-        "brew" => {
+        EntityType::Brew => {
             state
                 .brew_repo
                 .get(BrewId::from(id))
                 .await
                 .map_err(AppError::from)?;
         }
-        "cup" => {
+        EntityType::Cup => {
             state
                 .cup_repo
                 .get(CupId::from(id))
                 .await
                 .map_err(AppError::from)?;
         }
-        _ => {
-            return Err(AppError::validation(format!("invalid entity type: {entity_type}")).into());
+        EntityType::Bag => {
+            state
+                .bag_repo
+                .get(BagId::from(id))
+                .await
+                .map_err(AppError::from)?;
         }
     }
 
@@ -100,8 +101,8 @@ pub(crate) async fn upload_image(
     Path(path): Path<ImagePath>,
     payload: FlexiblePayload<ImageUpload>,
 ) -> Result<Response, ApiError> {
-    validate_entity_type(&path.entity_type)?;
-    validate_entity_exists(&state, &path.entity_type, path.id).await?;
+    let entity_type = parse_entity_type(&path.entity_type)?;
+    validate_entity_exists(&state, entity_type, path.id).await?;
 
     let (upload, _source) = payload.into_parts();
 
@@ -118,7 +119,7 @@ pub(crate) async fn upload_image(
         .map_err(|e| AppError::validation(format!("invalid image: {e}")))?;
 
     let image = EntityImage {
-        entity_type: path.entity_type.clone(),
+        entity_type,
         entity_id: path.id,
         content_type: processed.content_type,
         image_data: processed.image_data,
@@ -155,11 +156,11 @@ pub(crate) async fn get_image(
     State(state): State<AppState>,
     Path(path): Path<ImagePath>,
 ) -> Result<Response, ApiError> {
-    validate_entity_type(&path.entity_type)?;
+    let entity_type = parse_entity_type(&path.entity_type)?;
 
     let image = state
         .image_repo
-        .get(&path.entity_type, path.id)
+        .get(entity_type, path.id)
         .await
         .map_err(AppError::from)?;
 
@@ -171,11 +172,11 @@ pub(crate) async fn get_thumbnail(
     State(state): State<AppState>,
     Path(path): Path<ImagePath>,
 ) -> Result<Response, ApiError> {
-    validate_entity_type(&path.entity_type)?;
+    let entity_type = parse_entity_type(&path.entity_type)?;
 
     let image = state
         .image_repo
-        .get_thumbnail(&path.entity_type, path.id)
+        .get_thumbnail(entity_type, path.id)
         .await
         .map_err(AppError::from)?;
 
@@ -189,11 +190,11 @@ pub(crate) async fn delete_image(
     headers: HeaderMap,
     Path(path): Path<ImagePath>,
 ) -> Result<Response, ApiError> {
-    validate_entity_type(&path.entity_type)?;
+    let entity_type = parse_entity_type(&path.entity_type)?;
 
     state
         .image_repo
-        .delete(&path.entity_type, path.id)
+        .delete(entity_type, path.id)
         .await
         .map_err(AppError::from)?;
 
@@ -218,7 +219,7 @@ pub(crate) async fn delete_image(
 /// Check if an entity has an image and return its URL if so.
 pub(crate) async fn resolve_image_url(
     state: &AppState,
-    entity_type: &str,
+    entity_type: EntityType,
     entity_id: i64,
 ) -> Option<String> {
     state
@@ -234,16 +235,17 @@ pub(crate) async fn resolve_image_url(
 /// Accepts `Option<&str>` and no-ops on `None` or empty strings.
 pub(crate) async fn save_deferred_image(
     state: &AppState,
-    entity_type: &str,
+    entity_type: EntityType,
     entity_id: i64,
     data_url: Option<&str>,
 ) {
     let Some(data_url) = data_url.filter(|s| !s.is_empty()) else {
         return;
     };
+    let entity_type_str = entity_type.as_str();
     let Ok(_permit) = state.image_semaphore.acquire().await else {
         tracing::warn!(
-            entity_type,
+            entity_type = entity_type_str,
             entity_id,
             "image semaphore closed, skipping deferred image"
         );
@@ -254,25 +256,28 @@ pub(crate) async fn save_deferred_image(
     let processed = match tokio::task::spawn_blocking(move || process_data_url(&data_url)).await {
         Ok(Ok(p)) => p,
         Ok(Err(err)) => {
-            tracing::warn!(entity_type, entity_id, error = %err, "failed to process deferred image");
+            tracing::warn!(entity_type = entity_type_str, entity_id, error = %err, "failed to process deferred image");
             return;
         }
         Err(err) => {
-            tracing::warn!(entity_type, entity_id, error = %err, "deferred image task panicked");
+            tracing::warn!(entity_type = entity_type_str, entity_id, error = %err, "deferred image task panicked");
             return;
         }
     };
     let image = EntityImage {
-        entity_type: entity_type.to_string(),
+        entity_type,
         entity_id,
         content_type: processed.content_type,
         image_data: processed.image_data,
         thumbnail_data: processed.thumbnail_data,
     };
     if let Err(err) = state.image_repo.upsert(image).await {
-        tracing::warn!(entity_type, entity_id, error = %err, "failed to save deferred image");
+        tracing::warn!(entity_type = entity_type_str, entity_id, error = %err, "failed to save deferred image");
     } else {
-        info!(entity_type, entity_id, "deferred image saved");
+        info!(
+            entity_type = entity_type_str,
+            entity_id, "deferred image saved"
+        );
     }
 }
 

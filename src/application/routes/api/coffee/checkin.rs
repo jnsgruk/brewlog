@@ -13,6 +13,7 @@ use crate::application::routes::support::{
 use crate::application::state::AppState;
 use crate::domain::cafes::NewCafe;
 use crate::domain::cups::NewCup;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{CafeId, RoastId};
 use crate::domain::images::ImageData;
 
@@ -85,7 +86,7 @@ pub(crate) async fn submit_checkin(
 
         save_deferred_image(
             &state,
-            "cafe",
+            EntityType::Cafe,
             i64::from(cafe.id),
             submission.cafe_image.as_deref(),
         )
@@ -108,7 +109,7 @@ pub(crate) async fn submit_checkin(
 
     save_deferred_image(
         &state,
-        "cup",
+        EntityType::Cup,
         i64::from(cup.id),
         submission.cup_image.as_deref(),
     )

@@ -20,6 +20,7 @@ use crate::application::routes::support::{
     update_response, validate_update,
 };
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::gear::{Gear, GearCategory, GearFilter, GearSortKey, NewGear, UpdateGear};
 use crate::domain::ids::GearId;
 use crate::domain::images::ImageData;
@@ -75,7 +76,7 @@ pub(crate) async fn create_gear(
 
     save_deferred_image(
         &state,
-        "gear",
+        EntityType::Gear,
         i64::from(gear.id),
         image_data_url.as_deref(),
     )
@@ -176,7 +177,7 @@ pub(crate) async fn update_gear(
 
     save_deferred_image(
         &state,
-        "gear",
+        EntityType::Gear,
         i64::from(gear.id),
         image_data_url.as_deref(),
     )
@@ -194,7 +195,7 @@ define_delete_handler!(
     render_gear_list_fragment,
     "type=gear",
     "/data?type=gear",
-    image_type: "gear"
+    image_type: crate::domain::entity_type::EntityType::Gear
 );
 
 #[derive(Debug, Deserialize)]

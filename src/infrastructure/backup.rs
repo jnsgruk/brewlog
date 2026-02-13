@@ -9,6 +9,7 @@ use crate::domain::bags::Bag;
 use crate::domain::brews::{Brew, QuickNote};
 use crate::domain::cafes::Cafe;
 use crate::domain::cups::Cup;
+use crate::domain::entity_type::EntityType;
 use crate::domain::gear::{Gear, GearCategory};
 use crate::domain::ids::{
     BagId, BrewId, CafeId, CupId, GearId, RoastId, RoasterId, TimelineEventId,
@@ -549,7 +550,7 @@ impl BackupService {
                 "INSERT INTO timeline_events (id, entity_type, entity_id, action, occurred_at, title, details_json, tasting_notes_json, slug, roaster_slug, brew_data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
             .bind(i64::from(event.id))
-            .bind(&event.entity_type)
+            .bind(event.entity_type.as_str())
             .bind(event.entity_id)
             .bind(&event.action)
             .bind(event.occurred_at)
@@ -823,9 +824,14 @@ impl TimelineEventRecord {
         let tasting_notes = decode_json_vec(self.tasting_notes_json, "timeline tasting notes")?;
         let brew_data = decode_json_opt(self.brew_data_json, "timeline brew data")?;
 
+        let entity_type: EntityType = self
+            .entity_type
+            .parse()
+            .map_err(|()| anyhow::anyhow!("unknown entity type: {}", self.entity_type))?;
+
         Ok(TimelineEvent {
             id: TimelineEventId::from(self.id),
-            entity_type: self.entity_type,
+            entity_type,
             entity_id: self.entity_id,
             action: self.action,
             occurred_at: self.occurred_at,

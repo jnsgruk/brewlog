@@ -19,6 +19,7 @@ use crate::domain::bags::BagFilter;
 use crate::domain::brews::{
     BrewFilter, BrewSortKey, BrewWithDetails, NewBrew, QuickNote, UpdateBrew,
 };
+use crate::domain::entity_type::EntityType;
 use crate::domain::gear::{GearCategory, GearFilter, GearSortKey};
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::images::ImageData;
@@ -267,7 +268,7 @@ pub(crate) async fn create_brew(
 
     save_deferred_image(
         &state,
-        "brew",
+        EntityType::Brew,
         i64::from(enriched.brew.id),
         image_data_url.as_deref(),
     )
@@ -417,7 +418,13 @@ pub(crate) async fn update_brew(
     info!(%id, "brew updated");
     state.stats_invalidator.invalidate();
 
-    save_deferred_image(&state, "brew", i64::from(id), image_data_url.as_deref()).await;
+    save_deferred_image(
+        &state,
+        EntityType::Brew,
+        i64::from(id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/brews/{id}");
     let enriched = state
@@ -442,7 +449,7 @@ define_delete_handler!(
     render_brew_list_fragment,
     "type=brews",
     "/data?type=brews",
-    image_type: "brew"
+    image_type: crate::domain::entity_type::EntityType::Brew
 );
 
 async fn render_brew_list_fragment(

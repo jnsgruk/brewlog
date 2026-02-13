@@ -18,6 +18,7 @@ use crate::application::routes::support::{
 };
 use crate::application::state::AppState;
 use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{CafeId, CupId, RoastId};
 use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
@@ -143,7 +144,13 @@ pub(crate) async fn update_cup(
     info!(%id, "cup updated");
     state.stats_invalidator.invalidate();
 
-    save_deferred_image(&state, "cup", i64::from(cup.id), image_data_url.as_deref()).await;
+    save_deferred_image(
+        &state,
+        EntityType::Cup,
+        i64::from(cup.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let detail_url = format!("/cups/{id}");
     let enriched = state
@@ -168,7 +175,7 @@ define_delete_handler!(
     render_cup_list_fragment,
     "type=cups",
     "/data?type=cups",
-    image_type: "cup"
+    image_type: crate::domain::entity_type::EntityType::Cup
 );
 
 define_list_fragment_renderer!(

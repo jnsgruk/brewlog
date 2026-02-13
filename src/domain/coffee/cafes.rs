@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::normalize_optional_field;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::is_valid_url_scheme;
@@ -24,7 +25,7 @@ pub struct Cafe {
 impl Cafe {
     pub fn to_timeline_event(&self) -> NewTimelineEvent {
         NewTimelineEvent {
-            entity_type: "cafe".to_string(),
+            entity_type: EntityType::Cafe,
             entity_id: self.id.into_inner(),
             action: "added".to_string(),
             occurred_at: self.created_at,

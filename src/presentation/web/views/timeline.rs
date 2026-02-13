@@ -1,4 +1,5 @@
 use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::entity_type::EntityType;
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
 use super::relative_date;
@@ -84,45 +85,46 @@ impl TimelineEventView {
             brew_data,
         } = event;
 
-        let kind_label = match (entity_type.as_str(), action.as_str()) {
-            ("roaster", "added") => "Roaster Added",
-            ("roast", "added") => "Roast Added",
-            ("bag", "added") => "Bag Added",
-            ("bag", "finished") => "Bag Finished",
-            ("gear", "added") => "Gear Added",
-            ("brew", "brewed") => "Brew Added",
-            ("cafe", "added") => "Cafe Added",
-            ("cup", "added") => "Cup Added",
+        let entity_type_str = entity_type.as_str();
+
+        let kind_label = match (entity_type, action.as_str()) {
+            (EntityType::Roaster, "added") => "Roaster Added",
+            (EntityType::Roast, "added") => "Roast Added",
+            (EntityType::Bag, "added") => "Bag Added",
+            (EntityType::Bag, "finished") => "Bag Finished",
+            (EntityType::Gear, "added") => "Gear Added",
+            (EntityType::Brew, "brewed") => "Brew Added",
+            (EntityType::Cafe, "added") => "Cafe Added",
+            (EntityType::Cup, "added") => "Cup Added",
             _ => "Event",
         };
 
-        let link = match entity_type.as_str() {
-            "brew" => format!("/brews/{entity_id}"),
-            "cup" => format!("/cups/{entity_id}"),
-            "bag" => format!("/bags/{entity_id}"),
-            "gear" => format!("/gear/{entity_id}"),
-            "roaster" => slug.as_deref().map_or_else(
+        let link = match entity_type {
+            EntityType::Brew => format!("/brews/{entity_id}"),
+            EntityType::Cup => format!("/cups/{entity_id}"),
+            EntityType::Bag => format!("/bags/{entity_id}"),
+            EntityType::Gear => format!("/gear/{entity_id}"),
+            EntityType::Roaster => slug.as_deref().map_or_else(
                 || "/data?type=roasters".to_string(),
                 |s| format!("/roasters/{s}"),
             ),
-            "cafe" => slug
+            EntityType::Cafe => slug
                 .as_deref()
                 .map_or_else(|| "/data?type=cafes".to_string(), |s| format!("/cafes/{s}")),
-            "roast" => match (roaster_slug.as_deref(), slug.as_deref()) {
+            EntityType::Roast => match (roaster_slug.as_deref(), slug.as_deref()) {
                 (Some(rs), Some(s)) => format!("/roasters/{rs}/roasts/{s}"),
                 _ => "/data?type=roasts".to_string(),
             },
-            _ => String::from("#"),
         };
 
         let (mut mapped_details, external_link) = Self::map_details(details);
 
         // Build subtitle before adding flags so it stays clean text.
-        let subtitle = Self::build_subtitle(entity_type.as_str(), &mapped_details);
+        let subtitle = Self::build_subtitle(entity_type_str, &mapped_details);
 
         Self::add_country_flags(&mut mapped_details);
 
-        let tasting_notes = if entity_type == "roast" {
+        let tasting_notes = if entity_type == EntityType::Roast {
             let notes = tasting_notes
                 .into_iter()
                 .flat_map(|note| {
@@ -139,10 +141,12 @@ impl TimelineEventView {
         };
 
         let brew_data_view = brew_data.map(|bd| TimelineBrewDataView {
-            bag_id: bd.bag_id,
-            grinder_id: bd.grinder_id,
-            brewer_id: bd.brewer_id,
-            filter_paper_id: bd.filter_paper_id,
+            bag_id: bd.bag_id.into_inner(),
+            grinder_id: bd.grinder_id.into_inner(),
+            brewer_id: bd.brewer_id.into_inner(),
+            filter_paper_id: bd
+                .filter_paper_id
+                .map(crate::domain::ids::GearId::into_inner),
             coffee_weight: bd.coffee_weight,
             grind_setting: bd.grind_setting,
             water_volume: bd.water_volume,
@@ -152,7 +156,7 @@ impl TimelineEventView {
 
         Self {
             id: id.to_string(),
-            entity_type,
+            entity_type: entity_type_str.to_string(),
             kind_label,
             date_label: occurred_at.format("%b %d, %y").to_string(),
             relative_date_label: relative_date(occurred_at),

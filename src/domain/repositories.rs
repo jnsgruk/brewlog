@@ -1,5 +1,6 @@
 use super::RepositoryError;
 use crate::domain::ai_usage::{AiUsage, AiUsageSummary, NewAiUsage};
+use crate::domain::entity_type::EntityType;
 use crate::domain::listing::{ListRequest, Page, SortDirection, SortKey};
 
 use crate::domain::bags::{Bag, BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
@@ -275,14 +276,22 @@ pub trait AiUsageRepository: Send + Sync {
 #[async_trait]
 pub trait ImageRepository: Send + Sync {
     async fn upsert(&self, image: EntityImage) -> Result<(), RepositoryError>;
-    async fn get(&self, entity_type: &str, entity_id: i64) -> Result<EntityImage, RepositoryError>;
-    async fn get_thumbnail(
+    async fn get(
         &self,
-        entity_type: &str,
+        entity_type: EntityType,
         entity_id: i64,
     ) -> Result<EntityImage, RepositoryError>;
-    async fn delete(&self, entity_type: &str, entity_id: i64) -> Result<(), RepositoryError>;
-    async fn has_image(&self, entity_type: &str, entity_id: i64) -> Result<bool, RepositoryError>;
+    async fn get_thumbnail(
+        &self,
+        entity_type: EntityType,
+        entity_id: i64,
+    ) -> Result<EntityImage, RepositoryError>;
+    async fn delete(&self, entity_type: EntityType, entity_id: i64) -> Result<(), RepositoryError>;
+    async fn has_image(
+        &self,
+        entity_type: EntityType,
+        entity_id: i64,
+    ) -> Result<bool, RepositoryError>;
 }
 
 #[async_trait]

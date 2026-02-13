@@ -8,6 +8,7 @@ use crate::application::errors::map_app_error;
 use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::CafeId;
 use crate::presentation::web::templates::{CafeDetailTemplate, CafeEditTemplate};
 use crate::presentation::web::views::CafeDetailView;
@@ -26,7 +27,7 @@ pub(crate) async fn cafe_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "cafe", i64::from(cafe.id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Cafe, i64::from(cafe.id)).await;
     let edit_url = format!("/cafes/{}/edit", cafe.id);
 
     let view = CafeDetailView::from_domain(cafe);
@@ -56,7 +57,7 @@ pub(crate) async fn cafe_edit_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "cafe", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Cafe, i64::from(id)).await;
 
     let template = CafeEditTemplate {
         nav_active: "",

@@ -8,6 +8,7 @@ use crate::application::errors::map_app_error;
 use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::GearId;
 use crate::presentation::web::templates::{GearDetailTemplate, GearEditTemplate};
 use crate::presentation::web::views::GearDetailView;
@@ -26,7 +27,7 @@ pub(crate) async fn gear_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "gear", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Gear, i64::from(id)).await;
 
     let view = GearDetailView::from_domain(gear);
 
@@ -55,7 +56,7 @@ pub(crate) async fn gear_edit_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "gear", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Gear, i64::from(id)).await;
 
     let template = GearEditTemplate {
         nav_active: "",

@@ -16,6 +16,7 @@ use crate::application::routes::support::{
     render_redirect_script, update_response, validate_update,
 };
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{RoastId, RoasterId};
 use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
@@ -79,7 +80,7 @@ pub(crate) async fn create_roast(
 
     save_deferred_image(
         &state,
-        "roast",
+        EntityType::Roast,
         i64::from(roast.id),
         image_data_url.as_deref(),
     )
@@ -174,7 +175,7 @@ define_delete_handler!(
     render_roast_list_fragment,
     "type=roasts",
     "/data?type=roasts",
-    image_type: "roast"
+    image_type: crate::domain::entity_type::EntityType::Roast
 );
 
 #[derive(Debug, Deserialize)]
@@ -249,7 +250,13 @@ pub(crate) async fn update_roast(
     info!(%id, "roast updated");
     state.stats_invalidator.invalidate();
 
-    save_deferred_image(&state, "roast", i64::from(id), image_data_url.as_deref()).await;
+    save_deferred_image(
+        &state,
+        EntityType::Roast,
+        i64::from(id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     let enriched = state
         .roast_repo

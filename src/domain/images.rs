@@ -2,9 +2,11 @@ use std::fmt;
 
 use serde::Deserialize;
 
+use crate::domain::entity_type::EntityType;
+
 /// An image associated with an entity (roaster, roast, gear, or cafe).
 pub struct EntityImage {
-    pub entity_type: String,
+    pub entity_type: EntityType,
     pub entity_id: i64,
     pub content_type: String,
     pub image_data: Vec<u8>,

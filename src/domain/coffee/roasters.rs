@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::normalize_optional_field;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::RoasterId;
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
@@ -66,7 +67,7 @@ impl Roaster {
             });
         }
         NewTimelineEvent {
-            entity_type: "roaster".to_string(),
+            entity_type: EntityType::Roaster,
             entity_id: self.id.into_inner(),
             action: "added".to_string(),
             occurred_at: self.created_at,

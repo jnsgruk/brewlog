@@ -9,6 +9,7 @@ use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::routes::support::load_roaster_options;
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::RoastId;
 use crate::presentation::web::templates::{RoastDetailTemplate, RoastEditTemplate};
 use crate::presentation::web::views::RoastDetailView;
@@ -33,7 +34,7 @@ pub(crate) async fn roast_detail_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
-    let image_url = resolve_image_url(&state, "roast", i64::from(roast.id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Roast, i64::from(roast.id)).await;
     let edit_url = format!("/roasts/{}/edit", roast.id);
 
     let view = RoastDetailView::from_parts(roast, &roaster);
@@ -72,7 +73,7 @@ pub(crate) async fn roast_edit_page(
 
     let roaster_options = load_roaster_options(&state).await.map_err(map_app_error)?;
 
-    let image_url = resolve_image_url(&state, "roast", i64::from(id)).await;
+    let image_url = resolve_image_url(&state, EntityType::Roast, i64::from(id)).await;
 
     let template = RoastEditTemplate {
         nav_active: "",

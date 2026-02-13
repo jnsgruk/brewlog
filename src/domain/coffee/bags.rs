@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::listing::{SortDirection, SortKey};
 use crate::domain::roasters::Roaster;
@@ -148,7 +149,7 @@ pub fn bag_timeline_event(
     roaster: &Roaster,
 ) -> NewTimelineEvent {
     NewTimelineEvent {
-        entity_type: "bag".to_string(),
+        entity_type: EntityType::Bag,
         entity_id: bag.id.into_inner(),
         action: action.to_string(),
         occurred_at: bag.created_at,

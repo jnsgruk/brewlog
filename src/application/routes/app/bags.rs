@@ -9,6 +9,7 @@ use crate::application::routes::api::images::resolve_image_url;
 use crate::application::routes::render_html;
 use crate::application::routes::support::load_roast_options;
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::BagId;
 use crate::presentation::web::templates::{BagDetailTemplate, BagEditTemplate};
 use crate::presentation::web::views::BagDetailView;
@@ -37,7 +38,7 @@ pub(crate) async fn bag_detail_page(
         },
         async {
             Ok::<_, StatusCode>(
-                resolve_image_url(&state, "roast", i64::from(bag.bag.roast_id)).await,
+                resolve_image_url(&state, EntityType::Roast, i64::from(bag.bag.roast_id)).await,
             )
         },
     )?;

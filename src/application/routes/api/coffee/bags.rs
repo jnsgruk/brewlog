@@ -16,6 +16,7 @@ use crate::application::routes::support::{
 };
 use crate::application::state::AppState;
 use crate::domain::bags::{BagFilter, BagSortKey, BagWithRoast, NewBag, UpdateBag};
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::{BagId, RoastId};
 use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
@@ -221,7 +222,13 @@ pub(crate) async fn update_bag(
     info!(%id, closed = ?update.closed, "bag updated");
     state.stats_invalidator.invalidate();
 
-    save_deferred_image(&state, "bag", i64::from(bag.id), image_data_url.as_deref()).await;
+    save_deferred_image(
+        &state,
+        EntityType::Bag,
+        i64::from(bag.id),
+        image_data_url.as_deref(),
+    )
+    .await;
 
     if is_datastar_request(&headers) {
         let from_bag_page = headers

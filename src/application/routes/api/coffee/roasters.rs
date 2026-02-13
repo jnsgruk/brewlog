@@ -16,6 +16,7 @@ use crate::application::routes::support::{
     update_response, validate_update,
 };
 use crate::application::state::AppState;
+use crate::domain::entity_type::EntityType;
 use crate::domain::ids::RoasterId;
 use crate::domain::images::ImageData;
 use crate::domain::listing::{ListRequest, SortDirection};
@@ -112,7 +113,7 @@ pub(crate) async fn create_roaster(
 
     save_deferred_image(
         &state,
-        "roaster",
+        EntityType::Roaster,
         i64::from(roaster.id),
         image_data_url.as_deref(),
     )
@@ -197,7 +198,7 @@ pub(crate) async fn update_roaster(
 
     save_deferred_image(
         &state,
-        "roaster",
+        EntityType::Roaster,
         i64::from(roaster.id),
         image_data_url.as_deref(),
     )
@@ -215,7 +216,7 @@ define_delete_handler!(
     render_roaster_list_fragment,
     "type=roasters",
     "/data?type=roasters",
-    image_type: "roaster"
+    image_type: crate::domain::entity_type::EntityType::Roaster
 );
 
 #[tracing::instrument(skip(state, auth_user, headers, payload))]
