@@ -20,6 +20,7 @@
       />
     </div>
 
+    {# Safety: content is always pre-rendered from another Askama template via render_template() #}
     <div id="data-content" class="data-page-content">{{ content|safe }}</div>
   </div>
 

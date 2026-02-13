@@ -27,6 +27,7 @@
     <div class="flex flex-col gap-6">
       {% include "partials/tab_bar.html" %}
 
+      {# Safety: content is always pre-rendered from another Askama template via render_template() #}
       <div id="stats-content">{{ content|safe }}</div>
     </div>
 
