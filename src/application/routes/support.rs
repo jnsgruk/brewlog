@@ -416,4 +416,123 @@ mod tests {
             Some(&HeaderValue::from_static("replace"))
         );
     }
+
+    #[test]
+    fn kebab_to_camel_converts_simple_names() {
+        assert_eq!(kebab_to_camel("roaster-name"), "roasterName");
+    }
+
+    #[test]
+    fn kebab_to_camel_preserves_leading_underscore() {
+        assert_eq!(kebab_to_camel("_roaster-name"), "_roasterName");
+    }
+
+    #[test]
+    fn kebab_to_camel_no_hyphens() {
+        assert_eq!(kebab_to_camel("simple"), "simple");
+    }
+
+    #[test]
+    fn kebab_to_camel_empty_string() {
+        assert_eq!(kebab_to_camel(""), "");
+    }
+
+    #[test]
+    fn kebab_to_camel_consecutive_hyphens() {
+        assert_eq!(kebab_to_camel("a--b"), "aB");
+    }
+
+    #[test]
+    fn render_signals_json_converts_kebab_to_camel() {
+        use serde_json::Value;
+
+        let result = render_signals_json(&[("_roaster-name", Value::String("test".into()))]);
+        assert!(result.is_ok());
+
+        let response = result.unwrap();
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX);
+        let body = tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(body)
+            .unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(parsed["_roasterName"], "test");
+    }
+
+    #[test]
+    fn page_size_from_text_parses_all() {
+        assert!(matches!(page_size_from_text("all"), PageSize::All));
+        assert!(matches!(page_size_from_text("ALL"), PageSize::All));
+    }
+
+    #[test]
+    fn page_size_from_text_parses_number() {
+        match page_size_from_text("25") {
+            PageSize::Limited(n) => assert_eq!(n, 25),
+            PageSize::All => panic!("expected Limited"),
+        }
+    }
+
+    #[test]
+    fn page_size_from_text_defaults_for_garbage() {
+        match page_size_from_text("garbage") {
+            PageSize::Limited(n) => assert_eq!(n, DEFAULT_PAGE_SIZE),
+            PageSize::All => panic!("expected Limited"),
+        }
+    }
+
+    #[test]
+    fn parse_direction_recognizes_valid_values() {
+        assert_eq!(
+            parse_direction("asc"),
+            Some(crate::domain::listing::SortDirection::Asc)
+        );
+        assert_eq!(
+            parse_direction("DESC"),
+            Some(crate::domain::listing::SortDirection::Desc)
+        );
+        assert_eq!(parse_direction("invalid"), None);
+    }
+
+    #[test]
+    fn render_redirect_script_produces_correct_output() {
+        let result = render_redirect_script("/brews/42");
+        assert!(result.is_ok());
+
+        let response = result.unwrap();
+        assert_eq!(
+            response.headers().get("datastar-selector"),
+            Some(&HeaderValue::from_static("body"))
+        );
+        assert_eq!(
+            response.headers().get("datastar-mode"),
+            Some(&HeaderValue::from_static("append"))
+        );
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX);
+        let body = tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(body)
+            .unwrap();
+        let body_str = std::str::from_utf8(&body).unwrap();
+        assert!(body_str.contains("window.location.href="));
+        assert!(body_str.contains("/brews/42"));
+    }
+
+    #[test]
+    fn render_redirect_script_escapes_single_quotes() {
+        let result = render_redirect_script("/test?foo='bar'");
+        assert!(result.is_ok());
+
+        let response = result.unwrap();
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX);
+        let body = tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(body)
+            .unwrap();
+        let body_str = std::str::from_utf8(&body).unwrap();
+        // With JSON encoding, the URL is in double quotes so single quotes are safe
+        assert!(body_str.contains("window.location.href="));
+        assert!(!body_str.contains("window.location.href='"));
+    }
 }
