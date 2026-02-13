@@ -218,11 +218,17 @@ pub(crate) async fn auth_start(
         })?;
 
     let cli_callback = match (query.cli_callback, query.state, query.token_name) {
-        (Some(callback_url), Some(cli_state), Some(token_name)) => Some(CliCallbackInfo {
-            callback_url,
-            state: cli_state,
-            token_name,
-        }),
+        (Some(callback_url), Some(cli_state), Some(token_name)) => {
+            validate_cli_callback_url(&callback_url).map_err(|()| {
+                warn!(url = %callback_url, "rejected non-localhost CLI callback URL");
+                StatusCode::BAD_REQUEST
+            })?;
+            Some(CliCallbackInfo {
+                callback_url,
+                state: cli_state,
+                token_name,
+            })
+        }
         _ => None,
     };
 
@@ -465,6 +471,19 @@ pub(crate) async fn passkey_add_finish(
 }
 
 // --- Helpers ---
+
+/// Reject CLI callback URLs that don't point to localhost.
+/// This prevents an attacker from redirecting the bearer token to an external server.
+fn validate_cli_callback_url(url_str: &str) -> Result<(), ()> {
+    let parsed = url::Url::parse(url_str).map_err(|_| ())?;
+    if parsed.scheme() != "http" {
+        return Err(());
+    }
+    match parsed.host_str() {
+        Some("127.0.0.1" | "localhost" | "::1" | "[::1]") => Ok(()),
+        _ => Err(()),
+    }
+}
 
 async fn create_session(state: &AppState, cookies: &Cookies, user_id: crate::domain::ids::UserId) {
     let session_token = generate_session_token();
