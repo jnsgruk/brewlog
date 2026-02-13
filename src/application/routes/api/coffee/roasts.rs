@@ -13,7 +13,7 @@ use crate::application::routes::api::macros::{
 };
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, impl_has_changes, is_datastar_request,
-    render_redirect_script, validate_update,
+    render_redirect_script, update_response, validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::ids::{RoastId, RoasterId};
@@ -262,13 +262,12 @@ pub(crate) async fn update_roast(
         enriched.roaster_slug, enriched.roast.slug
     );
 
-    if is_datastar_request(&headers) {
-        render_redirect_script(&detail_url).map_err(ApiError::from)
-    } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to(&detail_url).into_response())
-    } else {
-        Ok(Json(enriched).into_response())
-    }
+    update_response(
+        &headers,
+        source,
+        &detail_url,
+        Json(enriched).into_response(),
+    )
 }
 
 #[derive(Debug, Deserialize)]

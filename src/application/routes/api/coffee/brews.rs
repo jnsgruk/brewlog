@@ -12,7 +12,7 @@ use crate::application::routes::api::images::save_deferred_image;
 use crate::application::routes::api::macros::{define_delete_handler, define_enriched_get_handler};
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, impl_has_changes, is_datastar_request,
-    validate_update,
+    update_response, validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::bags::BagFilter;
@@ -64,10 +64,11 @@ pub(crate) async fn load_brew_form_data(state: &AppState) -> Result<BrewFormData
 
     let gear_request = ListRequest::show_all(GearSortKey::Make, SortDirection::Asc);
 
-    let grinder_options = load_gear_options(state, GearCategory::Grinder, &gear_request).await?;
-    let brewer_options = load_gear_options(state, GearCategory::Brewer, &gear_request).await?;
-    let filter_paper_options =
-        load_gear_options(state, GearCategory::FilterPaper, &gear_request).await?;
+    let (grinder_options, brewer_options, filter_paper_options) = tokio::try_join!(
+        load_gear_options(state, GearCategory::Grinder, &gear_request),
+        load_gear_options(state, GearCategory::Brewer, &gear_request),
+        load_gear_options(state, GearCategory::FilterPaper, &gear_request),
+    )?;
 
     let last_brew_request = ListRequest::new(
         1,
@@ -419,20 +420,18 @@ pub(crate) async fn update_brew(
     save_deferred_image(&state, "brew", i64::from(id), image_data_url.as_deref()).await;
 
     let detail_url = format!("/brews/{id}");
+    let enriched = state
+        .brew_repo
+        .get_with_details(id)
+        .await
+        .map_err(AppError::from)?;
 
-    if is_datastar_request(&headers) {
-        crate::application::routes::support::render_redirect_script(&detail_url)
-            .map_err(ApiError::from)
-    } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to(&detail_url).into_response())
-    } else {
-        let enriched = state
-            .brew_repo
-            .get_with_details(id)
-            .await
-            .map_err(AppError::from)?;
-        Ok(Json(enriched).into_response())
-    }
+    update_response(
+        &headers,
+        source,
+        &detail_url,
+        Json(enriched).into_response(),
+    )
 }
 
 define_delete_handler!(

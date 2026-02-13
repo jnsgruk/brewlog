@@ -14,7 +14,7 @@ use crate::application::routes::api::macros::{
 use crate::application::routes::support::impl_has_changes;
 use crate::application::routes::support::{
     FlexiblePayload, ListQuery, PayloadSource, is_datastar_request, render_redirect_script,
-    validate_update,
+    update_response, validate_update,
 };
 use crate::application::state::AppState;
 use crate::domain::cups::{CupFilter, CupSortKey, CupWithDetails, NewCup, UpdateCup};
@@ -146,19 +146,18 @@ pub(crate) async fn update_cup(
     save_deferred_image(&state, "cup", i64::from(cup.id), image_data_url.as_deref()).await;
 
     let detail_url = format!("/cups/{id}");
+    let enriched = state
+        .cup_repo
+        .get_with_details(id)
+        .await
+        .map_err(AppError::from)?;
 
-    if is_datastar_request(&headers) {
-        render_redirect_script(&detail_url).map_err(ApiError::from)
-    } else if matches!(source, PayloadSource::Form) {
-        Ok(Redirect::to(&detail_url).into_response())
-    } else {
-        let enriched = state
-            .cup_repo
-            .get_with_details(id)
-            .await
-            .map_err(AppError::from)?;
-        Ok(Json(enriched).into_response())
-    }
+    update_response(
+        &headers,
+        source,
+        &detail_url,
+        Json(enriched).into_response(),
+    )
 }
 
 define_delete_handler!(
