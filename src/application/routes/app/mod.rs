@@ -73,6 +73,9 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/static/favicon-light.svg", get(favicon_light))
         .route("/static/favicon-dark.svg", get(favicon_dark))
         .route("/static/og-image.png", get(og_image))
+        .route("/static/app-icon-192.png", get(app_icon_192))
+        .route("/static/app-icon-512.png", get(app_icon_512))
+        .route("/static/site.webmanifest", get(site_webmanifest))
         .route("/health", get(health))
 }
 
@@ -207,6 +210,36 @@ async fn og_image() -> impl IntoResponse {
             ("cache-control", "public, max-age=604800"),
         ],
         include_bytes!("../../../../static/og-image.png").as_slice(),
+    )
+}
+
+async fn app_icon_192() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "image/png"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_bytes!("../../../../static/app-icon-192.png").as_slice(),
+    )
+}
+
+async fn app_icon_512() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "image/png"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_bytes!("../../../../static/app-icon-512.png").as_slice(),
+    )
+}
+
+async fn site_webmanifest() -> impl IntoResponse {
+    (
+        [
+            ("content-type", "application/manifest+json; charset=utf-8"),
+            ("cache-control", "public, max-age=604800"),
+        ],
+        include_str!("../../../../static/site.webmanifest"),
     )
 }
 
