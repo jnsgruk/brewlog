@@ -192,6 +192,7 @@ pub(crate) async fn update_cafe(
 ) -> Result<Response, ApiError> {
     let (submission, source) = payload.into_parts();
     let (update, image_data_url) = submission.into_parts();
+    let update = update.normalize();
 
     validate_update(&update, image_data_url.as_ref())?;
 

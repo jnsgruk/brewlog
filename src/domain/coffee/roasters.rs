@@ -58,7 +58,7 @@ fn normalize_optional_field(value: Option<String>) -> Option<String> {
 
 /// Returns `true` if the URL starts with `http://` or `https://`.
 /// Rejects `javascript:`, `data:`, and other potentially dangerous schemes.
-fn is_valid_url_scheme(url: &str) -> bool {
+pub(crate) fn is_valid_url_scheme(url: &str) -> bool {
     let lower = url.trim().to_lowercase();
     lower.starts_with("http://") || lower.starts_with("https://")
 }

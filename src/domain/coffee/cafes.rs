@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::ids::CafeId;
 use crate::domain::listing::{SortDirection, SortKey};
+use crate::domain::roasters::is_valid_url_scheme;
 use crate::domain::timeline::{NewTimelineEvent, TimelineEventDetail};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,7 +63,8 @@ impl NewCafe {
         self.name = self.name.trim().to_string();
         self.city = self.city.trim().to_string();
         self.country = self.country.trim().to_string();
-        self.website = normalize_optional_field(self.website);
+        self.website =
+            normalize_optional_field(self.website).filter(|url| is_valid_url_scheme(url));
         self
     }
 
@@ -92,6 +94,23 @@ pub struct UpdateCafe {
     pub website: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<DateTime<Utc>>,
+}
+
+impl UpdateCafe {
+    pub fn normalize(mut self) -> Self {
+        self.website = self
+            .website
+            .and_then(|w| {
+                let trimmed = w.trim().to_string();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed)
+                }
+            })
+            .filter(|url| is_valid_url_scheme(url));
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
