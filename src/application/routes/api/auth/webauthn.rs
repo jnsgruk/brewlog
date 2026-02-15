@@ -483,6 +483,135 @@ pub(crate) async fn passkey_add_finish(
     Ok(StatusCode::OK)
 }
 
+// --- Discoverable authentication (Conditional UI) ---
+
+#[tracing::instrument(skip(state))]
+pub(crate) async fn discoverable_auth_start(
+    State(state): State<AppState>,
+) -> Result<Json<AuthStartResponse>, StatusCode> {
+    let (rcr, auth_state) = state
+        .webauthn
+        .start_discoverable_authentication()
+        .map_err(|err| {
+            error!(error = %err, "failed to start discoverable authentication");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    let challenge_id = generate_session_token();
+    state
+        .challenge_store
+        .store_discoverable_authentication(challenge_id.clone(), auth_state)
+        .await;
+
+    Ok(Json(AuthStartResponse {
+        challenge_id,
+        options: rcr,
+    }))
+}
+
+#[tracing::instrument(skip(state, cookies, payload))]
+pub(crate) async fn discoverable_auth_finish(
+    State(state): State<AppState>,
+    cookies: Cookies,
+    Json(payload): Json<AuthFinishRequest>,
+) -> Result<Json<AuthFinishResponse>, StatusCode> {
+    let auth_state = state
+        .challenge_store
+        .take_discoverable_authentication(&payload.challenge_id)
+        .await
+        .ok_or(StatusCode::BAD_REQUEST)?;
+
+    // Extract user UUID and credential ID from the credential
+    let (user_uuid, _credential_id) = state
+        .webauthn
+        .identify_discoverable_authentication(&payload.credential)
+        .map_err(|err| {
+            warn!(error = %err, "failed to identify discoverable credential");
+            StatusCode::UNAUTHORIZED
+        })?;
+
+    // Look up user by UUID
+    let user = state
+        .user_repo
+        .get_by_uuid(&user_uuid.to_string())
+        .await
+        .map_err(|err| {
+            warn!(error = %err, uuid = %user_uuid, "user not found for discoverable auth");
+            StatusCode::UNAUTHORIZED
+        })?;
+
+    // Load user's passkeys and convert to DiscoverableKey
+    let credentials = state
+        .passkey_repo
+        .list_by_user(user.id)
+        .await
+        .map_err(|err| {
+            error!(error = %err, user_id = %user.id, "failed to list passkeys for discoverable auth");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    let mut discoverable_keys: Vec<DiscoverableKey> = Vec::new();
+    for cred in &credentials {
+        let passkey: Passkey = serde_json::from_str(&cred.credential_json).map_err(|err| {
+            error!(error = %err, credential_id = %cred.id, "failed to deserialize passkey for discoverable auth");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+        discoverable_keys.push(DiscoverableKey::from(&passkey));
+    }
+
+    // Complete discoverable authentication
+    let auth_result = state
+        .webauthn
+        .finish_discoverable_authentication(&payload.credential, auth_state, &discoverable_keys)
+        .map_err(|err| {
+            warn!(error = %err, "discoverable authentication failed");
+            StatusCode::UNAUTHORIZED
+        })?;
+
+    // Update credential counter if needed
+    let credential_id = auth_result.cred_id();
+    for cred in &credentials {
+        let passkey: Passkey = match serde_json::from_str(&cred.credential_json) {
+            Ok(p) => p,
+            Err(_) => continue,
+        };
+        if passkey.cred_id() == credential_id && auth_result.needs_update() {
+            let mut updated_passkey = passkey;
+            updated_passkey.update_credential(&auth_result);
+            match serde_json::to_string(&updated_passkey) {
+                Ok(updated_json) => {
+                    if let Err(err) = state
+                        .passkey_repo
+                        .update_credential_json(cred.id, &updated_json)
+                        .await
+                    {
+                        warn!(error = %err, credential_id = %cred.id, "failed to update passkey credential counter");
+                    }
+                }
+                Err(err) => {
+                    warn!(error = %err, "failed to serialize updated passkey credential");
+                }
+            }
+
+            // Update last used timestamp
+            let passkey_repo = state.passkey_repo.clone();
+            let cred_id = cred.id;
+            tokio::spawn(async move {
+                if let Err(err) = passkey_repo.update_last_used(cred_id).await {
+                    warn!(error = %err, credential_id = %cred_id, "failed to update passkey last_used");
+                }
+            });
+            break;
+        }
+    }
+
+    create_session(&state, &cookies, user.id).await;
+
+    info!(user_id = %user.id, "user authenticated via discoverable passkey");
+
+    Ok(Json(AuthFinishResponse { redirect: None }))
+}
+
 // --- Helpers ---
 
 /// Reject CLI callback URLs that don't point to localhost.

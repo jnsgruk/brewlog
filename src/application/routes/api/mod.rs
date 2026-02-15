@@ -122,4 +122,12 @@ pub(super) fn webauthn_router() -> axum::Router<AppState> {
         .route("/auth/finish", post(webauthn::auth_finish))
         .route("/passkey/start", post(webauthn::passkey_add_start))
         .route("/passkey/finish", post(webauthn::passkey_add_finish))
+        .route(
+            "/auth/discoverable/start",
+            get(webauthn::discoverable_auth_start),
+        )
+        .route(
+            "/auth/discoverable/finish",
+            post(webauthn::discoverable_auth_finish),
+        )
 }

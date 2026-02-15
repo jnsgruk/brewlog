@@ -38,7 +38,7 @@ tower-http = { version = "0.6", features = ["compression-gzip", "limit", "set-he
 slug = "0.1.6"
 url = "2"
 uuid = { version = "1", features = ["v4"] }
-webauthn-rs = "0.5"
+webauthn-rs = { version = "0.5", features = ["conditional-ui"] }
 webauthn-rs-proto = "0.5"
 kamadak-exif = "0.6.1"
 

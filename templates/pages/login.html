@@ -29,6 +29,15 @@
       </div>
 
       <div class="mt-6">
+        <input
+          type="text"
+          autocomplete="username webauthn"
+          id="conditional-ui-input"
+          class="hidden"
+          aria-hidden="true"
+          tabindex="-1"
+        />
+
         <button
           id="login-button"
           type="button"
@@ -49,7 +58,14 @@
   </div>
 
   <script>
+    let conditionalAbort = null;
+
     const handleLogin = async () => {
+      if (conditionalAbort) {
+        conditionalAbort.abort();
+        conditionalAbort = null;
+      }
+
       const button = document.getElementById("login-button");
       const errorDiv = document.getElementById("login-error");
       const loadingDiv = document.getElementById("login-loading");
@@ -75,9 +91,29 @@
       }
     };
 
+    const initConditionalUI = async () => {
+      if (!window.PublicKeyCredential?.isConditionalMediationAvailable) return;
+      const available =
+        await PublicKeyCredential.isConditionalMediationAvailable();
+      if (!available) return;
+
+      conditionalAbort = new AbortController();
+      try {
+        const result = await startConditionalUIAuthentication(
+          conditionalAbort.signal,
+        );
+        window.location.href = result.redirect || "/";
+      } catch {
+        // Silently ignored — user may use the button instead, or the
+        // abort controller was triggered by handleLogin().
+      }
+    };
+
     if (!window.PublicKeyCredential) {
       document.getElementById("login-button").disabled = true;
       document.getElementById("login-unsupported").classList.remove("hidden");
+    } else {
+      initConditionalUI();
     }
   </script>
 {% endblock %}

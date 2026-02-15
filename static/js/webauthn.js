@@ -163,6 +163,55 @@ const startPasskeyAuthentication = async (queryParams) => {
   return finishResponse.json();
 };
 
+// Start conditional UI authentication (passkey autofill)
+const startConditionalUIAuthentication = async (signal) => {
+  // 1. Get discoverable challenge from server
+  const startResponse = await fetch(
+    "/api/v1/webauthn/auth/discoverable/start",
+    {
+      credentials: "same-origin",
+      signal,
+    },
+  );
+
+  if (!startResponse.ok) {
+    throw new Error(
+      `Failed to start discoverable auth (HTTP ${startResponse.status}).`,
+    );
+  }
+
+  const { challenge_id, options } = await startResponse.json();
+
+  // 2. Get assertion via browser WebAuthn API with conditional mediation
+  const requestOptions = prepareRequestOptions(options);
+  requestOptions.mediation = "conditional";
+  requestOptions.signal = signal;
+  const credential = await navigator.credentials.get(requestOptions);
+
+  // 3. Send assertion to server
+  const finishResponse = await fetch(
+    "/api/v1/webauthn/auth/discoverable/finish",
+    {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        challenge_id,
+        credential: serializeAuthenticationCredential(credential),
+      }),
+      signal,
+    },
+  );
+
+  if (!finishResponse.ok) {
+    throw new Error(
+      `Discoverable authentication failed (HTTP ${finishResponse.status}).`,
+    );
+  }
+
+  return finishResponse.json();
+};
+
 // Add a passkey to an existing authenticated account
 const addPasskey = async (name) => {
   // 1. Get challenge from server
