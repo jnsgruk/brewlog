@@ -29,10 +29,11 @@
         (Chrome, Firefox, Safari, or Edge).
       </div>
 
-      <div
+      <form
         id="register-form"
         class="mt-6 flex flex-col gap-4"
         data-token="{{ token }}"
+        onsubmit="event.preventDefault(); handleRegister()"
       >
         <label class="flex flex-col gap-1 text-sm">
           <span class="text-text">Display Name</span>
@@ -61,8 +62,7 @@
 
         <button
           id="register-button"
-          type="button"
-          onclick="handleRegister()"
+          type="submit"
           class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ icons::key("h-4 w-4") }} Register Passkey
@@ -74,7 +74,7 @@
         >
           <p>Follow the prompts from the browser or device...</p>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
