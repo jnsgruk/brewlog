@@ -7,6 +7,7 @@ use tower_cookies::{Cookie, Cookies};
 use tracing::{error, info, warn};
 use uuid::Uuid;
 use webauthn_rs::prelude::*;
+use webauthn_rs_proto::ResidentKeyRequirement;
 
 use crate::application::auth::{AuthenticatedUser, SESSION_COOKIE_NAME};
 use crate::application::state::AppState;
@@ -112,7 +113,7 @@ pub(crate) async fn register_start(
     })?;
     let exclude_credentials = Vec::new();
 
-    let (ccr, reg_state) = state
+    let (mut ccr, reg_state) = state
         .webauthn
         .start_passkey_registration(
             webauthn_uuid,
@@ -124,6 +125,7 @@ pub(crate) async fn register_start(
             error!(error = %err, "failed to start passkey registration");
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
+    require_discoverable_credential(&mut ccr);
 
     // Store ceremony state
     let challenge_id = generate_session_token();
@@ -409,7 +411,7 @@ pub(crate) async fn passkey_add_start(
         .map(|p| p.cred_id().clone())
         .collect::<Vec<_>>();
 
-    let (ccr, reg_state) = state
+    let (mut ccr, reg_state) = state
         .webauthn
         .start_passkey_registration(
             webauthn_uuid,
@@ -421,6 +423,7 @@ pub(crate) async fn passkey_add_start(
             error!(error = %err, "failed to start passkey registration for existing user");
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
+    require_discoverable_credential(&mut ccr);
 
     let challenge_id = generate_session_token();
     state
@@ -613,6 +616,20 @@ pub(crate) async fn discoverable_auth_finish(
 }
 
 // --- Helpers ---
+
+/// Patch the creation challenge to require a discoverable (resident) credential.
+///
+/// The webauthn-rs `start_passkey_registration` sets `residentKey: "discouraged"`,
+/// which prevents iOS Safari from creating discoverable passkeys. Desktop password
+/// managers ignore this and create discoverable credentials anyway, but iOS respects
+/// it strictly. The server-side `RegistrationState` discards `require_resident_key`
+/// during `finish_passkey_registration`, so this client-only patch is safe.
+fn require_discoverable_credential(ccr: &mut CreationChallengeResponse) {
+    if let Some(ref mut auth_sel) = ccr.public_key.authenticator_selection {
+        auth_sel.resident_key = Some(ResidentKeyRequirement::Required);
+        auth_sel.require_resident_key = true;
+    }
+}
 
 /// Reject CLI callback URLs that don't point to localhost.
 /// This prevents an attacker from redirecting the bearer token to an external server.
