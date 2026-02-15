@@ -127,6 +127,7 @@
               NIX_CONFIG = "experimental-features = nix-command flakes";
               RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+              LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.openssl ];
 
               shellHook = ''
                 ${config.pre-commit.shellHook}
