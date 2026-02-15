@@ -1,6 +1,7 @@
 use crate::helpers::{
     create_cafe_with_payload, create_default_bag, create_default_cafe, create_default_gear,
     create_default_roast, create_default_roaster, create_roaster_with_payload, spawn_app_with_auth,
+    spawn_app_with_timeline_sync,
 };
 use brewlog::domain::brews::NewBrew;
 use brewlog::domain::cafes::NewCafe;
@@ -665,5 +666,231 @@ async fn creating_a_brew_surfaces_on_the_timeline() {
     assert!(
         body.contains("Test Roast"),
         "Expected roast name to appear in brew timeline event, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn editing_a_roaster_updates_its_timeline_event() {
+    let app = spawn_app_with_timeline_sync().await;
+    let client = Client::new();
+
+    let original_name = "Original Roasters";
+    let roaster = create_roaster_with_payload(
+        &app,
+        NewRoaster {
+            name: original_name.to_string(),
+            country: "UK".to_string(),
+            city: None,
+            homepage: None,
+            created_at: None,
+        },
+    )
+    .await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Verify original name appears
+    let body = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline")
+        .text()
+        .await
+        .expect("failed to read body");
+    assert!(
+        body.contains(original_name),
+        "Expected original name in timeline, got: {body}"
+    );
+
+    // Update the roaster name
+    let updated_name = "Renamed Roasters";
+    let response = client
+        .put(app.api_url(&format!("/roasters/{}", roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({ "name": updated_name }))
+        .send()
+        .await
+        .expect("failed to update roaster");
+    assert_eq!(response.status(), 200);
+
+    // Wait for the background task to process (debounce + processing)
+    sleep(Duration::from_millis(200)).await;
+
+    // Verify timeline now shows the updated name
+    let body = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline after update")
+        .text()
+        .await
+        .expect("failed to read body");
+    assert!(
+        body.contains(updated_name),
+        "Expected updated name '{updated_name}' in timeline after edit, got: {body}"
+    );
+    assert!(
+        !body.contains(original_name),
+        "Expected original name '{original_name}' to be replaced in timeline, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn deleting_a_roaster_removes_its_timeline_event() {
+    let app = spawn_app_with_timeline_sync().await;
+    let client = Client::new();
+
+    let roaster_name = "Deletable Roasters";
+    let roaster = create_roaster_with_payload(
+        &app,
+        NewRoaster {
+            name: roaster_name.to_string(),
+            country: "UK".to_string(),
+            city: None,
+            homepage: None,
+            created_at: None,
+        },
+    )
+    .await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Verify event exists
+    let body = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline")
+        .text()
+        .await
+        .expect("failed to read body");
+    assert!(
+        body.contains(roaster_name),
+        "Expected roaster name in timeline before delete, got: {body}"
+    );
+
+    // Delete the roaster
+    let response = client
+        .delete(app.api_url(&format!("/roasters/{}", roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("failed to delete roaster");
+    assert!(
+        response.status().is_success(),
+        "Expected successful delete, got: {}",
+        response.status()
+    );
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Verify timeline no longer shows the roaster
+    let body = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline after delete")
+        .text()
+        .await
+        .expect("failed to read body");
+    assert!(
+        !body.contains(roaster_name),
+        "Expected roaster name to be removed from timeline after delete, got: {body}"
+    );
+}
+
+#[tokio::test]
+async fn timeline_rebuild_endpoint_requires_auth() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    // Without auth token → 401
+    let response = client
+        .post(app.api_url("/timeline/rebuild"))
+        .send()
+        .await
+        .expect("failed to send rebuild request");
+    assert_eq!(response.status(), 401);
+}
+
+#[tokio::test]
+async fn timeline_rebuild_endpoint_returns_204() {
+    let app = spawn_app_with_auth().await;
+    let client = Client::new();
+
+    let response = client
+        .post(app.api_url("/timeline/rebuild"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .send()
+        .await
+        .expect("failed to send rebuild request");
+    assert_eq!(response.status(), 204);
+}
+
+#[tokio::test]
+async fn editing_a_roaster_cascades_to_roast_timeline_event() {
+    let app = spawn_app_with_timeline_sync().await;
+    let client = Client::new();
+
+    let original_name = "Cascade Roasters";
+    let roaster = create_roaster_with_payload(
+        &app,
+        NewRoaster {
+            name: original_name.to_string(),
+            country: "UK".to_string(),
+            city: None,
+            homepage: None,
+            created_at: None,
+        },
+    )
+    .await;
+
+    sleep(Duration::from_millis(5)).await;
+    let roast_name = "Cascade Roast";
+    create_roast(&app, roaster.id, roast_name).await;
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Verify roast timeline event shows original roaster name
+    let body = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline")
+        .text()
+        .await
+        .expect("failed to read body");
+    assert!(
+        body.contains(original_name),
+        "Expected original roaster name in roast timeline event"
+    );
+
+    // Rename the roaster
+    let updated_name = "Cascade Renamed";
+    let response = client
+        .put(app.api_url(&format!("/roasters/{}", roaster.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({ "name": updated_name }))
+        .send()
+        .await
+        .expect("failed to update roaster");
+    assert_eq!(response.status(), 200);
+
+    // Wait for background cascade
+    sleep(Duration::from_millis(300)).await;
+
+    // Verify roast timeline event now shows the updated roaster name
+    let body = client
+        .get(format!("{}/timeline", app.address))
+        .send()
+        .await
+        .expect("failed to fetch timeline after cascade")
+        .text()
+        .await
+        .expect("failed to read body");
+    assert!(
+        body.contains(updated_name),
+        "Expected cascaded roaster name '{updated_name}' in roast timeline event, got: {body}"
     );
 }

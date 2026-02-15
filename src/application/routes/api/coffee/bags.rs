@@ -221,6 +221,9 @@ pub(crate) async fn update_bag(
 
     info!(%id, closed = ?update.closed, "bag updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Bag, i64::from(bag.id));
 
     save_deferred_image(
         &state,
@@ -265,7 +268,8 @@ define_delete_handler!(
     bag_repo,
     render_bag_list_fragment,
     "type=bags",
-    "/data?type=bags"
+    "/data?type=bags",
+    entity_type: crate::domain::entity_type::EntityType::Bag
 );
 
 #[derive(Debug, Deserialize)]

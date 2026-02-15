@@ -86,6 +86,7 @@ fn ensure_server_started() -> Result<(String, String), String> {
                     .expect("Failed to connect to test database");
 
                 let (stats_tx, _stats_rx) = tokio::sync::mpsc::channel(1);
+                let (timeline_tx, timeline_rx) = tokio::sync::mpsc::channel(32);
                 let state = AppState::from_database(
                     &database,
                     AppStateConfig {
@@ -100,8 +101,30 @@ fn ensure_server_started() -> Result<(String, String), String> {
                         stats_invalidator: brewlog::application::services::StatsInvalidator::new(
                             stats_tx,
                         ),
+                        timeline_invalidator:
+                            brewlog::application::services::TimelineInvalidator::new(timeline_tx),
                     },
                 );
+
+                // Spawn background timeline rebuild task
+                use brewlog::application::services::timeline_refresh::{
+                    TimelineRebuilder, timeline_rebuild_task,
+                };
+                let rebuilder = TimelineRebuilder {
+                    timeline_repo: state.timeline_repo.clone(),
+                    roaster_repo: state.roaster_repo.clone(),
+                    roast_repo: state.roast_repo.clone(),
+                    bag_repo: state.bag_repo.clone(),
+                    brew_repo: state.brew_repo.clone(),
+                    cup_repo: state.cup_repo.clone(),
+                    gear_repo: state.gear_repo.clone(),
+                    cafe_repo: state.cafe_repo.clone(),
+                };
+                tokio::spawn(timeline_rebuild_task(
+                    timeline_rx,
+                    rebuilder,
+                    std::time::Duration::from_millis(100),
+                ));
 
                 let app = app_router(state);
 

@@ -9,7 +9,7 @@ pub(crate) mod system;
 pub(crate) use analytics::stats;
 pub(crate) use auth::{tokens, webauthn};
 pub(crate) use coffee::{bags, brews, cafes, checkin, cups, gear, roasters, roasts, scan};
-pub(crate) use system::{admin, backup};
+pub(crate) use system::{admin, backup, timeline};
 
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};
@@ -103,6 +103,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         )
         .route("/backup/reset", post(backup::reset_database))
         .route("/stats/recompute", post(stats::recompute_stats))
+        .route("/timeline/rebuild", post(timeline::rebuild_timeline))
         .route(
             "/{entity_type}/{id}/image",
             get(images::get_image)

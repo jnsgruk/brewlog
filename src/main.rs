@@ -3,7 +3,7 @@ use brewlog::application::{ServerConfig, serve};
 use brewlog::infrastructure::backup::BackupData;
 use brewlog::infrastructure::client::BrewlogClient;
 use brewlog::presentation::cli::{
-    Cli, Commands, ServeCommand, bags, brews, cafes, cups, gear, roasters, roasts, tokens,
+    Cli, Commands, ServeCommand, bags, brews, cafes, cups, gear, roasters, roasts, timeline, tokens,
 };
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
@@ -50,6 +50,16 @@ async fn main() -> Result<()> {
         Commands::Token { command } => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;
             tokens::run(&client, command).await
+        }
+        Commands::Timeline { command } => {
+            let client = BrewlogClient::from_base_url(&cli.api_url)?;
+            match command {
+                timeline::TimelineCommands::Rebuild => {
+                    client.timeline().rebuild().await?;
+                    eprintln!("Timeline rebuild initiated.");
+                    Ok(())
+                }
+            }
         }
         Commands::Backup(_cmd) => {
             let client = BrewlogClient::from_base_url(&cli.api_url)?;

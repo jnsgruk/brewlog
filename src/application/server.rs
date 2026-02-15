@@ -9,8 +9,9 @@ use tracing::info;
 use webauthn_rs::prelude::*;
 
 use crate::application::routes::app_router;
-use crate::application::services::StatsInvalidator;
 use crate::application::services::stats::stats_recomputation_task;
+use crate::application::services::timeline_refresh::{TimelineRebuilder, timeline_rebuild_task};
+use crate::application::services::{StatsInvalidator, TimelineInvalidator};
 use crate::application::state::{AppState, AppStateConfig};
 use crate::domain::registration_tokens::NewRegistrationToken;
 use crate::domain::repositories::{RegistrationTokenRepository, UserRepository};
@@ -45,6 +46,11 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     let (stats_tx, stats_rx) = tokio::sync::mpsc::channel::<()>(32);
     let stats_invalidator = StatsInvalidator::new(stats_tx);
 
+    let (timeline_tx, timeline_rx) = tokio::sync::mpsc::channel::<
+        crate::application::services::timeline_refresh::TimelineInvalidation,
+    >(32);
+    let timeline_invalidator = TimelineInvalidator::new(timeline_tx);
+
     let state = AppState::from_database(
         &database,
         AppStateConfig {
@@ -56,6 +62,7 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
             openrouter_api_key: config.openrouter_api_key,
             openrouter_model: config.openrouter_model,
             stats_invalidator: stats_invalidator.clone(),
+            timeline_invalidator,
         },
     );
 
@@ -64,6 +71,23 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
     tokio::spawn(stats_recomputation_task(
         stats_rx,
         stats_repo,
+        std::time::Duration::from_secs(2),
+    ));
+
+    // Spawn background timeline rebuild task
+    let rebuilder = TimelineRebuilder {
+        timeline_repo: Arc::clone(&state.timeline_repo),
+        roaster_repo: Arc::clone(&state.roaster_repo),
+        roast_repo: Arc::clone(&state.roast_repo),
+        bag_repo: Arc::clone(&state.bag_repo),
+        brew_repo: Arc::clone(&state.brew_repo),
+        cup_repo: Arc::clone(&state.cup_repo),
+        gear_repo: Arc::clone(&state.gear_repo),
+        cafe_repo: Arc::clone(&state.cafe_repo),
+    };
+    tokio::spawn(timeline_rebuild_task(
+        timeline_rx,
+        rebuilder,
         std::time::Duration::from_secs(2),
     ));
 

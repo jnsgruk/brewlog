@@ -3,12 +3,14 @@ mod brews;
 mod cups;
 mod roasts;
 pub mod stats;
+pub mod timeline_refresh;
 
 pub use bags::BagService;
 pub use brews::BrewService;
 pub use cups::CupService;
 pub use roasts::RoastService;
 pub use stats::StatsInvalidator;
+pub use timeline_refresh::TimelineInvalidator;
 
 use std::sync::Arc;
 

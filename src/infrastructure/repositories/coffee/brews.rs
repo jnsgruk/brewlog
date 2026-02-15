@@ -83,10 +83,24 @@ impl SqlBrewRepository {
     }
 
     fn build_where_clause(filter: &BrewFilter) -> Option<String> {
-        // SAFETY: Direct interpolation is safe here because `bag_id` is an i64 from a typed wrapper.
-        filter
-            .bag_id
-            .map(|bag_id| format!("br.bag_id = {}", bag_id.into_inner()))
+        let mut conditions = Vec::new();
+
+        // SAFETY: Direct interpolation is safe here because IDs are i64 from typed wrappers.
+        if let Some(bag_id) = filter.bag_id {
+            conditions.push(format!("br.bag_id = {}", bag_id.into_inner()));
+        }
+        if let Some(gear_id) = filter.gear_id {
+            let id = gear_id.into_inner();
+            conditions.push(format!(
+                "(br.grinder_id = {id} OR br.brewer_id = {id} OR br.filter_paper_id = {id})"
+            ));
+        }
+
+        if conditions.is_empty() {
+            None
+        } else {
+            Some(conditions.join(" AND "))
+        }
     }
 }
 

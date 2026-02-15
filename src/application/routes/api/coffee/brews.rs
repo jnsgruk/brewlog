@@ -417,6 +417,9 @@ pub(crate) async fn update_brew(
 
     info!(%id, "brew updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Brew, i64::from(id));
 
     save_deferred_image(
         &state,

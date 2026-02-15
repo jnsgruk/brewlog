@@ -256,6 +256,7 @@ pub struct UpdateBrew {
 #[derive(Debug, Default, Clone)]
 pub struct BrewFilter {
     pub bag_id: Option<BagId>,
+    pub gear_id: Option<GearId>,
 }
 
 impl BrewFilter {
@@ -268,6 +269,15 @@ impl BrewFilter {
     pub fn for_bag(bag_id: BagId) -> Self {
         Self {
             bag_id: Some(bag_id),
+            ..Self::default()
+        }
+    }
+
+    /// Filter for brews using a specific gear piece (grinder, brewer, or filter paper).
+    pub fn for_gear(gear_id: GearId) -> Self {
+        Self {
+            gear_id: Some(gear_id),
+            ..Self::default()
         }
     }
 }

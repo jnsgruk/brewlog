@@ -7,6 +7,7 @@ pub mod gear;
 mod macros;
 pub mod roasters;
 pub mod roasts;
+pub mod timeline;
 pub mod tokens;
 
 use std::net::SocketAddr;
@@ -22,6 +23,7 @@ use cups::CupCommands;
 use gear::GearCommands;
 use roasters::RoasterCommands;
 use roasts::RoastCommands;
+use timeline::TimelineCommands;
 use tokens::TokenCommands;
 
 #[derive(Debug, Parser)]
@@ -90,6 +92,12 @@ pub enum Commands {
     Token {
         #[command(subcommand)]
         command: TokenCommands,
+    },
+
+    /// Manage timeline events
+    Timeline {
+        #[command(subcommand)]
+        command: TimelineCommands,
     },
 
     /// Back up all coffee data to JSON (stdout)

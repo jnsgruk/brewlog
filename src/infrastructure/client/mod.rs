@@ -6,6 +6,7 @@ pub mod cups;
 pub mod gear;
 pub mod roasters;
 pub mod roasts;
+pub mod timeline;
 pub mod tokens;
 
 use anyhow::{Context, Result, anyhow};
@@ -79,6 +80,10 @@ impl BrewlogClient {
 
     pub fn cups(&self) -> cups::CupsClient<'_> {
         cups::CupsClient::new(self)
+    }
+
+    pub fn timeline(&self) -> timeline::TimelineClient<'_> {
+        timeline::TimelineClient::new(self)
     }
 
     pub(crate) fn endpoint(&self, path: &str) -> Result<Url> {

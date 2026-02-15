@@ -143,6 +143,9 @@ pub(crate) async fn update_cup(
 
     info!(%id, "cup updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Cup, i64::from(cup.id));
 
     save_deferred_image(
         &state,

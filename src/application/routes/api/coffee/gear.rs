@@ -174,6 +174,9 @@ pub(crate) async fn update_gear(
 
     info!(%id, "gear updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Gear, i64::from(gear.id));
 
     save_deferred_image(
         &state,

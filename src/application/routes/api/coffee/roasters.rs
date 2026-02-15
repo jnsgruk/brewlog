@@ -195,6 +195,9 @@ pub(crate) async fn update_roaster(
         .map_err(AppError::from)?;
     info!(%id, "roaster updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Roaster, i64::from(roaster.id));
 
     save_deferred_image(
         &state,

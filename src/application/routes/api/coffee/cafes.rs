@@ -204,6 +204,9 @@ pub(crate) async fn update_cafe(
         .map_err(AppError::from)?;
     info!(%id, "cafe updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Cafe, i64::from(cafe.id));
 
     save_deferred_image(
         &state,

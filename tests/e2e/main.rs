@@ -13,3 +13,4 @@ mod image_tests;
 mod navigation_tests;
 mod roaster_tests;
 mod scan_tests;
+mod timeline_tests;

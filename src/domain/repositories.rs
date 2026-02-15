@@ -99,6 +99,21 @@ pub trait TimelineEventRepository: Send + Sync {
         request: &ListRequest<TimelineSortKey>,
     ) -> Result<Page<TimelineEvent>, RepositoryError>;
 
+    async fn update_by_entity(
+        &self,
+        entity_type: EntityType,
+        entity_id: i64,
+        event: NewTimelineEvent,
+    ) -> Result<(), RepositoryError>;
+
+    async fn delete_by_entity(
+        &self,
+        entity_type: EntityType,
+        entity_id: i64,
+    ) -> Result<(), RepositoryError>;
+
+    async fn delete_all(&self) -> Result<(), RepositoryError>;
+
     async fn list_all(&self) -> Result<Vec<TimelineEvent>, RepositoryError> {
         let sort_key = <TimelineSortKey as SortKey>::default();
         let request =
@@ -150,6 +165,13 @@ pub trait BagRepository: Send + Sync {
     ) -> Result<Page<BagWithRoast>, RepositoryError>;
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError>;
     async fn delete(&self, id: BagId) -> Result<(), RepositoryError>;
+
+    async fn list_all(&self) -> Result<Vec<BagWithRoast>, RepositoryError> {
+        let sort_key = <BagSortKey as SortKey>::default();
+        let request = ListRequest::<BagSortKey>::show_all(sort_key, sort_key.default_direction());
+        let page = self.list(BagFilter::default(), &request, None).await?;
+        Ok(page.items)
+    }
 }
 
 #[async_trait]
@@ -164,6 +186,13 @@ pub trait GearRepository: Send + Sync {
     ) -> Result<Page<Gear>, RepositoryError>;
     async fn update(&self, id: GearId, changes: UpdateGear) -> Result<Gear, RepositoryError>;
     async fn delete(&self, id: GearId) -> Result<(), RepositoryError>;
+
+    async fn list_all(&self) -> Result<Vec<Gear>, RepositoryError> {
+        let sort_key = <GearSortKey as SortKey>::default();
+        let request = ListRequest::<GearSortKey>::show_all(sort_key, sort_key.default_direction());
+        let page = self.list(GearFilter::default(), &request, None).await?;
+        Ok(page.items)
+    }
 }
 
 #[async_trait]
@@ -181,6 +210,13 @@ pub trait BrewRepository: Send + Sync {
     ) -> Result<Page<BrewWithDetails>, RepositoryError>;
     async fn update(&self, id: BrewId, changes: UpdateBrew) -> Result<Brew, RepositoryError>;
     async fn delete(&self, id: BrewId) -> Result<(), RepositoryError>;
+
+    async fn list_all(&self) -> Result<Vec<BrewWithDetails>, RepositoryError> {
+        let sort_key = <BrewSortKey as SortKey>::default();
+        let request = ListRequest::<BrewSortKey>::show_all(sort_key, sort_key.default_direction());
+        let page = self.list(BrewFilter::default(), &request, None).await?;
+        Ok(page.items)
+    }
 }
 
 #[async_trait]
@@ -227,6 +263,13 @@ pub trait CupRepository: Send + Sync {
     ) -> Result<Page<CupWithDetails>, RepositoryError>;
     async fn update(&self, id: CupId, changes: UpdateCup) -> Result<Cup, RepositoryError>;
     async fn delete(&self, id: CupId) -> Result<(), RepositoryError>;
+
+    async fn list_all(&self) -> Result<Vec<CupWithDetails>, RepositoryError> {
+        let sort_key = <CupSortKey as SortKey>::default();
+        let request = ListRequest::<CupSortKey>::show_all(sort_key, sort_key.default_direction());
+        let page = self.list(CupFilter::default(), &request, None).await?;
+        Ok(page.items)
+    }
 }
 
 #[async_trait]

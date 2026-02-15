@@ -249,6 +249,9 @@ pub(crate) async fn update_roast(
 
     info!(%id, "roast updated");
     state.stats_invalidator.invalidate();
+    state
+        .timeline_invalidator
+        .invalidate(EntityType::Roast, i64::from(id));
 
     save_deferred_image(
         &state,

@@ -77,7 +77,8 @@ pub async fn spawn_app() -> TestApp {
 }
 
 fn test_state_config() -> AppStateConfig {
-    let (tx, _rx) = tokio::sync::mpsc::channel(1);
+    let (stats_tx, _stats_rx) = tokio::sync::mpsc::channel(1);
+    let (timeline_tx, _timeline_rx) = tokio::sync::mpsc::channel(1);
     AppStateConfig {
         webauthn: test_webauthn(),
         insecure_cookies: true,
@@ -86,7 +87,8 @@ fn test_state_config() -> AppStateConfig {
         openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
         openrouter_api_key: String::new(),
         openrouter_model: "openrouter/free".to_string(),
-        stats_invalidator: brewlog::application::services::StatsInvalidator::new(tx),
+        stats_invalidator: brewlog::application::services::StatsInvalidator::new(stats_tx),
+        timeline_invalidator: brewlog::application::services::TimelineInvalidator::new(timeline_tx),
     }
 }
 
@@ -96,7 +98,13 @@ async fn spawn_app_inner(
     mock_server: Option<wiremock::MockServer>,
 ) -> TestApp {
     let state = AppState::from_database(&database, config);
+    spawn_app_inner_from_state(state, mock_server).await
+}
 
+async fn spawn_app_inner_from_state(
+    state: AppState,
+    mock_server: Option<wiremock::MockServer>,
+) -> TestApp {
     // Clone repos we need for TestApp before consuming state in the router
     let roaster_repo = state.roaster_repo.clone();
     let roast_repo = state.roast_repo.clone();
@@ -139,6 +147,56 @@ async fn spawn_app_inner(
 
 pub async fn spawn_app_with_auth() -> TestApp {
     let app = spawn_app().await;
+    add_auth_to_app(app).await
+}
+
+/// Spawn a test app with the timeline background rebuild task running.
+/// Uses a short debounce (50ms) so tests don't have to wait long.
+pub async fn spawn_app_with_timeline_sync() -> TestApp {
+    use brewlog::application::services::timeline_refresh::{
+        TimelineRebuilder, timeline_rebuild_task,
+    };
+
+    let database = Database::connect("sqlite::memory:")
+        .await
+        .expect("Failed to connect to in-memory database");
+
+    let (stats_tx, _stats_rx) = tokio::sync::mpsc::channel(1);
+    let (timeline_tx, timeline_rx) = tokio::sync::mpsc::channel(32);
+
+    let config = AppStateConfig {
+        webauthn: test_webauthn(),
+        insecure_cookies: true,
+        foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
+        foursquare_api_key: String::new(),
+        openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
+        openrouter_api_key: String::new(),
+        openrouter_model: "openrouter/free".to_string(),
+        stats_invalidator: brewlog::application::services::StatsInvalidator::new(stats_tx),
+        timeline_invalidator: brewlog::application::services::TimelineInvalidator::new(timeline_tx),
+    };
+
+    let state = AppState::from_database(&database, config);
+
+    // Clone repos for the rebuilder before consuming state
+    let rebuilder = TimelineRebuilder {
+        timeline_repo: state.timeline_repo.clone(),
+        roaster_repo: state.roaster_repo.clone(),
+        roast_repo: state.roast_repo.clone(),
+        bag_repo: state.bag_repo.clone(),
+        brew_repo: state.brew_repo.clone(),
+        cup_repo: state.cup_repo.clone(),
+        gear_repo: state.gear_repo.clone(),
+        cafe_repo: state.cafe_repo.clone(),
+    };
+
+    tokio::spawn(timeline_rebuild_task(
+        timeline_rx,
+        rebuilder,
+        std::time::Duration::from_millis(50),
+    ));
+
+    let app = spawn_app_inner_from_state(state, None).await;
     add_auth_to_app(app).await
 }
 

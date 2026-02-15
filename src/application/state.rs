@@ -4,7 +4,7 @@ use webauthn_rs::prelude::*;
 
 use crate::application::services::{
     BagService, BrewService, CafeService, CupService, GearService, RoastService, RoasterService,
-    StatsInvalidator,
+    StatsInvalidator, TimelineInvalidator,
 };
 use crate::domain::repositories::{
     AiUsageRepository, BagRepository, BrewRepository, CafeRepository, CupRepository,
@@ -44,6 +44,7 @@ pub struct AppStateConfig {
     pub openrouter_api_key: String,
     pub openrouter_model: String,
     pub stats_invalidator: StatsInvalidator,
+    pub timeline_invalidator: TimelineInvalidator,
 }
 
 #[derive(Clone)]
@@ -82,6 +83,7 @@ pub struct AppState {
     pub cup_service: CupService,
     pub insecure_cookies: bool,
     pub stats_invalidator: StatsInvalidator,
+    pub timeline_invalidator: TimelineInvalidator,
     pub image_semaphore: Arc<tokio::sync::Semaphore>,
 }
 
@@ -173,6 +175,7 @@ impl AppState {
             cup_service,
             insecure_cookies: config.insecure_cookies,
             stats_invalidator: config.stats_invalidator,
+            timeline_invalidator: config.timeline_invalidator,
             image_semaphore: Arc::new(tokio::sync::Semaphore::new(4)),
         }
     }

@@ -68,6 +68,74 @@ impl TimelineEventRepository for SqlTimelineEventRepository {
         record.into_domain()
     }
 
+    async fn update_by_entity(
+        &self,
+        entity_type: EntityType,
+        entity_id: i64,
+        event: NewTimelineEvent,
+    ) -> Result<(), RepositoryError> {
+        let details_json = serde_json::to_string(&event.details).map_err(|err| {
+            RepositoryError::unexpected(format!("failed to encode timeline event details: {err}"))
+        })?;
+
+        let tasting_notes_json = serde_json::to_string(&event.tasting_notes).map_err(|err| {
+            RepositoryError::unexpected(format!(
+                "failed to encode timeline event tasting notes: {err}"
+            ))
+        })?;
+
+        let brew_data_json = event
+            .brew_data
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()
+            .map_err(|err| {
+                RepositoryError::unexpected(format!("failed to encode brew data: {err}"))
+            })?;
+
+        sqlx::query(
+            r"UPDATE timeline_events
+              SET title = ?, details_json = ?, tasting_notes_json = ?,
+                  slug = ?, roaster_slug = ?, brew_data_json = ?
+              WHERE entity_type = ? AND entity_id = ?",
+        )
+        .bind(event.title)
+        .bind(details_json)
+        .bind(tasting_notes_json)
+        .bind(event.slug)
+        .bind(event.roaster_slug)
+        .bind(brew_data_json)
+        .bind(entity_type.as_str())
+        .bind(entity_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+
+        Ok(())
+    }
+
+    async fn delete_by_entity(
+        &self,
+        entity_type: EntityType,
+        entity_id: i64,
+    ) -> Result<(), RepositoryError> {
+        sqlx::query("DELETE FROM timeline_events WHERE entity_type = ? AND entity_id = ?")
+            .bind(entity_type.as_str())
+            .bind(entity_id)
+            .execute(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        Ok(())
+    }
+
+    async fn delete_all(&self) -> Result<(), RepositoryError> {
+        sqlx::query("DELETE FROM timeline_events")
+            .execute(&self.pool)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        Ok(())
+    }
+
     async fn list(
         &self,
         request: &ListRequest<TimelineSortKey>,
