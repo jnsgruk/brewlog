@@ -6,6 +6,7 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    crane.url = "github:ipetkov/crane";
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -38,7 +39,7 @@
         let
           overlays = [ (import rust-overlay) ];
           pkgs = import nixpkgs { inherit system overlays; };
-          inherit (pkgs) lib rustPlatform;
+          inherit (pkgs) lib;
 
           rust = pkgs.rust-bin.stable.latest.default.override {
             extensions = [
@@ -49,6 +50,22 @@
             ];
           };
 
+          craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rust;
+
+          # Source filtered to only Cargo-relevant files (for dependency caching)
+          cargoSource = craneLib.cleanCargoSource ./.;
+
+          # Full source including templates, static assets, and migrations
+          src = lib.cleanSourceWith {
+            src = lib.cleanSource ./.;
+            filter =
+              path: type:
+              (craneLib.filterCargoSources path type)
+              || (lib.hasInfix "/templates" path)
+              || (lib.hasInfix "/static" path)
+              || (lib.hasInfix "/migrations" path);
+          };
+
           prettierWithJinja = pkgs.writeShellScriptBin "prettier" ''
             export NODE_PATH="${pkgs.prettier}/lib/node_modules"
             exec ${pkgs.prettier}/bin/prettier "$@"
@@ -56,42 +73,52 @@
 
           cargoToml = lib.trivial.importTOML ./Cargo.toml;
           version = cargoToml.package.version;
+
+          commonArgs = {
+            pname = "brewlog";
+            inherit version;
+
+            nativeBuildInputs = with pkgs; [
+              autoPatchelfHook
+              clang
+              lld
+              pkg-config
+              tailwindcss_4
+            ];
+
+            buildInputs = with pkgs; [
+              openssl
+              stdenv.cc.cc.lib
+            ];
+
+            env.LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.openssl ];
+          };
+
+          # Pre-compiled dependencies — only rebuilds when Cargo.lock changes
+          cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { src = cargoSource; });
         in
         {
           packages = {
             default = self.packages.${system}.brewlog;
 
-            brewlog = rustPlatform.buildRustPackage {
-              pname = "brewlog";
-              inherit version;
-              src = lib.cleanSource ./.;
-              cargoLock.lockFile = ./Cargo.lock;
+            brewlog = craneLib.buildPackage (
+              commonArgs
+              // {
+                inherit src cargoArtifacts;
+                env = commonArgs.env // {
+                  GIT_HASH = self.shortRev or self.dirtyShortRev or "dev";
+                };
 
-              nativeBuildInputs = with pkgs; [
-                autoPatchelfHook
-                clang
-                lld
-                pkg-config
-                tailwindcss_4
-              ];
-
-              buildInputs = with pkgs; [
-                openssl
-                stdenv.cc.cc.lib
-              ];
-
-              env.GIT_HASH = self.shortRev or self.dirtyShortRev or "dev";
-              env.LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.openssl ];
-
-              meta = {
-                description = "Log your favourite roasters, roasts, brews and cafes";
-                homepage = "https://github.com/jnsgruk/brewlog";
-                license = lib.licenses.asl20;
-                mainProgram = "brewlog";
-                platforms = lib.platforms.unix;
-                maintainers = with lib.maintainers; [ jnsgruk ];
-              };
-            };
+                meta = {
+                  description = "Log your favourite roasters, roasts, brews and cafes";
+                  homepage = "https://github.com/jnsgruk/brewlog";
+                  license = lib.licenses.asl20;
+                  mainProgram = "brewlog";
+                  platforms = lib.platforms.unix;
+                  maintainers = with lib.maintainers; [ jnsgruk ];
+                };
+              }
+            );
 
             brewlog-container = pkgs.dockerTools.buildImage {
               name = "brewlog";
