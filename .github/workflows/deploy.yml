@@ -8,14 +8,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code into the Go module directory
+      - name: Checkout
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -25,6 +23,19 @@ jobs:
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
+
+      - name: Cache Cargo artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-check
+          restore-keys: |
+            cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-
+            cargo-${{ runner.os }}-
 
       - name: Check formatting
         run: nix develop -c cargo fmt --check
@@ -32,34 +43,14 @@ jobs:
       - name: Clippy
         run: nix develop -c cargo clippy
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Setup Nix cache
-        uses: nix-community/cache-nix-action@main
-        with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
-
       - name: Run tests
-        run: |
-          nix develop --command cargo test -- --show-output
+        run: nix develop -c cargo test -- --show-output
 
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
     needs:
-      - lint
-      - test
+      - check
     steps:
       - name: Checkout
         uses: actions/checkout@v6
