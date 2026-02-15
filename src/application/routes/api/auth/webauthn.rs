@@ -518,6 +518,7 @@ async fn create_session(state: &AppState, cookies: &Cookies, user_id: crate::dom
     cookie.set_path("/");
     cookie.set_http_only(true);
     cookie.set_same_site(tower_cookies::cookie::SameSite::Lax);
+    cookie.set_max_age(tower_cookies::cookie::time::Duration::days(30));
 
     if !state.insecure_cookies {
         cookie.set_secure(true);
