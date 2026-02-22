@@ -5,12 +5,12 @@ pub mod support;
 pub(crate) use app::auth::is_authenticated;
 
 use askama::Template;
+use axum::extract::DefaultBodyLimit;
 use axum::http::{HeaderValue, StatusCode};
 use axum::response::Html;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tower_http::compression::CompressionLayer;
-use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 use tracing::Level;
@@ -36,7 +36,7 @@ pub fn app_router(state: AppState) -> axum::Router {
                         .on_response(DefaultOnResponse::new().level(Level::INFO)),
                 )
                 .layer(CookieManagerLayer::new())
-                .layer(RequestBodyLimitLayer::new(BODY_LIMIT_BYTES))
+                .layer(DefaultBodyLimit::max(BODY_LIMIT_BYTES))
                 .layer(SetResponseHeaderLayer::overriding(
                     axum::http::header::X_CONTENT_TYPE_OPTIONS,
                     HeaderValue::from_static("nosniff"),
