@@ -16,7 +16,7 @@ fn test_editing_roaster_updates_timeline_events_after_rebuild() {
     // Verify original roaster name appears in timeline HTML
     let client = reqwest::blocking::Client::new();
     let body = client
-        .get(format!("{address}/timeline"))
+        .get(format!("{address}/timeline?page_size=all"))
         .send()
         .expect("failed to fetch timeline")
         .text()
@@ -58,7 +58,7 @@ fn test_editing_roaster_updates_timeline_events_after_rebuild() {
 
     // Verify both timeline events now show the updated roaster name
     let body = client
-        .get(format!("{address}/timeline"))
+        .get(format!("{address}/timeline?page_size=all"))
         .send()
         .expect("failed to fetch timeline after rebuild")
         .text()
