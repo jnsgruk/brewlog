@@ -2,32 +2,12 @@
 
 {% macro share_button() %}
   <button
-    onclick="shareLink(this)"
-    class="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-text-muted transition hover:bg-surface-alt hover:text-text shrink-0"
+    type="button"
+    onclick="navigator.clipboard.writeText(window.location.href).then(() => showToast('Copied to clipboard'))"
+    class="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:bg-surface-alt sm:flex-1"
   >
-    <span class="share-icon">{{ icons::clipboard("h-4 w-4 shrink-0") }}</span>
-    <span class="share-icon-check hidden"
-      >{{ icons::check("h-4 w-4 shrink-0") }}</span
-    >
-    <span class="share-label">Share</span>
+    {{ icons::clipboard("h-4 w-4") }} Share
   </button>
-{% endmacro %}
-
-{% macro share_script() %}
-  <script>
-    const shareLink = (btn) => {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        btn.querySelector(".share-icon").classList.add("hidden");
-        btn.querySelector(".share-icon-check").classList.remove("hidden");
-        btn.querySelector(".share-label").textContent = "Copied";
-        setTimeout(() => {
-          btn.querySelector(".share-icon").classList.remove("hidden");
-          btn.querySelector(".share-icon-check").classList.add("hidden");
-          btn.querySelector(".share-label").textContent = "Share";
-        }, 2000);
-      });
-    };
-  </script>
 {% endmacro %}
 
 {% macro coffee_card(roast_name, roaster_name, origin, origin_flag, region, producer, process, tasting_notes, roaster_slug, roast_slug) %}
@@ -202,6 +182,13 @@
   <div
     class="rounded-lg border bg-surface p-5 flex flex-col gap-2 sm:flex-row sm:items-center"
   >
+    <button
+      type="button"
+      onclick="navigator.clipboard.writeText(window.location.href).then(() => showToast('Copied to clipboard'))"
+      class="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:bg-surface-alt sm:flex-1"
+    >
+      {{ icons::clipboard("h-4 w-4") }} Share
+    </button>
     <a
       href="{{ edit_url }}"
       class="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-accent transition hover:bg-surface-alt sm:flex-1"
