@@ -19,7 +19,7 @@ Return ONLY the JSON object, no other text."#;
 const ROAST_PROMPT: &str = r#"Extract coffee roast information from this input. Use web search to look up any details you cannot determine from the input alone (e.g. origin, region, producer, processing method, tasting notes). Return a JSON object with these fields (only include fields you can identify with confidence):
 - "roaster_name": the name of the roaster
 - "name": the name of this specific coffee/roast
-- "origin": the country of origin of the coffee beans
+- "origin": the country (or countries, comma-separated) of origin of the coffee beans (e.g. "Ethiopia" or "Ethiopia, Colombia")
 - "region": the region within the origin country
 - "producer": the farm, estate, or cooperative that produced the beans
 - "process": the processing method (e.g. Washed, Natural, Honey, Anaerobic)
@@ -38,7 +38,7 @@ const SCAN_PROMPT: &str = r#"Extract both the coffee roaster and the roast infor
   },
   "roast": {
     "name": "the name of this specific coffee/roast",
-    "origin": "the country of origin of the beans",
+    "origin": "the country (or countries, comma-separated) of origin of the beans (e.g. 'Ethiopia' or 'Ethiopia, Colombia')",
     "region": "the region within the origin country",
     "producer": "the farm, estate, or cooperative",
     "process": "processing method (e.g. Washed, Natural, Honey, Anaerobic)",

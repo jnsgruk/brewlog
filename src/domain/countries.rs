@@ -112,6 +112,34 @@ pub fn iso_to_flag_emoji(code: &str) -> String {
         .collect()
 }
 
+/// Split a comma-separated origin string into trimmed, non-empty country names.
+///
+/// Returns an empty `Vec` for `None`, empty, or whitespace-only input.
+/// Single origins like `"Ethiopia"` yield `vec!["Ethiopia"]`.
+/// Blends like `"Ethiopia, Colombia"` yield `vec!["Ethiopia", "Colombia"]`.
+pub fn parse_origins(origin: Option<&str>) -> Vec<&str> {
+    match origin {
+        Some(s) if !s.trim().is_empty() => s
+            .split(',')
+            .map(str::trim)
+            .filter(|p| !p.is_empty())
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+/// Resolve a comma-separated origin string to a space-separated flag emoji string.
+///
+/// Unknown countries are silently skipped. Returns empty string if no countries resolve.
+pub fn origins_to_flags(origin: Option<&str>) -> String {
+    let flags: Vec<String> = parse_origins(origin)
+        .into_iter()
+        .filter_map(country_to_iso)
+        .map(iso_to_flag_emoji)
+        .collect();
+    flags.join(" ")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -142,5 +170,63 @@ mod tests {
         assert_eq!(iso_to_flag_emoji("GB"), "🇬🇧");
         assert_eq!(iso_to_flag_emoji("US"), "🇺🇸");
         assert_eq!(iso_to_flag_emoji("ET"), "🇪🇹");
+    }
+
+    #[test]
+    fn parse_origins_single() {
+        assert_eq!(parse_origins(Some("Ethiopia")), vec!["Ethiopia"]);
+    }
+
+    #[test]
+    fn parse_origins_multiple() {
+        assert_eq!(
+            parse_origins(Some("Ethiopia, Colombia")),
+            vec!["Ethiopia", "Colombia"]
+        );
+    }
+
+    #[test]
+    fn parse_origins_trims_whitespace() {
+        assert_eq!(
+            parse_origins(Some("  Ethiopia , Colombia  , Kenya ")),
+            vec!["Ethiopia", "Colombia", "Kenya"]
+        );
+    }
+
+    #[test]
+    fn parse_origins_empty_and_none() {
+        assert!(parse_origins(None).is_empty());
+        assert!(parse_origins(Some("")).is_empty());
+        assert!(parse_origins(Some("  ")).is_empty());
+    }
+
+    #[test]
+    fn parse_origins_trailing_comma() {
+        assert_eq!(parse_origins(Some("Ethiopia,")), vec!["Ethiopia"]);
+    }
+
+    #[test]
+    fn origins_to_flags_single() {
+        let flags = origins_to_flags(Some("Ethiopia"));
+        assert_eq!(flags, iso_to_flag_emoji("ET"));
+    }
+
+    #[test]
+    fn origins_to_flags_multiple() {
+        let flags = origins_to_flags(Some("Ethiopia, Colombia"));
+        let expected = format!("{} {}", iso_to_flag_emoji("ET"), iso_to_flag_emoji("CO"));
+        assert_eq!(flags, expected);
+    }
+
+    #[test]
+    fn origins_to_flags_skips_unknown() {
+        let flags = origins_to_flags(Some("Ethiopia, Narnia, Colombia"));
+        let expected = format!("{} {}", iso_to_flag_emoji("ET"), iso_to_flag_emoji("CO"));
+        assert_eq!(flags, expected);
+    }
+
+    #[test]
+    fn origins_to_flags_none() {
+        assert_eq!(origins_to_flags(None), "");
     }
 }

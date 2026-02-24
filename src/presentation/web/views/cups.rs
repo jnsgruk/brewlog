@@ -86,10 +86,8 @@ impl CupDetailView {
 
         let mut map_entries: Vec<(&str, u32)> = Vec::new();
         map_entries.push((cafe.country.as_str(), 3));
-        if let Some(ref o) = roast.origin
-            && !o.is_empty()
-        {
-            map_entries.push((o.as_str(), 2));
+        for o in crate::domain::countries::parse_origins(roast.origin.as_deref()) {
+            map_entries.push((o, 2));
         }
         map_entries.push((roaster.country.as_str(), 1));
         let (map_countries, map_max) = build_map_data(&map_entries);

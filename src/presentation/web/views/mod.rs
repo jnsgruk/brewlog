@@ -387,13 +387,11 @@ pub(crate) struct CoffeeInfo {
 
 /// Build coffee info fields from a roast, using em dash for empty/missing values.
 pub(crate) fn build_coffee_info(roast: &crate::domain::roasts::Roast) -> CoffeeInfo {
-    use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+    use crate::domain::countries::origins_to_flags;
 
     let em_dash = "\u{2014}".to_string();
     let origin = roast.origin.clone().unwrap_or_default();
-    let origin_flag = country_to_iso(&origin)
-        .map(iso_to_flag_emoji)
-        .unwrap_or_default();
+    let origin_flag = origins_to_flags(roast.origin.as_deref());
 
     let notes = tasting_notes::parse_and_categorize(&roast.tasting_notes);
 
@@ -449,14 +447,17 @@ pub(crate) fn build_roaster_info(roaster: &crate::domain::roasters::Roaster) -> 
 
 /// Build origin + roaster country map data with standard legend entries.
 ///
-/// Origin gets weight 2, roaster country gets weight 1. Returns the
-/// `(data-countries, data-max, legend_entries)` tuple used by detail pages.
+/// Origin gets weight 2, roaster country gets weight 1. Comma-separated
+/// origins (blends) are split so each country is highlighted on the map.
+/// Returns the `(data-countries, data-max, legend_entries)` tuple used by detail pages.
 pub(crate) fn build_origin_roaster_map(
     origin: Option<&str>,
     roaster_country: &str,
 ) -> (String, u32, Vec<LegendEntry>) {
+    use crate::domain::countries::parse_origins;
+
     let mut entries: Vec<(&str, u32)> = Vec::new();
-    if let Some(o) = origin.filter(|o| !o.is_empty()) {
+    for o in parse_origins(origin) {
         entries.push((o, 2));
     }
     entries.push((roaster_country, 1));

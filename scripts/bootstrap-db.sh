@@ -60,7 +60,7 @@ fi
 ./target/debug/brewlog roast add \
   --roaster-id "$(./target/debug/brewlog roaster list | jq -r '.[] | select(.name=="Square Mile Coffee") | .id')" \
   --name "Red Brick Espresso" \
-  --origin "Blend" \
+  --origin "Ethiopia, Colombia" \
   --region "Multiple Origins" \
   --producer "Various" \
   --process "Washed, Natural" \

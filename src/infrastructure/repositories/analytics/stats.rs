@@ -64,10 +64,19 @@ impl StatsRepository for SqlStatsRepository {
 
     async fn roast_origin_counts(&self) -> Result<Vec<(String, u64)>, RepositoryError> {
         let rows = query_as::<_, CountryCount>(
-            r"SELECT origin as country, COUNT(*) as count
-               FROM roasts
-               WHERE origin IS NOT NULL AND origin != ''
-               GROUP BY origin
+            r"WITH RECURSIVE split(country, rest) AS (
+                  SELECT TRIM(SUBSTR(origin, 1, INSTR(origin || ',', ',') - 1)),
+                         TRIM(SUBSTR(origin, INSTR(origin || ',', ',') + 1))
+                  FROM roasts
+                  WHERE origin IS NOT NULL AND origin != ''
+                  UNION ALL
+                  SELECT TRIM(SUBSTR(rest, 1, INSTR(rest || ',', ',') - 1)),
+                         TRIM(SUBSTR(rest, INSTR(rest || ',', ',') + 1))
+                  FROM split WHERE rest != ''
+               )
+               SELECT country, COUNT(*) as count
+               FROM split WHERE country != ''
+               GROUP BY LOWER(country)
                ORDER BY count DESC",
         )
         .fetch_all(&self.pool)
@@ -108,17 +117,36 @@ impl StatsRepository for SqlStatsRepository {
 
     async fn roast_summary(&self) -> Result<RoastSummaryStats, RepositoryError> {
         let unique_origins: i64 = query_scalar(
-            r"SELECT COUNT(DISTINCT origin) FROM roasts
-               WHERE origin IS NOT NULL AND origin != ''",
+            r"WITH RECURSIVE split(country, rest) AS (
+                  SELECT TRIM(SUBSTR(origin, 1, INSTR(origin || ',', ',') - 1)),
+                         TRIM(SUBSTR(origin, INSTR(origin || ',', ',') + 1))
+                  FROM roasts
+                  WHERE origin IS NOT NULL AND origin != ''
+                  UNION ALL
+                  SELECT TRIM(SUBSTR(rest, 1, INSTR(rest || ',', ',') - 1)),
+                         TRIM(SUBSTR(rest, INSTR(rest || ',', ',') + 1))
+                  FROM split WHERE rest != ''
+               )
+               SELECT COUNT(DISTINCT LOWER(country)) FROM split WHERE country != ''",
         )
         .fetch_one(&self.pool)
         .await
         .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         let top_origin = query_as::<_, NameCount>(
-            r"SELECT origin as name, COUNT(*) as count FROM roasts
-               WHERE origin IS NOT NULL AND origin != ''
-               GROUP BY origin ORDER BY count DESC LIMIT 1",
+            r"WITH RECURSIVE split(country, rest) AS (
+                  SELECT TRIM(SUBSTR(origin, 1, INSTR(origin || ',', ',') - 1)),
+                         TRIM(SUBSTR(origin, INSTR(origin || ',', ',') + 1))
+                  FROM roasts
+                  WHERE origin IS NOT NULL AND origin != ''
+                  UNION ALL
+                  SELECT TRIM(SUBSTR(rest, 1, INSTR(rest || ',', ',') - 1)),
+                         TRIM(SUBSTR(rest, INSTR(rest || ',', ',') + 1))
+                  FROM split WHERE rest != ''
+               )
+               SELECT country as name, COUNT(*) as count
+               FROM split WHERE country != ''
+               GROUP BY LOWER(country) ORDER BY count DESC LIMIT 1",
         )
         .fetch_optional(&self.pool)
         .await
