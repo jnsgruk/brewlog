@@ -4,7 +4,7 @@ use crate::helpers::{
 };
 use crate::test_macros::define_crud_tests;
 use brewlog::domain::bags::{Bag, BagWithRoast, NewBag, UpdateBag};
-use chrono::NaiveDate;
+use chrono::{NaiveDate, TimeZone, Utc};
 
 define_crud_tests!(
     entity: bag,
@@ -186,7 +186,7 @@ async fn updating_a_bag_returns_200_and_updates_data() {
     let update_payload = UpdateBag {
         remaining: Some(100.0),
         closed: Some(true),
-        finished_at: Some(NaiveDate::from_ymd_opt(2023, 2, 1).unwrap()),
+        finished_at: Some(Utc.with_ymd_and_hms(2023, 2, 1, 23, 59, 59).unwrap()),
         ..Default::default()
     };
 
@@ -206,7 +206,7 @@ async fn updating_a_bag_returns_200_and_updates_data() {
     assert!(updated_bag.closed);
     assert_eq!(
         updated_bag.finished_at,
-        Some(NaiveDate::from_ymd_opt(2023, 2, 1).unwrap())
+        Some(Utc.with_ymd_and_hms(2023, 2, 1, 23, 59, 59).unwrap())
     );
 }
 
@@ -308,10 +308,10 @@ async fn closing_a_bag_automatically_sets_finished_at() {
     // Accept today or yesterday to avoid midnight-boundary flakiness
     let today = chrono::Utc::now().date_naive();
     let yesterday = today - chrono::Duration::days(1);
-    let finished = updated_bag.finished_at.unwrap();
+    let finished_date = updated_bag.finished_at.unwrap().date_naive();
     assert!(
-        finished == today || finished == yesterday,
-        "expected finished_at to be today or yesterday, got {finished}"
+        finished_date == today || finished_date == yesterday,
+        "expected finished_at date to be today or yesterday, got {finished_date}"
     );
 }
 

@@ -227,7 +227,7 @@ struct BagRecord {
     amount: f64,
     remaining: f64,
     closed: bool,
-    finished_at: Option<NaiveDate>,
+    finished_at: Option<DateTime<Utc>>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -256,7 +256,7 @@ struct BagWithRoastRecord {
     amount: f64,
     remaining: f64,
     closed: bool,
-    finished_at: Option<NaiveDate>,
+    finished_at: Option<DateTime<Utc>>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
     roast_name: String,

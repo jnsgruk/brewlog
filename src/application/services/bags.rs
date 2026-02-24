@@ -43,7 +43,7 @@ impl BagService {
     /// repository, and records a "finished" timeline event.
     pub async fn finish(&self, id: BagId, mut update: UpdateBag) -> Result<Bag, RepositoryError> {
         if update.finished_at.is_none() {
-            update.finished_at = Some(chrono::Utc::now().date_naive());
+            update.finished_at = Some(chrono::Utc::now());
         }
         let bag = self.bag_repo.update(id, update).await?;
         self.record_timeline_event(&bag, "finished").await;

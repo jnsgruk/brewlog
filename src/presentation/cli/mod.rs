@@ -158,6 +158,20 @@ pub fn parse_created_at(value: &str) -> anyhow::Result<DateTime<Utc>> {
     )
 }
 
+/// Like `parse_created_at` but date-only values become 23:59:59 UTC so
+/// bag "finished" events sort after same-day brews.
+pub fn parse_finished_at(value: &str) -> anyhow::Result<DateTime<Utc>> {
+    if let Ok(dt) = DateTime::parse_from_rfc3339(value) {
+        return Ok(dt.with_timezone(&Utc));
+    }
+    if let Ok(date) = NaiveDate::parse_from_str(value, "%Y-%m-%d") {
+        return Ok(date.and_time(crate::domain::bags::END_OF_DAY).and_utc());
+    }
+    anyhow::bail!(
+        "invalid date format: expected RFC 3339 (e.g. 2025-08-05T10:00:00Z) or YYYY-MM-DD"
+    )
+}
+
 pub(crate) fn print_json<T>(value: &T) -> anyhow::Result<()>
 where
     T: serde::Serialize,

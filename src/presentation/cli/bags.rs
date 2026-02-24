@@ -2,8 +2,8 @@ use anyhow::Result;
 use clap::{Args, Subcommand};
 
 use super::macros::{define_delete_command, define_get_command};
-use super::parse_created_at;
 use super::print_json;
+use super::{parse_created_at, parse_finished_at};
 use crate::domain::ids::{BagId, RoastId};
 use crate::infrastructure::client::BrewlogClient;
 
@@ -99,7 +99,7 @@ pub struct UpdateBagCommand {
 pub async fn update_bag(client: &BrewlogClient, command: UpdateBagCommand) -> Result<()> {
     let finished_at = command
         .finished_at
-        .map(|d| chrono::NaiveDate::parse_from_str(&d, "%Y-%m-%d"))
+        .map(|d| parse_finished_at(&d))
         .transpose()?;
     let created_at = command
         .created_at

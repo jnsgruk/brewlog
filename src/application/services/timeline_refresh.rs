@@ -294,15 +294,29 @@ async fn refresh_entity_event(
             roast_timeline_event(&rwr.roast, &roaster)
         }
         EntityType::Bag => {
+            // Bags have two timeline events ("added" + optional "finished"),
+            // so delete-and-reinsert to keep occurred_at in sync with finished_at.
             let bwr = rebuilder
                 .bag_repo
                 .get_with_roast(BagId::new(entity_id))
                 .await?;
             let roast = rebuilder.roast_repo.get(bwr.bag.roast_id).await?;
             let roaster = rebuilder.roaster_repo.get(roast.roaster_id).await?;
-            // update_by_entity updates all events for this entity,
-            // preserving each event's original action ("added" or "finished")
-            bag_timeline_event(&bwr.bag, "added", &roast, &roaster)
+            rebuilder
+                .timeline_repo
+                .delete_by_entity(entity_type, entity_id)
+                .await?;
+            rebuilder
+                .timeline_repo
+                .insert(bag_timeline_event(&bwr.bag, "added", &roast, &roaster))
+                .await?;
+            if bwr.bag.closed {
+                rebuilder
+                    .timeline_repo
+                    .insert(bag_timeline_event(&bwr.bag, "finished", &roast, &roaster))
+                    .await?;
+            }
+            return Ok(());
         }
         EntityType::Brew => {
             let enriched = rebuilder
@@ -458,10 +472,7 @@ async fn rebuild_bag_events(
             warn!(error = %err, id = %bwr.bag.id, "failed to rebuild bag 'added' timeline event");
         }
         if bwr.bag.closed {
-            let mut finished_event = bag_timeline_event(&bwr.bag, "finished", &roast, &roaster);
-            if let Some(finished_at) = bwr.bag.finished_at {
-                finished_event.occurred_at = finished_at.and_time(chrono::NaiveTime::MIN).and_utc();
-            }
+            let finished_event = bag_timeline_event(&bwr.bag, "finished", &roast, &roaster);
             if let Err(err) = rebuilder.timeline_repo.insert(finished_event).await {
                 warn!(error = %err, id = %bwr.bag.id, "failed to rebuild bag 'finished' timeline event");
             }

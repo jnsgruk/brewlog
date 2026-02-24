@@ -136,8 +136,11 @@ pub(crate) struct UpdateBagSubmission {
     remaining: Option<f64>,
     #[serde(default)]
     closed: Option<bool>,
-    #[serde(default)]
-    finished_at: Option<chrono::NaiveDate>,
+    #[serde(
+        default,
+        deserialize_with = "crate::domain::bags::deserialize_flexible_finished_at"
+    )]
+    finished_at: Option<DateTime<Utc>>,
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]

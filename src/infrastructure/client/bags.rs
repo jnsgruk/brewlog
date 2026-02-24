@@ -77,7 +77,7 @@ impl<'a> BagsClient<'a> {
         id: BagId,
         remaining: Option<f64>,
         closed: Option<bool>,
-        finished_at: Option<NaiveDate>,
+        finished_at: Option<DateTime<Utc>>,
         created_at: Option<DateTime<Utc>>,
     ) -> Result<BagWithRoast> {
         let url = self.inner.endpoint(&format!("api/v1/bags/{id}"))?;
