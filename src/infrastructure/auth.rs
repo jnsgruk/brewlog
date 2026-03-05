@@ -1,13 +1,13 @@
 use anyhow::Result;
 use base64::{Engine as _, engine::general_purpose};
-use rand::{RngCore, rngs::OsRng};
+use rand::RngCore;
 use sha2::{Digest, Sha256};
 
 /// Generates a cryptographically secure random token
 /// Returns a base64-encoded token string
 pub fn generate_token() -> Result<String> {
     let mut token_bytes = [0u8; 32];
-    OsRng.fill_bytes(&mut token_bytes);
+    rand::rng().fill_bytes(&mut token_bytes);
     Ok(general_purpose::STANDARD.encode(token_bytes))
 }
 
@@ -22,7 +22,7 @@ pub fn hash_token(token: &str) -> String {
 /// Generates a session token for cookie-based authentication
 pub fn generate_session_token() -> String {
     let mut token_bytes = [0u8; 32];
-    OsRng.fill_bytes(&mut token_bytes);
+    rand::rng().fill_bytes(&mut token_bytes);
     general_purpose::URL_SAFE_NO_PAD.encode(token_bytes)
 }
 
