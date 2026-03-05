@@ -178,6 +178,6 @@ fn build_stat_cards(cs: CachedStats) -> Vec<StatCard> {
             label: "Top Roaster",
         },
     ];
-    cards.shuffle(&mut rand::thread_rng());
+    cards.shuffle(&mut rand::rng());
     cards
 }
