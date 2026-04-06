@@ -25,7 +25,9 @@ Before you start, you'll need to sign up for [Openrouter](https://openrouter.ai)
 Then create a `docker.env` file:
 
 ```env
-# You'll need an API key from OpenRouter
+# Specify AI provider URL (default to Openrouter)
+BREWLOG_OPENROUTER_URL=https://<any-ai-provider-url>/api/v1/chat/completions
+# You'll need an API key from AI provider of your choice 
 BREWLOG_OPENROUTER_API_KEY=sk-or-...
 # I've had good results with Gemini models, but you can try 'openrouter/free' to experiment
 BREWLOG_OPENROUTER_MODEL=google/gemini-3-flash-preview
@@ -117,11 +119,12 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 
 ### Integrations
 
-| Variable                     | Purpose                                                                     | Default           |
-| ---------------------------- | --------------------------------------------------------------------------- | ----------------- |
-| `BREWLOG_OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/) API key for AI extraction              | **required**      |
-| `BREWLOG_OPENROUTER_MODEL`   | LLM model for AI extraction                                                 | `openrouter/free` |
-| `BREWLOG_FOURSQUARE_API_KEY` | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search | **required**      |
+| Variable                    | Purpose                                                                     | Default                                              |
+| --------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `BREWLOG_OPENROUTER_API_KEY` | API key for AI extraction              | **required**                                        |
+| `BREWLOG_OPENROUTER_URL`     | API endpoint URL from any AI Provider with OpenAI-compatible URL                       | `https://openrouter.ai/api/v1/chat/completions`      |
+| `BREWLOG_OPENROUTER_MODEL`   | LLM model for AI extraction                                                 | `openrouter/free`                                   |
+| `BREWLOG_FOURSQUARE_API_KEY` | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search | **required**                                        |
 
 ## Contributing
 

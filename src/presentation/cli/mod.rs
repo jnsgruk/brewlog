@@ -136,6 +136,13 @@ pub struct ServeCommand {
     pub openrouter_api_key: Option<String>,
 
     #[arg(
+        long, 
+        env = "BREWLOG_OPENROUTER_URL",
+        default_value = "https://openrouter.ai/api/v1/chat/completions"
+    )]
+    pub openrouter_url: String,
+
+    #[arg(
         long,
         env = "BREWLOG_OPENROUTER_MODEL",
         default_value = "openrouter/free"

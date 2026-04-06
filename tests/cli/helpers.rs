@@ -95,7 +95,7 @@ fn ensure_server_started() -> Result<(String, String), String> {
                         foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL
                             .to_string(),
                         foursquare_api_key: String::new(),
-                        openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
+                        openrouter_url: String::new(),
                         openrouter_api_key: String::new(),
                         openrouter_model: "openrouter/free".to_string(),
                         stats_invalidator: brewlog::application::services::StatsInvalidator::new(

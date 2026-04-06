@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::application::errors::AppError;
 
-pub const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 const USER_AGENT: &str = "Brewlog/1.0";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(90);
 
