@@ -114,6 +114,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         rp_origin,
         insecure_cookies,
         openrouter_api_key,
+        openrouter_url: command.openrouter_url,
         openrouter_model: command.openrouter_model,
         foursquare_api_key,
     };
