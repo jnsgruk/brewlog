@@ -116,25 +116,22 @@ impl BrewRepository for SqlBrewRepository {
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
-        // Deduct coffee weight from bag's remaining amount
+        // Deduct coffee weight from bag's remaining amount, clamping to zero
         let update_bag_query = r"
             UPDATE bags
-            SET remaining = remaining - ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ? AND remaining >= ? AND closed = FALSE
+            SET remaining = MAX(remaining - ?, 0), updated_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND closed = FALSE
         ";
 
         let result = sqlx::query(update_bag_query)
             .bind(brew.coffee_weight)
             .bind(brew.bag_id.into_inner())
-            .bind(brew.coffee_weight)
             .execute(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
 
         if result.rows_affected() == 0 {
-            return Err(RepositoryError::conflict(
-                "Insufficient coffee remaining in bag or bag is closed",
-            ));
+            return Err(RepositoryError::conflict("Bag is closed or not found"));
         }
 
         // Insert the brew

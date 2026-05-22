@@ -141,7 +141,7 @@ async fn creating_a_brew_deducts_from_bag_remaining() {
 }
 
 #[tokio::test]
-async fn creating_a_brew_fails_if_insufficient_coffee_in_bag() {
+async fn creating_a_brew_with_excess_coffee_clamps_remaining_to_zero() {
     // Arrange
     let app = spawn_app_with_auth().await;
     let roaster = create_default_roaster(&app).await;
@@ -175,7 +175,75 @@ async fn creating_a_brew_fails_if_insufficient_coffee_in_bag() {
         .expect("Failed to execute request");
 
     // Assert
-    assert_eq!(response.status(), 409); // Conflict
+    assert_eq!(response.status(), 201);
+
+    let brew: Brew = response.json().await.expect("Failed to parse response");
+    assert_eq!(brew.coffee_weight, 300.0);
+
+    let bag_response = client
+        .get(app.api_url(&format!("/bags/{}", bag.id)))
+        .send()
+        .await
+        .expect("Failed to get bag");
+
+    let updated_bag: Bag = bag_response.json().await.expect("Failed to parse bag");
+    assert_eq!(updated_bag.remaining, 0.0);
+}
+
+#[tokio::test]
+async fn creating_a_brew_against_empty_open_bag_succeeds() {
+    // Arrange
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let client = reqwest::Client::new();
+
+    let update_payload = serde_json::json!({ "remaining": 0.0 });
+    client
+        .put(app.api_url(&format!("/bags/{}", bag.id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&update_payload)
+        .send()
+        .await
+        .expect("Failed to update bag");
+
+    let new_brew = NewBrew {
+        bag_id: bag.id,
+        coffee_weight: 15.0,
+        grinder_id: grinder.id,
+        grind_setting: 24.0,
+        brewer_id: brewer.id,
+        filter_paper_id: None,
+        water_volume: 250,
+        water_temp: 92.0,
+        quick_notes: Vec::new(),
+        brew_time: None,
+        created_at: None,
+    };
+
+    // Act
+    let response = client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&new_brew)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status(), 201);
+
+    let bag_response = client
+        .get(app.api_url(&format!("/bags/{}", bag.id)))
+        .send()
+        .await
+        .expect("Failed to get bag");
+
+    let updated_bag: Bag = bag_response.json().await.expect("Failed to parse bag");
+    assert_eq!(updated_bag.remaining, 0.0);
 }
 
 #[tokio::test]

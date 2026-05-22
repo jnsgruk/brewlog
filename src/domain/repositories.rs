@@ -197,8 +197,8 @@ pub trait GearRepository: Send + Sync {
 
 #[async_trait]
 pub trait BrewRepository: Send + Sync {
-    /// Insert a new brew and deduct `coffee_weight` from the bag's remaining amount.
-    /// This is a transactional operation.
+    /// Insert a new brew and deduct `coffee_weight` from the bag's remaining amount,
+    /// clamping to zero. Rejects if the bag is closed. This is a transactional operation.
     async fn insert(&self, brew: NewBrew) -> Result<Brew, RepositoryError>;
     async fn get(&self, id: BrewId) -> Result<Brew, RepositoryError>;
     async fn get_with_details(&self, id: BrewId) -> Result<BrewWithDetails, RepositoryError>;
