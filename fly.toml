@@ -6,7 +6,7 @@ primary_region = 'lhr'
 [build]
 
 [env]
-BREWLOG_OPENROUTER_MODEL = 'google/gemini-3-flash-preview'
+BREWLOG_OPENROUTER_MODEL = 'google/gemini-3.5-flash'
 BREWLOG_RP_ID = 'coffee.jnsgr.uk'
 BREWLOG_BIND_ADDRESS = '0.0.0.0:3000'
 BREWLOG_RP_ORIGIN = 'https://coffee.jnsgr.uk'
