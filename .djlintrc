@@ -1,9 +1,0 @@
-{
-  "profile": "jinja",
-  "indent": 2,
-  "max_line_length": 120,
-  "max_attribute_length": 80,
-  "preserve_blank_lines": true,
-  "preserve_leading_space": true,
-  "format_attribute_template_tags": true
-}

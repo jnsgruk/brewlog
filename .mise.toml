@@ -23,8 +23,6 @@ npx --yes @puppeteer/browsers install chrome@stable --path "$CHROME_DIR"
 npx --yes @puppeteer/browsers install chromedriver@stable --path "$CHROME_DIR"
 """
 
-install-py-deps = "uv tool install djlint"
-
 fmt = { depends = ["fmt:rs", "fmt:sh", "fmt:assets"] }
 "fmt:rs" = "cargo fmt"
 "fmt:sh" = "shfmt -i 2 -s -w $(find . -name '*.sh' -not -path './target/*')"
