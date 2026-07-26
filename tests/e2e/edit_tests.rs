@@ -263,6 +263,80 @@ async fn edit_brew_updates_numeric_fields() {
     session.quit().await;
 }
 
+// ── Brew: closed bag ──────────────────────────────────────────────────
+
+#[tokio::test]
+async fn edit_brew_with_closed_bag_keeps_bag_fixed_and_submits() {
+    let app = spawn_app_with_auth().await;
+    let brew = create_default_brew(&app).await;
+
+    let response = reqwest::Client::new()
+        .put(app.api_url(&format!("/bags/{}", brew.bag_id)))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({ "closed": true }))
+        .send()
+        .await
+        .unwrap();
+    assert!(response.status().is_success());
+
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+
+    session
+        .goto(&format!("/brews/{}/edit", brew.id))
+        .await
+        .unwrap();
+    wait_for_visible(&session.driver, "input[name='coffee_weight']")
+        .await
+        .unwrap();
+
+    assert!(
+        session
+            .driver
+            .find(By::Css("searchable-select[name='bag_id']"))
+            .await
+            .is_err(),
+        "A closed bag should not be changeable"
+    );
+
+    let bag_input = session
+        .driver
+        .find(By::Css("input[type='hidden'][name='bag_id']"))
+        .await
+        .expect("The closed bag ID should still be submitted");
+    assert_eq!(
+        bag_input.prop("value").await.unwrap().unwrap_or_default(),
+        brew.bag_id.to_string()
+    );
+
+    let bag_display = session
+        .driver
+        .find(By::Css("[data-closed-bag]"))
+        .await
+        .expect("The closed bag name should be displayed");
+    assert!(bag_display.text().await.unwrap().contains("Test Roast"));
+
+    fill_input(&session.driver, "coffee_weight", "18")
+        .await
+        .unwrap();
+    submit_visible_form(&session.driver).await.unwrap();
+    wait_for_url_not_contains(&session.driver, "/edit")
+        .await
+        .unwrap();
+
+    let body_text = session
+        .driver
+        .find(By::Css("body"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(body_text.contains("18"), "The brew update should be saved");
+
+    session.quit().await;
+}
+
 // ── Brew: +/- adjuster buttons ────────────────────────────────────────
 
 #[tokio::test]

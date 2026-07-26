@@ -365,6 +365,7 @@ pub struct BrewEditTemplate {
     pub id: String,
     pub bag_id: String,
     pub bag_label: String,
+    pub bag_closed: bool,
     pub coffee_weight: f64,
     pub grinder_id: String,
     pub grind_setting: f64,
