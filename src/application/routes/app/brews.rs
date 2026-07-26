@@ -93,6 +93,12 @@ pub(crate) async fn brew_edit_page(
         .await
         .map_err(|e| map_app_error(e.into()))?;
 
+    let bag = state
+        .bag_repo
+        .get(brew.brew.bag_id)
+        .await
+        .map_err(|e| map_app_error(e.into()))?;
+
     let form_data = load_brew_form_data(&state).await.map_err(map_app_error)?;
 
     let image_url = resolve_image_url(&state, EntityType::Brew, i64::from(id)).await;
@@ -104,6 +110,7 @@ pub(crate) async fn brew_edit_page(
         id: brew.brew.id.to_string(),
         bag_id: brew.brew.bag_id.to_string(),
         bag_label: format!("{} ({})", brew.roast_name, brew.roaster_name),
+        bag_closed: bag.closed,
         coffee_weight: brew.brew.coffee_weight,
         grinder_id: brew.brew.grinder_id.to_string(),
         grind_setting: brew.brew.grind_setting,
