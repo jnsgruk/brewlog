@@ -1,4 +1,4 @@
-use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::countries::country_to_flag_emoji;
 use crate::domain::entity_type::EntityType;
 use crate::domain::timeline::{TimelineEvent, TimelineEventDetail};
 
@@ -251,10 +251,11 @@ impl TimelineEventView {
     fn add_country_flags(details: &mut [TimelineEventDetailView]) {
         for detail in details.iter_mut() {
             let label_lower = detail.label.to_ascii_lowercase();
-            if matches!(label_lower.as_str(), "origin" | "country")
-                && let Some(flag) = country_to_iso(detail.value.trim()).map(iso_to_flag_emoji)
-            {
-                detail.value = format!("{flag} {}", detail.value);
+            if matches!(label_lower.as_str(), "origin" | "country") {
+                let flag = country_to_flag_emoji(detail.value.trim());
+                if !flag.is_empty() {
+                    detail.value = format!("{flag} {}", detail.value);
+                }
             }
         }
     }

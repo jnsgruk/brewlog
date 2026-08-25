@@ -1,5 +1,5 @@
 use crate::domain::cafes::Cafe;
-use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::countries::country_to_flag_emoji;
 use crate::domain::nearby_cafes::NearbyCafeResult;
 
 use super::{LegendEntry, build_map_data, format_datetime};
@@ -22,9 +22,7 @@ pub struct CafeDetailView {
 impl From<Cafe> for CafeDetailView {
     fn from(cafe: Cafe) -> Self {
         let (created_date, created_time) = format_datetime(cafe.created_at);
-        let country_flag = country_to_iso(&cafe.country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let country_flag = country_to_flag_emoji(&cafe.country);
         let (map_countries, map_max) = build_map_data(&[(&cafe.country, 1)]);
         let map_url = format!(
             "https://www.google.com/maps?q={},{}",
@@ -88,9 +86,7 @@ impl From<Cafe> for CafeView {
         let has_website = !website.is_empty();
         let detail_path = format!("/cafes/{slug}");
         let map_url = format!("https://www.google.com/maps?q={latitude},{longitude}");
-        let country_flag = country_to_iso(&country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let country_flag = country_to_flag_emoji(&country);
 
         let created_at_sort_key = created_at.timestamp();
         let (created_date, created_time) = format_datetime(created_at);

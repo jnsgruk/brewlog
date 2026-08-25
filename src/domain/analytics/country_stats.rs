@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::countries::{country_flag_emoji, resolve_country};
 
 /// A single country's count for geographic statistics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,12 +25,9 @@ impl GeoStats {
         let entries: Vec<CountryStat> = raw
             .into_iter()
             .map(|(name, count)| {
-                let iso = country_to_iso(&name).unwrap_or("").to_string();
-                let flag = if iso.is_empty() {
-                    String::new()
-                } else {
-                    iso_to_flag_emoji(&iso)
-                };
+                let country = resolve_country(&name);
+                let iso = country.map_or_else(String::new, |country| country.alpha2().to_string());
+                let flag = country.map(country_flag_emoji).unwrap_or_default();
                 CountryStat {
                     country_name: name,
                     iso_code: iso,

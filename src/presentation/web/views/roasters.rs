@@ -1,4 +1,4 @@
-use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::countries::country_to_flag_emoji;
 use crate::domain::roasters::Roaster;
 
 use super::{LegendEntry, build_map_data, format_datetime};
@@ -19,9 +19,7 @@ pub struct RoasterDetailView {
 
 impl From<Roaster> for RoasterDetailView {
     fn from(roaster: Roaster) -> Self {
-        let country_flag = country_to_iso(&roaster.country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let country_flag = country_to_flag_emoji(&roaster.country);
         let (map_countries, map_max) = build_map_data(&[(&roaster.country, 1)]);
         let (created_date, created_time) = format_datetime(roaster.created_at);
 
@@ -97,9 +95,7 @@ impl From<Roaster> for RoasterView {
         let homepage = homepage.unwrap_or_default();
         let has_homepage = !homepage.is_empty();
         let detail_path = format!("/roasters/{slug}");
-        let country_flag = country_to_iso(&country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let country_flag = country_to_flag_emoji(&country);
 
         let created_at_sort_key = created_at.timestamp();
         let (created_date, created_time) = format_datetime(created_at);

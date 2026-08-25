@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use isocountry::CountryCode;
 use serde::Deserialize;
 
 use crate::application::errors::AppError;
+use crate::domain::countries::country_name_from_iso;
 use crate::domain::nearby_cafes::NearbyCafeResult;
 
 pub const FOURSQUARE_SEARCH_URL: &str = "https://places-api.foursquare.com/places/search";
@@ -115,22 +115,7 @@ fn parse_cafe(place: FoursquarePlace, location: &SearchLocation) -> Option<Nearb
 /// Converts a 2-letter ISO 3166-1 alpha-2 country code to a full country name.
 /// Falls back to the raw code if the lookup fails.
 fn country_name(code: &str) -> String {
-    // Override verbose ISO 3166-1 names with common short forms
-    match code.to_ascii_uppercase().as_str() {
-        "GB" => "United Kingdom".to_string(),
-        "US" => "United States".to_string(),
-        "KR" => "South Korea".to_string(),
-        "KP" => "North Korea".to_string(),
-        "TW" => "Taiwan".to_string(),
-        "RU" => "Russia".to_string(),
-        "IR" => "Iran".to_string(),
-        "SY" => "Syria".to_string(),
-        "VE" => "Venezuela".to_string(),
-        "BO" => "Bolivia".to_string(),
-        "TZ" => "Tanzania".to_string(),
-        _ => CountryCode::for_alpha2_caseless(code)
-            .map_or_else(|_| code.to_string(), |cc| cc.name().to_string()),
-    }
+    country_name_from_iso(code).map_or_else(|| code.to_string(), str::to_string)
 }
 
 /// Haversine distance in meters between two lat/lng points.

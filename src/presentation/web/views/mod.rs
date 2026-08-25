@@ -431,11 +431,9 @@ pub(crate) struct RoasterInfo {
 
 /// Build roaster info fields from a roaster.
 pub(crate) fn build_roaster_info(roaster: &crate::domain::roasters::Roaster) -> RoasterInfo {
-    use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+    use crate::domain::countries::country_to_flag_emoji;
 
-    let country_flag = country_to_iso(&roaster.country)
-        .map(iso_to_flag_emoji)
-        .unwrap_or_default();
+    let country_flag = country_to_flag_emoji(&roaster.country);
 
     RoasterInfo {
         country: roaster.country.clone(),

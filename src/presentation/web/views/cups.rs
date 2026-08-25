@@ -1,5 +1,5 @@
 use crate::domain::cafes::Cafe;
-use crate::domain::countries::{country_to_iso, iso_to_flag_emoji};
+use crate::domain::countries::country_to_flag_emoji;
 use crate::domain::cups::CupWithDetails;
 use crate::domain::roasters::Roaster;
 use crate::domain::roasts::Roast;
@@ -80,9 +80,7 @@ impl CupDetailView {
         let coffee = build_coffee_info(roast);
         let roaster_info = build_roaster_info(roaster);
 
-        let cafe_country_flag = country_to_iso(&cafe.country)
-            .map(iso_to_flag_emoji)
-            .unwrap_or_default();
+        let cafe_country_flag = country_to_flag_emoji(&cafe.country);
 
         let mut map_entries: Vec<(&str, u32)> = Vec::new();
         map_entries.push((cafe.country.as_str(), 3));
