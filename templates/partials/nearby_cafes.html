@@ -24,7 +24,7 @@
       >
         <span class="font-medium text-text">{{ cafe.name }}</span>
         <span class="ml-2 text-xs text-text-muted"
-          >{{ cafe.location }} &middot; {{ cafe.distance }}</span
+          >{{ cafe.location }}{% if !cafe.distance.is_empty() %} &middot; {{ cafe.distance }}{% endif %}</span
         >
       </button>
     {% endfor %}

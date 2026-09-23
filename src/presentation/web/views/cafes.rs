@@ -142,10 +142,10 @@ pub struct NearbyCafeView {
 
 impl From<NearbyCafeResult> for NearbyCafeView {
     fn from(cafe: NearbyCafeResult) -> Self {
-        let distance = if cafe.distance_meters < 1000 {
-            format!("{} m", cafe.distance_meters)
-        } else {
-            format!("{:.1} km", f64::from(cafe.distance_meters) / 1000.0)
+        let distance = match cafe.distance_meters {
+            Some(meters) if meters < 1000 => format!("{meters} m"),
+            Some(meters) => format!("{:.1} km", f64::from(meters) / 1000.0),
+            None => String::new(),
         };
         let location = [cafe.city.as_str(), cafe.country.as_str()]
             .into_iter()

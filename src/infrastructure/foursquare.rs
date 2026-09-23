@@ -71,11 +71,13 @@ pub async fn search_nearby(
         .await
         .map_err(|e| AppError::unexpected(format!("Failed to parse Foursquare response: {e}")))?;
 
-    let cafes = result
+    let mut cafes: Vec<_> = result
         .results
         .into_iter()
         .filter_map(|place| parse_cafe(place, location))
         .collect();
+    // Stable sorting retains Foursquare's order for equal or unavailable distances.
+    cafes.sort_by_key(|cafe| (cafe.distance_meters.is_none(), cafe.distance_meters));
 
     Ok(cafes)
 }
@@ -91,12 +93,12 @@ fn parse_cafe(place: FoursquarePlace, location: &SearchLocation) -> Option<Nearb
 
     let country = loc.country.as_deref().map(country_name).unwrap_or_default();
 
-    let distance = place.distance.unwrap_or_else(|| match location {
+    let distance = place.distance.or_else(|| match location {
         SearchLocation::Coordinates {
             lat: ref_lat,
             lng: ref_lng,
-        } => haversine_distance(*ref_lat, *ref_lng, lat, lng) as u32,
-        SearchLocation::Near(_) => 0,
+        } => Some(haversine_distance(*ref_lat, *ref_lng, lat, lng) as u32),
+        SearchLocation::Near(_) => None,
     });
 
     let website = place.website.filter(|w| !w.trim().is_empty());

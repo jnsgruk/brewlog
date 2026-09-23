@@ -12,5 +12,6 @@ pub struct NearbyCafeResult {
     pub city: String,
     pub country: String,
     pub website: Option<String>,
-    pub distance_meters: u32,
+    /// Distance from the search location, if Foursquare provides it or coordinates allow calculation.
+    pub distance_meters: Option<u32>,
 }
