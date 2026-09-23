@@ -16,6 +16,8 @@ Return a JSON object with these fields (only include fields you can identify wit
 - "city": the city the roaster is based in
 - "homepage": the roaster's website URL
 
+Use UK/English names for countries and cities (e.g. United Kingdom, not UK; Montreal, Gothenburg, Copenhagen, Torrevieja, Vienna). Preserve a district qualifier if it is part of the verified location.
+
 Return ONLY the JSON object, no other text."#;
 
 const ROAST_PROMPT: &str = r#"Resolve the input as a coffee roaster or specific coffee lookup, then extract information about the coffee. The input may contain only a short or ambiguous product or roaster name. Always use web search to identify the coffee product that best matches the input and verify its details, preferring the roaster's official product page. Use coffee-specific context to disambiguate it from unrelated products or meanings. If no specific coffee can be identified with confidence, return an empty JSON object.
@@ -28,6 +30,9 @@ Return a JSON object with these fields (only include fields you can identify wit
 - "producer": the farm, estate, or cooperative that produced the beans
 - "process": the processing method (e.g. Washed, Natural, Honey, Anaerobic)
 - "tasting_notes": an array of flavour/tasting notes in Title Case (e.g. ["Blueberry", "Jasmine", "Dark Chocolate"])
+
+Use UK/English country names for origin. The name identifies the coffee: prefer its distinctive product, farm, lot, or producer identity. Do not repeat origin, producer, or process in the name when another distinctive identifier remains; retain the producer when removing it would leave only a generic variety or descriptor. Preserve established product names, and keep decaf and flavour qualifiers when they distinguish the coffee. Use a spaced hyphen ( - ), not an em dash, if two identifying parts are needed.
+For process, use Anaerobic Natural and Anaerobic Washed (not reversed word order), and spell flavoured co-ferments as Co-ferment (e.g. Peach Co-ferment). Keep the underlying method and flavour where verified. Do not conflate distinct processing techniques just to standardise wording. Do not infer a process from the name alone; omit fields you cannot verify rather than copying or guessing missing details.
 
 Return ONLY the JSON object, no other text."#;
 
@@ -52,6 +57,9 @@ Return a JSON object with two top-level keys:
   }
 }
 
+Use UK/English names for countries and cities (e.g. United Kingdom, not UK; Montreal, Gothenburg, Copenhagen, Torrevieja, Vienna). Preserve a district qualifier if it is part of the verified location. Use UK/English country names for roast origin.
+The roast name identifies the coffee: prefer its distinctive product, farm, lot, or producer identity. Do not repeat origin, producer, or process in the name when another distinctive identifier remains; retain the producer when removing it would leave only a generic variety or descriptor. Preserve established product names, and keep decaf and flavour qualifiers when they distinguish the coffee. Use a spaced hyphen ( - ), not an em dash, if two identifying parts are needed.
+For process, use Anaerobic Natural and Anaerobic Washed (not reversed word order), and spell flavoured co-ferments as Co-ferment (e.g. Peach Co-ferment). Keep the underlying method and flavour where verified. Do not conflate distinct processing techniques just to standardise wording. Do not infer a process from the name alone; omit fields you cannot verify rather than copying or guessing missing details.
 Only include fields you can identify with confidence. Each tasting note must be in Title Case. Return ONLY the JSON object, no other text."#;
 
 // --- Public types ---
@@ -333,6 +341,36 @@ struct ResponseMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn roaster_extraction_uses_english_place_names() {
+        for prompt in [ROASTER_PROMPT, SCAN_PROMPT] {
+            assert!(prompt.contains("UK/English names for countries and cities"));
+            assert!(prompt.contains("United Kingdom, not UK"));
+            assert!(prompt.contains("Montreal, Gothenburg, Copenhagen"));
+        }
+    }
+
+    #[test]
+    fn both_roast_extractions_share_name_and_process_conventions() {
+        for prompt in [ROAST_PROMPT, SCAN_PROMPT] {
+            assert!(prompt.contains("name identifies the coffee"));
+            assert!(prompt.contains("Do not repeat origin, producer, or process"));
+            assert!(prompt.contains("keep decaf and flavour qualifiers"));
+            assert!(prompt.contains("spaced hyphen ( - ), not an em dash"));
+            assert!(prompt.contains("Anaerobic Natural and Anaerobic Washed"));
+            assert!(prompt.contains("Co-ferment"));
+            assert!(prompt.contains("Do not conflate distinct processing techniques"));
+        }
+    }
+
+    #[test]
+    fn roast_extraction_keeps_unknown_details_unknown() {
+        for prompt in [ROAST_PROMPT, SCAN_PROMPT] {
+            assert!(prompt.contains("Do not infer a process from the name alone"));
+            assert!(prompt.contains("omit fields you cannot verify"));
+        }
+    }
 
     #[test]
     fn parse_chat_response() {
