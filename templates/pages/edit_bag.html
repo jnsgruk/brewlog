@@ -11,6 +11,7 @@
 
   <section class="rounded-lg border bg-surface p-5">
     <form
+      data-validate-submit
       class="flex flex-col gap-4 pb-16 md:pb-0"
       data-signals="{{ signals_json }}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/bags/{{ id }}', {contentType: 'form'})"
@@ -24,6 +25,7 @@
           >Roast*</span
         >
         <searchable-select
+          required
           name="roast_id"
           placeholder="Type to search roasts&hellip;"
           initial-value="{{ roast_id }}"
@@ -52,6 +54,7 @@
           <input
             type="date"
             name="roast_date"
+            value="{{ roast_date }}"
             class="input-field"
             data-bind:_roast-date
           />
@@ -64,7 +67,9 @@
           <input
             type="number"
             name="amount"
+            value="{{ amount }}"
             step="0.1"
+            min="0.1"
             required
             aria-required="true"
             class="input-field"
@@ -88,6 +93,7 @@
             <input
               type="number"
               name="remaining"
+              value="{{ remaining }}"
               step="0.1"
               min="0"
               class="input-field flex-1 text-center"

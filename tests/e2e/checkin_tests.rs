@@ -9,7 +9,9 @@ use crate::helpers::server_helpers::{
     create_default_cafe, create_default_roast, create_default_roaster, spawn_app_with_all_mocks,
     spawn_app_with_auth,
 };
-use crate::helpers::wait::{wait_for_text, wait_for_url_contains, wait_for_visible};
+use crate::helpers::wait::{
+    wait_for_element, wait_for_text, wait_for_url_contains, wait_for_visible,
+};
 
 #[tokio::test]
 async fn checkin_with_saved_cafe_and_existing_roast() {
@@ -25,6 +27,9 @@ async fn checkin_with_saved_cafe_and_existing_roast() {
 
     // Navigate to check-in page
     session.goto("/check-in").await.unwrap();
+    wait_for_element(&session.driver, "button[data-attr\\:disabled]:disabled")
+        .await
+        .unwrap();
 
     // Step 1: Select a saved cafe
     // Wait for the saved cafes searchable-select to be visible
@@ -55,6 +60,12 @@ async fn checkin_with_saved_cafe_and_existing_roast() {
     let submit_btn = wait_for_visible(&session.driver, "button[type='submit']")
         .await
         .unwrap();
+    wait_for_element(
+        &session.driver,
+        "button[data-attr\\:disabled]:not(:disabled)",
+    )
+    .await
+    .unwrap();
 
     // Verify the review section shows the selected cafe and coffee
     let body = session.driver.find(By::Css("body")).await.unwrap();

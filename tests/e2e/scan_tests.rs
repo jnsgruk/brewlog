@@ -7,7 +7,9 @@ use crate::helpers::browser::BrowserSession;
 use crate::helpers::server_helpers::{
     create_default_roast, create_default_roaster, spawn_app_with_openrouter_mock,
 };
-use crate::helpers::wait::{wait_for_text, wait_for_url_contains, wait_for_visible};
+use crate::helpers::wait::{
+    wait_for_element, wait_for_text, wait_for_url_contains, wait_for_visible,
+};
 
 fn mock_openrouter_response(json_content: &str) -> ResponseTemplate {
     let body = serde_json::json!({
@@ -51,6 +53,11 @@ async fn extract_roaster_via_text_prompt_populates_form() {
     // Navigate to /add (roaster tab is default)
     session.goto("/add").await.unwrap();
 
+    let save = "form[action='/api/v1/roasters'] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{save}:disabled"))
+        .await
+        .unwrap();
+
     // Wait for the extraction prompt to be visible
     let prompt_input = wait_for_visible(
         &session.driver,
@@ -90,6 +97,11 @@ async fn extract_roaster_via_text_prompt_populates_form() {
         country_value, "United Kingdom",
         "Country field should be populated"
     );
+
+    // Signal patches set input properties without dispatching input events.
+    wait_for_element(&session.driver, &format!("{save}:not(:disabled)"))
+        .await
+        .unwrap();
 
     // Submit the main form to save the roaster
     let submit_button = session
@@ -154,7 +166,7 @@ async fn homepage_scan_new_roaster_and_new_roast() {
     Mock::given(method("POST"))
         .and(path("/api/v1/chat/completions"))
         .respond_with(mock_bag_scan_response(
-            r#"{"roaster": {"name": "Koppi", "country": "SE", "city": "Helsingborg"}, "roast": {"name": "Finca Vista", "origin": "Colombia", "region": "Huila", "producer": "Luis Anibal", "process": "Washed", "tasting_notes": ["Caramel", "Red Apple"]}}"#,
+            r#"{"roaster": {"name": "Koppi", "country": "SE", "city": "Helsingborg", "homepage": "not a URL"}, "roast": {"name": "Finca Vista", "origin": "Colombia", "region": "Huila", "producer": "Luis Anibal", "process": "Washed", "tasting_notes": ["Caramel", "Red Apple"]}}"#,
         ))
         .mount(mock_server)
         .await;
@@ -172,6 +184,24 @@ async fn homepage_scan_new_roaster_and_new_roast() {
     // Wait for extraction to complete — the result form appears
     // Neither roaster nor roast matched → editable form with "Save Roaster & Roast" button
     wait_for_text(&session.driver, "body", "Save Roaster")
+        .await
+        .unwrap();
+    let save = "form[data-validate-scan] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{save}:disabled"))
+        .await
+        .unwrap();
+    let homepage = session
+        .driver
+        .find(By::Css("[data-scan-roaster-fields] input[type='url']"))
+        .await
+        .unwrap();
+    assert_eq!(
+        homepage.value().await.unwrap().as_deref(),
+        Some("not a URL")
+    );
+    homepage.clear().await.unwrap();
+    homepage.send_keys("https://koppi.example").await.unwrap();
+    wait_for_element(&session.driver, &format!("{save}:not(:disabled)"))
         .await
         .unwrap();
 
@@ -218,7 +248,7 @@ async fn homepage_scan_existing_roaster_new_roast() {
     Mock::given(method("POST"))
         .and(path("/api/v1/chat/completions"))
         .respond_with(mock_bag_scan_response(
-            r#"{"roaster": {"name": "Test Roasters", "country": "UK"}, "roast": {"name": "Gesha Village", "origin": "Ethiopia", "region": "Bench Maji", "producer": "Gesha Village Estate", "process": "Natural", "tasting_notes": ["Jasmine", "Peach"]}}"#,
+            r#"{"roaster": {"name": "Test Roasters", "homepage": "not a URL"}, "roast": {"name": "Gesha Village", "origin": "Ethiopia", "region": "Bench Maji", "producer": "Gesha Village Estate", "process": "Natural", "tasting_notes": ["Jasmine", "Peach"]}}"#,
         ))
         .mount(mock_server)
         .await;
@@ -235,6 +265,61 @@ async fn homepage_scan_existing_roaster_new_roast() {
 
     // Wait for extraction — roaster matched, roast not → "Save Roast" button
     wait_for_text(&session.driver, "body", "Save Roast")
+        .await
+        .unwrap();
+    let save = "form[data-validate-scan] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{save}:not(:disabled)"))
+        .await
+        .unwrap();
+    let country = session
+        .driver
+        .find(By::Css("input[name='roaster_country']"))
+        .await
+        .unwrap();
+    assert_eq!(country.value().await.unwrap().as_deref(), Some(""));
+    let homepage = session
+        .driver
+        .find(By::Css("[data-scan-roaster-fields] input[type='url']"))
+        .await
+        .unwrap();
+    assert!(!homepage.is_enabled().await.unwrap());
+
+    let amount = session
+        .driver
+        .find(By::Css("input[name='bag_amount']"))
+        .await
+        .unwrap();
+    amount.clear().await.unwrap();
+    amount.send_keys("0").await.unwrap();
+    wait_for_element(&session.driver, &format!("{save}:disabled"))
+        .await
+        .unwrap();
+    session
+        .driver
+        .find(By::Css("input[name='open_bag']"))
+        .await
+        .unwrap()
+        .click()
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{save}:not(:disabled)"))
+        .await
+        .unwrap();
+    assert!(!amount.is_enabled().await.unwrap());
+    session
+        .driver
+        .find(By::Css("input[name='open_bag']"))
+        .await
+        .unwrap()
+        .click()
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, "input[name='bag_amount']:not(:disabled)")
+        .await
+        .unwrap();
+    amount.clear().await.unwrap();
+    amount.send_keys("250").await.unwrap();
+    wait_for_element(&session.driver, &format!("{save}:not(:disabled)"))
         .await
         .unwrap();
 
@@ -288,7 +373,7 @@ async fn homepage_scan_existing_roaster_and_existing_roast() {
     Mock::given(method("POST"))
         .and(path("/api/v1/chat/completions"))
         .respond_with(mock_bag_scan_response(
-            r#"{"roaster": {"name": "Test Roasters", "country": "UK"}, "roast": {"name": "Test Roast", "origin": "Ethiopia", "region": "Yirgacheffe", "producer": "Coop", "process": "Washed", "tasting_notes": ["Blueberry"]}}"#,
+            r#"{"roaster": {"name": "Test Roasters", "homepage": "not a URL"}, "roast": {"name": "Test Roast", "origin": "Ethiopia", "region": "Yirgacheffe", "producer": "Coop", "process": "Washed", "tasting_notes": ["Blueberry"]}}"#,
         ))
         .mount(mock_server)
         .await;
@@ -307,6 +392,12 @@ async fn homepage_scan_existing_roaster_and_existing_roast() {
     wait_for_text(&session.driver, "body", "Open Bag")
         .await
         .unwrap();
+    wait_for_element(
+        &session.driver,
+        "form[data-validate-scan] button[type='submit']:not(:disabled)",
+    )
+    .await
+    .unwrap();
 
     // Both roaster and roast should show as cards (matched)
     let body_text = session

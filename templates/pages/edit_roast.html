@@ -12,6 +12,7 @@
 
   <section class="rounded-lg border bg-surface p-5">
     <form
+      data-validate-submit
       class="flex flex-col gap-4 pb-16 md:pb-0"
       data-signals="{{ signals_json }}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/roasts/{{ id }}', {contentType: 'form'})"
@@ -25,6 +26,7 @@
           >Roaster*</span
         >
         <searchable-select
+          required
           name="roaster_id"
           placeholder="Type to search roasters&hellip;"
           initial-value="{{ roaster_id }}"
@@ -50,6 +52,7 @@
           <input
             type="text"
             name="name"
+            value="{{ name }}"
             required
             aria-required="true"
             class="input-field"
@@ -65,6 +68,7 @@
           <input
             type="text"
             name="origin"
+            value="{{ origin }}"
             required
             aria-required="true"
             class="input-field"
@@ -80,6 +84,7 @@
           <input
             type="text"
             name="region"
+            value="{{ region }}"
             required
             aria-required="true"
             class="input-field"
@@ -95,6 +100,7 @@
           <input
             type="text"
             name="producer"
+            value="{{ producer }}"
             required
             aria-required="true"
             class="input-field"
@@ -110,6 +116,7 @@
           <input
             type="text"
             name="process"
+            value="{{ process }}"
             required
             aria-required="true"
             class="input-field"
@@ -130,7 +137,7 @@
             class="input-field"
             placeholder="Blueberry, Jasmine"
             data-bind:_tasting-notes
-          ></textarea>
+          >{{ tasting_notes }}</textarea>
         </label>
       </div>
       {{ img::deferred_upload_with_preview("edit-roast-image", "Roast Image", "roast", id, image_url) }}

@@ -13,6 +13,7 @@
 
   <section class="rounded-lg border bg-surface p-5">
     <form
+      data-validate-submit
       class="flex flex-col gap-6 pb-16 md:pb-0"
       data-signals:_submitting="false"
       data-signals:_submit-error="''"
@@ -52,6 +53,7 @@
               </div>
             {% else %}
               <searchable-select
+                required
                 name="bag_id"
                 placeholder="Type to search bags&hellip;"
                 initial-value="{{ bag_id }}"
@@ -90,6 +92,7 @@
               <input
                 type="number"
                 name="coffee_weight"
+                value="{{ coffee_weight }}"
                 step="any"
                 min="1"
                 required
@@ -150,6 +153,7 @@
               <input
                 type="number"
                 name="grind_setting"
+                value="{{ grind_setting }}"
                 step="any"
                 min="0"
                 required
@@ -234,8 +238,10 @@
               <input
                 type="number"
                 name="water_volume"
-                step="any"
+                value="{{ water_volume }}"
+                step="1"
                 min="10"
+                max="2147483647"
                 required
                 aria-required="true"
                 class="input-field flex-1 text-center"
@@ -266,6 +272,7 @@
               <input
                 type="number"
                 name="water_temp"
+                value="{{ water_temp }}"
                 step="any"
                 min="0"
                 max="100"

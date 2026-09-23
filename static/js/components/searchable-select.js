@@ -32,6 +32,9 @@ customElements.define(
       search.setAttribute("role", "combobox");
       search.setAttribute("aria-expanded", "false");
       search.setAttribute("aria-autocomplete", "list");
+      if (this.hasAttribute("required")) {
+        search.setAttribute("aria-required", "true");
+      }
 
       const listId = `ss-list-${name}`;
       search.setAttribute("aria-controls", listId);

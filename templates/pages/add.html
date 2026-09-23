@@ -134,6 +134,7 @@
       <div class="mt-3 border-t pt-3">
         <p class="mb-2 text-sm text-text-secondary">Or add manually:</p>
         <form
+          data-validate-submit
           method="post"
           action="/api/v1/roasters"
           class="flex flex-col gap-4 pb-16 md:pb-0"
@@ -283,6 +284,7 @@
         <div class="mt-3 border-t pt-3">
           <p class="mb-2 text-sm text-text-secondary">Or add manually:</p>
           <form
+            data-validate-submit
             method="post"
             action="/api/v1/roasts"
             class="flex flex-col gap-4 pb-16 md:pb-0"
@@ -294,6 +296,7 @@
                 >Roaster*</span
               >
               <searchable-select
+                required
                 name="roaster_id"
                 placeholder="Type to search roasters&hellip;"
               >
@@ -439,6 +442,7 @@
           </p>
         </div>
         <form
+          data-validate-submit
           method="post"
           action="/api/v1/bags"
           class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
@@ -450,6 +454,7 @@
               >Roast*</span
             >
             <searchable-select
+              required
               name="roast_id"
               placeholder="Type to search roasts&hellip;"
             >
@@ -485,6 +490,7 @@
                 type="number"
                 name="amount"
                 step="0.1"
+                min="0.1"
                 required
                 aria-required="true"
                 class="input-field"
@@ -539,6 +545,7 @@
           <p class="mt-1 text-sm text-text-secondary">Log a cup of coffee.</p>
         </div>
         <form
+          data-validate-submit
           method="post"
           action="/api/v1/brews"
           class="mt-4 flex flex-col gap-6 overflow-hidden pb-16 md:pb-0"
@@ -554,6 +561,7 @@
                   >Bag*</span
                 >
                 <searchable-select
+                  required
                   name="bag_id"
                   placeholder="Type to search bags&hellip;"
                   {% if let Some(bag_id) = pre_select_bag_id %}initial-value="{{ bag_id }}"{% endif %}
@@ -796,8 +804,9 @@
                   <input
                     type="number"
                     name="water_volume"
-                    step="any"
+                    step="1"
                     min="10"
+                    max="2147483647"
                     required
                     aria-required="true"
                     class="input-field flex-1 text-center"
@@ -899,6 +908,7 @@
         <p class="mt-1 text-sm text-text-secondary">Add brewing equipment.</p>
       </div>
       <form
+        data-validate-submit
         method="post"
         action="/api/v1/gear"
         class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
@@ -1011,6 +1021,7 @@
       </div>
 
       <form
+        data-validate-submit
         id="cafe-form"
         method="post"
         action="/api/v1/cafes"
@@ -1084,6 +1095,8 @@
             <input
               type="number"
               name="latitude"
+              min="-90"
+              max="90"
               step="any"
               required
               aria-required="true"
@@ -1100,6 +1113,8 @@
             <input
               type="number"
               name="longitude"
+              min="-180"
+              max="180"
               step="any"
               required
               aria-required="true"
@@ -1157,6 +1172,7 @@
           </p>
         </div>
         <form
+          data-validate-submit
           method="post"
           action="/api/v1/cups"
           class="mt-4 flex flex-col gap-4 pb-16 md:pb-0"
@@ -1169,6 +1185,7 @@
                 >Coffee*</span
               >
               <searchable-select
+                required
                 name="roast_id"
                 placeholder="Type to search roasts&hellip;"
               >
@@ -1193,6 +1210,7 @@
                 >Cafe*</span
               >
               <searchable-select
+                required
                 name="cafe_id"
                 placeholder="Type to search cafes&hellip;"
               >

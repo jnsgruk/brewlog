@@ -9,7 +9,74 @@ use crate::helpers::server_helpers::{
     create_default_brew, create_default_cafe, create_default_cup, create_default_gear,
     create_default_roaster, spawn_app_with_auth,
 };
-use crate::helpers::wait::{wait_for_url_contains, wait_for_url_not_contains, wait_for_visible};
+use crate::helpers::wait::{
+    wait_for_element, wait_for_url_contains, wait_for_url_not_contains, wait_for_visible,
+};
+
+#[tokio::test]
+async fn edit_cafe_submit_tracks_coordinate_range() {
+    let app = spawn_app_with_auth().await;
+    let cafe = create_default_cafe(&app).await;
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+    session
+        .goto(&format!("/cafes/{}/edit", cafe.id))
+        .await
+        .unwrap();
+
+    let submit = "form[data-validate-submit] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    fill_input(&session.driver, "latitude", "91").await.unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:disabled"))
+        .await
+        .unwrap();
+    fill_input(&session.driver, "latitude", "51.5")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    session.quit().await;
+}
+
+#[tokio::test]
+async fn edit_cup_submit_tracks_searchable_selection() {
+    let app = spawn_app_with_auth().await;
+    let cup = create_default_cup(&app).await;
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+    session
+        .goto(&format!("/cups/{}/edit", cup.id))
+        .await
+        .unwrap();
+
+    let submit = "form[data-validate-submit] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    session
+        .driver
+        .find(By::Css(
+            "searchable-select[name='cafe_id'] button[aria-label='Clear selection']",
+        ))
+        .await
+        .unwrap()
+        .click()
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:disabled"))
+        .await
+        .unwrap();
+    crate::helpers::forms::select_searchable(&session.driver, "cafe_id", "Blue Bottle")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    session.quit().await;
+}
 
 // ── Roaster: text fields ──────────────────────────────────────────────
 
@@ -388,6 +455,23 @@ async fn edit_brew_adjuster_buttons_change_values() {
         .unwrap()
         .unwrap_or_default();
     assert_eq!(updated_weight, "16.5", "Weight should be 15 + 3*0.5 = 16.5");
+
+    fill_input(&session.driver, "coffee_weight", "0.5")
+        .await
+        .unwrap();
+    wait_for_element(
+        &session.driver,
+        "form[data-validate-submit] button[type='submit']:disabled",
+    )
+    .await
+    .unwrap();
+    weight_plus_el.click().await.unwrap();
+    wait_for_element(
+        &session.driver,
+        "form[data-validate-submit] button[type='submit']:not(:disabled)",
+    )
+    .await
+    .unwrap();
 
     session.quit().await;
 }

@@ -57,6 +57,11 @@ define_static_asset_test!(
     "application/javascript; charset=utf-8"
 );
 define_static_asset_test!(
+    form_validation_js,
+    "/static/js/form-validation.js",
+    "application/javascript; charset=utf-8"
+);
+define_static_asset_test!(
     photo_capture_js,
     "/static/js/components/photo-capture.js",
     "application/javascript; charset=utf-8"

@@ -7,6 +7,9 @@ B{rew}log features an LLM-powered "Bag Scanning" feature, which enables it to au
 roaster and coffee information using a photo of a bag. It also supports "check-ins" to log coffee
 enjoyed in a cafe.
 
+Create and edit forms keep their save actions disabled until required fields and entered values
+are valid. Invalid submissions sent directly to the API still receive validation errors.
+
 B{rew}log ships as a single Rust binary that serves a web UI, a REST API, and a CLI client. The
 application uses SQLite as a backend, and will automatically create and migrate the database on
 start-up.

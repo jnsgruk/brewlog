@@ -4,7 +4,47 @@ use crate::helpers::auth::authenticate_browser;
 use crate::helpers::browser::BrowserSession;
 use crate::helpers::forms::{fill_input, submit_visible_form};
 use crate::helpers::server_helpers::spawn_app_with_auth;
-use crate::helpers::wait::{wait_for_url_contains, wait_for_visible};
+use crate::helpers::wait::{wait_for_element, wait_for_url_contains, wait_for_visible};
+
+#[tokio::test]
+async fn create_roaster_submit_tracks_required_and_malformed_fields() {
+    let app = spawn_app_with_auth().await;
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+    session.goto("/add").await.unwrap();
+
+    let submit = "form[action='/api/v1/roasters'] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{submit}:disabled"))
+        .await
+        .unwrap();
+    fill_input(&session.driver, "name", "   ").await.unwrap();
+    fill_input(&session.driver, "country", "United Kingdom")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:disabled"))
+        .await
+        .unwrap();
+
+    fill_input(&session.driver, "name", "Valid Roaster")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    fill_input(&session.driver, "homepage", "not a URL")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:disabled"))
+        .await
+        .unwrap();
+    fill_input(&session.driver, "homepage", "https://example.com")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    session.quit().await;
+}
 
 #[tokio::test]
 async fn create_roaster_via_add_page() {
@@ -51,6 +91,58 @@ async fn create_roaster_via_add_page() {
         "Roaster should appear in the data list"
     );
 
+    session.quit().await;
+}
+
+#[tokio::test]
+async fn create_roaster_back_restores_submit_button() {
+    let app = spawn_app_with_auth().await;
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+    session.goto("/add").await.unwrap();
+
+    fill_input(&session.driver, "name", "Before Back Roasters")
+        .await
+        .unwrap();
+    fill_input(&session.driver, "country", "United Kingdom")
+        .await
+        .unwrap();
+    let submit = "form[action='/api/v1/roasters'] button[type='submit']";
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    submit_visible_form(&session.driver).await.unwrap();
+    wait_for_url_contains(&session.driver, "/roasters/")
+        .await
+        .unwrap();
+
+    session.driver.back().await.unwrap();
+    wait_for_url_contains(&session.driver, "/add")
+        .await
+        .unwrap();
+    wait_for_element(&session.driver, &format!("{submit}:not(:disabled)"))
+        .await
+        .unwrap();
+    let form = session
+        .driver
+        .find(By::Css("form[action='/api/v1/roasters']"))
+        .await
+        .unwrap();
+    assert_ne!(
+        form.attr("data-validation-submitting")
+            .await
+            .unwrap()
+            .as_deref(),
+        Some("true")
+    );
+
+    fill_input(&session.driver, "name", "After Back Roasters")
+        .await
+        .unwrap();
+    submit_visible_form(&session.driver).await.unwrap();
+    wait_for_url_contains(&session.driver, "/roasters/after-back-roasters")
+        .await
+        .unwrap();
     session.quit().await;
 }
 

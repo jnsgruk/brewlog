@@ -39,6 +39,7 @@
     data-signals:_extracting="false"
     data-signals:_extract-error="''"
     data-signals:_scan-success="''"
+    data-computed:_can-checkin="!!$_roastId && !!($_cafeId || $_cafeName.trim())"
   >
     <header class="flex flex-col gap-2">
       <h1 class="text-3xl font-semibold">Check In</h1>
@@ -419,7 +420,7 @@
           <button
             type="submit"
             class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-accent-text transition hover:bg-accent-hover disabled:opacity-50"
-            data-attr:disabled="$_submitting"
+            data-attr:disabled="!$_canCheckin || $_submitting"
           >
             {{ icons::check("h-4 w-4") }} Check In
           </button>

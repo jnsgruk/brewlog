@@ -95,6 +95,8 @@
       <!-- Form: pre-filled roaster + roast (shown after extraction) -->
       <div data-show="$_scanExtracted" style="display: none">
         <form
+          data-validate-submit
+          data-validate-scan
           class="rounded-lg border bg-surface p-5 flex flex-col gap-6"
           data-on:submit="$_scanSubmitting = true; $_scanError = ''; @post('/api/v1/scan', {contentType: 'form'})"
           data-on:datastar-fetch="if (!$_scanSubmitting) return; if (evt.detail.type === 'finished') { sessionStorage.setItem('toast', 'Roast saved'); window.location.reload() } else if (evt.detail.type === 'error') { $_scanSubmitting = false; $_scanError = 'Save failed. Please try again.' }"

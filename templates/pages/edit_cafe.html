@@ -12,6 +12,7 @@
 
   <section class="rounded-lg border bg-surface p-5">
     <form
+      data-validate-submit
       class="flex flex-col gap-4 pb-16 md:pb-0"
       data-signals="{{ signals_json }}"
       data-on:submit="$_submitting = true; $_submitError = ''; @put('/api/v1/cafes/{{ id }}', {contentType: 'form'})"
@@ -28,6 +29,7 @@
           <input
             type="text"
             name="name"
+            value="{{ name }}"
             required
             aria-required="true"
             class="input-field"
@@ -43,6 +45,7 @@
           <input
             type="text"
             name="city"
+            value="{{ city }}"
             required
             aria-required="true"
             class="input-field"
@@ -58,6 +61,7 @@
           <input
             type="text"
             name="country"
+            value="{{ country }}"
             required
             aria-required="true"
             class="input-field"
@@ -73,6 +77,7 @@
           <input
             type="url"
             name="website"
+            value="{{ website }}"
             class="input-field"
             placeholder="https://bluebottlecoffee.com"
             data-bind:_website
@@ -86,6 +91,9 @@
           <input
             type="number"
             name="latitude"
+            value="{{ latitude }}"
+            min="-90"
+            max="90"
             step="any"
             required
             aria-required="true"
@@ -102,6 +110,9 @@
           <input
             type="number"
             name="longitude"
+            value="{{ longitude }}"
+            min="-180"
+            max="180"
             step="any"
             required
             aria-required="true"

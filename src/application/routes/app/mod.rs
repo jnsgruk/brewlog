@@ -64,6 +64,7 @@ pub(super) fn router() -> axum::Router<AppState> {
         .route("/static/js/components/chip-scroll.js", get(chip_scroll_js))
         .route("/static/js/location.js", get(location_js))
         .route("/static/js/image-utils.js", get(image_utils_js))
+        .route("/static/js/form-validation.js", get(form_validation_js))
         .route("/static/js/components/world-map.js", get(world_map_js))
         .route("/static/js/components/donut-chart.js", get(donut_chart_js))
         .route(
@@ -114,6 +115,7 @@ static_asset!(styles, "text/css; charset=utf-8", str "../../../../static/css/sty
 static_asset!(webauthn_js, "application/javascript; charset=utf-8", str "../../../../static/js/webauthn.js");
 static_asset!(location_js, "application/javascript; charset=utf-8", str "../../../../static/js/location.js");
 static_asset!(image_utils_js, "application/javascript; charset=utf-8", str "../../../../static/js/image-utils.js");
+static_asset!(form_validation_js, "application/javascript; charset=utf-8", str "../../../../static/js/form-validation.js");
 static_asset!(photo_capture_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/photo-capture.js");
 static_asset!(searchable_select_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/searchable-select.js");
 static_asset!(chip_scroll_js, "application/javascript; charset=utf-8", str "../../../../static/js/components/chip-scroll.js");

@@ -1,6 +1,6 @@
 use crate::helpers::{
     TestApp, create_default_bag, create_default_cafe, create_default_gear, create_default_roast,
-    create_default_roaster, post_form, spawn_app_with_auth,
+    create_default_roaster, post_form, put_form, spawn_app_with_auth,
 };
 use crate::test_macros::{define_form_create_tests, define_form_update_tests};
 
@@ -386,4 +386,80 @@ async fn bag_form_with_empty_roast_date() {
 
     let response = post_form(&app, "/bags", &form_fields).await;
     assert_eq!(response.status(), 303);
+}
+
+#[tokio::test]
+async fn invalid_create_form_still_returns_validation_json() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+
+    for fields in [
+        vec![("roast_id", roast.id.into_inner().to_string())],
+        vec![
+            ("roast_id", roast.id.into_inner().to_string()),
+            ("amount", "0".into()),
+        ],
+        vec![
+            ("roast_id", roast.id.into_inner().to_string()),
+            ("amount", "abc".into()),
+        ],
+    ] {
+        let response = post_form(&app, "/bags", &fields).await;
+        assert_eq!(response.status(), 400);
+        assert_eq!(
+            response
+                .headers()
+                .get("content-type")
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            "application/json"
+        );
+    }
+}
+
+#[tokio::test]
+async fn invalid_brew_form_still_returns_validation_json() {
+    let app = spawn_app_with_auth().await;
+    let base = brew_form_fields(&app).await;
+    for (name, invalid_value) in [("water_temp", "101"), ("water_volume", "10.5")] {
+        let mut fields = base.clone();
+        fields.retain(|(field, _)| field.as_str() != name);
+        fields.push((name.into(), invalid_value.into()));
+
+        let response = post_form(&app, "/brews", &fields).await;
+        assert_eq!(response.status(), 400);
+        assert_eq!(
+            response
+                .headers()
+                .get("content-type")
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            "application/json"
+        );
+    }
+}
+
+#[tokio::test]
+async fn invalid_update_form_still_returns_validation_json() {
+    let app = spawn_app_with_auth().await;
+    let cafe = create_default_cafe(&app).await;
+    let response = put_form(
+        &app,
+        &format!("/cafes/{}", cafe.id),
+        &[("latitude", "not-a-number".to_string())],
+    )
+    .await;
+    assert_eq!(response.status(), 400);
+    assert_eq!(
+        response
+            .headers()
+            .get("content-type")
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        "application/json"
+    );
 }
