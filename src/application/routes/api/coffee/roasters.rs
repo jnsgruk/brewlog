@@ -230,20 +230,15 @@ pub(crate) async fn extract_roaster(
     payload: FlexiblePayload<ExtractionInput>,
 ) -> Result<Response, ApiError> {
     let (input, _) = payload.into_parts();
-    let (result, usage) = ai::extract_roaster(
-        &state.http_client,
-        &state.openrouter_url,
-        &state.openrouter_api_key,
-        &state.openrouter_model,
-        &input,
-    )
-    .await
-    .map_err(ApiError::from)?;
+    let (result, usage) =
+        ai::extract_roaster(&state.http_client, &state.inference_provider, &input)
+            .await
+            .map_err(ApiError::from)?;
 
     crate::application::routes::support::record_ai_usage(
         state.ai_usage_repo.clone(),
         auth_user.0.id,
-        &state.openrouter_model,
+        state.inference_provider.model_label(),
         "extract-roaster",
         usage,
     );

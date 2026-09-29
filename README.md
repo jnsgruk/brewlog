@@ -120,11 +120,31 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 
 ### Integrations
 
-| Variable                     | Purpose                                                                     | Default           |
-| ---------------------------- | --------------------------------------------------------------------------- | ----------------- |
-| `BREWLOG_OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/) API key for AI extraction              | **required**      |
-| `BREWLOG_OPENROUTER_MODEL`   | LLM model for AI extraction                                                 | `openrouter/free` |
-| `BREWLOG_FOURSQUARE_API_KEY` | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search | **required**      |
+| Variable                     | Purpose                                                                     | Default       |
+| ----------------------------- | ---------------------------------------------------------------------------- | ------------- |
+| `BREWLOG_INFERENCE_PROVIDER`  | AI inference backend: `openrouter` or `openai-compatible`                    | `openrouter`  |
+| `BREWLOG_FOURSQUARE_API_KEY`  | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search  | **required**  |
+
+#### `openrouter` provider (default)
+
+A preset for [OpenRouter](https://openrouter.ai/)'s own API — same endpoint, same env vars as
+before, plus the `openrouter:web_search` server tool on every extraction request.
+
+| Variable                     | Purpose                          | Default            |
+| ----------------------------- | --------------------------------- | ------------------ |
+| `BREWLOG_OPENROUTER_API_KEY` | OpenRouter API key                | **required**       |
+| `BREWLOG_OPENROUTER_MODEL`   | LLM model for AI extraction       | `openrouter/free`  |
+
+#### `openai-compatible` provider
+
+Routes AI extraction through any OpenAI Chat Completions-compatible endpoint (e.g. an in-cluster
+LiteLLM proxy) instead of OpenRouter. Sends no server-side tools.
+
+| Variable                      | Purpose                                                                              | Default                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `BREWLOG_INFERENCE_BASE_URL`  | Chat-completions endpoint                                                            | **required**                                |
+| `BREWLOG_INFERENCE_API_KEY`   | API key, sent as a bearer token. Omitted when unset (e.g. the proxy injects its own)  | —                                            |
+| `BREWLOG_INFERENCE_MODEL`     | LLM model. Omitted from the request when unset, so the proxy picks its own default   | —                                            |
 
 ## Development Setup
 

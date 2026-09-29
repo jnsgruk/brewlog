@@ -1,9 +1,11 @@
 use anyhow::Result;
 use brewlog::application::{ServerConfig, serve};
+use brewlog::infrastructure::ai::InferenceProvider;
 use brewlog::infrastructure::backup::BackupData;
 use brewlog::infrastructure::client::BrewlogClient;
 use brewlog::presentation::cli::{
-    Cli, Commands, ServeCommand, bags, brews, cafes, cups, gear, roasters, roasts, timeline, tokens,
+    Cli, Commands, InferenceProviderKind, ServeCommand, bags, brews, cafes, cups, gear, roasters,
+    roasts, timeline, tokens,
 };
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
@@ -91,12 +93,35 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         );
     }
 
-    let openrouter_api_key = command.openrouter_api_key.ok_or_else(|| {
-        anyhow::anyhow!(
-            "BREWLOG_OPENROUTER_API_KEY is required. Set this environment variable \
-             to an OpenRouter API key for AI-powered extraction features."
-        )
-    })?;
+    let inference_provider = match command.inference_provider {
+        InferenceProviderKind::OpenRouter => {
+            let api_key = command.openrouter_api_key.ok_or_else(|| {
+                anyhow::anyhow!(
+                    "BREWLOG_OPENROUTER_API_KEY is required. Set this environment variable \
+                     to an OpenRouter API key for AI-powered extraction features."
+                )
+            })?;
+            InferenceProvider::OpenRouter {
+                url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
+                api_key,
+                model: command.openrouter_model,
+            }
+        }
+        InferenceProviderKind::OpenAiCompatible => {
+            let base_url = command.inference_base_url.ok_or_else(|| {
+                anyhow::anyhow!(
+                    "BREWLOG_INFERENCE_BASE_URL is required when \
+                     BREWLOG_INFERENCE_PROVIDER=openai-compatible. Set this environment \
+                     variable to the OpenAI-compatible chat-completions endpoint."
+                )
+            })?;
+            InferenceProvider::OpenAiCompatible {
+                base_url,
+                api_key: command.inference_api_key,
+                model: command.inference_model,
+            }
+        }
+    };
 
     let foursquare_api_key = command.foursquare_api_key.ok_or_else(|| {
         anyhow::anyhow!(
@@ -113,8 +138,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         rp_id,
         rp_origin,
         insecure_cookies,
-        openrouter_api_key,
-        openrouter_model: command.openrouter_model,
+        inference_provider,
         foursquare_api_key,
     };
 

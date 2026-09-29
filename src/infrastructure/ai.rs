@@ -60,7 +60,71 @@ Return a JSON object with two top-level keys:
 Use UK/English names for countries and cities (e.g. United Kingdom, not UK; Montreal, Gothenburg, Copenhagen, Torrevieja, Vienna). Preserve a district qualifier if it is part of the verified location. Use UK/English country names for roast origin.
 The roast name identifies the coffee: prefer its distinctive product, farm, lot, or producer identity. Do not repeat origin, producer, or process in the name when another distinctive identifier remains; retain the producer when removing it would leave only a generic variety or descriptor. Preserve established product names, and keep decaf and flavour qualifiers when they distinguish the coffee. Use a spaced hyphen ( - ), not an em dash, if two identifying parts are needed.
 For process, use Anaerobic Natural and Anaerobic Washed (not reversed word order), and spell flavoured co-ferments as Co-ferment (e.g. Peach Co-ferment). Keep the underlying method and flavour where verified. Do not conflate distinct processing techniques just to standardise wording. Do not infer a process from the name alone; omit fields you cannot verify rather than copying or guessing missing details.
-Only include fields you can identify with confidence. Each tasting note must be in Title Case. Return ONLY the JSON object, no other text."#;
+Return ONLY the JSON object, no other text."#;
+
+// --- Inference provider ---
+
+/// A configured AI inference backend. Each variant is a preset with its own
+/// endpoint, auth, and tool-calling defaults, so adding another provider
+/// later is one more variant rather than more flags.
+#[derive(Debug, Clone)]
+pub enum InferenceProvider {
+    /// `OpenRouter` — today's default behaviour. Sends the
+    /// `openrouter:web_search` server tool with every request.
+    OpenRouter {
+        url: String,
+        api_key: String,
+        model: String,
+    },
+    /// Any `OpenAI` Chat Completions-compatible endpoint (e.g. an in-cluster
+    /// `LiteLLM` proxy). Sends no tools. `api_key`/`model` are optional so a
+    /// proxy that injects its own key or picks its own default model still
+    /// works.
+    OpenAiCompatible {
+        base_url: String,
+        api_key: Option<String>,
+        model: Option<String>,
+    },
+}
+
+impl InferenceProvider {
+    fn url(&self) -> &str {
+        match self {
+            Self::OpenRouter { url, .. } => url,
+            Self::OpenAiCompatible { base_url, .. } => base_url,
+        }
+    }
+
+    fn api_key(&self) -> Option<&str> {
+        match self {
+            Self::OpenRouter { api_key, .. } => Some(api_key.as_str()),
+            Self::OpenAiCompatible { api_key, .. } => api_key.as_deref(),
+        }
+    }
+
+    fn model(&self) -> Option<&str> {
+        match self {
+            Self::OpenRouter { model, .. } => Some(model.as_str()),
+            Self::OpenAiCompatible { model, .. } => model.as_deref(),
+        }
+    }
+
+    /// Server-side tool names to request with every call. `OpenRouter`
+    /// sends its proprietary `openrouter:web_search` tool; the
+    /// `OpenAI`-compatible preset sends none.
+    fn tools(&self) -> &[&'static str] {
+        match self {
+            Self::OpenRouter { .. } => &["openrouter:web_search"],
+            Self::OpenAiCompatible { .. } => &[],
+        }
+    }
+
+    /// Model label for AI-usage accounting. Falls back to `"default"` when no
+    /// model is configured — the openai-compatible proxy picks its own.
+    pub fn model_label(&self) -> &str {
+        self.model().unwrap_or("default")
+    }
+}
 
 // --- Public types ---
 
@@ -107,13 +171,10 @@ pub struct ExtractedBagScan {
 
 pub async fn extract_roaster(
     client: &reqwest::Client,
-    url: &str,
-    api_key: &str,
-    model: &str,
+    provider: &InferenceProvider,
     input: &ExtractionInput,
 ) -> Result<(ExtractedRoaster, Option<Usage>), AppError> {
-    let (content, usage) =
-        call_openrouter(client, url, api_key, model, ROASTER_PROMPT, input).await?;
+    let (content, usage) = call_provider(client, provider, ROASTER_PROMPT, input).await?;
     let json = extract_json(&content);
 
     let extracted = serde_json::from_str(json).map_err(|e| {
@@ -124,13 +185,10 @@ pub async fn extract_roaster(
 
 pub async fn extract_roast(
     client: &reqwest::Client,
-    url: &str,
-    api_key: &str,
-    model: &str,
+    provider: &InferenceProvider,
     input: &ExtractionInput,
 ) -> Result<(ExtractedRoast, Option<Usage>), AppError> {
-    let (content, usage) =
-        call_openrouter(client, url, api_key, model, ROAST_PROMPT, input).await?;
+    let (content, usage) = call_provider(client, provider, ROAST_PROMPT, input).await?;
     let json = extract_json(&content);
 
     let extracted = serde_json::from_str(json).map_err(|e| {
@@ -141,12 +199,10 @@ pub async fn extract_roast(
 
 pub async fn extract_bag_scan(
     client: &reqwest::Client,
-    url: &str,
-    api_key: &str,
-    model: &str,
+    provider: &InferenceProvider,
     input: &ExtractionInput,
 ) -> Result<(ExtractedBagScan, Option<Usage>), AppError> {
-    let (content, usage) = call_openrouter(client, url, api_key, model, SCAN_PROMPT, input).await?;
+    let (content, usage) = call_provider(client, provider, SCAN_PROMPT, input).await?;
     let json = extract_json(&content);
 
     let extracted = serde_json::from_str(json).map_err(|e| {
@@ -157,11 +213,9 @@ pub async fn extract_bag_scan(
 
 // --- Internal helpers ---
 
-async fn call_openrouter(
+async fn call_provider(
     client: &reqwest::Client,
-    url: &str,
-    api_key: &str,
-    model: &str,
+    provider: &InferenceProvider,
     system_prompt: &str,
     input: &ExtractionInput,
 ) -> Result<(String, Option<Usage>), AppError> {
@@ -194,26 +248,38 @@ async fn call_openrouter(
         });
     }
 
+    // Server-side tools (e.g. `openrouter:web_search` —
+    // https://openrouter.ai/docs/features/web-search) are provider-specific
+    // and not portable across OpenAI Chat Completions-compatible endpoints,
+    // so each preset declares its own set via `InferenceProvider::tools`.
+    let tools = provider
+        .tools()
+        .iter()
+        .map(|&tool_type| ServerTool { tool_type })
+        .collect();
+
     let request_body = ChatRequest {
-        model: model.to_string(),
+        model: provider.model().map(str::to_string),
         messages: vec![Message {
             role: "user".to_string(),
             content: content_parts,
         }],
-        tools: vec![ServerTool {
-            tool_type: "openrouter:web_search",
-        }],
+        tools,
     };
 
-    let response = client
-        .post(url)
+    let mut request = client
+        .post(provider.url())
         .header("User-Agent", USER_AGENT)
-        .header("Authorization", format!("Bearer {api_key}"))
-        .timeout(REQUEST_TIMEOUT)
+        .timeout(REQUEST_TIMEOUT);
+    if let Some(api_key) = provider.api_key() {
+        request = request.header("Authorization", format!("Bearer {api_key}"));
+    }
+
+    let response = request
         .json(&request_body)
         .send()
         .await
-        .map_err(|e| AppError::unexpected(format!("OpenRouter request failed: {e}")))?;
+        .map_err(|e| AppError::unexpected(format!("AI provider request failed: {e}")))?;
 
     if !response.status().is_success() {
         let status = response.status();
@@ -222,16 +288,16 @@ async fn call_openrouter(
             .await
             .unwrap_or_else(|_| "(unreadable body)".to_string());
         return Err(AppError::unexpected(format!(
-            "OpenRouter returned status {status}: {body}"
+            "AI provider returned status {status}: {body}"
         )));
     }
 
     let body = response.text().await.map_err(|e| {
-        AppError::unexpected(format!("Failed to read OpenRouter response body: {e}"))
+        AppError::unexpected(format!("Failed to read AI provider response body: {e}"))
     })?;
 
     let chat_response: ChatResponse = serde_json::from_str(&body)
-        .map_err(|e| AppError::unexpected(format!("Failed to parse OpenRouter response: {e}")))?;
+        .map_err(|e| AppError::unexpected(format!("Failed to parse AI provider response: {e}")))?;
 
     response_content(chat_response)
 }
@@ -241,7 +307,7 @@ fn response_content(response: ChatResponse) -> Result<(String, Option<Usage>), A
     let choice = choices
         .into_iter()
         .next()
-        .ok_or_else(|| AppError::unexpected("OpenRouter returned no choices"))?;
+        .ok_or_else(|| AppError::unexpected("AI provider returned no choices"))?;
 
     let content = choice
         .message
@@ -249,7 +315,7 @@ fn response_content(response: ChatResponse) -> Result<(String, Option<Usage>), A
         .filter(|content| !content.trim().is_empty())
         .ok_or_else(|| {
             AppError::unexpected(format!(
-                "OpenRouter returned no content (finish_reason={}, native_finish_reason={})",
+                "AI provider returned no content (finish_reason={}, native_finish_reason={})",
                 choice.finish_reason.as_deref().unwrap_or("unknown"),
                 choice.native_finish_reason.as_deref().unwrap_or("unknown")
             ))
@@ -285,12 +351,14 @@ fn extract_json(raw: &str) -> &str {
     trimmed
 }
 
-// --- OpenRouter API types ---
+// --- Chat Completions API types ---
 
 #[derive(Debug, Serialize)]
 struct ChatRequest {
-    model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    model: Option<String>,
     messages: Vec<Message>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     tools: Vec<ServerTool>,
 }
 
@@ -491,7 +559,7 @@ mod tests {
     #[test]
     fn serialize_chat_request_with_image() {
         let request = ChatRequest {
-            model: "test-model".to_string(),
+            model: Some("test-model".to_string()),
             messages: vec![Message {
                 role: "user".to_string(),
                 content: vec![
@@ -515,6 +583,79 @@ mod tests {
         assert_eq!(json["messages"][0]["content"][0]["type"], "text");
         assert_eq!(json["messages"][0]["content"][1]["type"], "image_url");
         assert_eq!(json["tools"][0]["type"], "openrouter:web_search");
+    }
+
+    #[test]
+    fn serialize_chat_request_without_tools_omits_tools_field() {
+        let request = ChatRequest {
+            model: Some("test-model".to_string()),
+            messages: vec![Message {
+                role: "user".to_string(),
+                content: vec![ContentPart::Text {
+                    text: "Extract info".to_string(),
+                }],
+            }],
+            tools: Vec::new(),
+        };
+
+        let json = serde_json::to_value(&request).unwrap();
+        assert!(
+            json.get("tools").is_none(),
+            "empty tools should be omitted, not serialized as []"
+        );
+    }
+
+    #[test]
+    fn serialize_chat_request_without_model_omits_model_field() {
+        let request = ChatRequest {
+            model: None,
+            messages: vec![Message {
+                role: "user".to_string(),
+                content: vec![ContentPart::Text {
+                    text: "Extract info".to_string(),
+                }],
+            }],
+            tools: Vec::new(),
+        };
+
+        let json = serde_json::to_value(&request).unwrap();
+        assert!(
+            json.get("model").is_none(),
+            "unset model should be omitted so the proxy picks its own default"
+        );
+    }
+
+    #[test]
+    fn openrouter_provider_sends_web_search_and_configured_model() {
+        let provider = InferenceProvider::OpenRouter {
+            url: OPENROUTER_URL.to_string(),
+            api_key: "key".to_string(),
+            model: "openrouter/free".to_string(),
+        };
+
+        assert_eq!(provider.url(), OPENROUTER_URL);
+        assert_eq!(provider.api_key(), Some("key"));
+        assert_eq!(provider.model(), Some("openrouter/free"));
+        assert_eq!(provider.tools(), &["openrouter:web_search"]);
+        assert_eq!(provider.model_label(), "openrouter/free");
+    }
+
+    #[test]
+    fn openai_compatible_provider_sends_no_tools_and_tolerates_missing_key_and_model() {
+        let provider = InferenceProvider::OpenAiCompatible {
+            base_url: "https://proxy.example.com/v1/chat/completions".to_string(),
+            api_key: None,
+            model: None,
+        };
+
+        assert_eq!(
+            provider.url(),
+            "https://proxy.example.com/v1/chat/completions"
+        );
+        assert_eq!(provider.api_key(), None);
+        assert_eq!(provider.model(), None);
+        assert!(provider.tools().is_empty());
+        assert_eq!(provider.model_label(), "default");
     }
 
     #[test]

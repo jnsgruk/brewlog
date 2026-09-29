@@ -84,9 +84,11 @@ fn test_state_config() -> AppStateConfig {
         insecure_cookies: true,
         foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
         foursquare_api_key: String::new(),
-        openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
-        openrouter_api_key: String::new(),
-        openrouter_model: "openrouter/free".to_string(),
+        inference_provider: brewlog::infrastructure::ai::InferenceProvider::OpenRouter {
+            url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
+            api_key: String::new(),
+            model: "openrouter/free".to_string(),
+        },
         stats_invalidator: brewlog::application::services::StatsInvalidator::new(stats_tx),
         timeline_invalidator: brewlog::application::services::TimelineInvalidator::new(timeline_tx),
     }
@@ -169,9 +171,11 @@ pub async fn spawn_app_with_timeline_sync() -> TestApp {
         insecure_cookies: true,
         foursquare_url: brewlog::infrastructure::foursquare::FOURSQUARE_SEARCH_URL.to_string(),
         foursquare_api_key: String::new(),
-        openrouter_url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
-        openrouter_api_key: String::new(),
-        openrouter_model: "openrouter/free".to_string(),
+        inference_provider: brewlog::infrastructure::ai::InferenceProvider::OpenRouter {
+            url: brewlog::infrastructure::ai::OPENROUTER_URL.to_string(),
+            api_key: String::new(),
+            model: "openrouter/free".to_string(),
+        },
         stats_invalidator: brewlog::application::services::StatsInvalidator::new(stats_tx),
         timeline_invalidator: brewlog::application::services::TimelineInvalidator::new(timeline_tx),
     };
@@ -623,7 +627,39 @@ pub async fn spawn_app_with_openrouter_mock() -> TestApp {
     let app = spawn_app_inner(
         database,
         AppStateConfig {
-            openrouter_url,
+            inference_provider: brewlog::infrastructure::ai::InferenceProvider::OpenRouter {
+                url: openrouter_url,
+                api_key: String::new(),
+                model: "openrouter/free".to_string(),
+            },
+            ..test_state_config()
+        },
+        Some(mock_server),
+    )
+    .await;
+
+    add_auth_to_app(app).await
+}
+
+/// Spawn a test app whose inference provider is `openai-compatible`, pointed
+/// at the mock server, with no API key or model configured — mirrors a
+/// self-hosted proxy that injects its own credentials and default model.
+pub async fn spawn_app_with_openai_compatible_mock() -> TestApp {
+    let mock_server = wiremock::MockServer::start().await;
+    let base_url = format!("{}/v1/chat/completions", mock_server.uri());
+
+    let database = Database::connect("sqlite::memory:")
+        .await
+        .expect("Failed to connect to in-memory database");
+
+    let app = spawn_app_inner(
+        database,
+        AppStateConfig {
+            inference_provider: brewlog::infrastructure::ai::InferenceProvider::OpenAiCompatible {
+                base_url,
+                api_key: None,
+                model: None,
+            },
             ..test_state_config()
         },
         Some(mock_server),
@@ -647,7 +683,11 @@ pub async fn spawn_app_with_all_mocks() -> TestApp {
         AppStateConfig {
             foursquare_url,
             foursquare_api_key: "test-api-key".to_string(),
-            openrouter_url,
+            inference_provider: brewlog::infrastructure::ai::InferenceProvider::OpenRouter {
+                url: openrouter_url,
+                api_key: String::new(),
+                model: "openrouter/free".to_string(),
+            },
             ..test_state_config()
         },
         Some(mock_server),
