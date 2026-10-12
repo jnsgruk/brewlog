@@ -180,3 +180,91 @@ async fn create_full_chain_via_browser() {
 
     session.quit().await;
 }
+
+#[tokio::test]
+async fn edit_brew_can_clear_all_quick_notes_and_optional_fields() {
+    use crate::helpers::server_helpers::create_default_brew;
+    use crate::helpers::wait::wait_for_url_not_contains;
+    use brewlog::domain::brews::{Brew, QuickNote};
+
+    let app = spawn_app_with_auth().await;
+    let brew = create_default_brew(&app).await;
+    let filter = create_default_gear(&app, "filter_paper", "Hario", "V60").await;
+    let client = reqwest::Client::new();
+    let url = app.api_url(&format!("/brews/{}", brew.id));
+    let response = client
+        .put(&url)
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&serde_json::json!({"quick_notes": ["good", "too-fast"], "filter_paper_id": filter.id, "brew_time": 150}))
+        .send().await.unwrap();
+    assert_eq!(response.status(), 200);
+
+    let session = BrowserSession::new(&app.address).await.unwrap();
+    authenticate_browser(&session, &app).await.unwrap();
+    session
+        .goto(&format!("/brews/{}/edit", brew.id))
+        .await
+        .unwrap();
+    wait_for_visible(&session.driver, "select[name='filter_paper_id']")
+        .await
+        .unwrap();
+    for signal in ["_qnGood", "_qnTooFast"] {
+        session
+            .driver
+            .find(By::Css(format!(
+                "button[data-on\\:click='${signal} = !${signal}']"
+            )))
+            .await
+            .unwrap()
+            .click()
+            .await
+            .unwrap();
+    }
+    select_option(&session.driver, "filter_paper_id", "")
+        .await
+        .unwrap();
+    session
+        .driver
+        .find(By::Css("button[aria-label='Clear brew time']"))
+        .await
+        .unwrap()
+        .click()
+        .await
+        .unwrap();
+    assert_eq!(
+        session
+            .driver
+            .find(By::Css("input[name='brew_time']"))
+            .await
+            .unwrap()
+            .prop("value")
+            .await
+            .unwrap(),
+        Some(String::new()),
+        "Clearing time must submit an empty hidden field"
+    );
+    submit_visible_form(&session.driver).await.unwrap();
+    wait_for_url_not_contains(&session.driver, "/edit")
+        .await
+        .unwrap();
+    let stored: Brew = client.get(&url).send().await.unwrap().json().await.unwrap();
+    assert_eq!(stored.quick_notes, Vec::<QuickNote>::new());
+    assert_eq!(stored.filter_paper_id, None);
+    assert_eq!(stored.brew_time, None);
+
+    // A subsequent edit must preserve absent time rather than replace it with zero.
+    session
+        .goto(&format!("/brews/{}/edit", brew.id))
+        .await
+        .unwrap();
+    wait_for_visible(&session.driver, "select[name='filter_paper_id']")
+        .await
+        .unwrap();
+    submit_visible_form(&session.driver).await.unwrap();
+    wait_for_url_not_contains(&session.driver, "/edit")
+        .await
+        .unwrap();
+    let stored: Brew = client.get(&url).send().await.unwrap().json().await.unwrap();
+    assert_eq!(stored.brew_time, None);
+    session.quit().await;
+}

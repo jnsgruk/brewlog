@@ -83,8 +83,8 @@ pub async fn add_brew(client: &BrewlogClient, command: AddBrewCommand) -> Result
     let quick_notes: Vec<QuickNote> = command
         .quick_notes
         .iter()
-        .filter_map(|s| QuickNote::from_str_value(s))
-        .collect();
+        .map(|s| parse_quick_note(s))
+        .collect::<Result<_>>()?;
     let created_at = command
         .created_at
         .map(|s| parse_created_at(&s))
@@ -176,23 +176,26 @@ pub async fn update_brew(client: &BrewlogClient, command: UpdateBrewCommand) -> 
         .created_at
         .map(|s| parse_created_at(&s))
         .transpose()?;
-    let quick_notes = command.quick_notes.map(|notes| {
-        notes
-            .iter()
-            .filter_map(|s| QuickNote::from_str_value(s))
-            .collect()
-    });
+    let quick_notes = command
+        .quick_notes
+        .map(|notes| {
+            notes
+                .iter()
+                .map(|s| parse_quick_note(s))
+                .collect::<Result<_>>()
+        })
+        .transpose()?;
     let payload = UpdateBrew {
         bag_id: command.bag_id.map(BagId::new),
         coffee_weight: command.coffee_weight,
         grinder_id: command.grinder_id.map(GearId::new),
         grind_setting: command.grind_setting,
         brewer_id: command.brewer_id.map(GearId::new),
-        filter_paper_id: command.filter_paper_id.map(GearId::new),
+        filter_paper_id: command.filter_paper_id.map(|id| Some(GearId::new(id))),
         water_volume: command.water_volume,
         water_temp: command.water_temp,
         quick_notes,
-        brew_time: command.brew_time,
+        brew_time: command.brew_time.map(Some),
         created_at,
     };
 
@@ -201,6 +204,10 @@ pub async fn update_brew(client: &BrewlogClient, command: UpdateBrewCommand) -> 
         .update(BrewId::new(command.id), &payload)
         .await?;
     print_json(&brew)
+}
+
+fn parse_quick_note(value: &str) -> Result<QuickNote> {
+    QuickNote::from_str_value(value).ok_or_else(|| anyhow::anyhow!("invalid quick note: {value}"))
 }
 
 define_get_command!(GetBrewCommand, get_brew, BrewId, brews);

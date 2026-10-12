@@ -122,7 +122,7 @@ pub(crate) async fn brew_edit_page(
             .unwrap_or_default(),
         water_volume: brew.brew.water_volume,
         water_temp: brew.brew.water_temp,
-        brew_time: brew.brew.brew_time.unwrap_or(0),
+        brew_time: brew.brew.brew_time,
         quick_notes: brew
             .brew
             .quick_notes

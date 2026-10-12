@@ -22,8 +22,9 @@ start-up.
 
 ## Quick Start (Demo)
 
-Before you start, you'll need to sign up for [Openrouter](https://openrouter.ai) and
-[Foursquare Places](https://foursquare.com/products/places/) and get API keys for both.
+Before you start, you'll need an API key from [Openrouter](https://openrouter.ai).
+Optionally, get a [Foursquare Places](https://foursquare.com/products/places/) API key to enable
+nearby cafe search.
 
 Then create a `docker.env` file:
 
@@ -32,7 +33,7 @@ Then create a `docker.env` file:
 BREWLOG_OPENROUTER_API_KEY=sk-or-...
 # I've had good results with Gemini models, but you can try 'openrouter/free' to experiment
 BREWLOG_OPENROUTER_MODEL=google/gemini-3-flash-preview
-# FourSquare Places API key for location searching
+# Optional Foursquare Places API key for nearby cafe search
 BREWLOG_FOURSQUARE_API_KEY=fsq3...
 ```
 
@@ -70,7 +71,7 @@ To build and install from source, you'll need a working Rust toolchain:
 cargo install --locked --git https://github.com/jnsgruk/brewlog.git
 ```
 
-Then create a `.env` file containing at least your OpenRouter and Foursquare API keys, and start
+Then create a `.env` file containing at least your OpenRouter API key, and start
 the server:
 
 ```bash
@@ -123,7 +124,11 @@ directory is loaded automatically via [dotenvy](https://crates.io/crates/dotenvy
 | Variable                     | Purpose                                                                     | Default       |
 | ----------------------------- | ---------------------------------------------------------------------------- | ------------- |
 | `BREWLOG_INFERENCE_PROVIDER`  | AI inference backend: `openrouter` or `openai-compatible`                    | `openrouter`  |
-| `BREWLOG_FOURSQUARE_API_KEY`  | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search  | **required**  |
+| `BREWLOG_FOURSQUARE_API_KEY`  | [Foursquare](https://foursquare.com/) Places API key for nearby cafe search  | —             |
+
+Foursquare is optional. When `BREWLOG_FOURSQUARE_API_KEY` is unset or blank, the server starts
+normally and nearby cafe search is disabled. Search requests return a validation error explaining
+how to enable the integration.
 
 #### `openrouter` provider (default)
 

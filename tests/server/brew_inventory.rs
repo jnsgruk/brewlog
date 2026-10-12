@@ -21,7 +21,7 @@ impl Inventory {
         for statement in [
             "INSERT INTO roasters (name, country) VALUES ('Test', 'GB')",
             "INSERT INTO roasts (roaster_id, name) VALUES (1, 'Test')",
-            "INSERT INTO gear (category, make, model) VALUES ('grinder', 'Test', 'Grinder'), ('brewer', 'Test', 'Brewer')",
+            "INSERT INTO gear (category, make, model) VALUES ('grinder', 'Test', 'Grinder'), ('brewer', 'Test', 'Brewer'), ('filter_paper', 'Test', 'Paper')",
         ] {
             sqlx::query(statement).execute(db.pool()).await.unwrap();
         }
@@ -179,12 +179,30 @@ async fn closed_bags_allow_sensory_edits_reductions_and_moves_without_reopening(
                 bag_id: Some(brew.bag_id),
                 coffee_weight: Some(15.0),
                 quick_notes: Some(vec![QuickNote::Good]),
+                filter_paper_id: Some(Some(GearId::new(3))),
+                brew_time: Some(Some(150)),
                 water_temp: Some(94.0),
                 ..Default::default()
             },
         )
         .await
         .unwrap();
+    let cleared = inventory
+        .brews
+        .update(
+            brew.id,
+            UpdateBrew {
+                quick_notes: Some(vec![]),
+                filter_paper_id: Some(None),
+                brew_time: Some(None),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    assert!(cleared.quick_notes.is_empty());
+    assert_eq!(cleared.filter_paper_id, None);
+    assert_eq!(cleared.brew_time, None);
     assert_eq!(inventory.stock().await, (235.0, 250.0));
     assert!(matches!(
         inventory

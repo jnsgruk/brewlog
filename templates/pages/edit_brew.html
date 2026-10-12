@@ -21,7 +21,7 @@
       data-signals:_grind-setting="{{ grind_setting }}"
       data-signals:_water-volume="{{ water_volume }}"
       data-signals:_water-temp="{{ water_temp }}"
-      data-signals:_brew-time="{{ brew_time }}"
+      data-signals:_brew-time="{% if let Some(seconds) = brew_time %}{{ seconds }}{% else %}''{% endif %}"
       data-signals:_qn-good="{% if quick_notes.contains("good") %}true{% else %}false{% endif %}"
       data-signals:_qn-too-fast="{% if quick_notes.contains("too-fast") %}true{% else %}false{% endif %}"
       data-signals:_qn-too-slow="{% if quick_notes.contains("too-slow") %}true{% else %}false{% endif %}"
@@ -312,14 +312,22 @@
                 type="text"
                 readonly
                 class="input-field flex-1 text-center"
-                data-attr:value="Math.floor($_brewTime / 60) + ':' + String($_brewTime % 60).padStart(2, '0')"
+                data-attr:value="$_brewTime === '' ? '' : Math.floor($_brewTime / 60) + ':' + String($_brewTime % 60).padStart(2, '0')"
               />
               <button
                 type="button"
                 class="btn-adjust"
-                data-on:click="$_brewTime = $_brewTime + 5"
+                data-on:click="$_brewTime = Number($_brewTime) + 5"
               >
                 +
+              </button>
+              <button
+                type="button"
+                class="h-8 rounded-md border px-2 text-sm font-medium text-accent max-md:h-11"
+                data-on:click="$_brewTime = ''"
+                aria-label="Clear brew time"
+              >
+                Clear
               </button>
             </div>
           </div>

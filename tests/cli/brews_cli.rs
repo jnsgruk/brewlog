@@ -262,6 +262,8 @@ fn test_update_brew_with_authentication() {
             "16.0",
             "--water-temp",
             "94.0",
+            "--quick-notes",
+            "good,too-fast,too-slow,too-hot,under-extracted,over-extracted",
         ],
         &[("BREWLOG_TOKEN", &token)],
     );
@@ -277,4 +279,45 @@ fn test_update_brew_with_authentication() {
 
     assert_eq!(brew["coffee_weight"], 16.0);
     assert_eq!(brew["water_temp"], 94.0);
+    assert_eq!(
+        brew["quick_notes"],
+        serde_json::json!([
+            "Good",
+            "TooFast",
+            "TooSlow",
+            "TooHot",
+            "UnderExtracted",
+            "OverExtracted"
+        ])
+    );
+}
+
+#[test]
+fn invalid_quick_notes_are_reported_by_brew_commands() {
+    for args in [
+        vec![
+            "brew",
+            "add",
+            "--bag-id",
+            "1",
+            "--grinder-id",
+            "1",
+            "--brewer-id",
+            "1",
+            "--quick-notes",
+            "good,invalid",
+        ],
+        vec![
+            "brew",
+            "update",
+            "--id",
+            "1",
+            "--quick-notes",
+            "good,invalid",
+        ],
+    ] {
+        let output = run_brewlog(&args, &[]);
+        assert!(!output.status.success());
+        assert!(String::from_utf8_lossy(&output.stderr).contains("invalid quick note: invalid"));
+    }
 }

@@ -171,16 +171,62 @@ where
     match value {
         None | Some(serde_json::Value::Null) => Ok(Vec::new()),
         Some(serde_json::Value::String(s)) if s.is_empty() => Ok(Vec::new()),
-        Some(serde_json::Value::String(s)) => Ok(s
-            .split(',')
-            .filter_map(|v| QuickNote::from_str_value(v.trim()))
-            .collect()),
-        Some(serde_json::Value::Array(arr)) => Ok(arr
+        Some(serde_json::Value::String(s)) => {
+            s.split(',').map(|v| parse_quick_note(v.trim())).collect()
+        }
+        Some(serde_json::Value::Array(arr)) => arr
             .iter()
-            .filter_map(|v| v.as_str().and_then(QuickNote::from_str_value))
-            .collect()),
+            .map(|v| {
+                let value = v.as_str().ok_or_else(|| {
+                    serde::de::Error::custom("quick_notes entries must be strings")
+                })?;
+                parse_quick_note(value)
+            })
+            .collect(),
         Some(_) => Err(serde::de::Error::custom("invalid quick_notes")),
     }
+}
+
+fn parse_quick_note<E: serde::de::Error>(value: &str) -> Result<QuickNote, E> {
+    QuickNote::from_str_value(value)
+        .ok_or_else(|| E::custom(format!("invalid quick note: {value}")))
+}
+
+fn deserialize_update_quick_notes<'de, D>(
+    deserializer: D,
+) -> Result<Option<Vec<QuickNote>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_quick_notes(deserializer).map(Some)
+}
+
+#[allow(clippy::option_option)] // Outer option tracks presence; inner option tracks null.
+fn deserialize_update_filter_paper<'de, D>(
+    deserializer: D,
+) -> Result<Option<Option<GearId>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_optional_gear_id(deserializer).map(Some)
+}
+
+/// Accept seconds from JSON or forms, and null/blank as an explicit clear.
+#[allow(clippy::option_option)] // Outer option tracks presence; inner option tracks null.
+fn deserialize_update_brew_time<'de, D>(deserializer: D) -> Result<Option<Option<i32>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    let seconds = match value {
+        None | Some(serde_json::Value::Null) => None,
+        Some(serde_json::Value::String(s)) if s.is_empty() => None,
+        Some(serde_json::Value::String(s)) => {
+            Some(s.parse::<i32>().map_err(serde::de::Error::custom)?)
+        }
+        Some(value) => Some(serde_json::from_value(value).map_err(serde::de::Error::custom)?),
+    };
+    Ok(Some(seconds))
 }
 
 #[derive(Debug, Deserialize)]
@@ -342,16 +388,18 @@ pub(crate) struct UpdateBrewSubmission {
     grind_setting: Option<f64>,
     #[serde(default, deserialize_with = "deserialize_optional_gear_id")]
     brewer_id: Option<GearId>,
-    #[serde(default, deserialize_with = "deserialize_optional_gear_id")]
-    filter_paper_id: Option<GearId>,
+    #[serde(default, deserialize_with = "deserialize_update_filter_paper")]
+    #[allow(clippy::option_option)] // Distinguish omission, clear, and a value.
+    filter_paper_id: Option<Option<GearId>>,
     #[serde(default)]
     water_volume: Option<i32>,
     #[serde(default)]
     water_temp: Option<f64>,
-    #[serde(default, deserialize_with = "deserialize_quick_notes")]
-    quick_notes: Vec<QuickNote>,
-    #[serde(default)]
-    brew_time: Option<i32>,
+    #[serde(default, deserialize_with = "deserialize_update_quick_notes")]
+    quick_notes: Option<Vec<QuickNote>>,
+    #[serde(default, deserialize_with = "deserialize_update_brew_time")]
+    #[allow(clippy::option_option)] // Distinguish omission, clear, and a value.
+    brew_time: Option<Option<i32>>,
     #[serde(default)]
     created_at: Option<DateTime<Utc>>,
     #[serde(default)]
@@ -369,11 +417,7 @@ impl UpdateBrewSubmission {
             filter_paper_id: self.filter_paper_id,
             water_volume: self.water_volume,
             water_temp: self.water_temp,
-            quick_notes: if self.quick_notes.is_empty() {
-                None
-            } else {
-                Some(self.quick_notes)
-            },
+            quick_notes: self.quick_notes,
             brew_time: self.brew_time,
             created_at: self.created_at,
         };
