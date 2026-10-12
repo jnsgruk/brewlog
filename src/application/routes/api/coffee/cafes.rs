@@ -254,6 +254,13 @@ pub(crate) async fn nearby_cafes(
     headers: HeaderMap,
     Query(query): Query<NearbyQuery>,
 ) -> Result<Response, ApiError> {
+    if state.foursquare_api_key.trim().is_empty() {
+        return Err(AppError::validation(
+            "Nearby cafe search is disabled. Set BREWLOG_FOURSQUARE_API_KEY to enable it.",
+        )
+        .into());
+    }
+
     let q = query.q.trim();
     if q.is_empty() || q.len() < 2 {
         return Err(AppError::validation("q must be at least 2 characters").into());

@@ -205,6 +205,10 @@ pub async fn spawn_app_with_timeline_sync() -> TestApp {
 }
 
 pub async fn spawn_app_with_foursquare_mock() -> TestApp {
+    spawn_app_with_foursquare_key("test-api-key").await
+}
+
+pub async fn spawn_app_with_foursquare_key(api_key: &str) -> TestApp {
     let mock_server = wiremock::MockServer::start().await;
     let foursquare_url = format!("{}/places/search", mock_server.uri());
 
@@ -216,7 +220,7 @@ pub async fn spawn_app_with_foursquare_mock() -> TestApp {
         database,
         AppStateConfig {
             foursquare_url,
-            foursquare_api_key: "test-api-key".to_string(),
+            foursquare_api_key: api_key.to_string(),
             ..test_state_config()
         },
         Some(mock_server),

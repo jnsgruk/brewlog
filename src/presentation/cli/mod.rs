@@ -171,6 +171,7 @@ pub struct ServeCommand {
     #[arg(long, env = "BREWLOG_INFERENCE_MODEL")]
     pub inference_model: Option<String>,
 
+    /// Optional Foursquare Places API key. Nearby cafe search is disabled when unset or blank.
     #[arg(long, env = "BREWLOG_FOURSQUARE_API_KEY")]
     pub foursquare_api_key: Option<String>,
 }

@@ -123,12 +123,7 @@ async fn run_server(command: ServeCommand) -> Result<()> {
         }
     };
 
-    let foursquare_api_key = command.foursquare_api_key.ok_or_else(|| {
-        anyhow::anyhow!(
-            "BREWLOG_FOURSQUARE_API_KEY is required. Set this environment variable \
-             to a Foursquare API key for nearby cafe search."
-        )
-    })?;
+    let foursquare_api_key = command.foursquare_api_key.unwrap_or_default();
 
     brewlog::set_base_url(rp_origin.clone());
 
