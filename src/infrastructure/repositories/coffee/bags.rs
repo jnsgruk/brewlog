@@ -169,6 +169,20 @@ impl BagRepository for SqlBagRepository {
     }
 
     async fn update(&self, id: BagId, changes: UpdateBag) -> Result<Bag, RepositoryError> {
+        let mut tx = self
+            .pool
+            .begin_with("BEGIN IMMEDIATE")
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        // An explicit stock count supersedes historical brew deductions, even
+        // when the supplied count equals the current remaining amount.
+        if changes.remaining.is_some() {
+            sqlx::query("UPDATE brews SET inventory_deducted = 0 WHERE bag_id = ?")
+                .bind(id.into_inner())
+                .execute(&mut *tx)
+                .await
+                .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        }
         let mut builder = QueryBuilder::new("UPDATE bags SET updated_at = CURRENT_TIMESTAMP");
         let mut sep = true; // Already have updated_at
 
@@ -194,11 +208,14 @@ impl BagRepository for SqlBagRepository {
 
         let record = builder
             .build_query_as::<BagRecord>()
-            .fetch_optional(&self.pool)
+            .fetch_optional(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
+        tx.commit()
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
         Ok(record.into())
     }
 

@@ -206,7 +206,7 @@ pub(crate) struct NewBrewSubmission {
 
 impl NewBrewSubmission {
     fn into_parts(self) -> Result<(NewBrew, Option<String>), AppError> {
-        if self.coffee_weight <= 0.0 {
+        if !self.coffee_weight.is_finite() || self.coffee_weight <= 0.0 {
             return Err(AppError::validation("coffee weight must be positive"));
         }
         if self.grind_setting < 0.0 {
@@ -408,6 +408,11 @@ pub(crate) async fn update_brew(
     let (update, image_data_url) = submission.into_parts();
 
     validate_update(&update, image_data_url.as_ref())?;
+    if let Some(dose) = update.coffee_weight
+        && (!dose.is_finite() || dose <= 0.0)
+    {
+        return Err(AppError::validation("coffee weight must be finite and positive").into());
+    }
 
     state
         .brew_repo

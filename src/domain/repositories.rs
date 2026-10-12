@@ -208,7 +208,10 @@ pub trait BrewRepository: Send + Sync {
         request: &ListRequest<BrewSortKey>,
         search: Option<&str>,
     ) -> Result<Page<BrewWithDetails>, RepositoryError>;
+    /// Reconcile dose/bag corrections atomically using tracked actual deductions.
+    /// Repeated corrections and sensory-only edits do not deduct stock again.
     async fn update(&self, id: BrewId, changes: UpdateBrew) -> Result<Brew, RepositoryError>;
+    /// Remove history without returning consumed coffee to inventory.
     async fn delete(&self, id: BrewId) -> Result<(), RepositoryError>;
 
     async fn list_all(&self) -> Result<Vec<BrewWithDetails>, RepositoryError> {

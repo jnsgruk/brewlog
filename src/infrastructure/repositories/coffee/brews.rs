@@ -9,7 +9,7 @@ use crate::domain::brews::{
 use crate::domain::ids::{BagId, BrewId, GearId};
 use crate::domain::listing::{ListRequest, Page, SortDirection};
 use crate::domain::repositories::BrewRepository;
-use crate::infrastructure::database::DatabasePool;
+use crate::infrastructure::database::{DatabasePool, DatabaseTransaction};
 use crate::infrastructure::repositories::macros::push_update_field;
 
 const BASE_SELECT: &str = r"
@@ -52,6 +52,95 @@ pub struct SqlBrewRepository {
 impl SqlBrewRepository {
     pub fn new(pool: DatabasePool) -> Self {
         Self { pool }
+    }
+
+    fn validate_dose(dose: f64) -> Result<(), RepositoryError> {
+        if !dose.is_finite() || dose <= 0.0 {
+            return Err(RepositoryError::conflict(
+                "Coffee weight must be finite and greater than zero",
+            ));
+        }
+        Ok(())
+    }
+
+    // The caller holds SQLite's write lock before reading stock or brew state.
+    async fn deduct_stock(
+        tx: &mut DatabaseTransaction<'_>,
+        bag_id: BagId,
+        dose: f64,
+    ) -> Result<f64, RepositoryError> {
+        let remaining: f64 =
+            sqlx::query_scalar("SELECT remaining FROM bags WHERE id = ? AND closed = FALSE")
+                .bind(bag_id.into_inner())
+                .fetch_optional(&mut **tx)
+                .await
+                .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+                .ok_or_else(|| RepositoryError::conflict("Bag is closed or not found"))?;
+        let deducted = dose.min(remaining.max(0.0));
+        sqlx::query("UPDATE bags SET remaining = MAX(remaining - ?, 0), updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+            .bind(deducted)
+            .bind(bag_id.into_inner())
+            .execute(&mut **tx)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        Ok(deducted)
+    }
+
+    async fn restore_stock(
+        tx: &mut DatabaseTransaction<'_>,
+        bag_id: BagId,
+        credit: f64,
+    ) -> Result<(), RepositoryError> {
+        let result = sqlx::query("UPDATE bags SET remaining = remaining + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+            .bind(credit)
+            .bind(bag_id.into_inner())
+            .execute(&mut **tx)
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        if result.rows_affected() == 0 {
+            return Err(RepositoryError::conflict("Original bag not found"));
+        }
+        Ok(())
+    }
+
+    async fn reconcile_inventory(
+        tx: &mut DatabaseTransaction<'_>,
+        id: BrewId,
+        changes: &UpdateBrew,
+    ) -> Result<f64, RepositoryError> {
+        let (old_bag, old_dose, mut credit): (i64, f64, f64) = sqlx::query_as(
+            "SELECT bag_id, coffee_weight, inventory_deducted FROM brews WHERE id = ?",
+        )
+        .bind(id.into_inner())
+        .fetch_optional(&mut **tx)
+        .await
+        .map_err(|err| RepositoryError::unexpected(err.to_string()))?
+        .ok_or(RepositoryError::NotFound)?;
+        let old_bag = BagId::new(old_bag);
+        let new_bag = changes.bag_id.unwrap_or(old_bag);
+        let new_dose = changes.coffee_weight.unwrap_or(old_dose);
+        if new_bag != old_bag {
+            Self::restore_stock(tx, old_bag, credit).await?;
+            credit = Self::deduct_stock(tx, new_bag, new_dose).await?;
+        } else if new_dose > old_dose {
+            let closed: bool = sqlx::query_scalar("SELECT closed FROM bags WHERE id = ?")
+                .bind(old_bag.into_inner())
+                .fetch_one(&mut **tx)
+                .await
+                .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+            if closed {
+                return Err(RepositoryError::conflict(
+                    "Cannot increase dose on a closed bag",
+                ));
+            }
+            credit += Self::deduct_stock(tx, old_bag, new_dose - old_dose).await?;
+        } else if new_dose < old_dose {
+            // Closed bags still allow historical dose reductions.
+            let new_credit = credit.min(new_dose);
+            Self::restore_stock(tx, old_bag, credit - new_credit).await?;
+            credit = new_credit;
+        }
+        Ok(credit)
     }
 
     fn order_clause(request: &ListRequest<BrewSortKey>) -> String {
@@ -107,38 +196,19 @@ impl SqlBrewRepository {
 #[async_trait]
 impl BrewRepository for SqlBrewRepository {
     async fn insert(&self, brew: NewBrew) -> Result<Brew, RepositoryError> {
-        // Use a transaction to atomically:
-        // 1. Deduct coffee_weight from bag's remaining
-        // 2. Insert the brew
+        Self::validate_dose(brew.coffee_weight)?;
         let mut tx = self
             .pool
-            .begin()
+            .begin_with("BEGIN IMMEDIATE")
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        // Deduct coffee weight from bag's remaining amount, clamping to zero
-        let update_bag_query = r"
-            UPDATE bags
-            SET remaining = MAX(remaining - ?, 0), updated_at = CURRENT_TIMESTAMP
-            WHERE id = ? AND closed = FALSE
-        ";
-
-        let result = sqlx::query(update_bag_query)
-            .bind(brew.coffee_weight)
-            .bind(brew.bag_id.into_inner())
-            .execute(&mut *tx)
-            .await
-            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
-
-        if result.rows_affected() == 0 {
-            return Err(RepositoryError::conflict("Bag is closed or not found"));
-        }
+        let deducted = Self::deduct_stock(&mut tx, brew.bag_id, brew.coffee_weight).await?;
 
         // Insert the brew
         let created_at = brew.created_at.unwrap_or_else(Utc::now);
         let insert_query = r"
-            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, brew_time, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO brews (bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, brew_time, created_at, updated_at, inventory_deducted)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id, bag_id, coffee_weight, grinder_id, grind_setting, brewer_id, filter_paper_id, water_volume, water_temp, quick_notes, brew_time, created_at, updated_at
         ";
 
@@ -158,6 +228,7 @@ impl BrewRepository for SqlBrewRepository {
             .bind(brew.brew_time)
             .bind(created_at)
             .bind(created_at)
+            .bind(deducted)
             .fetch_one(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
@@ -242,7 +313,18 @@ impl BrewRepository for SqlBrewRepository {
     }
 
     async fn update(&self, id: BrewId, changes: UpdateBrew) -> Result<Brew, RepositoryError> {
+        if let Some(dose) = changes.coffee_weight {
+            Self::validate_dose(dose)?;
+        }
+        let mut tx = self
+            .pool
+            .begin_with("BEGIN IMMEDIATE")
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
+        let credit = Self::reconcile_inventory(&mut tx, id, &changes).await?;
         let mut builder = QueryBuilder::new("UPDATE brews SET updated_at = CURRENT_TIMESTAMP");
+        builder.push(", inventory_deducted = ");
+        builder.push_bind(credit);
         let mut sep = true;
 
         push_update_field!(
@@ -299,11 +381,14 @@ impl BrewRepository for SqlBrewRepository {
 
         let record = builder
             .build_query_as::<BrewRecord>()
-            .fetch_optional(&self.pool)
+            .fetch_optional(&mut *tx)
             .await
             .map_err(|err| RepositoryError::unexpected(err.to_string()))?
             .ok_or(RepositoryError::NotFound)?;
 
+        tx.commit()
+            .await
+            .map_err(|err| RepositoryError::unexpected(err.to_string()))?;
         Ok(record.into())
     }
 

@@ -843,3 +843,54 @@ async fn creating_brew_with_water_temp_over_100_returns_400() {
 
     assert_eq!(response.status(), 400);
 }
+
+#[tokio::test]
+async fn updating_brew_with_invalid_dose_returns_400_without_changing_inventory() {
+    let app = spawn_app_with_auth().await;
+    let roaster = create_default_roaster(&app).await;
+    let roast = create_default_roast(&app, roaster.id).await;
+    let bag = create_default_bag(&app, roast.id).await;
+    let grinder = create_default_gear(&app, "grinder", "Comandante", "C40 MK4").await;
+    let brewer = create_default_gear(&app, "brewer", "Hario", "V60 02").await;
+    let client = reqwest::Client::new();
+    let response = client
+        .post(app.api_url("/brews"))
+        .bearer_auth(app.auth_token.as_ref().unwrap())
+        .json(&NewBrew {
+            bag_id: bag.id,
+            coffee_weight: 15.0,
+            grinder_id: grinder.id,
+            grind_setting: 24.0,
+            brewer_id: brewer.id,
+            filter_paper_id: None,
+            water_volume: 250,
+            water_temp: 92.0,
+            quick_notes: vec![],
+            brew_time: None,
+            created_at: None,
+        })
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 201);
+    let brew: Brew = response.json().await.unwrap();
+    for dose in [0.0, -1.0] {
+        let response = client
+            .put(app.api_url(&format!("/brews/{}", brew.id)))
+            .bearer_auth(app.auth_token.as_ref().unwrap())
+            .json(&serde_json::json!({ "coffee_weight": dose }))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 400);
+    }
+    let bag: Bag = client
+        .get(app.api_url(&format!("/bags/{}", bag.id)))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(bag.remaining, 235.0);
+}
