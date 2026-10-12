@@ -94,31 +94,6 @@ brewlog roaster add --name "Radical Roasters" --country "United Kingdom"
 
 Run `brewlog --help` for the full command reference.
 
-### Updating brews
-
-`PUT /api/v1/brews/{id}` accepts partial JSON updates. Omitted fields retain their
-stored values. `quick_notes: []` clears all notes; `quick_notes: null` also clears
-them. `filter_paper_id: null` and `brew_time: null` remove the filter and time,
-respectively. For example:
-
-```json
-{ "quick_notes": [], "filter_paper_id": null, "brew_time": null }
-```
-
-Form submissions use comma-separated `quick_notes`. An empty submitted value
-clears notes, while an omitted field leaves them unchanged. The edit form always
-submits a hidden notes field, including an empty value when all note toggles are
-off (unchecked controls alone would otherwise be omitted). Selecting **None** for
-filter paper submits a blank value to remove it. **Clear** beside brew time submits
-a blank value to remove the time; absent form fields preserve stored values.
-
-Valid quick notes are `good`, `too-fast`, `too-slow`, `too-hot`, `under-extracted`,
-and `over-extracted`; their display labels (such as `Good` and `Too Fast`) are also
-accepted, as are enum names returned by the API (such as `TooFast`). Unknown values
-and non-string JSON array entries reject the entire create or update request with
-HTTP 400, leaving stored feedback unchanged. The CLI also reports invalid quick
-notes as errors.
-
 ## Configuration
 
 All settings are read from environment variables or CLI flags. A `.env` file in the working
