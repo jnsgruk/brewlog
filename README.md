@@ -146,34 +146,6 @@ LiteLLM proxy) instead of OpenRouter. Sends no server-side tools.
 | `BREWLOG_INFERENCE_API_KEY`   | API key, sent as a bearer token. Omitted when unset (e.g. the proxy injects its own)  | —                                            |
 | `BREWLOG_INFERENCE_MODEL`     | LLM model. Omitted from the request when unset, so the proxy picks its own default   | —                                            |
 
-## Brew corrections and bag inventory
-
-Creating a brew deducts its dose from an open bag, clamping remaining stock to zero.
-Dose and bag corrections update the brew and inventory in one transaction. Increasing
-a dose deducts the difference; decreasing it returns only tracked stock above the
-corrected dose. Moving a brew returns its tracked deduction to the original bag and
-deducts the corrected dose from the new bag. Repeating an identical correction has
-no further inventory effect. Notes, temperature, equipment, and other sensory edits
-never change stock.
-
-Doses must be finite and positive (invalid API doses return 400). A missing or closed
-new bag returns a conflict and leaves the brew and both bags unchanged. Brews on
-closed bags remain editable: unchanged doses and sensory edits work, dose reductions
-can return tracked stock, and moving to an open bag works without reopening the old
-bag. Increasing a dose on its existing closed bag returns a conflict.
-
-Only coffee actually deducted can be returned. For example, a 300 g brew logged
-against 250 g stock can return at most 250 g when moved; correcting its dose to 280 g
-returns nothing. Explicitly setting a bag's remaining stock establishes a new stock
-count and clears refundable deductions for its existing brews, even if the count is
-unchanged. Older brews and brews restored from backups start with no refundable
-stock because their original deductions cannot be safely inferred. Subsequent dose
-increases still track their actual deductions.
-
-Deleting a brew removes history only: the coffee is treated as consumed and stock
-is not returned. To correct inventory independently, edit the bag's remaining stock.
-
-
 ## Development Setup
 
 Install [mise](https://mise.jdx.dev/) then set up the development environment:
