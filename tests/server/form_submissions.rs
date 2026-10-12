@@ -463,3 +463,140 @@ async fn invalid_update_form_still_returns_validation_json() {
         "application/json"
     );
 }
+
+#[tokio::test]
+async fn brew_edit_form_clears_notes_filter_and_time() {
+    use crate::helpers::{create_default_brew, create_session, put_form_datastar};
+    use brewlog::domain::brews::{Brew, QuickNote};
+
+    let app = spawn_app_with_auth().await;
+    let brew = create_default_brew(&app).await;
+    let filter = create_default_gear(&app, "filter_paper", "Hario", "V60").await;
+    let path = format!("/brews/{}", brew.id);
+    let client = reqwest::Client::new();
+    let response = put_form(
+        &app,
+        &path,
+        &[
+            ("quick_notes", "good,too-fast"),
+            ("filter_paper_id", &filter.id.to_string()),
+            ("brew_time", "150"),
+        ],
+    )
+    .await;
+    assert_eq!(response.status(), 303);
+
+    // Partial form updates preserve fields that are absent.
+    assert_eq!(
+        put_form(&app, &path, &[("water_temp", "94")])
+            .await
+            .status(),
+        303
+    );
+    let stored: Brew = client
+        .get(app.api_url(&path))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(
+        stored.quick_notes,
+        vec![QuickNote::Good, QuickNote::TooFast]
+    );
+    assert_eq!(stored.filter_paper_id, Some(filter.id));
+    assert_eq!(stored.brew_time, Some(150));
+
+    // The edit page keeps a hidden notes input even when every toggle is off.
+    let session = create_session(&app).await;
+    let html = client
+        .get(format!("{}{path}/edit", app.address))
+        .header("Cookie", format!("brewlog_session={session}"))
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(html.contains("name=\"quick_notes\""));
+    assert!(html.contains(".filter(Boolean).join(',')"));
+    assert!(html.contains("aria-label=\"Clear brew time\""));
+
+    for datastar in [false, true] {
+        let fields = [
+            ("quick_notes", ""),
+            ("filter_paper_id", ""),
+            ("brew_time", ""),
+        ];
+        let response = if datastar {
+            put_form_datastar(&app, &path, &fields).await
+        } else {
+            put_form(&app, &path, &fields).await
+        };
+        assert_eq!(response.status(), if datastar { 200 } else { 303 });
+        let stored: Brew = client
+            .get(app.api_url(&path))
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        assert!(stored.quick_notes.is_empty());
+        assert_eq!(stored.filter_paper_id, None);
+        assert_eq!(stored.brew_time, None);
+    }
+    let html = client
+        .get(format!("{}{path}/edit", app.address))
+        .header("Cookie", format!("brewlog_session={session}"))
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(html.contains("data-signals:_brew-time=\"''\""));
+}
+
+#[tokio::test]
+async fn invalid_brew_form_notes_are_rejected_without_changes() {
+    use brewlog::domain::brews::{Brew, QuickNote};
+
+    let app = spawn_app_with_auth().await;
+    let brew = crate::helpers::create_default_brew(&app).await;
+    let path = format!("/brews/{}", brew.id);
+    assert_eq!(
+        put_form(&app, &path, &[("quick_notes", "good")])
+            .await
+            .status(),
+        303
+    );
+    let response = put_form(
+        &app,
+        &path,
+        &[("quick_notes", "good,invalid"), ("water_temp", "95")],
+    )
+    .await;
+    assert_eq!(response.status(), 400);
+    let stored: Brew = reqwest::get(app.api_url(&path))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(stored.quick_notes, vec![QuickNote::Good]);
+    assert_eq!(stored.water_temp, brew.water_temp);
+
+    let fields = vec![
+        ("bag_id", brew.bag_id.to_string()),
+        ("coffee_weight", "15".into()),
+        ("grinder_id", brew.grinder_id.to_string()),
+        ("grind_setting", "24".into()),
+        ("brewer_id", brew.brewer_id.to_string()),
+        ("water_volume", "250".into()),
+        ("water_temp", "92".into()),
+        ("quick_notes", "good,invalid".into()),
+    ];
+    assert_eq!(post_form(&app, "/brews", &fields).await.status(), 400);
+}

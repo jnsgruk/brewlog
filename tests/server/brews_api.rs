@@ -843,3 +843,142 @@ async fn creating_brew_with_water_temp_over_100_returns_400() {
 
     assert_eq!(response.status(), 400);
 }
+
+#[tokio::test]
+async fn brew_updates_distinguish_omission_from_explicit_clears() {
+    use brewlog::domain::brews::{QuickNote, UpdateBrew};
+
+    let app = spawn_app_with_auth().await;
+    let brew = crate::helpers::create_default_brew(&app).await;
+    let filter = create_default_gear(&app, "filter_paper", "Hario", "V60").await;
+    let client = reqwest::Client::new();
+    let url = app.api_url(&format!("/brews/{}", brew.id));
+    let token = app.auth_token.as_ref().unwrap();
+
+    let updates = [
+        (
+            serde_json::json!({"quick_notes": ["good", "too-fast"], "filter_paper_id": filter.id, "brew_time": 150}),
+            vec![QuickNote::Good, QuickNote::TooFast],
+            Some(filter.id),
+            Some(150),
+        ),
+        (
+            serde_json::json!({"water_temp": 94.0}),
+            vec![QuickNote::Good, QuickNote::TooFast],
+            Some(filter.id),
+            Some(150),
+        ),
+        (
+            serde_json::json!({"quick_notes": []}),
+            vec![],
+            Some(filter.id),
+            Some(150),
+        ),
+        (
+            serde_json::json!({"quick_notes": ["Good", "Too Fast"]}),
+            vec![QuickNote::Good, QuickNote::TooFast],
+            Some(filter.id),
+            Some(150),
+        ),
+        (
+            serde_json::json!({"quick_notes": null}),
+            vec![],
+            Some(filter.id),
+            Some(150),
+        ),
+        (
+            serde_json::json!({"filter_paper_id": null}),
+            vec![],
+            None,
+            Some(150),
+        ),
+        (serde_json::json!({"brew_time": null}), vec![], None, None),
+        (
+            serde_json::to_value(UpdateBrew {
+                filter_paper_id: Some(Some(filter.id)),
+                brew_time: Some(Some(120)),
+                ..UpdateBrew::default()
+            })
+            .unwrap(),
+            vec![],
+            Some(filter.id),
+            Some(120),
+        ),
+        (
+            serde_json::to_value(UpdateBrew {
+                filter_paper_id: Some(None),
+                brew_time: Some(None),
+                ..UpdateBrew::default()
+            })
+            .unwrap(),
+            vec![],
+            None,
+            None,
+        ),
+    ];
+    for (payload, notes, filter_id, time) in updates {
+        let response = client
+            .put(&url)
+            .bearer_auth(token)
+            .json(&payload)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 200, "{}", response.text().await.unwrap());
+        let stored: Brew = client.get(&url).send().await.unwrap().json().await.unwrap();
+        assert_eq!(stored.quick_notes, notes);
+        assert_eq!(stored.filter_paper_id, filter_id);
+        assert_eq!(stored.brew_time, time);
+    }
+
+    let response = client
+        .put(&url)
+        .bearer_auth(token)
+        .json(&serde_json::json!({}))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 400);
+}
+
+#[tokio::test]
+async fn invalid_quick_notes_reject_the_entire_brew_update() {
+    use brewlog::domain::brews::QuickNote;
+
+    let app = spawn_app_with_auth().await;
+    let brew = crate::helpers::create_default_brew(&app).await;
+    let client = reqwest::Client::new();
+    let url = app.api_url(&format!("/brews/{}", brew.id));
+    let token = app.auth_token.as_ref().unwrap();
+    assert_eq!(
+        client
+            .put(&url)
+            .bearer_auth(token)
+            .json(&serde_json::json!({"quick_notes": ["good"]}))
+            .send()
+            .await
+            .unwrap()
+            .status(),
+        200
+    );
+
+    for notes in [
+        serde_json::json!(["good", "invalid"]),
+        serde_json::json!(["good", 42]),
+        serde_json::json!([null]),
+        serde_json::json!("good,invalid"),
+        serde_json::json!({"good": true}),
+    ] {
+        let response = client
+            .put(&url)
+            .bearer_auth(token)
+            .json(&serde_json::json!({"quick_notes": notes, "water_temp": 95.0}))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 400);
+        let stored: Brew = client.get(&url).send().await.unwrap().json().await.unwrap();
+        assert_eq!(stored.quick_notes, vec![QuickNote::Good]);
+        assert_eq!(stored.water_temp, brew.water_temp);
+    }
+}

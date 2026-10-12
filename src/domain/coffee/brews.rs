@@ -67,11 +67,11 @@ impl FromStr for QuickNote {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "good" | "Good" => Ok(Self::Good),
-            "too-fast" | "Too Fast" => Ok(Self::TooFast),
-            "too-slow" | "Too Slow" => Ok(Self::TooSlow),
-            "too-hot" | "Too Hot" => Ok(Self::TooHot),
-            "under-extracted" | "Under Extracted" => Ok(Self::UnderExtracted),
-            "over-extracted" | "Over Extracted" => Ok(Self::OverExtracted),
+            "too-fast" | "Too Fast" | "TooFast" => Ok(Self::TooFast),
+            "too-slow" | "Too Slow" | "TooSlow" => Ok(Self::TooSlow),
+            "too-hot" | "Too Hot" | "TooHot" => Ok(Self::TooHot),
+            "under-extracted" | "Under Extracted" | "UnderExtracted" => Ok(Self::UnderExtracted),
+            "over-extracted" | "Over Extracted" | "OverExtracted" => Ok(Self::OverExtracted),
             _ => Err(()),
         }
     }
@@ -238,18 +238,38 @@ pub struct UpdateBrew {
     pub grind_setting: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub brewer_id: Option<GearId>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub filter_paper_id: Option<GearId>,
+    /// Omitted leaves the filter unchanged; explicit null removes it.
+    #[serde(
+        default,
+        deserialize_with = "deserialize_nullable_update",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub filter_paper_id: Option<Option<GearId>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub water_volume: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub water_temp: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub quick_notes: Option<Vec<QuickNote>>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub brew_time: Option<i32>,
+    /// Omitted leaves the time unchanged; explicit null removes it.
+    #[serde(
+        default,
+        deserialize_with = "deserialize_nullable_update",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub brew_time: Option<Option<i32>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<DateTime<Utc>>,
+}
+
+/// Preserve explicit null as a change, while `serde(default)` handles omission.
+#[allow(clippy::option_option)] // Outer option tracks presence; inner option tracks null.
+fn deserialize_nullable_update<'de, D, T>(deserializer: D) -> Result<Option<Option<T>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(deserializer).map(Some)
 }
 
 /// Filter criteria for brew queries.
@@ -318,6 +338,28 @@ mod tests {
     #[test]
     fn quick_note_from_str_trait() {
         assert_eq!("good".parse::<QuickNote>(), Ok(QuickNote::Good));
+    }
+
+    #[test]
+    fn nullable_brew_updates_roundtrip_omission_clear_and_value() {
+        for (payload, expected_filter, expected_time) in [
+            (serde_json::json!({}), None, None),
+            (
+                serde_json::json!({"filter_paper_id": null, "brew_time": null}),
+                Some(None),
+                Some(None),
+            ),
+            (
+                serde_json::json!({"filter_paper_id": 5, "brew_time": 150}),
+                Some(Some(GearId::new(5))),
+                Some(Some(150)),
+            ),
+        ] {
+            let update: UpdateBrew = serde_json::from_value(payload.clone()).unwrap();
+            assert_eq!(update.filter_paper_id, expected_filter);
+            assert_eq!(update.brew_time, expected_time);
+            assert_eq!(serde_json::to_value(update).unwrap(), payload);
+        }
     }
 
     #[test]

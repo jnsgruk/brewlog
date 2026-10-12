@@ -275,7 +275,7 @@ impl BrewRepository for SqlBrewRepository {
             "filter_paper_id",
             changes
                 .filter_paper_id
-                .map(crate::domain::ids::GearId::into_inner)
+                .map(|value| value.map(crate::domain::ids::GearId::into_inner))
         );
         push_update_field!(builder, sep, "water_volume", changes.water_volume);
         push_update_field!(builder, sep, "water_temp", changes.water_temp);

@@ -373,7 +373,7 @@ pub struct BrewEditTemplate {
     pub filter_paper_id: String,
     pub water_volume: i32,
     pub water_temp: f64,
-    pub brew_time: i32,
+    pub brew_time: Option<i32>,
     pub quick_notes: String,
     pub bag_options: Vec<BagOptionView>,
     pub grinder_options: Vec<GearOptionView>,
